@@ -171,11 +171,21 @@ function JobsPage() {
 
         {/* RESULTS */}
         <main>
-          <div className="mb-4 flex items-baseline justify-between">
+          <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
             <h1 className="text-2xl font-bold text-[color:var(--ink)]">
               {isLoading ? "Searching…" : `${jobs.length} warehouse job${jobs.length === 1 ? "" : "s"}`}
               {search.q && <span className="text-muted-foreground"> for "{search.q}"</span>}
             </h1>
+            {hasActiveSearch && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={createAlertFromSearch}
+                className="gap-1.5"
+              >
+                <BellRing className="h-4 w-4 text-primary" /> Create alert from this search
+              </Button>
+            )}
           </div>
 
           {featured.length > 0 && (
