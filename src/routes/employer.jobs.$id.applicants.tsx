@@ -1,34 +1,26 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { ArrowLeft, Download, Mail, Phone, FileText, User as UserIcon, LayoutGrid, List, ExternalLink, XCircle } from "lucide-react";
+import {
+  ArrowLeft, Download, Mail, Phone, FileText, User as UserIcon,
+  LayoutGrid, List, ExternalLink, XCircle, Star, Trash2, Send,
+} from "lucide-react";
 import { toast } from "sonner";
 import {
-  DndContext,
-  DragOverlay,
-  PointerSensor,
-  useDraggable,
-  useDroppable,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-  type DragStartEvent,
+  DndContext, DragOverlay, PointerSensor, useDraggable, useDroppable,
+  useSensor, useSensors, type DragEndEvent, type DragStartEvent,
 } from "@dnd-kit/core";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const Route = createFileRoute("/employer/jobs/$id/applicants")({
@@ -63,16 +55,29 @@ type Applicant = {
   cover_letter: string | null;
   resume_url: string | null;
   created_at: string;
+  rating: number | null;
+  rejection_reason: string | null;
   profile?: { display_name: string | null; phone: string | null };
+};
+
+type AppNote = {
+  id: string;
+  application_id: string;
+  author_id: string;
+  body: string;
+  created_at: string;
+  author?: { display_name: string | null };
 };
 
 function ApplicantsPage() {
   const { id } = Route.useParams();
+  const { user } = useAuth();
   const qc = useQueryClient();
   const [view, setView] = useState<"board" | "table">("board");
   const [activeId, setActiveId] = useState<string | null>(null);
   const [rejectFor, setRejectFor] = useState<Applicant | null>(null);
   const [rejectReason, setRejectReason] = useState("");
+  const [openId, setOpenId] = useState<string | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -114,20 +119,19 @@ function ApplicantsPage() {
       submitted: [], reviewed: [], interview: [], hired: [], rejected: [],
     };
     for (const a of applications) {
-      // Fold legacy "shortlisted" into "interview" column visually
       const key = (a.status === ("shortlisted" as AppStatus) ? "interview" : a.status) as AppStatus;
       if (groups[key]) groups[key].push(a);
     }
     return groups;
   }, [applications]);
 
-  const updateStatus = async (appId: string, status: AppStatus, opts?: { silent?: boolean; note?: string | null }) => {
-    const patch: Record<string, unknown> = { status };
-    if (opts?.note !== undefined) patch.cover_letter = opts.note;
-    // optimistic
+  const patchLocal = (appId: string, patch: Partial<Applicant>) =>
     qc.setQueryData<Applicant[]>(["employer-applicants", id], (prev) =>
-      (prev ?? []).map((a) => (a.id === appId ? { ...a, status } : a)),
+      (prev ?? []).map((a) => (a.id === appId ? { ...a, ...patch } : a)),
     );
+
+  const updateStatus = async (appId: string, status: AppStatus, opts?: { silent?: boolean }) => {
+    patchLocal(appId, { status });
     const { error } = await supabase.from("applications").update({ status }).eq("id", appId);
     if (error) {
       toast.error(error.message);
@@ -137,7 +141,17 @@ function ApplicantsPage() {
     if (!opts?.silent) toast.success(`Moved to ${status}`);
   };
 
+  const updateRating = async (appId: string, rating: number | null) => {
+    patchLocal(appId, { rating });
+    const { error } = await supabase.from("applications").update({ rating } as never).eq("id", appId);
+    if (error) {
+      toast.error(error.message);
+      qc.invalidateQueries({ queryKey: ["employer-applicants", id] });
+    }
+  };
+
   const activeApp = applications.find((a) => a.id === activeId) ?? null;
+  const openApp = applications.find((a) => a.id === openId) ?? null;
 
   const handleDragEnd = (e: DragEndEvent) => {
     setActiveId(null);
@@ -147,9 +161,8 @@ function ApplicantsPage() {
     const current = applications.find((a) => a.id === appId);
     if (!current || current.status === overId) return;
     if (overId === "rejected") {
-      const app = current;
-      setRejectFor(app);
-      setRejectReason("");
+      setRejectFor(current);
+      setRejectReason(current.rejection_reason ?? "");
       return;
     }
     updateStatus(appId, overId);
@@ -157,11 +170,18 @@ function ApplicantsPage() {
 
   const confirmReject = async () => {
     if (!rejectFor) return;
-    const note = rejectReason.trim()
-      ? `[Rejection reason: ${rejectReason.trim()}]${rejectFor.cover_letter ? `\n\n${rejectFor.cover_letter}` : ""}`
-      : rejectFor.cover_letter ?? null;
-    await updateStatus(rejectFor.id, "rejected", { note, silent: true });
-    toast.success("Applicant rejected");
+    const reason = rejectReason.trim() || null;
+    patchLocal(rejectFor.id, { status: "rejected", rejection_reason: reason });
+    const { error } = await supabase
+      .from("applications")
+      .update({ status: "rejected", rejection_reason: reason } as never)
+      .eq("id", rejectFor.id);
+    if (error) {
+      toast.error(error.message);
+      qc.invalidateQueries({ queryKey: ["employer-applicants", id] });
+    } else {
+      toast.success("Applicant rejected");
+    }
     setRejectFor(null);
     setRejectReason("");
   };
@@ -211,7 +231,13 @@ function ApplicantsPage() {
         >
           <div className="grid gap-3 lg:grid-cols-5">
             {COLUMNS.map((col) => (
-              <Column key={col.value} column={col} items={byStatus[col.value]} onReject={(a) => { setRejectFor(a); setRejectReason(""); }} />
+              <Column
+                key={col.value}
+                column={col}
+                items={byStatus[col.value]}
+                onReject={(a) => { setRejectFor(a); setRejectReason(a.rejection_reason ?? ""); }}
+                onOpen={(a) => setOpenId(a.id)}
+              />
             ))}
           </div>
           <DragOverlay>
@@ -224,11 +250,12 @@ function ApplicantsPage() {
           onStatusChange={(appId, status) => {
             if (status === "rejected") {
               const a = applications.find((x) => x.id === appId);
-              if (a) { setRejectFor(a); setRejectReason(""); return; }
+              if (a) { setRejectFor(a); setRejectReason(a.rejection_reason ?? ""); return; }
             }
             updateStatus(appId, status);
           }}
-          onReject={(a) => { setRejectFor(a); setRejectReason(""); }}
+          onReject={(a) => { setRejectFor(a); setRejectReason(a.rejection_reason ?? ""); }}
+          onOpen={(a) => setOpenId(a.id)}
         />
       )}
 
@@ -237,11 +264,11 @@ function ApplicantsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Reject this applicant?</AlertDialogTitle>
             <AlertDialogDescription>
-              {rejectFor?.profile?.display_name ?? "Applicant"} will be moved to the Rejected column. Add an optional reason for your records.
+              {rejectFor?.profile?.display_name ?? "Applicant"} will be moved to the Rejected column. The reason is recorded for your team only.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <Textarea
-            placeholder="Reason (optional, internal note)…"
+            placeholder="Reason (e.g. lacked forklift certification, unavailable on weekends)…"
             value={rejectReason}
             onChange={(e) => setRejectReason(e.target.value)}
             rows={3}
@@ -255,18 +282,31 @@ function ApplicantsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Sheet open={!!openApp} onOpenChange={(o) => !o && setOpenId(null)}>
+        <SheetContent className="w-full overflow-y-auto sm:max-w-lg">
+          {openApp && (
+            <ApplicantDrawer
+              app={openApp}
+              currentUserId={user?.id ?? null}
+              onRate={(r) => updateRating(openApp.id, r)}
+              onReject={() => { setRejectFor(openApp); setRejectReason(openApp.rejection_reason ?? ""); }}
+              onStatusChange={(s) => updateStatus(openApp.id, s)}
+            />
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
 
 function Column({
-  column,
-  items,
-  onReject,
+  column, items, onReject, onOpen,
 }: {
   column: { value: AppStatus; label: string; accent: string };
   items: Applicant[];
   onReject: (a: Applicant) => void;
+  onOpen: (a: Applicant) => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: column.value });
   return (
@@ -283,14 +323,14 @@ function Column({
           <p className="rounded-md border border-dashed border-border px-2 py-4 text-center text-[11px] text-muted-foreground">Drop here</p>
         )}
         {items.map((a) => (
-          <DraggableCard key={a.id} app={a} onReject={() => onReject(a)} />
+          <DraggableCard key={a.id} app={a} onReject={() => onReject(a)} onOpen={() => onOpen(a)} />
         ))}
       </div>
     </div>
   );
 }
 
-function DraggableCard({ app, onReject }: { app: Applicant; onReject: () => void }) {
+function DraggableCard({ app, onReject, onOpen }: { app: Applicant; onReject: () => void; onOpen: () => void }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: app.id });
   return (
     <div
@@ -300,12 +340,31 @@ function DraggableCard({ app, onReject }: { app: Applicant; onReject: () => void
       {...listeners}
       className="cursor-grab active:cursor-grabbing touch-none"
     >
-      <ApplicantCard app={app} onReject={onReject} />
+      <ApplicantCard app={app} onReject={onReject} onOpen={onOpen} />
     </div>
   );
 }
 
-function ApplicantCard({ app, dragging, onReject }: { app: Applicant; dragging?: boolean; onReject?: () => void }) {
+function StarRow({ value, size = "sm" }: { value: number | null; size?: "sm" | "md" }) {
+  const cls = size === "sm" ? "h-3 w-3" : "h-4 w-4";
+  if (!value) return null;
+  return (
+    <div className="flex items-center gap-0.5">
+      {[1, 2, 3, 4, 5].map((n) => (
+        <Star
+          key={n}
+          className={`${cls} ${n <= value ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`}
+        />
+      ))}
+    </div>
+  );
+}
+
+function ApplicantCard({
+  app, dragging, onReject, onOpen,
+}: {
+  app: Applicant; dragging?: boolean; onReject?: () => void; onOpen?: () => void;
+}) {
   return (
     <div className={`rounded-lg border border-border bg-background p-3 shadow-sm ${dragging ? "ring-2 ring-primary shadow-lg" : ""}`}>
       <div className="flex items-start gap-2">
@@ -313,13 +372,25 @@ function ApplicantCard({ app, dragging, onReject }: { app: Applicant; dragging?:
           <UserIcon className="h-4 w-4" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-[color:var(--ink)]">
-            {app.profile?.display_name ?? "Applicant"}
-          </p>
+          {onOpen && !dragging ? (
+            <button
+              type="button"
+              onClick={onOpen}
+              onPointerDown={(e) => e.stopPropagation()}
+              className="truncate text-left text-sm font-semibold text-[color:var(--ink)] hover:text-primary hover:underline"
+            >
+              {app.profile?.display_name ?? "Applicant"}
+            </button>
+          ) : (
+            <p className="truncate text-sm font-semibold text-[color:var(--ink)]">
+              {app.profile?.display_name ?? "Applicant"}
+            </p>
+          )}
           <p className="text-[11px] text-muted-foreground">
             Applied {new Date(app.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
           </p>
         </div>
+        {app.rating && <StarRow value={app.rating} />}
       </div>
       <div className="mt-2 flex flex-wrap gap-1">
         {app.profile?.phone && (
@@ -375,13 +446,12 @@ function ApplicantCard({ app, dragging, onReject }: { app: Applicant; dragging?:
 }
 
 function TableView({
-  applications,
-  onStatusChange,
-  onReject,
+  applications, onStatusChange, onReject, onOpen,
 }: {
   applications: Applicant[];
   onStatusChange: (id: string, status: AppStatus) => void;
   onReject: (a: Applicant) => void;
+  onOpen: (a: Applicant) => void;
 }) {
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-card">
@@ -390,6 +460,7 @@ function TableView({
           <tr>
             <th className="px-4 py-3">Applicant</th>
             <th className="px-4 py-3">Applied</th>
+            <th className="px-4 py-3">Rating</th>
             <th className="px-4 py-3">Resume</th>
             <th className="px-4 py-3">Status</th>
             <th className="px-4 py-3 text-right">Actions</th>
@@ -399,12 +470,18 @@ function TableView({
           {applications.map((a) => (
             <tr key={a.id} className="hover:bg-muted/30">
               <td className="px-4 py-3">
-                <p className="font-semibold text-[color:var(--ink)]">{a.profile?.display_name ?? "Applicant"}</p>
+                <button
+                  onClick={() => onOpen(a)}
+                  className="text-left font-semibold text-[color:var(--ink)] hover:text-primary hover:underline"
+                >
+                  {a.profile?.display_name ?? "Applicant"}
+                </button>
                 {a.profile?.phone && <p className="text-xs text-muted-foreground">{a.profile.phone}</p>}
               </td>
               <td className="px-4 py-3 text-muted-foreground">
                 {new Date(a.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
               </td>
+              <td className="px-4 py-3"><StarRow value={a.rating} /></td>
               <td className="px-4 py-3">
                 {a.resume_url ? (
                   <a href={a.resume_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
@@ -441,6 +518,198 @@ function TableView({
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+function RatingControl({ value, onChange }: { value: number | null; onChange: (v: number | null) => void }) {
+  const [hover, setHover] = useState<number | null>(null);
+  const shown = hover ?? value ?? 0;
+  return (
+    <div className="flex items-center gap-1">
+      {[1, 2, 3, 4, 5].map((n) => (
+        <button
+          key={n}
+          type="button"
+          onMouseEnter={() => setHover(n)}
+          onMouseLeave={() => setHover(null)}
+          onClick={() => onChange(value === n ? null : n)}
+          aria-label={`Rate ${n} of 5`}
+          className="p-0.5"
+        >
+          <Star className={`h-5 w-5 transition-colors ${n <= shown ? "fill-amber-400 text-amber-400" : "text-muted-foreground/40 hover:text-amber-300"}`} />
+        </button>
+      ))}
+      {value && (
+        <button
+          type="button"
+          onClick={() => onChange(null)}
+          className="ml-1 text-[10px] text-muted-foreground hover:text-foreground"
+        >
+          Clear
+        </button>
+      )}
+    </div>
+  );
+}
+
+function ApplicantDrawer({
+  app, currentUserId, onRate, onReject, onStatusChange,
+}: {
+  app: Applicant;
+  currentUserId: string | null;
+  onRate: (r: number | null) => void;
+  onReject: () => void;
+  onStatusChange: (s: AppStatus) => void;
+}) {
+  const qc = useQueryClient();
+  const [draft, setDraft] = useState("");
+  const [posting, setPosting] = useState(false);
+
+  const { data: notes = [], isLoading: notesLoading } = useQuery({
+    queryKey: ["application-notes", app.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("application_notes")
+        .select("*")
+        .eq("application_id", app.id)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      const authorIds = Array.from(new Set((data ?? []).map((n: any) => n.author_id)));
+      let byId: Record<string, { display_name: string | null }> = {};
+      if (authorIds.length) {
+        const { data: profs } = await supabase
+          .from("profiles").select("id, display_name").in("id", authorIds);
+        byId = (profs ?? []).reduce<typeof byId>((acc, p) => {
+          acc[p.id] = { display_name: p.display_name }; return acc;
+        }, {});
+      }
+      return (data ?? []).map((n: any) => ({ ...n, author: byId[n.author_id] })) as AppNote[];
+    },
+  });
+
+  const addNote = async () => {
+    if (!currentUserId || !draft.trim()) return;
+    setPosting(true);
+    const { error } = await supabase.from("application_notes").insert({
+      application_id: app.id,
+      author_id: currentUserId,
+      body: draft.trim(),
+    });
+    setPosting(false);
+    if (error) { toast.error(error.message); return; }
+    setDraft("");
+    qc.invalidateQueries({ queryKey: ["application-notes", app.id] });
+  };
+
+  const deleteNote = async (noteId: string) => {
+    const { error } = await supabase.from("application_notes").delete().eq("id", noteId);
+    if (error) { toast.error(error.message); return; }
+    qc.invalidateQueries({ queryKey: ["application-notes", app.id] });
+  };
+
+  return (
+    <div className="space-y-6">
+      <SheetHeader>
+        <SheetTitle>{app.profile?.display_name ?? "Applicant"}</SheetTitle>
+        <SheetDescription>
+          Applied {new Date(app.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+        </SheetDescription>
+      </SheetHeader>
+
+      <div className="flex flex-wrap gap-2">
+        {app.resume_url && (
+          <>
+            <Button asChild size="sm" variant="outline" className="gap-1">
+              <a href={app.resume_url} target="_blank" rel="noreferrer"><ExternalLink className="h-3.5 w-3.5" /> View resume</a>
+            </Button>
+            <Button asChild size="sm" variant="outline" className="gap-1">
+              <a href={app.resume_url} download><Download className="h-3.5 w-3.5" /> Download</a>
+            </Button>
+          </>
+        )}
+        <Select value={app.status} onValueChange={(v) => onStatusChange(v as AppStatus)}>
+          <SelectTrigger className="h-9 w-[140px] text-xs"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {COLUMNS.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        {app.status !== "rejected" && (
+          <Button size="sm" variant="outline" onClick={onReject} className="gap-1 border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100">
+            <XCircle className="h-3.5 w-3.5" /> Reject…
+          </Button>
+        )}
+      </div>
+
+      {app.cover_letter && (
+        <section>
+          <p className="label-caps mb-1.5">Cover note</p>
+          <p className="whitespace-pre-line rounded-md border border-border bg-muted/30 p-3 text-sm text-foreground">
+            {app.cover_letter}
+          </p>
+        </section>
+      )}
+
+      <section>
+        <p className="label-caps mb-1.5">Rating</p>
+        <RatingControl value={app.rating} onChange={onRate} />
+      </section>
+
+      {app.status === "rejected" && app.rejection_reason && (
+        <section>
+          <p className="label-caps mb-1.5 text-rose-700">Rejection reason</p>
+          <p className="rounded-md border border-rose-200 bg-rose-50 p-3 text-sm text-rose-900">{app.rejection_reason}</p>
+        </section>
+      )}
+
+      <section>
+        <p className="label-caps mb-2">Team notes</p>
+        <div className="space-y-2">
+          {notesLoading && <p className="text-xs text-muted-foreground">Loading…</p>}
+          {!notesLoading && notes.length === 0 && (
+            <p className="rounded-md border border-dashed border-border p-3 text-center text-xs text-muted-foreground">
+              No notes yet. Share your impressions with the rest of your team.
+            </p>
+          )}
+          {notes.map((n) => (
+            <div key={n.id} className="group rounded-md border border-border bg-card p-3">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs font-semibold text-[color:var(--ink)]">
+                  {n.author?.display_name ?? "Teammate"}
+                  <span className="ml-2 font-normal text-muted-foreground">
+                    {new Date(n.created_at).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
+                  </span>
+                </p>
+                {n.author_id === currentUserId && (
+                  <button
+                    type="button"
+                    onClick={() => deleteNote(n.id)}
+                    className="text-muted-foreground opacity-0 transition-opacity hover:text-rose-600 group-hover:opacity-100"
+                    aria-label="Delete note"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </div>
+              <p className="mt-1 whitespace-pre-line text-sm text-foreground">{n.body}</p>
+            </div>
+          ))}
+        </div>
+        <div className="mt-3 space-y-2">
+          <Textarea
+            placeholder="Add a note for your team…"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            rows={3}
+            maxLength={2000}
+          />
+          <div className="flex justify-end">
+            <Button size="sm" onClick={addNote} disabled={!draft.trim() || posting} className="gap-1">
+              <Send className="h-3.5 w-3.5" /> {posting ? "Posting…" : "Post note"}
+            </Button>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
