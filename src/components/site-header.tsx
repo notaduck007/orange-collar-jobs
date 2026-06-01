@@ -14,7 +14,7 @@ export function SiteHeader() {
           </div>
           <div className="flex flex-col leading-none">
             <span className="text-base font-bold tracking-tight text-[color:var(--ink)]">WarehouseJobs</span>
-            <span className="label-caps text-[10px]">Warehouse Jobs</span>
+            <span className="label-caps text-[10px]">Hiring Now</span>
           </div>
         </Link>
 
