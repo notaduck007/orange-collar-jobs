@@ -41,13 +41,19 @@ function EmployerLayout() {
 
       const { data: membership } = await supabase
         .from("company_members")
-        .select("company_id, companies:company_id(*)")
+        .select("company_id")
         .eq("user_id", user!.id)
         .eq("status", "active")
         .limit(1)
         .maybeSingle();
-      // @ts-expect-error supabase relation join is loosely typed
-      return membership?.companies ?? null;
+      if (!membership?.company_id) return null;
+
+      const { data: viaMember } = await supabase
+        .from("companies")
+        .select("*")
+        .eq("id", membership.company_id)
+        .maybeSingle();
+      return viaMember ?? null;
     },
   });
 
