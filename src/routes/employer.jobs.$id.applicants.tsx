@@ -278,6 +278,7 @@ function ApplicantsPage() {
                 key={col.value}
                 column={col}
                 items={byStatus[col.value]}
+                knockedOut={knockedOut}
                 onReject={(a) => { setRejectFor(a); setRejectReason(a.rejection_reason ?? ""); }}
                 onOpen={(a) => setOpenId(a.id)}
               />
@@ -289,7 +290,8 @@ function ApplicantsPage() {
         </DndContext>
       ) : (
         <TableView
-          applications={applications}
+          applications={visibleApplications}
+          knockedOut={knockedOut}
           onStatusChange={(appId, status) => {
             if (status === "rejected") {
               const a = applications.find((x) => x.id === appId);
