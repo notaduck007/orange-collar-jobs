@@ -70,6 +70,30 @@ export type Database = {
           },
         ]
       }
+      application_notes: {
+        Row: {
+          application_id: string
+          author_id: string
+          body: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          application_id: string
+          author_id: string
+          body: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          application_id?: string
+          author_id?: string
+          body?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: []
+      }
       applications: {
         Row: {
           applicant_id: string
@@ -77,6 +101,8 @@ export type Database = {
           created_at: string
           id: string
           job_id: string
+          rating: number | null
+          rejection_reason: string | null
           resume_url: string | null
           status: Database["public"]["Enums"]["application_status"]
         }
@@ -86,6 +112,8 @@ export type Database = {
           created_at?: string
           id?: string
           job_id: string
+          rating?: number | null
+          rejection_reason?: string | null
           resume_url?: string | null
           status?: Database["public"]["Enums"]["application_status"]
         }
@@ -95,6 +123,8 @@ export type Database = {
           created_at?: string
           id?: string
           job_id?: string
+          rating?: number | null
+          rejection_reason?: string | null
           resume_url?: string | null
           status?: Database["public"]["Enums"]["application_status"]
         }
