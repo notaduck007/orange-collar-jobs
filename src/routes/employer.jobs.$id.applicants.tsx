@@ -407,12 +407,17 @@ function StarRow({ value, size = "sm" }: { value: number | null; size?: "sm" | "
 }
 
 function ApplicantCard({
-  app, dragging, onReject, onOpen,
+  app, dragging, knockout, onReject, onOpen,
 }: {
-  app: Applicant; dragging?: boolean; onReject?: () => void; onOpen?: () => void;
+  app: Applicant; dragging?: boolean; knockout?: boolean; onReject?: () => void; onOpen?: () => void;
 }) {
   return (
-    <div className={`rounded-lg border border-border bg-background p-3 shadow-sm ${dragging ? "ring-2 ring-primary shadow-lg" : ""}`}>
+    <div className={`rounded-lg border ${knockout ? "border-rose-300 bg-rose-50/40" : "border-border bg-background"} p-3 shadow-sm ${dragging ? "ring-2 ring-primary shadow-lg" : ""}`}>
+      {knockout && (
+        <p className="mb-1.5 inline-flex items-center gap-1 rounded bg-rose-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-rose-800">
+          <XCircle className="h-2.5 w-2.5" /> Knockout
+        </p>
+      )}
       <div className="flex items-start gap-2">
         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[color:var(--primary-tint)] text-primary">
           <UserIcon className="h-4 w-4" />
