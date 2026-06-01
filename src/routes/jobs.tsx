@@ -69,9 +69,17 @@ function JobsPage() {
 
   const sort = search.sort ?? (search.q ? "relevance" : "date");
 
-  const { data: result, isLoading } = useQuery({
+  const PAGE_SIZE = 20;
+  const {
+    data,
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+  } = useInfiniteQuery({
     queryKey: ["jobs-search", search, sort],
-    queryFn: async () => {
+    initialPageParam: 0,
+    queryFn: async ({ pageParam }) => {
       const { data, error } = await supabase.rpc("search_jobs", {
         p_query: search.q ?? null,
         p_location: search.loc ?? null,
@@ -81,8 +89,8 @@ function JobsPage() {
         p_pay_min: search.pay_min,
         p_radius_miles: search.loc && search.radius ? search.radius : undefined,
         p_sort: sort,
-        p_limit: 50,
-        p_offset: 0,
+        p_limit: PAGE_SIZE,
+        p_offset: pageParam,
       });
       if (error) throw error;
       const rows = (data ?? []) as Array<{
@@ -100,12 +108,19 @@ function JobsPage() {
         category: r.category,
         companies: r.company_name ? { name: r.company_name, slug: r.company_slug ?? "" } : null,
       }));
-      return { jobs, total: rows[0]?.total_count ?? 0 };
+      return { jobs, total: rows[0]?.total_count ?? 0, offset: pageParam };
+    },
+    getNextPageParam: (lastPage) => {
+      const loaded = lastPage.offset + lastPage.jobs.length;
+      return loaded < lastPage.total ? loaded : undefined;
     },
   });
 
-  const jobs = result?.jobs ?? [];
-  const total = result?.total ?? 0;
+  const jobs = useMemo(
+    () => (data?.pages.flatMap((p) => p.jobs) ?? []) as JobSummary[],
+    [data],
+  );
+  const total = data?.pages[0]?.total ?? 0;
 
   const createAlertFromSearch = async () => {
     if (!user) {
