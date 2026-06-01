@@ -497,9 +497,10 @@ function ApplicantCard({
 }
 
 function TableView({
-  applications, onStatusChange, onReject, onOpen,
+  applications, knockedOut, onStatusChange, onReject, onOpen,
 }: {
   applications: Applicant[];
+  knockedOut: Set<string>;
   onStatusChange: (id: string, status: AppStatus) => void;
   onReject: (a: Applicant) => void;
   onOpen: (a: Applicant) => void;
@@ -520,6 +521,7 @@ function TableView({
         <tbody className="divide-y divide-border">
           {applications.map((a) => (
             <tr key={a.id} className="hover:bg-muted/30">
+
               <td className="px-4 py-3">
                 <button
                   onClick={() => onOpen(a)}
