@@ -1,10 +1,22 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { FileDown, MapPin } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { FileDown, MapPin, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { StatusBadge } from "./seeker.index";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/seeker/applications")({
   head: () => ({ meta: [{ title: "My Applications — WarehouseJobs" }] }),
@@ -13,6 +25,9 @@ export const Route = createFileRoute("/seeker/applications")({
 
 function ApplicationsPage() {
   const { user } = useAuth();
+  const qc = useQueryClient();
+  const [withdrawId, setWithdrawId] = useState<string | null>(null);
+  const [withdrawing, setWithdrawing] = useState(false);
 
   const { data: apps = [], isLoading } = useQuery({
     queryKey: ["seeker-apps", user?.id],
@@ -30,6 +45,22 @@ function ApplicationsPage() {
   const downloadResume = async (path: string) => {
     const { data } = await supabase.storage.from("resumes").createSignedUrl(path, 60);
     if (data?.signedUrl) window.open(data.signedUrl, "_blank");
+  };
+
+  const withdraw = async () => {
+    if (!withdrawId || !user) return;
+    setWithdrawing(true);
+    const { error } = await supabase.from("applications").delete().eq("id", withdrawId);
+    setWithdrawing(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Application withdrawn");
+    setWithdrawId(null);
+    qc.invalidateQueries({ queryKey: ["seeker-apps", user.id] });
+    qc.invalidateQueries({ queryKey: ["seeker-applied-ids", user.id] });
+    qc.invalidateQueries({ queryKey: ["seeker-stats", user.id] });
   };
 
   return (
@@ -61,6 +92,7 @@ function ApplicationsPage() {
                 <th className="px-4 py-3 font-semibold">Applied</th>
                 <th className="px-4 py-3 font-semibold">Status</th>
                 <th className="px-4 py-3 font-semibold">Resume</th>
+                <th className="px-4 py-3 font-semibold text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -97,12 +129,47 @@ function ApplicationsPage() {
                       <span className="text-xs text-muted-foreground">—</span>
                     )}
                   </td>
+                  <td className="px-4 py-3 text-right">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setWithdrawId(app.id)}
+                      className="text-muted-foreground hover:text-rose-600"
+                    >
+                      <Trash2 className="mr-1 h-3.5 w-3.5" /> Withdraw
+                    </Button>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       )}
+
+      <AlertDialog open={!!withdrawId} onOpenChange={(o) => !o && setWithdrawId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Withdraw this application?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently removes your application. The employer will no longer see it. You can re-apply later if the job is still open.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={withdrawing}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                withdraw();
+              }}
+              disabled={withdrawing}
+              className="bg-rose-600 hover:bg-rose-700"
+            >
+              {withdrawing ? "Withdrawing…" : "Withdraw"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
+

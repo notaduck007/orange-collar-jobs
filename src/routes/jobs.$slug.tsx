@@ -1,15 +1,17 @@
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { MapPin, Clock, DollarSign, Building2, ArrowLeft, Bookmark, Share2 } from "lucide-react";
+import { MapPin, Clock, DollarSign, Building2, ArrowLeft, Bookmark, Share2, CheckCircle2, ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/lib/auth";
 import { ApplyDialog } from "@/components/apply-dialog";
 import { AdSlot } from "@/components/ad-slot";
+import { useAppliedJobs, useQuickApplyReady } from "@/hooks/use-applied-jobs";
 
 const EMPLOYMENT_TYPE_SCHEMA: Record<string, string> = {
   full_time: "FULL_TIME",
@@ -140,7 +142,13 @@ function JobDetail() {
   const { slug } = Route.useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const [applyOpen, setApplyOpen] = useState(false);
+  const [coverOpen, setCoverOpen] = useState(false);
+  const [coverNote, setCoverNote] = useState("");
+  const [quickSubmitting, setQuickSubmitting] = useState(false);
+  const appliedIds = useAppliedJobs();
+  const quickApply = useQuickApplyReady();
 
   const { data: job, isLoading } = useQuery({
     queryKey: ["job", slug],
@@ -156,9 +164,38 @@ function JobDetail() {
     },
   });
 
+  const alreadyApplied = !!job && appliedIds.has(job.id);
+
+  const handleQuickApply = async () => {
+    if (!user || !job || !quickApply.resumeUrl) return;
+    setQuickSubmitting(true);
+    const { error } = await supabase.from("applications").insert({
+      job_id: job.id,
+      applicant_id: user.id,
+      resume_url: quickApply.resumeUrl,
+      cover_letter: coverNote.trim() || null,
+    });
+    setQuickSubmitting(false);
+    if (error) {
+      if (error.code === "23505") toast.error("You've already applied to this job.");
+      else toast.error(error.message);
+      return;
+    }
+    toast.success("Application sent!");
+    setCoverNote("");
+    setCoverOpen(false);
+    qc.invalidateQueries({ queryKey: ["seeker-apps", user.id] });
+    qc.invalidateQueries({ queryKey: ["seeker-applied-ids", user.id] });
+    qc.invalidateQueries({ queryKey: ["seeker-stats", user.id] });
+  };
+
   const apply = () => {
     if (!user) {
       navigate({ to: "/auth", search: { mode: "login", next: `/jobs/${slug}` } as never });
+      return;
+    }
+    if (quickApply.ready) {
+      handleQuickApply();
       return;
     }
     setApplyOpen(true);
@@ -229,12 +266,57 @@ function JobDetail() {
               )}
             </section>
 
-            <div className="mt-8 flex flex-wrap gap-2">
-              <Button onClick={apply} className="btn-primary !px-6">Apply now</Button>
-              <Button variant="outline" onClick={save} className="gap-1.5"><Bookmark className="h-4 w-4" /> Save</Button>
-              <Button variant="outline" onClick={() => { navigator.clipboard.writeText(window.location.href); toast.success("Link copied"); }} className="gap-1.5">
-                <Share2 className="h-4 w-4" /> Share
-              </Button>
+            <div className="mt-8 space-y-3">
+              {user && quickApply.ready && !alreadyApplied && (
+                <div className="rounded-lg border border-dashed border-border bg-background p-3">
+                  <button
+                    type="button"
+                    onClick={() => setCoverOpen((v) => !v)}
+                    className="flex w-full items-center justify-between text-sm font-medium text-muted-foreground hover:text-primary"
+                  >
+                    <span>Add a cover note (optional)</span>
+                    {coverOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  </button>
+                  {coverOpen && (
+                    <Textarea
+                      className="mt-3"
+                      rows={4}
+                      maxLength={2000}
+                      placeholder="A quick note to the hiring manager…"
+                      value={coverNote}
+                      onChange={(e) => setCoverNote(e.target.value)}
+                    />
+                  )}
+                </div>
+              )}
+              <div className="flex flex-wrap gap-2">
+                {alreadyApplied ? (
+                  <Button disabled className="btn-primary !px-6 gap-1.5 opacity-90">
+                    <CheckCircle2 className="h-4 w-4" /> Applied
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={apply}
+                    disabled={quickSubmitting}
+                    className="btn-primary !px-6"
+                  >
+                    {quickSubmitting
+                      ? "Sending…"
+                      : user && quickApply.ready
+                        ? "Quick apply"
+                        : "Apply now"}
+                  </Button>
+                )}
+                <Button variant="outline" onClick={save} className="gap-1.5"><Bookmark className="h-4 w-4" /> Save</Button>
+                <Button variant="outline" onClick={() => { navigator.clipboard.writeText(window.location.href); toast.success("Link copied"); }} className="gap-1.5">
+                  <Share2 className="h-4 w-4" /> Share
+                </Button>
+              </div>
+              {user && !quickApply.ready && !alreadyApplied && (
+                <p className="text-xs text-muted-foreground">
+                  Tip: <Link to="/seeker/profile" className="text-primary hover:underline">complete your profile</Link> to enable one-click quick apply.
+                </p>
+              )}
             </div>
           </div>
         </main>
