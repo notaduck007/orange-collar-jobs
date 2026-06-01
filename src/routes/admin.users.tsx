@@ -14,7 +14,7 @@ type AppRole = Database["public"]["Enums"]["app_role"];
 
 export const Route = createFileRoute("/admin/users")({
   head: () => ({ meta: [{ title: "Users — DockHire Admin" }] }),
-  component: AdminUsers;
+  component: AdminUsers,
 });
 
 function AdminUsers() {
