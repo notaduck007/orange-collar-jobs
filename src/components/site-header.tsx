@@ -28,6 +28,11 @@ export function SiteHeader() {
         <div className="flex items-center gap-2">
           {user ? (
             <>
+              {(role === "employer" || role === "admin") && (
+                <Link to="/employer">
+                  <Button variant="outline" size="sm">Dashboard</Button>
+                </Link>
+              )}
               <span className="hidden text-xs text-muted-foreground sm:inline">
                 {role === "employer" ? "Employer" : role === "admin" ? "Admin" : "Job Seeker"}
               </span>
@@ -40,7 +45,7 @@ export function SiteHeader() {
               <Link to="/auth" search={{ mode: "login" }}>
                 <Button variant="ghost" size="sm">Sign in</Button>
               </Link>
-              <Link to="/pricing">
+              <Link to="/auth" search={{ mode: "signup", role: "employer" } as never}>
                 <Button size="sm" className="bg-primary text-primary-foreground shadow-[var(--shadow-orange)] hover:bg-[color:var(--primary-dark)]">
                   Post a Job
                 </Button>

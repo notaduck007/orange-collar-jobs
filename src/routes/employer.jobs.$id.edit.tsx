@@ -76,8 +76,8 @@ function EditJobPage() {
       const { error } = await supabase.from("jobs").update({
         title: form.title,
         category: form.category,
-        shift: form.shift,
-        employment_type: form.employment_type,
+        shift: form.shift as never,
+        employment_type: form.employment_type as never,
         description: form.description,
         requirements: form.requirements || null,
         city: form.city,

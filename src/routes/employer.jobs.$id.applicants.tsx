@@ -66,7 +66,7 @@ function ApplicantsPage() {
   });
 
   const updateStatus = async (appId: string, status: string) => {
-    const { error } = await supabase.from("applications").update({ status }).eq("id", appId);
+    const { error } = await supabase.from("applications").update({ status: status as never }).eq("id", appId);
     if (error) return toast.error(error.message);
     toast.success("Status updated");
     qc.invalidateQueries({ queryKey: ["employer-applicants", id] });
