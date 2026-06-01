@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { FileText, Bookmark, BellRing, ArrowRight } from "lucide-react";
+import { FileText, Bookmark, BellRing, ArrowRight, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { JobCard, type JobSummary } from "@/components/job-card";
 
 export const Route = createFileRoute("/seeker/")({
   head: () => ({ meta: [{ title: "My Dashboard — WarehouseJobs" }] }),
