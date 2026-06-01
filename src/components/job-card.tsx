@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { MapPin, Clock, DollarSign, Zap } from "lucide-react";
+import { MapPin, Clock, DollarSign, Zap, CheckCircle2 } from "lucide-react";
+import { useAppliedJobs } from "@/hooks/use-applied-jobs";
 
 export interface JobSummary {
   id: string;
