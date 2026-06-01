@@ -139,16 +139,21 @@ function ApplicantsPage() {
     },
   });
 
+  const visibleApplications = useMemo(
+    () => (hideKnockouts ? applications.filter((a) => !knockedOut.has(a.id)) : applications),
+    [applications, hideKnockouts, knockedOut],
+  );
+
   const byStatus = useMemo(() => {
     const groups: Record<AppStatus, Applicant[]> = {
       submitted: [], reviewed: [], interview: [], hired: [], rejected: [],
     };
-    for (const a of applications) {
+    for (const a of visibleApplications) {
       const key = (a.status === ("shortlisted" as AppStatus) ? "interview" : a.status) as AppStatus;
       if (groups[key]) groups[key].push(a);
     }
     return groups;
-  }, [applications]);
+  }, [visibleApplications]);
 
   const patchLocal = (appId: string, patch: Partial<Applicant>) =>
     qc.setQueryData<Applicant[]>(["employer-applicants", id], (prev) =>
