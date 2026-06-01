@@ -34,6 +34,8 @@ const typeLabel: Record<string, string> = {
 };
 
 export function JobCard({ job }: { job: JobSummary }) {
+  const appliedIds = useAppliedJobs();
+  const applied = appliedIds.has(job.id);
   const pay = job.pay_min && job.pay_max ? `$${job.pay_min}–$${job.pay_max}/hr` : null;
   return (
     <Link
@@ -58,6 +60,11 @@ export function JobCard({ job }: { job: JobSummary }) {
         <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {typeLabel[job.employment_type]}</span>
         {pay && <span className="inline-flex items-center gap-1 font-medium text-[color:var(--ink)]"><DollarSign className="h-3.5 w-3.5" /> {pay}</span>}
       </div>
+      {applied && (
+        <span className="mt-3 inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200">
+          <CheckCircle2 className="h-3 w-3" /> Applied
+        </span>
+      )}
     </Link>
   );
 }
