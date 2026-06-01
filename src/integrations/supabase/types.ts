@@ -317,6 +317,7 @@ export type Database = {
           posted_at: string
           posted_by: string | null
           requirements: string | null
+          search_vector: unknown
           shift: Database["public"]["Enums"]["job_shift"]
           slug: string
           state: string | null
@@ -345,6 +346,7 @@ export type Database = {
           posted_at?: string
           posted_by?: string | null
           requirements?: string | null
+          search_vector?: unknown
           shift?: Database["public"]["Enums"]["job_shift"]
           slug: string
           state?: string | null
@@ -373,6 +375,7 @@ export type Database = {
           posted_at?: string
           posted_by?: string | null
           requirements?: string | null
+          search_vector?: unknown
           shift?: Database["public"]["Enums"]["job_shift"]
           slug?: string
           state?: string | null
@@ -615,6 +618,38 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      search_jobs: {
+        Args: {
+          p_category?: string
+          p_limit?: number
+          p_location?: string
+          p_offset?: number
+          p_pay_min?: number
+          p_query?: string
+          p_radius_miles?: number
+          p_shift?: string
+          p_sort?: string
+          p_type?: string
+        }
+        Returns: {
+          category: string
+          company_name: string
+          company_slug: string
+          created_at: string
+          employment_type: Database["public"]["Enums"]["employment_type"]
+          featured: boolean
+          id: string
+          location: string
+          pay_max: number
+          pay_min: number
+          pay_period: string
+          rank: number
+          shift: Database["public"]["Enums"]["job_shift"]
+          slug: string
+          title: string
+          total_count: number
+        }[]
       }
     }
     Enums: {

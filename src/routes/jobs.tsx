@@ -20,6 +20,8 @@ const searchSchema = z.object({
   category: z.string().optional(),
   shift: z.string().optional(),
   type: z.string().optional(),
+  sort: z.enum(["relevance", "date", "pay_high"]).optional(),
+  pay_min: z.coerce.number().optional(),
 });
 
 export const Route = createFileRoute("/jobs")({
@@ -48,6 +50,12 @@ const TYPES = [
   { value: "contract", label: "Contract" },
 ];
 
+const SORTS = [
+  { value: "relevance", label: "Best match" },
+  { value: "date", label: "Newest" },
+  { value: "pay_high", label: "Highest pay" },
+] as const;
+
 function JobsPage() {
   const search = Route.useSearch();
   const navigate = useNavigate();
@@ -56,27 +64,45 @@ function JobsPage() {
   const [keyword, setKeyword] = useState(search.q ?? "");
   const [location, setLocation] = useState(search.loc ?? "");
 
-  const { data: jobs = [], isLoading } = useQuery({
-    queryKey: ["jobs", search],
+  const sort = search.sort ?? (search.q ? "relevance" : "date");
+
+  const { data: result, isLoading } = useQuery({
+    queryKey: ["jobs-search", search, sort],
     queryFn: async () => {
-      let q = supabase
-        .from("jobs")
-        .select("id, slug, title, location, shift, employment_type, pay_min, pay_max, featured, category, companies(name, slug)")
-        .in("status", ["active", "published"])
-        .order("featured", { ascending: false })
-        .order("created_at", { ascending: false });
-
-      if (search.q) q = q.ilike("title", `%${search.q}%`);
-      if (search.loc) q = q.ilike("location", `%${search.loc}%`);
-      if (search.category) q = q.eq("category", search.category);
-      if (search.shift) q = q.eq("shift", search.shift as never);
-      if (search.type) q = q.eq("employment_type", search.type as never);
-
-      const { data, error } = await q;
+      const { data, error } = await supabase.rpc("search_jobs", {
+        p_query: search.q ?? null,
+        p_location: search.loc ?? null,
+        p_category: search.category ?? null,
+        p_shift: search.shift ?? null,
+        p_type: search.type ?? null,
+        p_pay_min: search.pay_min,
+        p_radius_miles: undefined,
+        p_sort: sort,
+        p_limit: 50,
+        p_offset: 0,
+      });
       if (error) throw error;
-      return (data ?? []) as unknown as JobSummary[];
+      const rows = (data ?? []) as Array<{
+        id: string; slug: string; title: string; location: string;
+        shift: string; employment_type: string;
+        pay_min: number | null; pay_max: number | null;
+        category: string; featured: boolean;
+        company_name: string | null; company_slug: string | null;
+        total_count: number;
+      }>;
+      const jobs: JobSummary[] = rows.map((r) => ({
+        id: r.id, slug: r.slug, title: r.title, location: r.location,
+        shift: r.shift, employment_type: r.employment_type,
+        pay_min: r.pay_min, pay_max: r.pay_max, featured: r.featured,
+        category: r.category,
+        companies: r.company_name ? { name: r.company_name, slug: r.company_slug ?? "" } : null,
+      }));
+      return { jobs, total: rows[0]?.total_count ?? 0 };
     },
   });
+
+  const jobs = result?.jobs ?? [];
+  const total = result?.total ?? 0;
 
   const createAlertFromSearch = async () => {
     if (!user) {
@@ -176,19 +202,26 @@ function JobsPage() {
         <main>
           <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
             <h1 className="text-2xl font-bold text-[color:var(--ink)]">
-              {isLoading ? "Searching…" : `${jobs.length} warehouse job${jobs.length === 1 ? "" : "s"}`}
+              {isLoading ? "Searching…" : `${total} warehouse job${total === 1 ? "" : "s"}`}
               {search.q && <span className="text-muted-foreground"> for "{search.q}"</span>}
             </h1>
-            {hasActiveSearch && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={createAlertFromSearch}
-                className="gap-1.5"
+            <div className="flex items-center gap-2">
+              <label className="text-xs text-muted-foreground">Sort:</label>
+              <select
+                value={sort}
+                onChange={(e) => updateSearch({ sort: e.target.value as "relevance" | "date" | "pay_high" })}
+                className="rounded-md border border-border bg-card px-2 py-1 text-xs font-medium text-[color:var(--ink)]"
               >
-                <BellRing className="h-4 w-4 text-primary" /> Create alert from this search
-              </Button>
-            )}
+                {SORTS.map((s) => (
+                  <option key={s.value} value={s.value}>{s.label}</option>
+                ))}
+              </select>
+              {hasActiveSearch && (
+                <Button variant="outline" size="sm" onClick={createAlertFromSearch} className="gap-1.5">
+                  <BellRing className="h-4 w-4 text-primary" /> Alert
+                </Button>
+              )}
+            </div>
           </div>
 
           {featured.length > 0 && (
