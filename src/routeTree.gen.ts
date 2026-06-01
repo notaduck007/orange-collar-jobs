@@ -16,6 +16,7 @@ import { Route as FaqRouteImport } from './routes/faq'
 import { Route as EmployerRouteImport } from './routes/employer'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SeekerIndexRouteImport } from './routes/seeker.index'
@@ -65,6 +66,11 @@ const ContactRoute = ContactRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -123,9 +129,9 @@ const EmployerAdsRoute = EmployerAdsRouteImport.update({
   getParentRoute: () => EmployerRoute,
 } as any)
 const AdminAdsRoute = AdminAdsRouteImport.update({
-  id: '/admin/ads',
-  path: '/admin/ads',
-  getParentRoute: () => rootRouteImport,
+  id: '/ads',
+  path: '/ads',
+  getParentRoute: () => AdminRoute,
 } as any)
 const EmployerJobsNewRoute = EmployerJobsNewRouteImport.update({
   id: '/jobs/new',
@@ -147,6 +153,7 @@ const EmployerJobsIdApplicantsRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/employer': typeof EmployerRouteWithChildren
@@ -171,6 +178,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
@@ -194,6 +202,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/employer': typeof EmployerRouteWithChildren
@@ -220,6 +229,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
+    | '/admin'
     | '/auth'
     | '/contact'
     | '/employer'
@@ -244,6 +254,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
+    | '/admin'
     | '/auth'
     | '/contact'
     | '/faq'
@@ -266,6 +277,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/about'
+    | '/admin'
     | '/auth'
     | '/contact'
     | '/employer'
@@ -291,6 +303,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
   ContactRoute: typeof ContactRoute
   EmployerRoute: typeof EmployerRouteWithChildren
@@ -298,7 +311,6 @@ export interface RootRouteChildren {
   JobsRoute: typeof JobsRouteWithChildren
   PricingRoute: typeof PricingRoute
   SeekerRoute: typeof SeekerRouteWithChildren
-  AdminAdsRoute: typeof AdminAdsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -350,6 +362,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -431,10 +450,10 @@ declare module '@tanstack/react-router' {
     }
     '/admin/ads': {
       id: '/admin/ads'
-      path: '/admin/ads'
+      path: '/ads'
       fullPath: '/admin/ads'
       preLoaderRoute: typeof AdminAdsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/employer/jobs/new': {
       id: '/employer/jobs/new'
@@ -459,6 +478,16 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface AdminRouteChildren {
+  AdminAdsRoute: typeof AdminAdsRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminAdsRoute: AdminAdsRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface EmployerRouteChildren {
   EmployerAdsRoute: typeof EmployerAdsRoute
@@ -514,6 +543,7 @@ const SeekerRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
   ContactRoute: ContactRoute,
   EmployerRoute: EmployerRouteWithChildren,
@@ -521,8 +551,17 @@ const rootRouteChildren: RootRouteChildren = {
   JobsRoute: JobsRouteWithChildren,
   PricingRoute: PricingRoute,
   SeekerRoute: SeekerRouteWithChildren,
-  AdminAdsRoute: AdminAdsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
