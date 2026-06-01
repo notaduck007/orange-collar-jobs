@@ -122,9 +122,29 @@ function EditJobPage() {
         pay_period: form.pay_period,
       }).eq("id", id);
       if (error) throw error;
+
+      // Replace screening questions: simplest approach — wipe and re-insert.
+      const { error: delErr } = await supabase.from("screening_questions").delete().eq("job_id", id);
+      if (delErr) throw delErr;
+      const validQs = questions.filter((q) => q.prompt.trim().length > 0);
+      if (validQs.length) {
+        const rows = validQs.map((q, idx) => ({
+          job_id: id,
+          prompt: q.prompt.trim(),
+          type: q.type,
+          options: q.options.filter(Boolean).length ? (q.options.filter(Boolean) as unknown as never) : null,
+          required: q.required,
+          knockout_answer: (q.knockout_answer ?? null) as never,
+          sort_order: idx,
+        }));
+        const { error: insErr } = await supabase.from("screening_questions").insert(rows);
+        if (insErr) throw insErr;
+      }
+
       toast.success("Job updated");
       qc.invalidateQueries({ queryKey: ["employer-job", id] });
       qc.invalidateQueries({ queryKey: ["employer-jobs"] });
+      qc.invalidateQueries({ queryKey: ["screening-questions", id] });
       navigate({ to: "/employer" });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Save failed");
