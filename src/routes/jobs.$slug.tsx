@@ -315,7 +315,7 @@ function JobDetail() {
                   >
                     {quickSubmitting
                       ? "Sending…"
-                      : user && quickApply.ready
+                      : user && quickApply.ready && !hasScreening
                         ? "Quick apply"
                         : "Apply now"}
                   </Button>
