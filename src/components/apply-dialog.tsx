@@ -5,8 +5,10 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -24,6 +26,15 @@ interface ApplyDialogProps {
   onApplied?: () => void;
 }
 
+type QuestionRow = {
+  id: string;
+  prompt: string;
+  type: "yes_no" | "single" | "multi" | "number" | "text";
+  options: string[] | null;
+  required: boolean;
+  sort_order: number;
+};
+
 export function ApplyDialog({ jobId, jobTitle, open, onOpenChange, onApplied }: ApplyDialogProps) {
   const { user } = useAuth();
   const qc = useQueryClient();
@@ -32,6 +43,7 @@ export function ApplyDialog({ jobId, jobTitle, open, onOpenChange, onApplied }: 
   const [file, setFile] = useState<File | null>(null);
   const [useDefault, setUseDefault] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [answers, setAnswers] = useState<Record<string, unknown>>({});
 
   const { data: profile } = useQuery({
     queryKey: ["seeker-profile", user?.id],
@@ -46,16 +58,43 @@ export function ApplyDialog({ jobId, jobTitle, open, onOpenChange, onApplied }: 
     },
   });
 
+  const { data: questions = [] } = useQuery({
+    queryKey: ["screening-questions", jobId],
+    enabled: open,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("screening_questions")
+        .select("id, prompt, type, options, required, sort_order")
+        .eq("job_id", jobId)
+        .order("sort_order");
+      if (error) throw error;
+      return (data ?? []) as unknown as QuestionRow[];
+    },
+  });
+
   useEffect(() => {
     if (!open) {
       setCoverNote("");
       setFile(null);
       setUseDefault(true);
+      setAnswers({});
     }
   }, [open]);
 
+  const validateAnswers = (): string | null => {
+    for (const q of questions) {
+      if (!q.required) continue;
+      const a = answers[q.id];
+      if (a === undefined || a === null || a === "") return `Please answer: "${q.prompt}"`;
+      if (q.type === "multi" && Array.isArray(a) && a.length === 0) return `Please answer: "${q.prompt}"`;
+    }
+    return null;
+  };
+
   const submit = async () => {
     if (!user) return;
+    const qErr = validateAnswers();
+    if (qErr) { toast.error(qErr); return; }
     setSubmitting(true);
     try {
       let resumePath: string | null = null;
@@ -76,12 +115,12 @@ export function ApplyDialog({ jobId, jobTitle, open, onOpenChange, onApplied }: 
         return;
       }
 
-      const { error } = await supabase.from("applications").insert({
+      const { data: created, error } = await supabase.from("applications").insert({
         job_id: jobId,
         applicant_id: user.id,
         cover_letter: coverNote || null,
         resume_url: resumePath,
-      });
+      }).select("id").single();
       if (error) {
         if (error.code === "23505") {
           toast.error("You've already applied to this job.");
@@ -89,6 +128,19 @@ export function ApplyDialog({ jobId, jobTitle, open, onOpenChange, onApplied }: 
           throw error;
         }
       } else {
+        if (created && questions.length) {
+          const rows = questions
+            .filter((q) => answers[q.id] !== undefined)
+            .map((q) => ({
+              application_id: created.id,
+              question_id: q.id,
+              answer: answers[q.id] as never,
+            }));
+          if (rows.length) {
+            const { error: aErr } = await supabase.from("application_answers").insert(rows);
+            if (aErr) toast.error(`Application sent, but answers failed: ${aErr.message}`);
+          }
+        }
         toast.success("Application sent! The employer will be in touch.");
         qc.invalidateQueries({ queryKey: ["seeker-apps", user.id] });
         qc.invalidateQueries({ queryKey: ["seeker-applied-ids", user.id] });
@@ -106,9 +158,11 @@ export function ApplyDialog({ jobId, jobTitle, open, onOpenChange, onApplied }: 
   const hasDefault = !!profile?.default_resume_url;
   const defaultName = profile?.default_resume_url?.split("/").pop() ?? "";
 
+  const setAnswer = (id: string, v: unknown) => setAnswers((p) => ({ ...p, [id]: v }));
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Apply to {jobTitle}</DialogTitle>
           <DialogDescription>
@@ -179,6 +233,88 @@ export function ApplyDialog({ jobId, jobTitle, open, onOpenChange, onApplied }: 
               </div>
             </label>
           </div>
+
+          {questions.length > 0 && (
+            <div className="space-y-3 rounded-lg border border-border bg-background p-3">
+              <p className="text-sm font-semibold text-[color:var(--ink)]">Screening questions</p>
+              {questions.map((q) => (
+                <div key={q.id} className="space-y-1.5">
+                  <Label className="text-sm">
+                    {q.prompt}
+                    {q.required && <span className="ml-1 text-rose-600">*</span>}
+                  </Label>
+                  {q.type === "yes_no" && (
+                    <div className="flex gap-3">
+                      {[true, false].map((v) => (
+                        <label key={String(v)} className="flex items-center gap-1.5 text-sm">
+                          <input
+                            type="radio"
+                            className="accent-[color:var(--primary)]"
+                            checked={answers[q.id] === v}
+                            onChange={() => setAnswer(q.id, v)}
+                          />
+                          {v ? "Yes" : "No"}
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                  {q.type === "single" && (
+                    <div className="space-y-1">
+                      {(q.options ?? []).map((opt) => (
+                        <label key={opt} className="flex items-center gap-1.5 text-sm">
+                          <input
+                            type="radio"
+                            className="accent-[color:var(--primary)]"
+                            checked={answers[q.id] === opt}
+                            onChange={() => setAnswer(q.id, opt)}
+                          />
+                          {opt}
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                  {q.type === "multi" && (
+                    <div className="space-y-1">
+                      {(q.options ?? []).map((opt) => {
+                        const cur = Array.isArray(answers[q.id]) ? (answers[q.id] as string[]) : [];
+                        const checked = cur.includes(opt);
+                        return (
+                          <label key={opt} className="flex items-center gap-2 text-sm">
+                            <Checkbox
+                              checked={checked}
+                              onCheckedChange={(c) =>
+                                setAnswer(
+                                  q.id,
+                                  c ? [...cur, opt] : cur.filter((x) => x !== opt),
+                                )
+                              }
+                            />
+                            {opt}
+                          </label>
+                        );
+                      })}
+                    </div>
+                  )}
+                  {q.type === "number" && (
+                    <Input
+                      type="number"
+                      value={(answers[q.id] as number | undefined) ?? ""}
+                      onChange={(e) =>
+                        setAnswer(q.id, e.target.value === "" ? null : Number(e.target.value))
+                      }
+                    />
+                  )}
+                  {q.type === "text" && (
+                    <Input
+                      maxLength={500}
+                      value={(answers[q.id] as string | undefined) ?? ""}
+                      onChange={(e) => setAnswer(q.id, e.target.value)}
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
 
           <div className="space-y-1.5">
             <Label htmlFor="cover">Cover note (optional)</Label>
