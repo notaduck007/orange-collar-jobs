@@ -132,6 +132,10 @@ function JobsPage() {
     }
   };
 
+  const updateSearch = (patch: Partial<typeof search>) => {
+    navigate({ to: "/jobs", search: { ...search, ...patch } as never });
+  };
+
   const hasActiveSearch = !!(search.q || search.loc || search.category || search.shift || search.type || search.pay_min);
 
   const shiftLabel = SHIFTS.find((s) => s.value === search.shift)?.label;
@@ -146,10 +150,6 @@ function JobsPage() {
 
   const featured = useMemo(() => jobs.filter((j) => j.featured), [jobs]);
   const rest = useMemo(() => jobs.filter((j) => !j.featured), [jobs]);
-
-  const updateSearch = (patch: Partial<typeof search>) => {
-    navigate({ to: "/jobs", search: { ...search, ...patch } as never });
-  };
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
