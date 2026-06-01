@@ -1,5 +1,6 @@
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { MapPin, Clock, DollarSign, Building2, ArrowLeft, Bookmark, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,6 +8,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
+import { ApplyDialog } from "@/components/apply-dialog";
 
 export const Route = createFileRoute("/jobs/$slug")({
   component: JobDetail,
@@ -28,6 +30,7 @@ function JobDetail() {
   const { slug } = Route.useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [applyOpen, setApplyOpen] = useState(false);
 
   const { data: job, isLoading } = useQuery({
     queryKey: ["job", slug],
@@ -43,21 +46,12 @@ function JobDetail() {
     },
   });
 
-  const apply = async () => {
+  const apply = () => {
     if (!user) {
       navigate({ to: "/auth", search: { mode: "login", next: `/jobs/${slug}` } as never });
       return;
     }
-    const { error } = await supabase.from("applications").insert({
-      job_id: job!.id,
-      applicant_id: user.id,
-    });
-    if (error) {
-      if (error.code === "23505") toast.error("You've already applied to this job.");
-      else toast.error(error.message);
-    } else {
-      toast.success("Application submitted! The employer will be in touch.");
-    }
+    setApplyOpen(true);
   };
 
   const save = async () => {
@@ -157,6 +151,15 @@ function JobDetail() {
       </div>
 
       <SiteFooter />
+
+      {job && (
+        <ApplyDialog
+          jobId={job.id}
+          jobTitle={job.title}
+          open={applyOpen}
+          onOpenChange={setApplyOpen}
+        />
+      )}
     </div>
   );
 }
