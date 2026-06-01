@@ -1,10 +1,22 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { FileDown, MapPin } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { FileDown, MapPin, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { StatusBadge } from "./seeker.index";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/seeker/applications")({
   head: () => ({ meta: [{ title: "My Applications — WarehouseJobs" }] }),
@@ -13,6 +25,9 @@ export const Route = createFileRoute("/seeker/applications")({
 
 function ApplicationsPage() {
   const { user } = useAuth();
+  const qc = useQueryClient();
+  const [withdrawId, setWithdrawId] = useState<string | null>(null);
+  const [withdrawing, setWithdrawing] = useState(false);
 
   const { data: apps = [], isLoading } = useQuery({
     queryKey: ["seeker-apps", user?.id],
@@ -30,6 +45,22 @@ function ApplicationsPage() {
   const downloadResume = async (path: string) => {
     const { data } = await supabase.storage.from("resumes").createSignedUrl(path, 60);
     if (data?.signedUrl) window.open(data.signedUrl, "_blank");
+  };
+
+  const withdraw = async () => {
+    if (!withdrawId || !user) return;
+    setWithdrawing(true);
+    const { error } = await supabase.from("applications").delete().eq("id", withdrawId);
+    setWithdrawing(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Application withdrawn");
+    setWithdrawId(null);
+    qc.invalidateQueries({ queryKey: ["seeker-apps", user.id] });
+    qc.invalidateQueries({ queryKey: ["seeker-applied-ids", user.id] });
+    qc.invalidateQueries({ queryKey: ["seeker-stats", user.id] });
   };
 
   return (
