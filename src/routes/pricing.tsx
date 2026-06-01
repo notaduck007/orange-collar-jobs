@@ -20,9 +20,10 @@ function Pricing() {
     queryKey: ["packages"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("posting_packages")
+        .from("packages")
         .select("*")
         .eq("active", true)
+        .eq("kind", "posting")
         .order("sort_order");
       if (error) throw error;
       return data ?? [];
