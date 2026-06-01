@@ -48,6 +48,28 @@ function SeekerOverview() {
     },
   });
 
+  const { data: recommended = [] } = useQuery({
+    queryKey: ["seeker-recommended", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("recommended_jobs", { _user_id: user!.id, _limit: 6 });
+      if (error) throw error;
+      return (data ?? []).map((r: any) => ({
+        id: r.id,
+        slug: r.slug,
+        title: r.title,
+        location: r.location,
+        shift: r.shift,
+        employment_type: r.employment_type,
+        pay_min: r.pay_min,
+        pay_max: r.pay_max,
+        featured: r.featured,
+        category: r.category,
+        companies: r.company_name ? { name: r.company_name, slug: r.company_slug } : null,
+      })) as JobSummary[];
+    },
+  });
+
   return (
     <div className="space-y-6">
       <div>
