@@ -20,29 +20,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
+    let active = true;
+
+    const loadSessionRole = async (s: Session | null) => {
+      if (!active) return;
       setSession(s);
-      if (s?.user) {
-        // defer to avoid deadlock
-        setTimeout(async () => {
-          const { data } = await supabase
-            .from("user_roles")
-            .select("role")
-            .eq("user_id", s.user.id)
-            .maybeSingle();
-          setRole((data?.role as AppRole) ?? "job_seeker");
-        }, 0);
-      } else {
+
+      if (!s?.user) {
         setRole(null);
+        setLoading(false);
+        return;
       }
+
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", s.user.id)
+        .maybeSingle();
+
+      if (!active) return;
+      setRole((data?.role as AppRole) ?? "job_seeker");
+      setLoading(false);
+    };
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
+      setLoading(true);
+      setTimeout(() => void loadSessionRole(s), 0);
     });
 
     supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setLoading(false);
+      void loadSessionRole(data.session);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const value: AuthContextValue = {
