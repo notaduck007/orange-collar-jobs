@@ -202,19 +202,26 @@ function JobsPage() {
         <main>
           <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
             <h1 className="text-2xl font-bold text-[color:var(--ink)]">
-              {isLoading ? "Searching…" : `${jobs.length} warehouse job${jobs.length === 1 ? "" : "s"}`}
+              {isLoading ? "Searching…" : `${total} warehouse job${total === 1 ? "" : "s"}`}
               {search.q && <span className="text-muted-foreground"> for "{search.q}"</span>}
             </h1>
-            {hasActiveSearch && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={createAlertFromSearch}
-                className="gap-1.5"
+            <div className="flex items-center gap-2">
+              <label className="text-xs text-muted-foreground">Sort:</label>
+              <select
+                value={sort}
+                onChange={(e) => updateSearch({ sort: e.target.value as "relevance" | "date" | "pay_high" })}
+                className="rounded-md border border-border bg-card px-2 py-1 text-xs font-medium text-[color:var(--ink)]"
               >
-                <BellRing className="h-4 w-4 text-primary" /> Create alert from this search
-              </Button>
-            )}
+                {SORTS.map((s) => (
+                  <option key={s.value} value={s.value}>{s.label}</option>
+                ))}
+              </select>
+              {hasActiveSearch && (
+                <Button variant="outline" size="sm" onClick={createAlertFromSearch} className="gap-1.5">
+                  <BellRing className="h-4 w-4 text-primary" /> Alert
+                </Button>
+              )}
+            </div>
           </div>
 
           {featured.length > 0 && (
