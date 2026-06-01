@@ -88,7 +88,7 @@ function JobsPage() {
       toast.error("Add a keyword, location, or category to create an alert.");
       return;
     }
-    const [city, state] = (search.loc ?? "").split(",").map((s) => s.trim());
+    const [city, state] = (search.loc ?? "").split(",").map((s: string) => s.trim());
     const { error } = await supabase.from("job_alerts").insert({
       applicant_id: user.id,
       keyword: search.q || null,
