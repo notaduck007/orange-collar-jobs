@@ -529,6 +529,11 @@ function TableView({
                 >
                   {a.profile?.display_name ?? "Applicant"}
                 </button>
+                {knockedOut.has(a.id) && (
+                  <Badge variant="outline" className="ml-2 border-destructive/40 bg-destructive/10 text-[9px] font-semibold uppercase text-destructive">
+                    Knockout
+                  </Badge>
+                )}
                 {a.profile?.phone && <p className="text-xs text-muted-foreground">{a.profile.phone}</p>}
               </td>
               <td className="px-4 py-3 text-muted-foreground">
