@@ -346,10 +346,11 @@ function ApplicantsPage() {
 }
 
 function Column({
-  column, items, onReject, onOpen,
+  column, items, knockedOut, onReject, onOpen,
 }: {
   column: { value: AppStatus; label: string; accent: string };
   items: Applicant[];
+  knockedOut: Set<string>;
   onReject: (a: Applicant) => void;
   onOpen: (a: Applicant) => void;
 }) {
@@ -368,14 +369,14 @@ function Column({
           <p className="rounded-md border border-dashed border-border px-2 py-4 text-center text-[11px] text-muted-foreground">Drop here</p>
         )}
         {items.map((a) => (
-          <DraggableCard key={a.id} app={a} onReject={() => onReject(a)} onOpen={() => onOpen(a)} />
+          <DraggableCard key={a.id} app={a} knockout={knockedOut.has(a.id)} onReject={() => onReject(a)} onOpen={() => onOpen(a)} />
         ))}
       </div>
     </div>
   );
 }
 
-function DraggableCard({ app, onReject, onOpen }: { app: Applicant; onReject: () => void; onOpen: () => void }) {
+function DraggableCard({ app, knockout, onReject, onOpen }: { app: Applicant; knockout?: boolean; onReject: () => void; onOpen: () => void }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: app.id });
   return (
     <div
@@ -385,7 +386,7 @@ function DraggableCard({ app, onReject, onOpen }: { app: Applicant; onReject: ()
       {...listeners}
       className="cursor-grab active:cursor-grabbing touch-none"
     >
-      <ApplicantCard app={app} onReject={onReject} onOpen={onOpen} />
+      <ApplicantCard app={app} knockout={knockout} onReject={onReject} onOpen={onOpen} />
     </div>
   );
 }
