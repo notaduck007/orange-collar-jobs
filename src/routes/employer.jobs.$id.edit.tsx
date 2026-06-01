@@ -229,6 +229,16 @@ function EditJobPage() {
           <Textarea id="requirements" rows={5} value={form.requirements} onChange={(e) => setForm({ ...form, requirements: e.target.value })} />
         </div>
 
+        <div className="space-y-3 border-t border-border pt-5">
+          <div>
+            <h2 className="text-base font-semibold text-[color:var(--ink)]">Screening questions</h2>
+            <p className="text-xs text-muted-foreground">
+              Ask qualifying questions. Use the knockout setting to auto-flag disqualifying answers.
+            </p>
+          </div>
+          <ScreeningQuestionsBuilder value={questions} onChange={setQuestions} />
+        </div>
+
         <div className="flex items-center justify-end gap-2 border-t border-border pt-5">
           <Button type="button" variant="outline" onClick={() => navigate({ to: "/employer" })}>Cancel</Button>
           <Button type="submit" disabled={saving} className="btn-primary">{saving ? "Saving…" : "Save changes"}</Button>
