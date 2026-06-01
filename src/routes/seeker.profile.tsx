@@ -71,6 +71,7 @@ type SeekerForm = {
   desired_shift: JobShift | "";
   desired_employment_type: EmploymentType | "";
   willing_to_relocate: boolean;
+  discoverable: boolean;
   certifications: string[];
   skills: string[];
 };
@@ -103,6 +104,7 @@ function ProfilePage() {
     desired_shift: "",
     desired_employment_type: "",
     willing_to_relocate: false,
+    discoverable: false,
     certifications: [],
     skills: [],
   });
@@ -169,6 +171,7 @@ function ProfilePage() {
         desired_employment_type:
           (seekerRow.desired_employment_type as EmploymentType | null) ?? "",
         willing_to_relocate: !!seekerRow.willing_to_relocate,
+        discoverable: !!(seekerRow as { discoverable?: boolean }).discoverable,
         certifications: seekerRow.certifications ?? [],
         skills: seekerRow.skills ?? [],
       });
@@ -233,12 +236,13 @@ function ProfilePage() {
       desired_shift: seeker.desired_shift || null,
       desired_employment_type: seeker.desired_employment_type || null,
       willing_to_relocate: seeker.willing_to_relocate,
+      discoverable: seeker.discoverable,
       certifications: seeker.certifications,
       skills: seeker.skills,
     };
     const { error } = await supabase
       .from("seeker_profiles")
-      .upsert(payload, { onConflict: "user_id" });
+      .upsert(payload as never, { onConflict: "user_id" });
     setSavingSeeker(false);
     if (error) toast.error(error.message);
     else {
