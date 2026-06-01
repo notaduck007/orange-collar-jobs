@@ -14,16 +14,340 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      ads: {
+        Row: {
+          active: boolean
+          created_at: string
+          ends_at: string | null
+          id: string
+          image_url: string | null
+          owner_id: string | null
+          placement: Database["public"]["Enums"]["ad_placement"]
+          starts_at: string
+          target_url: string
+          title: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          ends_at?: string | null
+          id?: string
+          image_url?: string | null
+          owner_id?: string | null
+          placement: Database["public"]["Enums"]["ad_placement"]
+          starts_at?: string
+          target_url: string
+          title: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          ends_at?: string | null
+          id?: string
+          image_url?: string | null
+          owner_id?: string | null
+          placement?: Database["public"]["Enums"]["ad_placement"]
+          starts_at?: string
+          target_url?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      applications: {
+        Row: {
+          applicant_id: string
+          cover_letter: string | null
+          created_at: string
+          id: string
+          job_id: string
+          resume_url: string | null
+          status: Database["public"]["Enums"]["application_status"]
+        }
+        Insert: {
+          applicant_id: string
+          cover_letter?: string | null
+          created_at?: string
+          id?: string
+          job_id: string
+          resume_url?: string | null
+          status?: Database["public"]["Enums"]["application_status"]
+        }
+        Update: {
+          applicant_id?: string
+          cover_letter?: string | null
+          created_at?: string
+          id?: string
+          job_id?: string
+          resume_url?: string | null
+          status?: Database["public"]["Enums"]["application_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "applications_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      companies: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          location: string | null
+          logo_url: string | null
+          name: string
+          owner_id: string | null
+          slug: string
+          website: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          location?: string | null
+          logo_url?: string | null
+          name: string
+          owner_id?: string | null
+          slug: string
+          website?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          location?: string | null
+          logo_url?: string | null
+          name?: string
+          owner_id?: string | null
+          slug?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
+      jobs: {
+        Row: {
+          category: string
+          company_id: string
+          created_at: string
+          description: string
+          employment_type: Database["public"]["Enums"]["employment_type"]
+          expires_at: string | null
+          featured: boolean
+          id: string
+          location: string
+          pay_max: number | null
+          pay_min: number | null
+          pay_period: string | null
+          posted_by: string | null
+          requirements: string | null
+          shift: Database["public"]["Enums"]["job_shift"]
+          slug: string
+          status: Database["public"]["Enums"]["job_status"]
+          title: string
+          zip: string | null
+        }
+        Insert: {
+          category: string
+          company_id: string
+          created_at?: string
+          description: string
+          employment_type?: Database["public"]["Enums"]["employment_type"]
+          expires_at?: string | null
+          featured?: boolean
+          id?: string
+          location: string
+          pay_max?: number | null
+          pay_min?: number | null
+          pay_period?: string | null
+          posted_by?: string | null
+          requirements?: string | null
+          shift?: Database["public"]["Enums"]["job_shift"]
+          slug: string
+          status?: Database["public"]["Enums"]["job_status"]
+          title: string
+          zip?: string | null
+        }
+        Update: {
+          category?: string
+          company_id?: string
+          created_at?: string
+          description?: string
+          employment_type?: Database["public"]["Enums"]["employment_type"]
+          expires_at?: string | null
+          featured?: boolean
+          id?: string
+          location?: string
+          pay_max?: number | null
+          pay_min?: number | null
+          pay_period?: string | null
+          posted_by?: string | null
+          requirements?: string | null
+          shift?: Database["public"]["Enums"]["job_shift"]
+          slug?: string
+          status?: Database["public"]["Enums"]["job_status"]
+          title?: string
+          zip?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jobs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      posting_packages: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string | null
+          duration_days: number
+          featured_credits: number
+          id: string
+          name: string
+          post_credits: number
+          price_cents: number
+          sort_order: number
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          duration_days?: number
+          featured_credits?: number
+          id?: string
+          name: string
+          post_credits?: number
+          price_cents: number
+          sort_order?: number
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          duration_days?: number
+          featured_credits?: number
+          id?: string
+          name?: string
+          post_credits?: number
+          price_cents?: number
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          id: string
+          location: string | null
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          id: string
+          location?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          location?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      saved_jobs: {
+        Row: {
+          created_at: string
+          id: string
+          job_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          job_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          job_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_jobs_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      ad_placement: "home_banner" | "search_inline" | "job_sidebar"
+      app_role: "admin" | "employer" | "job_seeker"
+      application_status:
+        | "submitted"
+        | "reviewed"
+        | "interview"
+        | "hired"
+        | "rejected"
+      employment_type:
+        | "full_time"
+        | "part_time"
+        | "temp"
+        | "temp_to_hire"
+        | "seasonal"
+        | "contract"
+      job_shift: "first" | "second" | "third" | "weekend" | "flexible"
+      job_status: "draft" | "published" | "closed" | "expired"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +474,26 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      ad_placement: ["home_banner", "search_inline", "job_sidebar"],
+      app_role: ["admin", "employer", "job_seeker"],
+      application_status: [
+        "submitted",
+        "reviewed",
+        "interview",
+        "hired",
+        "rejected",
+      ],
+      employment_type: [
+        "full_time",
+        "part_time",
+        "temp",
+        "temp_to_hire",
+        "seasonal",
+        "contract",
+      ],
+      job_shift: ["first", "second", "third", "weekend", "flexible"],
+      job_status: ["draft", "published", "closed", "expired"],
+    },
   },
 } as const
