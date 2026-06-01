@@ -11,6 +11,8 @@ import { SiteFooter } from "@/components/site-footer";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { AdSlot } from "@/components/ad-slot";
+import { JobCardSkeletonList, EmptyState } from "@/components/ui/skeleton-list";
+import { Briefcase } from "lucide-react";
 
 const searchSchema = z.object({
   q: z.string().optional(),
@@ -200,21 +202,26 @@ function JobsPage() {
             </div>
           )}
 
-          <div className="grid gap-3">
-            {withAds.map((entry, i) =>
-              entry.kind === "job" ? (
-                <JobCard key={entry.job.id} job={entry.job} />
-              ) : (
-                <AdSlot key={`ad-${i}`} slot="search_inline" />
-              ),
-            )}
-            {!isLoading && jobs.length === 0 && (
-              <div className="rounded-lg border border-dashed border-border bg-card p-10 text-center">
-                <p className="text-base font-semibold text-[color:var(--ink)]">No jobs match those filters.</p>
-                <p className="mt-1 text-sm text-muted-foreground">Try widening your search or clearing a filter.</p>
-              </div>
-            )}
-          </div>
+          {isLoading ? (
+            <JobCardSkeletonList count={6} />
+          ) : (
+            <div className="grid gap-3">
+              {withAds.map((entry, i) =>
+                entry.kind === "job" ? (
+                  <JobCard key={entry.job.id} job={entry.job} />
+                ) : (
+                  <AdSlot key={`ad-${i}`} slot="search_inline" />
+                ),
+              )}
+              {jobs.length === 0 && (
+                <EmptyState
+                  icon={Briefcase}
+                  title="No jobs match those filters."
+                  description="Try widening your search or clearing a filter."
+                />
+              )}
+            </div>
+          )}
         </main>
       </div>
 

@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SeekerRouteImport } from './routes/seeker'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as JobsRouteImport } from './routes/jobs'
@@ -39,6 +40,11 @@ import { Route as EmployerJobsNewRouteImport } from './routes/employer.jobs.new'
 import { Route as EmployerJobsIdEditRouteImport } from './routes/employer.jobs.$id.edit'
 import { Route as EmployerJobsIdApplicantsRouteImport } from './routes/employer.jobs.$id.applicants'
 
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SeekerRoute = SeekerRouteImport.update({
   id: '/seeker',
   path: '/seeker',
@@ -197,6 +203,7 @@ export interface FileRoutesByFullPath {
   '/jobs': typeof JobsRouteWithChildren
   '/pricing': typeof PricingRoute
   '/seeker': typeof SeekerRouteWithChildren
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/ads': typeof AdminAdsRoute
   '/admin/companies': typeof AdminCompaniesRoute
   '/admin/jobs': typeof AdminJobsRoute
@@ -225,6 +232,7 @@ export interface FileRoutesByTo {
   '/faq': typeof FaqRoute
   '/jobs': typeof JobsRouteWithChildren
   '/pricing': typeof PricingRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/ads': typeof AdminAdsRoute
   '/admin/companies': typeof AdminCompaniesRoute
   '/admin/jobs': typeof AdminJobsRoute
@@ -257,6 +265,7 @@ export interface FileRoutesById {
   '/jobs': typeof JobsRouteWithChildren
   '/pricing': typeof PricingRoute
   '/seeker': typeof SeekerRouteWithChildren
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/ads': typeof AdminAdsRoute
   '/admin/companies': typeof AdminCompaniesRoute
   '/admin/jobs': typeof AdminJobsRoute
@@ -290,6 +299,7 @@ export interface FileRouteTypes {
     | '/jobs'
     | '/pricing'
     | '/seeker'
+    | '/sitemap.xml'
     | '/admin/ads'
     | '/admin/companies'
     | '/admin/jobs'
@@ -318,6 +328,7 @@ export interface FileRouteTypes {
     | '/faq'
     | '/jobs'
     | '/pricing'
+    | '/sitemap.xml'
     | '/admin/ads'
     | '/admin/companies'
     | '/admin/jobs'
@@ -349,6 +360,7 @@ export interface FileRouteTypes {
     | '/jobs'
     | '/pricing'
     | '/seeker'
+    | '/sitemap.xml'
     | '/admin/ads'
     | '/admin/companies'
     | '/admin/jobs'
@@ -381,10 +393,18 @@ export interface RootRouteChildren {
   JobsRoute: typeof JobsRouteWithChildren
   PricingRoute: typeof PricingRoute
   SeekerRoute: typeof SeekerRouteWithChildren
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/seeker': {
       id: '/seeker'
       path: '/seeker'
@@ -675,6 +695,7 @@ const rootRouteChildren: RootRouteChildren = {
   JobsRoute: JobsRouteWithChildren,
   PricingRoute: PricingRoute,
   SeekerRoute: SeekerRouteWithChildren,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { uniqueSlug } from "@/lib/slug";
+import { TableSkeleton } from "@/components/ui/skeleton-list";
 
 export const Route = createFileRoute("/employer/")({
   head: () => ({ meta: [{ title: "Employer Dashboard — DockHire" }] }),
@@ -202,7 +203,7 @@ function EmployerDashboard() {
           </div>
 
           {isLoading ? (
-            <div className="p-10 text-center text-sm text-muted-foreground">Loading jobs…</div>
+            <TableSkeleton rows={4} cols={6} />
           ) : jobs.length === 0 ? (
             <div className="p-12 text-center">
               <Briefcase className="mx-auto h-10 w-10 text-muted-foreground/40" />
