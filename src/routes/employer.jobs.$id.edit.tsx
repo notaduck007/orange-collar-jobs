@@ -51,6 +51,38 @@ function EditJobPage() {
     pay_min: "", pay_max: "", pay_period: "hour" as "hour" | "year",
   });
   const [saving, setSaving] = useState(false);
+  const [questions, setQuestions] = useState<ScreeningQuestionDraft[]>([]);
+  const [questionsLoaded, setQuestionsLoaded] = useState(false);
+
+  const { data: dbQuestions } = useQuery({
+    queryKey: ["screening-questions", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("screening_questions")
+        .select("*")
+        .eq("job_id", id)
+        .order("sort_order");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  useEffect(() => {
+    if (dbQuestions && !questionsLoaded) {
+      setQuestions(
+        dbQuestions.map((q: any, i: number) => ({
+          id: q.id,
+          prompt: q.prompt,
+          type: q.type,
+          options: Array.isArray(q.options) ? q.options : [],
+          required: q.required,
+          knockout_answer: q.knockout_answer,
+          sort_order: q.sort_order ?? i,
+        })),
+      );
+      setQuestionsLoaded(true);
+    }
+  }, [dbQuestions, questionsLoaded]);
 
   useEffect(() => {
     if (!job) return;
