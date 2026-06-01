@@ -8,6 +8,7 @@ import { JobCard, type JobSummary } from "@/components/job-card";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Button } from "@/components/ui/button";
+import { AdSlot } from "@/components/ad-slot";
 
 export const Route = createFileRoute("/")({
   head: () => ({
