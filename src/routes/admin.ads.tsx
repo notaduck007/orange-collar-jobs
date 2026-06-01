@@ -1,12 +1,8 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, X, Pause } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { SiteHeader } from "@/components/site-header";
-import { SiteFooter } from "@/components/site-footer";
-import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -30,19 +26,9 @@ type AdRow = {
 };
 
 function AdminAds() {
-  const { user, role, loading } = useAuth();
-  const navigate = useNavigate();
   const qc = useQueryClient();
-
-  useEffect(() => {
-    if (loading) return;
-    if (!user) navigate({ to: "/auth", search: { mode: "login", next: "/admin/ads" } as never });
-    else if (role && role !== "admin") navigate({ to: "/" });
-  }, [user, role, loading, navigate]);
-
   const { data: ads = [] } = useQuery({
     queryKey: ["admin-ads"],
-    enabled: role === "admin",
     queryFn: async () => {
       const { data, error } = await supabase
         .from("advertisements")
@@ -67,38 +53,34 @@ function AdminAds() {
   const others = ads.filter((a) => a.status !== "pending");
 
   return (
-    <div className="min-h-screen bg-background">
-      <SiteHeader />
-      <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-        <p className="label-caps">Admin</p>
-        <h1 className="mt-1 text-2xl font-bold text-[color:var(--ink)]">Ad approval queue</h1>
+    <div>
+      <p className="label-caps">Moderation</p>
+      <h1 className="mt-1 text-2xl font-bold text-[color:var(--ink)]">Ad approval queue</h1>
 
-        <section className="mt-8">
-          <h2 className="mb-3 text-sm font-semibold text-[color:var(--ink)]">Pending review ({pending.length})</h2>
-          <div className="grid gap-3">
-            {pending.length === 0 && <p className="text-sm text-muted-foreground">No ads waiting for review.</p>}
-            {pending.map((ad) => (
-              <AdRowItem key={ad.id} ad={ad} onApprove={() => setStatus(ad.id, "active")} onReject={() => setStatus(ad.id, "rejected")} />
-            ))}
-          </div>
-        </section>
+      <section className="mt-6">
+        <h2 className="mb-3 text-sm font-semibold text-[color:var(--ink)]">Pending review ({pending.length})</h2>
+        <div className="grid gap-3">
+          {pending.length === 0 && <p className="text-sm text-muted-foreground">No ads waiting for review.</p>}
+          {pending.map((ad) => (
+            <AdRowItem key={ad.id} ad={ad} onApprove={() => setStatus(ad.id, "active")} onReject={() => setStatus(ad.id, "rejected")} />
+          ))}
+        </div>
+      </section>
 
-        <section className="mt-10">
-          <h2 className="mb-3 text-sm font-semibold text-[color:var(--ink)]">All ads</h2>
-          <div className="grid gap-3">
-            {others.map((ad) => (
-              <AdRowItem
-                key={ad.id}
-                ad={ad}
-                onApprove={ad.status !== "active" ? () => setStatus(ad.id, "active") : undefined}
-                onReject={ad.status !== "rejected" ? () => setStatus(ad.id, "rejected") : undefined}
-                onPause={ad.status === "active" ? () => setStatus(ad.id, "paused") : undefined}
-              />
-            ))}
-          </div>
-        </section>
-      </div>
-      <SiteFooter />
+      <section className="mt-10">
+        <h2 className="mb-3 text-sm font-semibold text-[color:var(--ink)]">All ads</h2>
+        <div className="grid gap-3">
+          {others.map((ad) => (
+            <AdRowItem
+              key={ad.id}
+              ad={ad}
+              onApprove={ad.status !== "active" ? () => setStatus(ad.id, "active") : undefined}
+              onReject={ad.status !== "rejected" ? () => setStatus(ad.id, "rejected") : undefined}
+              onPause={ad.status === "active" ? () => setStatus(ad.id, "paused") : undefined}
+            />
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
