@@ -142,7 +142,13 @@ function JobDetail() {
   const { slug } = Route.useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const [applyOpen, setApplyOpen] = useState(false);
+  const [coverOpen, setCoverOpen] = useState(false);
+  const [coverNote, setCoverNote] = useState("");
+  const [quickSubmitting, setQuickSubmitting] = useState(false);
+  const appliedIds = useAppliedJobs();
+  const quickApply = useQuickApplyReady();
 
   const { data: job, isLoading } = useQuery({
     queryKey: ["job", slug],
@@ -158,9 +164,38 @@ function JobDetail() {
     },
   });
 
+  const alreadyApplied = !!job && appliedIds.has(job.id);
+
+  const handleQuickApply = async () => {
+    if (!user || !job || !quickApply.resumeUrl) return;
+    setQuickSubmitting(true);
+    const { error } = await supabase.from("applications").insert({
+      job_id: job.id,
+      applicant_id: user.id,
+      resume_url: quickApply.resumeUrl,
+      cover_letter: coverNote.trim() || null,
+    });
+    setQuickSubmitting(false);
+    if (error) {
+      if (error.code === "23505") toast.error("You've already applied to this job.");
+      else toast.error(error.message);
+      return;
+    }
+    toast.success("Application sent!");
+    setCoverNote("");
+    setCoverOpen(false);
+    qc.invalidateQueries({ queryKey: ["seeker-apps", user.id] });
+    qc.invalidateQueries({ queryKey: ["seeker-applied-ids", user.id] });
+    qc.invalidateQueries({ queryKey: ["seeker-stats", user.id] });
+  };
+
   const apply = () => {
     if (!user) {
       navigate({ to: "/auth", search: { mode: "login", next: `/jobs/${slug}` } as never });
+      return;
+    }
+    if (quickApply.ready) {
+      handleQuickApply();
       return;
     }
     setApplyOpen(true);
