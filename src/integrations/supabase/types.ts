@@ -612,6 +612,7 @@ export type Database = {
         | "interview"
         | "hired"
         | "rejected"
+        | "shortlisted"
       employment_type:
         | "full_time"
         | "part_time"
@@ -620,7 +621,14 @@ export type Database = {
         | "seasonal"
         | "contract"
       job_shift: "first" | "second" | "third" | "weekend" | "flexible"
-      job_status: "draft" | "published" | "closed" | "expired" | "active"
+      job_status:
+        | "draft"
+        | "published"
+        | "closed"
+        | "expired"
+        | "active"
+        | "paused"
+        | "pending_review"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -756,6 +764,7 @@ export const Constants = {
         "interview",
         "hired",
         "rejected",
+        "shortlisted",
       ],
       employment_type: [
         "full_time",
@@ -766,7 +775,15 @@ export const Constants = {
         "contract",
       ],
       job_shift: ["first", "second", "third", "weekend", "flexible"],
-      job_status: ["draft", "published", "closed", "expired", "active"],
+      job_status: [
+        "draft",
+        "published",
+        "closed",
+        "expired",
+        "active",
+        "paused",
+        "pending_review",
+      ],
     },
   },
 } as const
