@@ -67,9 +67,9 @@ function Pricing() {
                   <span className="ml-1 text-sm font-medium text-muted-foreground">one-time</span>
                 </p>
                 <ul className="mt-6 space-y-2.5 text-sm">
-                  <Feature>{p.post_credits} job post{p.post_credits === 1 ? "" : "s"}</Feature>
+                  <Feature>{p.posting_count} job post{p.posting_count === 1 ? "" : "s"}</Feature>
                   <Feature>{p.duration_days}-day posting period</Feature>
-                  {p.featured_credits > 0 && <Feature>{p.featured_credits} featured upgrade{p.featured_credits === 1 ? "" : "s"}</Feature>}
+                  {p.featured_count > 0 && <Feature>{p.featured_count} featured upgrade{p.featured_count === 1 ? "" : "s"}</Feature>}
                   <Feature>Applicant management dashboard</Feature>
                   <Feature>Weekly applicant report</Feature>
                 </ul>
