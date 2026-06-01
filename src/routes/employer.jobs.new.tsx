@@ -219,7 +219,7 @@ function NewJobPage() {
     try {
       const slug = uniqueSlug(form.title);
       const expiresAt = new Date(Date.now() + durationDays * 86400_000).toISOString();
-      const { error } = await supabase.from("jobs").insert({
+      const { data: created, error } = await supabase.from("jobs").insert({
         company_id: company.id,
         posted_by: user.id,
         title: form.title,
@@ -240,8 +240,23 @@ function NewJobPage() {
         featured: wantsFeatured,
         posted_at: new Date().toISOString(),
         expires_at: expiresAt,
-      });
+      }).select("id").single();
       if (error) throw error;
+
+      const validQs = questions.filter((q) => q.prompt.trim().length > 0);
+      if (created && validQs.length) {
+        const rows = validQs.map((q, idx) => ({
+          job_id: created.id,
+          prompt: q.prompt.trim(),
+          type: q.type,
+          options: q.options.filter(Boolean).length ? (q.options.filter(Boolean) as unknown as never) : null,
+          required: q.required,
+          knockout_answer: (q.knockout_answer ?? null) as never,
+          sort_order: idx,
+        }));
+        const { error: qErr } = await supabase.from("screening_questions").insert(rows);
+        if (qErr) toast.error(`Job posted, but screening questions failed: ${qErr.message}`);
+      }
 
       const { error: cErr } = await supabase
         .from("companies")
