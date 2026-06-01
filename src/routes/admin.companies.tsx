@@ -103,7 +103,7 @@ function AdminCompanies() {
   );
 }
 
-function CreditsDialog({ company, onSave }: { company: { id: string; name: string; posting_credits: number; featured_credits: number }; onSave: (patch: Record<string, unknown>) => void }) {
+function CreditsDialog({ company, onSave }: { company: { id: string; name: string; posting_credits: number; featured_credits: number }; onSave: (patch: { posting_credits: number; featured_credits: number }) => void }) {
   const [open, setOpen] = useState(false);
   const [posting, setPosting] = useState(company.posting_credits);
   const [featured, setFeatured] = useState(company.featured_credits);
