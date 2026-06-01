@@ -91,6 +91,7 @@ export function ApplyDialog({ jobId, jobTitle, open, onOpenChange, onApplied }: 
       } else {
         toast.success("Application sent! The employer will be in touch.");
         qc.invalidateQueries({ queryKey: ["seeker-apps", user.id] });
+        qc.invalidateQueries({ queryKey: ["seeker-applied-ids", user.id] });
         qc.invalidateQueries({ queryKey: ["seeker-stats", user.id] });
         onApplied?.();
         onOpenChange(false);
