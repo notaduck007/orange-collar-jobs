@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS public.search_jobs(text,text,text,text,text,numeric,integer,text,integer,integer);

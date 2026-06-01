@@ -619,38 +619,6 @@ export type Database = {
         }
         Returns: boolean
       }
-      search_jobs: {
-        Args: {
-          p_category?: string
-          p_limit?: number
-          p_location?: string
-          p_offset?: number
-          p_pay_min?: number
-          p_query?: string
-          p_radius_miles?: number
-          p_shift?: string
-          p_sort?: string
-          p_type?: string
-        }
-        Returns: {
-          category: string
-          company_name: string
-          company_slug: string
-          created_at: string
-          employment_type: Database["public"]["Enums"]["employment_type"]
-          featured: boolean
-          id: string
-          location: string
-          pay_max: number
-          pay_min: number
-          pay_period: string
-          rank: number
-          shift: Database["public"]["Enums"]["job_shift"]
-          slug: string
-          title: string
-          total_count: number
-        }[]
-      }
     }
     Enums: {
       ad_placement: "home_banner" | "search_inline" | "job_sidebar"
