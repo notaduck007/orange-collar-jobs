@@ -333,22 +333,46 @@ function JobsPage() {
           {isLoading ? (
             <JobCardSkeletonList count={6} />
           ) : (
-            <div className="grid gap-3">
-              {withAds.map((entry, i) =>
-                entry.kind === "job" ? (
-                  <JobCard key={entry.job.id} job={entry.job} />
-                ) : (
-                  <AdSlot key={`ad-${i}`} slot="search_inline" />
-                ),
+            <>
+              <div className="grid gap-3">
+                {withAds.map((entry, i) =>
+                  entry.kind === "job" ? (
+                    <JobCard key={entry.job.id} job={entry.job} />
+                  ) : (
+                    <AdSlot key={`ad-${i}`} slot="search_inline" />
+                  ),
+                )}
+                {jobs.length === 0 && (
+                  <EmptyState
+                    icon={Briefcase}
+                    title="No jobs match those filters."
+                    description="Try widening your search or clearing a filter."
+                  />
+                )}
+              </div>
+
+              {isFetchingNextPage && (
+                <div className="mt-3">
+                  <JobCardSkeletonList count={3} />
+                </div>
               )}
-              {jobs.length === 0 && (
-                <EmptyState
-                  icon={Briefcase}
-                  title="No jobs match those filters."
-                  description="Try widening your search or clearing a filter."
-                />
-              )}
-            </div>
+
+              {hasNextPage ? (
+                <div ref={loadMoreRef} className="mt-6 flex justify-center">
+                  <Button
+                    variant="outline"
+                    onClick={() => fetchNextPage()}
+                    disabled={isFetchingNextPage}
+                  >
+                    {isFetchingNextPage ? "Loading…" : "Load more jobs"}
+                  </Button>
+                </div>
+              ) : jobs.length > 0 ? (
+                <p className="mt-6 text-center text-xs text-muted-foreground">
+                  You've reached the end · {total} job{total === 1 ? "" : "s"} total
+                </p>
+              ) : null}
+            </>
           )}
         </main>
       </div>
