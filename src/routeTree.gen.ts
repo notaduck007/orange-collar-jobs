@@ -31,6 +31,7 @@ import { Route as JobsSlugRouteImport } from './routes/jobs.$slug'
 import { Route as EmployerTeamRouteImport } from './routes/employer.team'
 import { Route as EmployerOnboardingRouteImport } from './routes/employer.onboarding'
 import { Route as EmployerCandidatesRouteImport } from './routes/employer.candidates'
+import { Route as EmployerAnalyticsRouteImport } from './routes/employer.analytics'
 import { Route as EmployerAdsRouteImport } from './routes/employer.ads'
 import { Route as CompaniesSlugRouteImport } from './routes/companies.$slug'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
@@ -153,6 +154,11 @@ const EmployerCandidatesRoute = EmployerCandidatesRouteImport.update({
   path: '/candidates',
   getParentRoute: () => EmployerRoute,
 } as any)
+const EmployerAnalyticsRoute = EmployerAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => EmployerRoute,
+} as any)
 const EmployerAdsRoute = EmployerAdsRouteImport.update({
   id: '/ads',
   path: '/ads',
@@ -230,6 +236,7 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof AdminUsersRoute
   '/companies/$slug': typeof CompaniesSlugRoute
   '/employer/ads': typeof EmployerAdsRoute
+  '/employer/analytics': typeof EmployerAnalyticsRoute
   '/employer/candidates': typeof EmployerCandidatesRoute
   '/employer/onboarding': typeof EmployerOnboardingRoute
   '/employer/team': typeof EmployerTeamRoute
@@ -262,6 +269,7 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AdminUsersRoute
   '/companies/$slug': typeof CompaniesSlugRoute
   '/employer/ads': typeof EmployerAdsRoute
+  '/employer/analytics': typeof EmployerAnalyticsRoute
   '/employer/candidates': typeof EmployerCandidatesRoute
   '/employer/onboarding': typeof EmployerOnboardingRoute
   '/employer/team': typeof EmployerTeamRoute
@@ -298,6 +306,7 @@ export interface FileRoutesById {
   '/admin/users': typeof AdminUsersRoute
   '/companies/$slug': typeof CompaniesSlugRoute
   '/employer/ads': typeof EmployerAdsRoute
+  '/employer/analytics': typeof EmployerAnalyticsRoute
   '/employer/candidates': typeof EmployerCandidatesRoute
   '/employer/onboarding': typeof EmployerOnboardingRoute
   '/employer/team': typeof EmployerTeamRoute
@@ -335,6 +344,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/companies/$slug'
     | '/employer/ads'
+    | '/employer/analytics'
     | '/employer/candidates'
     | '/employer/onboarding'
     | '/employer/team'
@@ -367,6 +377,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/companies/$slug'
     | '/employer/ads'
+    | '/employer/analytics'
     | '/employer/candidates'
     | '/employer/onboarding'
     | '/employer/team'
@@ -402,6 +413,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/companies/$slug'
     | '/employer/ads'
+    | '/employer/analytics'
     | '/employer/candidates'
     | '/employer/onboarding'
     | '/employer/team'
@@ -589,6 +601,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EmployerCandidatesRouteImport
       parentRoute: typeof EmployerRoute
     }
+    '/employer/analytics': {
+      id: '/employer/analytics'
+      path: '/analytics'
+      fullPath: '/employer/analytics'
+      preLoaderRoute: typeof EmployerAnalyticsRouteImport
+      parentRoute: typeof EmployerRoute
+    }
     '/employer/ads': {
       id: '/employer/ads'
       path: '/ads'
@@ -693,6 +712,7 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface EmployerRouteChildren {
   EmployerAdsRoute: typeof EmployerAdsRoute
+  EmployerAnalyticsRoute: typeof EmployerAnalyticsRoute
   EmployerCandidatesRoute: typeof EmployerCandidatesRoute
   EmployerOnboardingRoute: typeof EmployerOnboardingRoute
   EmployerTeamRoute: typeof EmployerTeamRoute
@@ -704,6 +724,7 @@ interface EmployerRouteChildren {
 
 const EmployerRouteChildren: EmployerRouteChildren = {
   EmployerAdsRoute: EmployerAdsRoute,
+  EmployerAnalyticsRoute: EmployerAnalyticsRoute,
   EmployerCandidatesRoute: EmployerCandidatesRoute,
   EmployerOnboardingRoute: EmployerOnboardingRoute,
   EmployerTeamRoute: EmployerTeamRoute,
@@ -763,13 +784,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
