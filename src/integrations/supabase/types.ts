@@ -500,6 +500,42 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          link: string | null
+          read_at: string | null
+          sender_id: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          read_at?: string | null
+          sender_id?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          read_at?: string | null
+          sender_id?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           amount_cents: number
@@ -732,6 +768,7 @@ export type Database = {
             | null
           desired_pay_min: number | null
           desired_shift: Database["public"]["Enums"]["job_shift"] | null
+          discoverable: boolean
           headline: string | null
           skills: string[]
           summary: string | null
@@ -747,6 +784,7 @@ export type Database = {
             | null
           desired_pay_min?: number | null
           desired_shift?: Database["public"]["Enums"]["job_shift"] | null
+          discoverable?: boolean
           headline?: string | null
           skills?: string[]
           summary?: string | null
@@ -762,6 +800,7 @@ export type Database = {
             | null
           desired_pay_min?: number | null
           desired_shift?: Database["public"]["Enums"]["job_shift"] | null
+          discoverable?: boolean
           headline?: string | null
           skills?: string[]
           summary?: string | null
