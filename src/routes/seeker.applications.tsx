@@ -92,6 +92,7 @@ function ApplicationsPage() {
                 <th className="px-4 py-3 font-semibold">Applied</th>
                 <th className="px-4 py-3 font-semibold">Status</th>
                 <th className="px-4 py-3 font-semibold">Resume</th>
+                <th className="px-4 py-3 font-semibold text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -128,12 +129,47 @@ function ApplicationsPage() {
                       <span className="text-xs text-muted-foreground">—</span>
                     )}
                   </td>
+                  <td className="px-4 py-3 text-right">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setWithdrawId(app.id)}
+                      className="text-muted-foreground hover:text-rose-600"
+                    >
+                      <Trash2 className="mr-1 h-3.5 w-3.5" /> Withdraw
+                    </Button>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       )}
+
+      <AlertDialog open={!!withdrawId} onOpenChange={(o) => !o && setWithdrawId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Withdraw this application?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently removes your application. The employer will no longer see it. You can re-apply later if the job is still open.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={withdrawing}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                withdraw();
+              }}
+              disabled={withdrawing}
+              className="bg-rose-600 hover:bg-rose-700"
+            >
+              {withdrawing ? "Withdrawing…" : "Withdraw"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
+
