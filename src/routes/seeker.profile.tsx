@@ -71,6 +71,7 @@ type SeekerForm = {
   desired_shift: JobShift | "";
   desired_employment_type: EmploymentType | "";
   willing_to_relocate: boolean;
+  discoverable: boolean;
   certifications: string[];
   skills: string[];
 };
@@ -103,6 +104,7 @@ function ProfilePage() {
     desired_shift: "",
     desired_employment_type: "",
     willing_to_relocate: false,
+    discoverable: false,
     certifications: [],
     skills: [],
   });
@@ -169,6 +171,7 @@ function ProfilePage() {
         desired_employment_type:
           (seekerRow.desired_employment_type as EmploymentType | null) ?? "",
         willing_to_relocate: !!seekerRow.willing_to_relocate,
+        discoverable: !!(seekerRow as { discoverable?: boolean }).discoverable,
         certifications: seekerRow.certifications ?? [],
         skills: seekerRow.skills ?? [],
       });
@@ -233,12 +236,13 @@ function ProfilePage() {
       desired_shift: seeker.desired_shift || null,
       desired_employment_type: seeker.desired_employment_type || null,
       willing_to_relocate: seeker.willing_to_relocate,
+      discoverable: seeker.discoverable,
       certifications: seeker.certifications,
       skills: seeker.skills,
     };
     const { error } = await supabase
       .from("seeker_profiles")
-      .upsert(payload, { onConflict: "user_id" });
+      .upsert(payload as never, { onConflict: "user_id" });
     setSavingSeeker(false);
     if (error) toast.error(error.message);
     else {
@@ -639,6 +643,31 @@ function ProfilePage() {
         <div className="mt-5 flex justify-end">
           <Button onClick={saveSeeker} disabled={savingSeeker} className="btn-primary">
             {savingSeeker ? "Saving…" : "Save profile"}
+          </Button>
+        </div>
+      </div>
+
+      {/* Discoverability */}
+      <div className="rounded-xl border border-border bg-card p-6 sm:p-8">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-semibold text-[color:var(--ink)]">
+              Let employers find you
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              When on, employers searching for candidates can see your profile, skills,
+              certifications, and work history, and invite you to apply. Your contact
+              details stay private.
+            </p>
+          </div>
+          <Switch
+            checked={seeker.discoverable}
+            onCheckedChange={(v) => setSeeker({ ...seeker, discoverable: !!v })}
+          />
+        </div>
+        <div className="mt-4 flex justify-end">
+          <Button onClick={saveSeeker} disabled={savingSeeker} className="btn-primary">
+            {savingSeeker ? "Saving…" : "Save discoverability"}
           </Button>
         </div>
       </div>

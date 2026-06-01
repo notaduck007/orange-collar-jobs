@@ -30,6 +30,7 @@ import { Route as SeekerAlertsRouteImport } from './routes/seeker.alerts'
 import { Route as JobsSlugRouteImport } from './routes/jobs.$slug'
 import { Route as EmployerTeamRouteImport } from './routes/employer.team'
 import { Route as EmployerOnboardingRouteImport } from './routes/employer.onboarding'
+import { Route as EmployerCandidatesRouteImport } from './routes/employer.candidates'
 import { Route as EmployerAdsRouteImport } from './routes/employer.ads'
 import { Route as CompaniesSlugRouteImport } from './routes/companies.$slug'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
@@ -147,6 +148,11 @@ const EmployerOnboardingRoute = EmployerOnboardingRouteImport.update({
   path: '/onboarding',
   getParentRoute: () => EmployerRoute,
 } as any)
+const EmployerCandidatesRoute = EmployerCandidatesRouteImport.update({
+  id: '/candidates',
+  path: '/candidates',
+  getParentRoute: () => EmployerRoute,
+} as any)
 const EmployerAdsRoute = EmployerAdsRouteImport.update({
   id: '/ads',
   path: '/ads',
@@ -224,6 +230,7 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof AdminUsersRoute
   '/companies/$slug': typeof CompaniesSlugRoute
   '/employer/ads': typeof EmployerAdsRoute
+  '/employer/candidates': typeof EmployerCandidatesRoute
   '/employer/onboarding': typeof EmployerOnboardingRoute
   '/employer/team': typeof EmployerTeamRoute
   '/jobs/$slug': typeof JobsSlugRoute
@@ -255,6 +262,7 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AdminUsersRoute
   '/companies/$slug': typeof CompaniesSlugRoute
   '/employer/ads': typeof EmployerAdsRoute
+  '/employer/candidates': typeof EmployerCandidatesRoute
   '/employer/onboarding': typeof EmployerOnboardingRoute
   '/employer/team': typeof EmployerTeamRoute
   '/jobs/$slug': typeof JobsSlugRoute
@@ -290,6 +298,7 @@ export interface FileRoutesById {
   '/admin/users': typeof AdminUsersRoute
   '/companies/$slug': typeof CompaniesSlugRoute
   '/employer/ads': typeof EmployerAdsRoute
+  '/employer/candidates': typeof EmployerCandidatesRoute
   '/employer/onboarding': typeof EmployerOnboardingRoute
   '/employer/team': typeof EmployerTeamRoute
   '/jobs/$slug': typeof JobsSlugRoute
@@ -326,6 +335,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/companies/$slug'
     | '/employer/ads'
+    | '/employer/candidates'
     | '/employer/onboarding'
     | '/employer/team'
     | '/jobs/$slug'
@@ -357,6 +367,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/companies/$slug'
     | '/employer/ads'
+    | '/employer/candidates'
     | '/employer/onboarding'
     | '/employer/team'
     | '/jobs/$slug'
@@ -391,6 +402,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/companies/$slug'
     | '/employer/ads'
+    | '/employer/candidates'
     | '/employer/onboarding'
     | '/employer/team'
     | '/jobs/$slug'
@@ -570,6 +582,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EmployerOnboardingRouteImport
       parentRoute: typeof EmployerRoute
     }
+    '/employer/candidates': {
+      id: '/employer/candidates'
+      path: '/candidates'
+      fullPath: '/employer/candidates'
+      preLoaderRoute: typeof EmployerCandidatesRouteImport
+      parentRoute: typeof EmployerRoute
+    }
     '/employer/ads': {
       id: '/employer/ads'
       path: '/ads'
@@ -674,6 +693,7 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface EmployerRouteChildren {
   EmployerAdsRoute: typeof EmployerAdsRoute
+  EmployerCandidatesRoute: typeof EmployerCandidatesRoute
   EmployerOnboardingRoute: typeof EmployerOnboardingRoute
   EmployerTeamRoute: typeof EmployerTeamRoute
   EmployerIndexRoute: typeof EmployerIndexRoute
@@ -684,6 +704,7 @@ interface EmployerRouteChildren {
 
 const EmployerRouteChildren: EmployerRouteChildren = {
   EmployerAdsRoute: EmployerAdsRoute,
+  EmployerCandidatesRoute: EmployerCandidatesRoute,
   EmployerOnboardingRoute: EmployerOnboardingRoute,
   EmployerTeamRoute: EmployerTeamRoute,
   EmployerIndexRoute: EmployerIndexRoute,
