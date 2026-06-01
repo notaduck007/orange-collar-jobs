@@ -22,7 +22,10 @@ const searchSchema = z.object({
   type: z.string().optional(),
   sort: z.enum(["relevance", "date", "pay_high"]).optional(),
   pay_min: z.coerce.number().optional(),
+  radius: z.coerce.number().optional(),
 });
+
+const RADIUS_OPTIONS = [10, 25, 50, 100] as const;
 
 export const Route = createFileRoute("/jobs")({
   validateSearch: searchSchema,
