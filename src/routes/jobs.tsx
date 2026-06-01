@@ -3,7 +3,7 @@ import { useState, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Search, MapPin, Filter as FilterIcon, Megaphone, BellRing } from "lucide-react";
+import { Search, MapPin, Filter as FilterIcon, BellRing } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { JobCard, type JobSummary } from "@/components/job-card";
 import { SiteHeader } from "@/components/site-header";
