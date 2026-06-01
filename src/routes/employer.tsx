@@ -27,18 +27,27 @@ function EmployerLayout() {
     }
   }, [user, role, loading, navigate]);
 
-  // Find the employer's company; if missing, route them to onboarding
+  // Find a company the user owns or belongs to as an active member.
   const { data: company, isLoading: companyLoading } = useQuery({
     queryKey: ["employer-company", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: owned } = await supabase
         .from("companies")
         .select("*")
         .eq("owner_id", user!.id)
         .maybeSingle();
-      if (error) throw error;
-      return data;
+      if (owned) return owned;
+
+      const { data: membership } = await supabase
+        .from("company_members")
+        .select("company_id, companies:company_id(*)")
+        .eq("user_id", user!.id)
+        .eq("status", "active")
+        .limit(1)
+        .maybeSingle();
+      // @ts-expect-error supabase relation join is loosely typed
+      return membership?.companies ?? null;
     },
   });
 
