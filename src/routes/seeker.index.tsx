@@ -87,6 +87,27 @@ function SeekerOverview() {
         <StatCard label="Active alerts" value={stats?.alerts ?? 0} icon={BellRing} to="/seeker/alerts" />
       </div>
 
+      {recommended.length > 0 && (
+        <div className="rounded-xl border border-border bg-card p-5">
+          <div className="flex items-center justify-between">
+            <h2 className="flex items-center gap-1.5 text-lg font-semibold text-[color:var(--ink)]">
+              <Sparkles className="h-4 w-4 text-primary" /> Recommended for you
+            </h2>
+            <Link to="/seeker/profile" className="text-xs font-semibold text-primary hover:underline">
+              Tune preferences <ArrowRight className="ml-0.5 inline h-3 w-3" />
+            </Link>
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Based on your shift, employment type, skills and location.
+          </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {recommended.map((job) => <JobCard key={job.id} job={job} />)}
+          </div>
+        </div>
+      )}
+
+
+
       <div className="rounded-xl border border-border bg-card p-5">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-[color:var(--ink)]">Recent applications</h2>
