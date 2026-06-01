@@ -1,17 +1,34 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
+import { Check, ChevronLeft, ChevronRight, FileText, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { uniqueSlug } from "@/lib/slug";
+import { JOB_TEMPLATES, TEMPLATE_LIST } from "@/lib/job-templates";
 
 export const Route = createFileRoute("/employer/jobs/new")({
   head: () => ({ meta: [{ title: "Post a Job — DockHire Employers" }] }),
@@ -34,20 +51,31 @@ const TYPES = [
   { value: "seasonal", label: "Seasonal" },
 ];
 
-const schema = z.object({
-  title: z.string().trim().min(3).max(120),
-  category: z.string().min(1),
-  shift: z.string().min(1),
-  employment_type: z.string().min(1),
-  description: z.string().trim().min(30).max(5000),
-  requirements: z.string().trim().max(3000).optional(),
-  city: z.string().trim().min(1).max(80),
-  state: z.string().trim().min(2).max(2),
-  zip: z.string().trim().max(10).optional(),
-  pay_min: z.string().optional(),
-  pay_max: z.string().optional(),
-  pay_period: z.enum(["hour", "year"]),
-});
+const stepSchemas = [
+  z.object({
+    title: z.string().trim().min(3, "Job title must be at least 3 characters").max(120),
+    category: z.string().min(1, "Pick a category"),
+    category_slug: z.string().min(1),
+  }),
+  z.object({
+    employment_type: z.string().min(1),
+    shift: z.string().min(1),
+    pay_min: z.string().optional(),
+    pay_max: z.string().optional(),
+    pay_period: z.enum(["hour", "year"]),
+  }),
+  z.object({
+    city: z.string().trim().min(1, "City is required").max(80),
+    state: z.string().trim().length(2, "Use 2-letter state code"),
+    zip: z.string().trim().max(10).optional(),
+  }),
+  z.object({
+    description: z.string().trim().min(30, "Add at least 30 characters of description").max(5000),
+    requirements: z.string().trim().max(3000).optional(),
+  }),
+];
+
+const STEPS = ["Basics", "Schedule & pay", "Location", "Description"] as const;
 
 function NewJobPage() {
   const { user } = useAuth();
@@ -58,7 +86,11 @@ function NewJobPage() {
     queryKey: ["employer-company", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data } = await supabase.from("companies").select("*").eq("owner_id", user!.id).maybeSingle();
+      const { data } = await supabase
+        .from("companies")
+        .select("*")
+        .eq("owner_id", user!.id)
+        .maybeSingle();
       return data;
     },
   });
@@ -71,39 +103,109 @@ function NewJobPage() {
     },
   });
 
+  // Look up the most recent completed order's package duration to set expires_at.
+  const { data: lastOrderDuration } = useQuery({
+    queryKey: ["last-package-duration", company?.id],
+    enabled: !!company?.id,
+    queryFn: async () => {
+      const { data: order } = await supabase
+        .from("orders")
+        .select("package_id, status, created_at")
+        .eq("company_id", company!.id)
+        .eq("status", "paid")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (!order?.package_id) return 30;
+      const { data: pkg } = await supabase
+        .from("packages")
+        .select("duration_days")
+        .eq("id", order.package_id)
+        .maybeSingle();
+      return pkg?.duration_days ?? 30;
+    },
+  });
+  const durationDays = lastOrderDuration ?? 30;
+
+  const [step, setStep] = useState(0);
+  const [templateOpen, setTemplateOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({
     title: "",
     category: "",
+    category_slug: "",
     shift: "first",
     employment_type: "full_time",
     description: "",
     requirements: "",
-    city: company?.hq_city ?? "",
-    state: company?.hq_state ?? "",
+    city: "",
+    state: "",
     zip: "",
     pay_min: "",
     pay_max: "",
     pay_period: "hour" as "hour" | "year",
     feature_it: false,
   });
-  const [submitting, setSubmitting] = useState(false);
+
+  // Prefill city/state from company on first render (after company loads).
+  useMemo(() => {
+    if (company && !form.city && !form.state) {
+      setForm((f) => ({
+        ...f,
+        city: company.hq_city ?? "",
+        state: company.hq_state ?? "",
+      }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [company?.id]);
 
   const postingCredits = company?.posting_credits ?? 0;
   const featuredCredits = company?.featured_credits ?? 0;
   const canPost = postingCredits > 0;
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const applyTemplate = (slug: string) => {
+    const tpl = JOB_TEMPLATES[slug];
+    if (!tpl) return;
+    const matchedCat = categories.find((c) => c.slug === slug);
+    setForm((f) => ({
+      ...f,
+      title: f.title || tpl.title,
+      category: matchedCat?.name ?? f.category,
+      category_slug: matchedCat?.slug ?? slug,
+      description: tpl.description,
+      requirements: tpl.requirements,
+    }));
+    setTemplateOpen(false);
+    toast.success(`Loaded "${tpl.title}" template`);
+  };
+
+  const validateStep = (i: number) => {
+    const result = stepSchemas[i].safeParse(form);
+    if (!result.success) {
+      toast.error(result.error.issues[0].message);
+      return false;
+    }
+    return true;
+  };
+
+  const next = () => {
+    if (!validateStep(step)) return;
+    setStep((s) => Math.min(STEPS.length - 1, s + 1));
+  };
+  const back = () => setStep((s) => Math.max(0, s - 1));
+
+  const submit = async () => {
     if (!user || !company) return;
     if (!canPost) {
       toast.error("Out of posting credits.");
+      navigate({ to: "/pricing" });
       return;
     }
-
-    const parsed = schema.safeParse(form);
-    if (!parsed.success) {
-      toast.error(parsed.error.issues[0].message);
-      return;
+    for (let i = 0; i < stepSchemas.length; i++) {
+      if (!validateStep(i)) {
+        setStep(i);
+        return;
+      }
     }
     const wantsFeatured = form.feature_it;
     if (wantsFeatured && featuredCredits < 1) {
@@ -114,6 +216,7 @@ function NewJobPage() {
     setSubmitting(true);
     try {
       const slug = uniqueSlug(form.title);
+      const expiresAt = new Date(Date.now() + durationDays * 86400_000).toISOString();
       const { error } = await supabase.from("jobs").insert({
         company_id: company.id,
         posted_by: user.id,
@@ -131,9 +234,10 @@ function NewJobPage() {
         zip: form.zip || null,
         description: form.description,
         requirements: form.requirements || null,
-        status: "active",
+        status: "active" as never,
         featured: wantsFeatured,
-        expires_at: new Date(Date.now() + 30 * 86400_000).toISOString(),
+        posted_at: new Date().toISOString(),
+        expires_at: expiresAt,
       });
       if (error) throw error;
 
@@ -157,134 +261,361 @@ function NewJobPage() {
     }
   };
 
+  // Hard block: no credits → redirect-style banner with CTA.
+  if (company && !canPost) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <p className="label-caps text-primary">New job</p>
+          <h1 className="mt-1 text-3xl font-bold tracking-tight text-[color:var(--ink)]">
+            Post a warehouse job
+          </h1>
+        </div>
+        <div className="rounded-xl border-2 border-[color:var(--accent)] bg-[color:var(--primary-tint)] p-8 text-center">
+          <h2 className="text-xl font-bold text-[color:var(--ink)]">You're out of posting credits</h2>
+          <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
+            Pick up a posting package to publish this role. Plans start small for one-off hires
+            and scale up for high-volume seasons.
+          </p>
+          <Button asChild className="btn-primary mt-5">
+            <Link to="/pricing">Buy a package</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      <div>
-        <p className="label-caps text-primary">New job</p>
-        <h1 className="mt-1 text-3xl font-bold tracking-tight text-[color:var(--ink)]">Post a warehouse job</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {postingCredits} posting {postingCredits === 1 ? "credit" : "credits"} remaining ·{" "}
-          {featuredCredits} featured.
-        </p>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="label-caps text-primary">New job</p>
+          <h1 className="mt-1 text-3xl font-bold tracking-tight text-[color:var(--ink)]">
+            Post a warehouse job
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {postingCredits} posting {postingCredits === 1 ? "credit" : "credits"} ·{" "}
+            {featuredCredits} featured · expires in {durationDays} days
+          </p>
+        </div>
+        <Dialog open={templateOpen} onOpenChange={setTemplateOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline" type="button">
+              <FileText className="mr-2 h-4 w-4" /> Use a template
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Pre-written warehouse templates</DialogTitle>
+              <DialogDescription>
+                Pick a role to pre-fill the title, description, and requirements. You can edit
+                everything afterwards.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid max-h-[60vh] gap-2 overflow-y-auto pr-1 sm:grid-cols-2">
+              {TEMPLATE_LIST.map((tpl) => (
+                <button
+                  key={tpl.slug}
+                  type="button"
+                  onClick={() => applyTemplate(tpl.slug)}
+                  className="group rounded-lg border border-border bg-card p-3 text-left transition hover:border-primary hover:bg-[color:var(--primary-tint)]"
+                >
+                  <p className="font-semibold text-[color:var(--ink)] group-hover:text-primary">
+                    {tpl.title}
+                  </p>
+                  <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                    {tpl.description.split("\n")[0]}
+                  </p>
+                </button>
+              ))}
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
-      {!canPost && (
-        <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
-          You're out of posting credits.{" "}
-          <Link to="/pricing" className="font-semibold underline">Buy a package</Link> to post this job.
-        </div>
-      )}
+      {/* Stepper */}
+      <ol className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wider">
+        {STEPS.map((label, i) => {
+          const done = i < step;
+          const active = i === step;
+          return (
+            <li key={label} className="flex items-center gap-2">
+              <span
+                className={`flex h-7 w-7 items-center justify-center rounded-full border ${
+                  active
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : done
+                    ? "border-primary bg-[color:var(--primary-tint)] text-primary"
+                    : "border-border bg-card text-muted-foreground"
+                }`}
+              >
+                {done ? <Check className="h-4 w-4" /> : i + 1}
+              </span>
+              <span className={active ? "text-[color:var(--ink)]" : "text-muted-foreground"}>
+                {label}
+              </span>
+              {i < STEPS.length - 1 && <ChevronRight className="h-3 w-3 text-muted-foreground" />}
+            </li>
+          );
+        })}
+      </ol>
 
-      <form onSubmit={submit} className="space-y-6 rounded-xl border border-border bg-card p-6 sm:p-8">
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="sm:col-span-2 space-y-1.5">
-            <Label htmlFor="title">Job title *</Label>
-            <Input id="title" required placeholder="e.g. Forklift Operator — 2nd Shift" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-          </div>
-
-          <div className="space-y-1.5">
-            <Label>Category *</Label>
-            <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
-              <SelectTrigger><SelectValue placeholder="Pick a category" /></SelectTrigger>
-              <SelectContent>
-                {categories.map((c) => <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-1.5">
-            <Label>Shift *</Label>
-            <Select value={form.shift} onValueChange={(v) => setForm({ ...form, shift: v })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>{SHIFTS.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-1.5">
-            <Label>Employment type *</Label>
-            <Select value={form.employment_type} onValueChange={(v) => setForm({ ...form, employment_type: v })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>{TYPES.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-1.5">
-            <Label>Pay range</Label>
-            <div className="flex items-center gap-1.5">
-              <Input type="number" step="0.5" placeholder="Min" value={form.pay_min} onChange={(e) => setForm({ ...form, pay_min: e.target.value })} />
-              <span className="text-muted-foreground">–</span>
-              <Input type="number" step="0.5" placeholder="Max" value={form.pay_max} onChange={(e) => setForm({ ...form, pay_max: e.target.value })} />
-              <Select value={form.pay_period} onValueChange={(v) => setForm({ ...form, pay_period: v as "hour" | "year" })}>
-                <SelectTrigger className="w-[100px]"><SelectValue /></SelectTrigger>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (step === STEPS.length - 1) submit();
+          else next();
+        }}
+        className="space-y-6 rounded-xl border border-border bg-card p-6 sm:p-8"
+      >
+        {step === 0 && (
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="sm:col-span-2 space-y-1.5">
+              <Label htmlFor="title">Job title *</Label>
+              <Input
+                id="title"
+                required
+                placeholder="e.g. Forklift Operator — 2nd Shift"
+                value={form.title}
+                onChange={(e) => setForm({ ...form, title: e.target.value })}
+              />
+            </div>
+            <div className="sm:col-span-2 space-y-1.5">
+              <Label>Category *</Label>
+              <Select
+                value={form.category_slug}
+                onValueChange={(v) => {
+                  const cat = categories.find((c) => c.slug === v);
+                  setForm({ ...form, category_slug: v, category: cat?.name ?? "" });
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Pick a category" />
+                </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="hour">/ hr</SelectItem>
-                  <SelectItem value="year">/ yr</SelectItem>
+                  {categories.map((c) => (
+                    <SelectItem key={c.id} value={c.slug}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {form.category_slug && JOB_TEMPLATES[form.category_slug] && (
+                <button
+                  type="button"
+                  onClick={() => applyTemplate(form.category_slug)}
+                  className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+                >
+                  <Sparkles className="h-3 w-3" /> Pre-fill description from the{" "}
+                  {JOB_TEMPLATES[form.category_slug].title} template
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {step === 1 && (
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label>Employment type *</Label>
+              <Select
+                value={form.employment_type}
+                onValueChange={(v) => setForm({ ...form, employment_type: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {TYPES.map((t) => (
+                    <SelectItem key={t.value} value={t.value}>
+                      {t.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
+            <div className="space-y-1.5">
+              <Label>Shift *</Label>
+              <Select value={form.shift} onValueChange={(v) => setForm({ ...form, shift: v })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SHIFTS.map((s) => (
+                    <SelectItem key={s.value} value={s.value}>
+                      {s.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="sm:col-span-2 space-y-1.5">
+              <Label>Pay range</Label>
+              <div className="flex items-center gap-1.5">
+                <Input
+                  type="number"
+                  step="0.5"
+                  placeholder="Min"
+                  value={form.pay_min}
+                  onChange={(e) => setForm({ ...form, pay_min: e.target.value })}
+                />
+                <span className="text-muted-foreground">–</span>
+                <Input
+                  type="number"
+                  step="0.5"
+                  placeholder="Max"
+                  value={form.pay_max}
+                  onChange={(e) => setForm({ ...form, pay_max: e.target.value })}
+                />
+                <Select
+                  value={form.pay_period}
+                  onValueChange={(v) =>
+                    setForm({ ...form, pay_period: v as "hour" | "year" })
+                  }
+                >
+                  <SelectTrigger className="w-[100px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="hour">/ hr</SelectItem>
+                    <SelectItem value="year">/ yr</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Listings with a posted pay range get 2–3× more applicants.
+              </p>
+            </div>
           </div>
-        </div>
+        )}
 
-        <div className="grid gap-4 sm:grid-cols-[1fr_120px_140px]">
-          <div className="space-y-1.5">
-            <Label htmlFor="city">City *</Label>
-            <Input id="city" required value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
+        {step === 2 && (
+          <div className="grid gap-4 sm:grid-cols-[1fr_120px_140px]">
+            <div className="space-y-1.5">
+              <Label htmlFor="city">City *</Label>
+              <Input
+                id="city"
+                required
+                value={form.city}
+                onChange={(e) => setForm({ ...form, city: e.target.value })}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="state">State *</Label>
+              <Input
+                id="state"
+                required
+                value={form.state}
+                onChange={(e) =>
+                  setForm({ ...form, state: e.target.value.toUpperCase().slice(0, 2) })
+                }
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="zip">ZIP</Label>
+              <Input
+                id="zip"
+                value={form.zip}
+                onChange={(e) => setForm({ ...form, zip: e.target.value })}
+              />
+            </div>
           </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="state">State *</Label>
-            <Input id="state" required value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value.toUpperCase().slice(0, 2) })} />
+        )}
+
+        {step === 3 && (
+          <div className="space-y-5">
+            <div className="space-y-1.5">
+              <Label htmlFor="description">Job description *</Label>
+              <Textarea
+                id="description"
+                rows={10}
+                required
+                placeholder="Describe the role, day-to-day tasks, equipment, team, schedule…"
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                maxLength={5000}
+              />
+              <p className="text-xs text-muted-foreground">
+                {form.description.length} / 5000
+              </p>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="requirements">Requirements</Label>
+              <Textarea
+                id="requirements"
+                rows={6}
+                placeholder="Certifications, experience, physical requirements, etc."
+                value={form.requirements}
+                onChange={(e) => setForm({ ...form, requirements: e.target.value })}
+                maxLength={3000}
+              />
+            </div>
+
+            <label className="flex items-start gap-3 rounded-lg border border-border bg-background p-4">
+              <Checkbox
+                checked={form.feature_it}
+                onCheckedChange={(c) => setForm({ ...form, feature_it: !!c })}
+                disabled={featuredCredits < 1}
+              />
+              <div className="text-sm">
+                <p className="font-semibold text-[color:var(--ink)]">Feature this job</p>
+                <p className="text-xs text-muted-foreground">
+                  Highlight with the hazard-yellow badge and pin to the top of search. Uses 1
+                  featured credit ({featuredCredits} available).
+                  {featuredCredits < 1 && (
+                    <>
+                      {" "}
+                      <Link to="/pricing" className="font-semibold text-primary hover:underline">
+                        Buy more
+                      </Link>
+                    </>
+                  )}
+                </p>
+              </div>
+            </label>
           </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="zip">ZIP</Label>
-            <Input id="zip" value={form.zip} onChange={(e) => setForm({ ...form, zip: e.target.value })} />
-          </div>
-        </div>
+        )}
 
-        <div className="space-y-1.5">
-          <Label htmlFor="description">Job description *</Label>
-          <Textarea
-            id="description"
-            rows={8}
-            required
-            placeholder="Describe the role, day-to-day tasks, equipment, team, schedule…"
-            value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
-            maxLength={5000}
-          />
-        </div>
-
-        <div className="space-y-1.5">
-          <Label htmlFor="requirements">Requirements</Label>
-          <Textarea
-            id="requirements"
-            rows={5}
-            placeholder="Certifications, experience, physical requirements, etc."
-            value={form.requirements}
-            onChange={(e) => setForm({ ...form, requirements: e.target.value })}
-            maxLength={3000}
-          />
-        </div>
-
-        <label className="flex items-start gap-3 rounded-lg border border-border bg-background p-4">
-          <Checkbox
-            checked={form.feature_it}
-            onCheckedChange={(c) => setForm({ ...form, feature_it: !!c })}
-            disabled={featuredCredits < 1}
-          />
-          <div className="text-sm">
-            <p className="font-semibold text-[color:var(--ink)]">Feature this job</p>
-            <p className="text-xs text-muted-foreground">
-              Highlight with the hazard-yellow badge and pin to the top of search.
-              Uses 1 featured credit ({featuredCredits} available).
-            </p>
-          </div>
-        </label>
-
-        <div className="flex items-center justify-end gap-2 border-t border-border pt-5">
-          <Button type="button" variant="outline" onClick={() => navigate({ to: "/employer" })}>Cancel</Button>
-          <Button type="submit" disabled={submitting || !canPost} className="btn-primary">
-            {submitting ? "Posting…" : "Post job (uses 1 credit)"}
+        <div className="flex items-center justify-between gap-2 border-t border-border pt-5">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={step === 0 ? () => navigate({ to: "/employer" }) : back}
+          >
+            <ChevronLeft className="mr-1 h-4 w-4" />
+            {step === 0 ? "Cancel" : "Back"}
           </Button>
+
+          {step < STEPS.length - 1 ? (
+            <Button type="submit" className="btn-primary">
+              Continue <ChevronRight className="ml-1 h-4 w-4" />
+            </Button>
+          ) : (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <Button
+                      type="submit"
+                      disabled={submitting || !canPost}
+                      className="btn-primary"
+                    >
+                      {submitting ? "Publishing…" : "Publish job (uses 1 credit)"}
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                {!canPost && (
+                  <TooltipContent>
+                    Out of posting credits —{" "}
+                    <Link to="/pricing" className="underline">
+                      buy a package
+                    </Link>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
+          )}
         </div>
       </form>
     </div>
