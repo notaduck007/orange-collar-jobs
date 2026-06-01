@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState, useMemo, useEffect, useRef } from "react";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { toast } from "sonner";
 import { Search, MapPin, Filter as FilterIcon, BellRing } from "lucide-react";
@@ -69,9 +69,17 @@ function JobsPage() {
 
   const sort = search.sort ?? (search.q ? "relevance" : "date");
 
-  const { data: result, isLoading } = useQuery({
+  const PAGE_SIZE = 20;
+  const {
+    data,
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+  } = useInfiniteQuery({
     queryKey: ["jobs-search", search, sort],
-    queryFn: async () => {
+    initialPageParam: 0,
+    queryFn: async ({ pageParam }) => {
       const { data, error } = await supabase.rpc("search_jobs", {
         p_query: search.q ?? null,
         p_location: search.loc ?? null,
@@ -81,8 +89,8 @@ function JobsPage() {
         p_pay_min: search.pay_min,
         p_radius_miles: search.loc && search.radius ? search.radius : undefined,
         p_sort: sort,
-        p_limit: 50,
-        p_offset: 0,
+        p_limit: PAGE_SIZE,
+        p_offset: pageParam,
       });
       if (error) throw error;
       const rows = (data ?? []) as Array<{
@@ -100,12 +108,19 @@ function JobsPage() {
         category: r.category,
         companies: r.company_name ? { name: r.company_name, slug: r.company_slug ?? "" } : null,
       }));
-      return { jobs, total: rows[0]?.total_count ?? 0 };
+      return { jobs, total: rows[0]?.total_count ?? 0, offset: pageParam };
+    },
+    getNextPageParam: (lastPage) => {
+      const loaded = lastPage.offset + lastPage.jobs.length;
+      return loaded < lastPage.total ? loaded : undefined;
     },
   });
 
-  const jobs = result?.jobs ?? [];
-  const total = result?.total ?? 0;
+  const jobs = useMemo(
+    () => (data?.pages.flatMap((p) => p.jobs) ?? []) as JobSummary[],
+    [data],
+  );
+  const total = data?.pages[0]?.total ?? 0;
 
   const createAlertFromSearch = async () => {
     if (!user) {
@@ -166,6 +181,20 @@ function JobsPage() {
     withAds.push({ kind: "job", job: j });
     if ((i + 1) % 6 === 0) withAds.push({ kind: "ad" });
   });
+
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const el = loadMoreRef.current;
+    if (!el || !hasNextPage) return;
+    const obs = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && !isFetchingNextPage) fetchNextPage();
+      },
+      { rootMargin: "400px" },
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -304,22 +333,46 @@ function JobsPage() {
           {isLoading ? (
             <JobCardSkeletonList count={6} />
           ) : (
-            <div className="grid gap-3">
-              {withAds.map((entry, i) =>
-                entry.kind === "job" ? (
-                  <JobCard key={entry.job.id} job={entry.job} />
-                ) : (
-                  <AdSlot key={`ad-${i}`} slot="search_inline" />
-                ),
+            <>
+              <div className="grid gap-3">
+                {withAds.map((entry, i) =>
+                  entry.kind === "job" ? (
+                    <JobCard key={entry.job.id} job={entry.job} />
+                  ) : (
+                    <AdSlot key={`ad-${i}`} slot="search_inline" />
+                  ),
+                )}
+                {jobs.length === 0 && (
+                  <EmptyState
+                    icon={Briefcase}
+                    title="No jobs match those filters."
+                    description="Try widening your search or clearing a filter."
+                  />
+                )}
+              </div>
+
+              {isFetchingNextPage && (
+                <div className="mt-3">
+                  <JobCardSkeletonList count={3} />
+                </div>
               )}
-              {jobs.length === 0 && (
-                <EmptyState
-                  icon={Briefcase}
-                  title="No jobs match those filters."
-                  description="Try widening your search or clearing a filter."
-                />
-              )}
-            </div>
+
+              {hasNextPage ? (
+                <div ref={loadMoreRef} className="mt-6 flex justify-center">
+                  <Button
+                    variant="outline"
+                    onClick={() => fetchNextPage()}
+                    disabled={isFetchingNextPage}
+                  >
+                    {isFetchingNextPage ? "Loading…" : "Load more jobs"}
+                  </Button>
+                </div>
+              ) : jobs.length > 0 ? (
+                <p className="mt-6 text-center text-xs text-muted-foreground">
+                  You've reached the end · {total} job{total === 1 ? "" : "s"} total
+                </p>
+              ) : null}
+            </>
           )}
         </main>
       </div>
