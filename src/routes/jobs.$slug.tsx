@@ -9,6 +9,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
 import { ApplyDialog } from "@/components/apply-dialog";
+import { AdSlot } from "@/components/ad-slot";
 
 export const Route = createFileRoute("/jobs/$slug")({
   component: JobDetail,
