@@ -10,6 +10,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
+import { AdSlot } from "@/components/ad-slot";
 
 const searchSchema = z.object({
   q: z.string().optional(),
