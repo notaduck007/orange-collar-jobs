@@ -31,6 +31,7 @@ import { Route as EmployerOnboardingRouteImport } from './routes/employer.onboar
 import { Route as EmployerAdsRouteImport } from './routes/employer.ads'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminPackagesRouteImport } from './routes/admin.packages'
+import { Route as AdminOrdersRouteImport } from './routes/admin.orders'
 import { Route as AdminJobsRouteImport } from './routes/admin.jobs'
 import { Route as AdminCompaniesRouteImport } from './routes/admin.companies'
 import { Route as AdminAdsRouteImport } from './routes/admin.ads'
@@ -148,6 +149,11 @@ const AdminPackagesRoute = AdminPackagesRouteImport.update({
   path: '/packages',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminOrdersRoute = AdminOrdersRouteImport.update({
+  id: '/orders',
+  path: '/orders',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminJobsRoute = AdminJobsRouteImport.update({
   id: '/jobs',
   path: '/jobs',
@@ -194,6 +200,7 @@ export interface FileRoutesByFullPath {
   '/admin/ads': typeof AdminAdsRoute
   '/admin/companies': typeof AdminCompaniesRoute
   '/admin/jobs': typeof AdminJobsRoute
+  '/admin/orders': typeof AdminOrdersRoute
   '/admin/packages': typeof AdminPackagesRoute
   '/admin/users': typeof AdminUsersRoute
   '/employer/ads': typeof EmployerAdsRoute
@@ -221,6 +228,7 @@ export interface FileRoutesByTo {
   '/admin/ads': typeof AdminAdsRoute
   '/admin/companies': typeof AdminCompaniesRoute
   '/admin/jobs': typeof AdminJobsRoute
+  '/admin/orders': typeof AdminOrdersRoute
   '/admin/packages': typeof AdminPackagesRoute
   '/admin/users': typeof AdminUsersRoute
   '/employer/ads': typeof EmployerAdsRoute
@@ -252,6 +260,7 @@ export interface FileRoutesById {
   '/admin/ads': typeof AdminAdsRoute
   '/admin/companies': typeof AdminCompaniesRoute
   '/admin/jobs': typeof AdminJobsRoute
+  '/admin/orders': typeof AdminOrdersRoute
   '/admin/packages': typeof AdminPackagesRoute
   '/admin/users': typeof AdminUsersRoute
   '/employer/ads': typeof EmployerAdsRoute
@@ -284,6 +293,7 @@ export interface FileRouteTypes {
     | '/admin/ads'
     | '/admin/companies'
     | '/admin/jobs'
+    | '/admin/orders'
     | '/admin/packages'
     | '/admin/users'
     | '/employer/ads'
@@ -311,6 +321,7 @@ export interface FileRouteTypes {
     | '/admin/ads'
     | '/admin/companies'
     | '/admin/jobs'
+    | '/admin/orders'
     | '/admin/packages'
     | '/admin/users'
     | '/employer/ads'
@@ -341,6 +352,7 @@ export interface FileRouteTypes {
     | '/admin/ads'
     | '/admin/companies'
     | '/admin/jobs'
+    | '/admin/orders'
     | '/admin/packages'
     | '/admin/users'
     | '/employer/ads'
@@ -527,6 +539,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminPackagesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/orders': {
+      id: '/admin/orders'
+      path: '/orders'
+      fullPath: '/admin/orders'
+      preLoaderRoute: typeof AdminOrdersRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/jobs': {
       id: '/admin/jobs'
       path: '/jobs'
@@ -576,6 +595,7 @@ interface AdminRouteChildren {
   AdminAdsRoute: typeof AdminAdsRoute
   AdminCompaniesRoute: typeof AdminCompaniesRoute
   AdminJobsRoute: typeof AdminJobsRoute
+  AdminOrdersRoute: typeof AdminOrdersRoute
   AdminPackagesRoute: typeof AdminPackagesRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -585,6 +605,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminAdsRoute: AdminAdsRoute,
   AdminCompaniesRoute: AdminCompaniesRoute,
   AdminJobsRoute: AdminJobsRoute,
+  AdminOrdersRoute: AdminOrdersRoute,
   AdminPackagesRoute: AdminPackagesRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
