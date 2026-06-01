@@ -12,6 +12,55 @@ import { ApplyDialog } from "@/components/apply-dialog";
 import { AdSlot } from "@/components/ad-slot";
 
 export const Route = createFileRoute("/jobs/$slug")({
+  loader: async ({ params }) => {
+    const { data } = await supabase
+      .from("jobs")
+      .select("title, description, location, category, companies(name)")
+      .eq("slug", params.slug)
+      .maybeSingle();
+    return { meta: data };
+  },
+  head: ({ params, loaderData }) => {
+    const m = loaderData?.meta as
+      | { title: string; description: string; location: string; category: string; companies: { name?: string } | null }
+      | null
+      | undefined;
+    const company = m?.companies?.name;
+    const title = m
+      ? `${m.title}${company ? ` at ${company}` : ""} — ${m.location} | DockHire`
+      : "Warehouse Job | DockHire";
+    const desc = m
+      ? ((m.description ?? "").slice(0, 155).replace(/\s+/g, " ").trim() ||
+        `${m.category} role in ${m.location}. Apply on DockHire.`)
+      : "Apply to warehouse jobs near you on DockHire.";
+    return {
+      meta: [
+        { title },
+        { name: "description", content: desc },
+        { property: "og:title", content: title },
+        { property: "og:description", content: desc },
+        { property: "og:type", content: "article" },
+        { property: "og:url", content: `/jobs/${params.slug}` },
+        { name: "twitter:card", content: "summary" },
+      ],
+      links: [{ rel: "canonical", href: `/jobs/${params.slug}` }],
+      scripts: m
+        ? [
+            {
+              type: "application/ld+json",
+              children: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "JobPosting",
+                title: m.title,
+                description: m.description,
+                jobLocation: { "@type": "Place", address: m.location },
+                hiringOrganization: company ? { "@type": "Organization", name: company } : undefined,
+              }),
+            },
+          ]
+        : undefined,
+    };
+  },
   component: JobDetail,
   errorComponent: ({ error }) => (
     <div className="p-12 text-center text-sm text-muted-foreground">Couldn't load job: {error.message}</div>
