@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { isKnockout, type QuestionType } from "@/components/screening-questions-builder";
 
 export const Route = createFileRoute("/employer/jobs/$id/applicants")({
   head: () => ({ meta: [{ title: "Applicants — WarehouseJobs Employers" }] }),
