@@ -236,6 +236,21 @@ function JobsPage() {
                 <option value="22">$22+/hr</option>
                 <option value="25">$25+/hr</option>
               </select>
+              <label className="ml-2 text-xs text-muted-foreground">Within</label>
+              <select
+                value={search.radius ?? ""}
+                onChange={(e) =>
+                  updateSearch({ radius: e.target.value ? Number(e.target.value) : undefined })
+                }
+                disabled={!search.loc}
+                title={search.loc ? "Search radius around location" : "Enter a location to enable radius"}
+                className="rounded-md border border-border bg-card px-2 py-1 text-xs font-medium text-[color:var(--ink)] disabled:opacity-50"
+              >
+                <option value="">Any distance</option>
+                {RADIUS_OPTIONS.map((r) => (
+                  <option key={r} value={r}>{r} miles</option>
+                ))}
+              </select>
               <label className="ml-2 text-xs text-muted-foreground">Sort</label>
               <select
                 value={sort}
