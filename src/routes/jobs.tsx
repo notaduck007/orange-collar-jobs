@@ -79,7 +79,7 @@ function JobsPage() {
         p_shift: search.shift ?? null,
         p_type: search.type ?? null,
         p_pay_min: search.pay_min,
-        p_radius_miles: undefined,
+        p_radius_miles: search.loc && search.radius ? search.radius : undefined,
         p_sort: sort,
         p_limit: 50,
         p_offset: 0,
