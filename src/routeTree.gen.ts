@@ -21,6 +21,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SeekerIndexRouteImport } from './routes/seeker.index'
 import { Route as EmployerIndexRouteImport } from './routes/employer.index'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as SeekerSavedRouteImport } from './routes/seeker.saved'
 import { Route as SeekerProfileRouteImport } from './routes/seeker.profile'
 import { Route as SeekerApplicationsRouteImport } from './routes/seeker.applications'
@@ -92,6 +93,11 @@ const EmployerIndexRoute = EmployerIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => EmployerRoute,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
 } as any)
 const SeekerSavedRoute = SeekerSavedRouteImport.update({
   id: '/saved',
@@ -169,6 +175,7 @@ export interface FileRoutesByFullPath {
   '/seeker/applications': typeof SeekerApplicationsRoute
   '/seeker/profile': typeof SeekerProfileRoute
   '/seeker/saved': typeof SeekerSavedRoute
+  '/admin/': typeof AdminIndexRoute
   '/employer/': typeof EmployerIndexRoute
   '/seeker/': typeof SeekerIndexRoute
   '/employer/jobs/new': typeof EmployerJobsNewRoute
@@ -178,7 +185,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
@@ -192,6 +198,7 @@ export interface FileRoutesByTo {
   '/seeker/applications': typeof SeekerApplicationsRoute
   '/seeker/profile': typeof SeekerProfileRoute
   '/seeker/saved': typeof SeekerSavedRoute
+  '/admin': typeof AdminIndexRoute
   '/employer': typeof EmployerIndexRoute
   '/seeker': typeof SeekerIndexRoute
   '/employer/jobs/new': typeof EmployerJobsNewRoute
@@ -218,6 +225,7 @@ export interface FileRoutesById {
   '/seeker/applications': typeof SeekerApplicationsRoute
   '/seeker/profile': typeof SeekerProfileRoute
   '/seeker/saved': typeof SeekerSavedRoute
+  '/admin/': typeof AdminIndexRoute
   '/employer/': typeof EmployerIndexRoute
   '/seeker/': typeof SeekerIndexRoute
   '/employer/jobs/new': typeof EmployerJobsNewRoute
@@ -245,6 +253,7 @@ export interface FileRouteTypes {
     | '/seeker/applications'
     | '/seeker/profile'
     | '/seeker/saved'
+    | '/admin/'
     | '/employer/'
     | '/seeker/'
     | '/employer/jobs/new'
@@ -254,7 +263,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
-    | '/admin'
     | '/auth'
     | '/contact'
     | '/faq'
@@ -268,6 +276,7 @@ export interface FileRouteTypes {
     | '/seeker/applications'
     | '/seeker/profile'
     | '/seeker/saved'
+    | '/admin'
     | '/employer'
     | '/seeker'
     | '/employer/jobs/new'
@@ -293,6 +302,7 @@ export interface FileRouteTypes {
     | '/seeker/applications'
     | '/seeker/profile'
     | '/seeker/saved'
+    | '/admin/'
     | '/employer/'
     | '/seeker/'
     | '/employer/jobs/new'
@@ -399,6 +409,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EmployerIndexRouteImport
       parentRoute: typeof EmployerRoute
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/seeker/saved': {
       id: '/seeker/saved'
       path: '/saved'
@@ -481,10 +498,12 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminAdsRoute: typeof AdminAdsRoute
+  AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAdsRoute: AdminAdsRoute,
+  AdminIndexRoute: AdminIndexRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
@@ -555,3 +574,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
