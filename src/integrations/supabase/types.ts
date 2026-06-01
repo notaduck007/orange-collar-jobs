@@ -601,6 +601,33 @@ export type Database = {
         }
         Relationships: []
       }
+      zip_codes: {
+        Row: {
+          city: string
+          created_at: string
+          lat: number
+          lng: number
+          state: string
+          zip: string
+        }
+        Insert: {
+          city: string
+          created_at?: string
+          lat: number
+          lng: number
+          state: string
+          zip: string
+        }
+        Update: {
+          city?: string
+          created_at?: string
+          lat?: number
+          lng?: number
+          state?: string
+          zip?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -637,6 +664,7 @@ export type Database = {
           company_name: string
           company_slug: string
           created_at: string
+          distance_miles: number
           employment_type: Database["public"]["Enums"]["employment_type"]
           featured: boolean
           id: string

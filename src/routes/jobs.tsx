@@ -22,7 +22,10 @@ const searchSchema = z.object({
   type: z.string().optional(),
   sort: z.enum(["relevance", "date", "pay_high"]).optional(),
   pay_min: z.coerce.number().optional(),
+  radius: z.coerce.number().optional(),
 });
+
+const RADIUS_OPTIONS = [10, 25, 50, 100] as const;
 
 export const Route = createFileRoute("/jobs")({
   validateSearch: searchSchema,
@@ -76,7 +79,7 @@ function JobsPage() {
         p_shift: search.shift ?? null,
         p_type: search.type ?? null,
         p_pay_min: search.pay_min,
-        p_radius_miles: undefined,
+        p_radius_miles: search.loc && search.radius ? search.radius : undefined,
         p_sort: sort,
         p_limit: 50,
         p_offset: 0,
@@ -136,13 +139,14 @@ function JobsPage() {
     navigate({ to: "/jobs", search: { ...search, ...patch } as never });
   };
 
-  const hasActiveSearch = !!(search.q || search.loc || search.category || search.shift || search.type || search.pay_min);
+  const hasActiveSearch = !!(search.q || search.loc || search.category || search.shift || search.type || search.pay_min || search.radius);
 
   const shiftLabel = SHIFTS.find((s) => s.value === search.shift)?.label;
   const typeLabel = TYPES.find((t) => t.value === search.type)?.label;
   const activeChips: Array<{ key: string; label: string; clear: () => void }> = [];
   if (search.q) activeChips.push({ key: "q", label: `"${search.q}"`, clear: () => updateSearch({ q: undefined }) });
-  if (search.loc) activeChips.push({ key: "loc", label: search.loc, clear: () => updateSearch({ loc: undefined }) });
+  if (search.loc) activeChips.push({ key: "loc", label: search.loc, clear: () => updateSearch({ loc: undefined, radius: undefined }) });
+  if (search.loc && search.radius) activeChips.push({ key: "radius", label: `within ${search.radius} mi`, clear: () => updateSearch({ radius: undefined }) });
   if (search.category) activeChips.push({ key: "category", label: search.category, clear: () => updateSearch({ category: undefined }) });
   if (shiftLabel) activeChips.push({ key: "shift", label: shiftLabel, clear: () => updateSearch({ shift: undefined }) });
   if (typeLabel) activeChips.push({ key: "type", label: typeLabel, clear: () => updateSearch({ type: undefined }) });
@@ -231,6 +235,21 @@ function JobsPage() {
                 <option value="20">$20+/hr</option>
                 <option value="22">$22+/hr</option>
                 <option value="25">$25+/hr</option>
+              </select>
+              <label className="ml-2 text-xs text-muted-foreground">Within</label>
+              <select
+                value={search.radius ?? ""}
+                onChange={(e) =>
+                  updateSearch({ radius: e.target.value ? Number(e.target.value) : undefined })
+                }
+                disabled={!search.loc}
+                title={search.loc ? "Search radius around location" : "Enter a location to enable radius"}
+                className="rounded-md border border-border bg-card px-2 py-1 text-xs font-medium text-[color:var(--ink)] disabled:opacity-50"
+              >
+                <option value="">Any distance</option>
+                {RADIUS_OPTIONS.map((r) => (
+                  <option key={r} value={r}>{r} miles</option>
+                ))}
               </select>
               <label className="ml-2 text-xs text-muted-foreground">Sort</label>
               <select
