@@ -598,6 +598,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      ad_increment_click: { Args: { _ad_id: string }; Returns: undefined }
+      ad_increment_impression: { Args: { _ad_id: string }; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

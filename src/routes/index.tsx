@@ -8,6 +8,7 @@ import { JobCard, type JobSummary } from "@/components/job-card";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Button } from "@/components/ui/button";
+import { AdSlot } from "@/components/ad-slot";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -113,8 +114,14 @@ function Home() {
         </div>
       </section>
 
+      {/* HOME BANNER AD */}
+      <section className="mx-auto max-w-7xl px-4 pt-10 sm:px-6">
+        <AdSlot slot="home_banner" />
+      </section>
+
       {/* CATEGORIES */}
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
+
         <div className="mb-8 flex items-end justify-between">
           <div>
             <p className="label-caps">Browse by role</p>
