@@ -620,7 +620,7 @@ export type Database = {
         | "seasonal"
         | "contract"
       job_shift: "first" | "second" | "third" | "weekend" | "flexible"
-      job_status: "draft" | "published" | "closed" | "expired"
+      job_status: "draft" | "published" | "closed" | "expired" | "active"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -766,7 +766,7 @@ export const Constants = {
         "contract",
       ],
       job_shift: ["first", "second", "third", "weekend", "flexible"],
-      job_status: ["draft", "published", "closed", "expired"],
+      job_status: ["draft", "published", "closed", "expired", "active"],
     },
   },
 } as const
