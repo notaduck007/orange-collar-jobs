@@ -79,8 +79,32 @@ function ApplicantsPage() {
   const [rejectFor, setRejectFor] = useState<Applicant | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [openId, setOpenId] = useState<string | null>(null);
+  const [hideKnockouts, setHideKnockouts] = useState(false);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+
+  const { data: screening } = useQuery({
+    queryKey: ["screening-with-answers", id],
+    queryFn: async () => {
+      const { data: qs } = await supabase
+        .from("screening_questions")
+        .select("id, type, knockout_answer")
+        .eq("job_id", id);
+      const { data: ans } = await supabase
+        .from("application_answers")
+        .select("application_id, question_id, answer")
+        .in("question_id", (qs ?? []).map((q: any) => q.id).length ? (qs ?? []).map((q: any) => q.id) : ["00000000-0000-0000-0000-000000000000"]);
+      const qById: Record<string, { type: QuestionType; knockout_answer: unknown }> = {};
+      (qs ?? []).forEach((q: any) => { qById[q.id] = { type: q.type, knockout_answer: q.knockout_answer }; });
+      const knockedOut = new Set<string>();
+      (ans ?? []).forEach((a: any) => {
+        const q = qById[a.question_id];
+        if (q && isKnockout(q, a.answer)) knockedOut.add(a.application_id);
+      });
+      return { knockedOut };
+    },
+  });
+  const knockedOut = screening?.knockedOut ?? new Set<string>();
 
   const { data: job } = useQuery({
     queryKey: ["employer-job", id],
