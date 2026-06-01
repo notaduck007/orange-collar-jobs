@@ -580,6 +580,62 @@ export type Database = {
           },
         ]
       }
+      seeker_profiles: {
+        Row: {
+          certifications: string[]
+          created_at: string
+          desired_employment_type:
+            | Database["public"]["Enums"]["employment_type"]
+            | null
+          desired_pay_min: number | null
+          desired_shift: Database["public"]["Enums"]["job_shift"] | null
+          headline: string | null
+          skills: string[]
+          summary: string | null
+          updated_at: string
+          user_id: string
+          willing_to_relocate: boolean
+        }
+        Insert: {
+          certifications?: string[]
+          created_at?: string
+          desired_employment_type?:
+            | Database["public"]["Enums"]["employment_type"]
+            | null
+          desired_pay_min?: number | null
+          desired_shift?: Database["public"]["Enums"]["job_shift"] | null
+          headline?: string | null
+          skills?: string[]
+          summary?: string | null
+          updated_at?: string
+          user_id: string
+          willing_to_relocate?: boolean
+        }
+        Update: {
+          certifications?: string[]
+          created_at?: string
+          desired_employment_type?:
+            | Database["public"]["Enums"]["employment_type"]
+            | null
+          desired_pay_min?: number | null
+          desired_shift?: Database["public"]["Enums"]["job_shift"] | null
+          headline?: string | null
+          skills?: string[]
+          summary?: string | null
+          updated_at?: string
+          user_id?: string
+          willing_to_relocate?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seeker_profiles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -600,6 +656,53 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      work_history: {
+        Row: {
+          created_at: string
+          current: boolean
+          description: string | null
+          employer_name: string
+          end_date: string | null
+          id: string
+          start_date: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current?: boolean
+          description?: string | null
+          employer_name: string
+          end_date?: string | null
+          id?: string
+          start_date?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current?: boolean
+          description?: string | null
+          employer_name?: string
+          end_date?: string | null
+          id?: string
+          start_date?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "work_history_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       zip_codes: {
         Row: {
