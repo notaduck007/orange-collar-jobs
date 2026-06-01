@@ -165,6 +165,68 @@ export type Database = {
         }
         Relationships: []
       }
+      company_credits: {
+        Row: {
+          balance: number
+          company_id: string
+          credit_type: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          balance?: number
+          company_id: string
+          credit_type: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          balance?: number
+          company_id?: string
+          credit_type?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      credit_transactions: {
+        Row: {
+          company_id: string
+          created_at: string
+          credit_type: string
+          delta: number
+          id: string
+          order_id: string | null
+          reason: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          credit_type: string
+          delta: number
+          id?: string
+          order_id?: string | null
+          reason?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          credit_type?: string
+          delta?: number
+          id?: string
+          order_id?: string | null
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_transactions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_alerts: {
         Row: {
           applicant_id: string
@@ -341,10 +403,14 @@ export type Database = {
           amount_cents: number
           company_id: string | null
           created_at: string
+          currency: string
           featured_count_granted: number
+          fulfilled_at: string | null
           id: string
           package_id: string | null
+          package_snapshot: Json | null
           posting_count_granted: number
+          receipt_url: string | null
           status: string
           stripe_payment_intent: string | null
           stripe_session_id: string | null
@@ -353,10 +419,14 @@ export type Database = {
           amount_cents: number
           company_id?: string | null
           created_at?: string
+          currency?: string
           featured_count_granted?: number
+          fulfilled_at?: string | null
           id?: string
           package_id?: string | null
+          package_snapshot?: Json | null
           posting_count_granted?: number
+          receipt_url?: string | null
           status?: string
           stripe_payment_intent?: string | null
           stripe_session_id?: string | null
@@ -365,10 +435,14 @@ export type Database = {
           amount_cents?: number
           company_id?: string | null
           created_at?: string
+          currency?: string
           featured_count_granted?: number
+          fulfilled_at?: string | null
           id?: string
           package_id?: string | null
+          package_snapshot?: Json | null
           posting_count_granted?: number
+          receipt_url?: string | null
           status?: string
           stripe_payment_intent?: string | null
           stripe_session_id?: string | null
@@ -531,6 +605,10 @@ export type Database = {
     Functions: {
       ad_increment_click: { Args: { _ad_id: string }; Returns: undefined }
       ad_increment_impression: { Args: { _ad_id: string }; Returns: undefined }
+      grant_credits_for_order: {
+        Args: { _order_id: string }
+        Returns: undefined
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
