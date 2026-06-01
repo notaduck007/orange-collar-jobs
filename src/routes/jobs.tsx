@@ -205,7 +205,7 @@ function JobsPage() {
               entry.kind === "job" ? (
                 <JobCard key={entry.job.id} job={entry.job} />
               ) : (
-                <InlineAd key={`ad-${i}`} />
+                <AdSlot key={`ad-${i}`} slot="search_inline" />
               ),
             )}
             {!isLoading && jobs.length === 0 && (
