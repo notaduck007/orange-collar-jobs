@@ -280,7 +280,7 @@ function JobDetail() {
             </section>
 
             <div className="mt-8 space-y-3">
-              {user && quickApply.ready && !alreadyApplied && (
+              {user && quickApply.ready && !hasScreening && !alreadyApplied && (
                 <div className="rounded-lg border border-dashed border-border bg-background p-3">
                   <button
                     type="button"
