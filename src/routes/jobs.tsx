@@ -292,7 +292,7 @@ function JobsPage() {
               </select>
               {hasActiveSearch && (
                 <Button variant="outline" size="sm" onClick={createAlertFromSearch} className="gap-1.5">
-                  <BellRing className="h-4 w-4 text-primary" /> Alert
+                  <BellRing className="h-4 w-4 text-primary" /> Get alerts for this search
                 </Button>
               )}
             </div>
