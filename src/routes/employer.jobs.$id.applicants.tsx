@@ -497,9 +497,10 @@ function ApplicantCard({
 }
 
 function TableView({
-  applications, onStatusChange, onReject, onOpen,
+  applications, knockedOut, onStatusChange, onReject, onOpen,
 }: {
   applications: Applicant[];
+  knockedOut: Set<string>;
   onStatusChange: (id: string, status: AppStatus) => void;
   onReject: (a: Applicant) => void;
   onOpen: (a: Applicant) => void;
@@ -520,6 +521,7 @@ function TableView({
         <tbody className="divide-y divide-border">
           {applications.map((a) => (
             <tr key={a.id} className="hover:bg-muted/30">
+
               <td className="px-4 py-3">
                 <button
                   onClick={() => onOpen(a)}
@@ -527,6 +529,11 @@ function TableView({
                 >
                   {a.profile?.display_name ?? "Applicant"}
                 </button>
+                {knockedOut.has(a.id) && (
+                  <Badge variant="outline" className="ml-2 border-destructive/40 bg-destructive/10 text-[9px] font-semibold uppercase text-destructive">
+                    Knockout
+                  </Badge>
+                )}
                 {a.profile?.phone && <p className="text-xs text-muted-foreground">{a.profile.phone}</p>}
               </td>
               <td className="px-4 py-3 text-muted-foreground">
