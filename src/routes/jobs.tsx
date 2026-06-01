@@ -1,12 +1,15 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
-import { Search, MapPin, Filter as FilterIcon, Megaphone } from "lucide-react";
+import { toast } from "sonner";
+import { Search, MapPin, Filter as FilterIcon, Megaphone, BellRing } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { JobCard, type JobSummary } from "@/components/job-card";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { useAuth } from "@/lib/auth";
+import { Button } from "@/components/ui/button";
 
 const searchSchema = z.object({
   q: z.string().optional(),
@@ -45,6 +48,8 @@ const TYPES = [
 function JobsPage() {
   const search = Route.useSearch();
   const navigate = useNavigate();
+  const { user, role } = useAuth();
+  const qc = useQueryClient();
   const [keyword, setKeyword] = useState(search.q ?? "");
   const [location, setLocation] = useState(search.loc ?? "");
 
@@ -54,7 +59,7 @@ function JobsPage() {
       let q = supabase
         .from("jobs")
         .select("id, slug, title, location, shift, employment_type, pay_min, pay_max, featured, category, companies(name, slug)")
-        .eq("status", "published")
+        .in("status", ["active", "published"])
         .order("featured", { ascending: false })
         .order("created_at", { ascending: false });
 
@@ -69,6 +74,36 @@ function JobsPage() {
       return (data ?? []) as unknown as JobSummary[];
     },
   });
+
+  const createAlertFromSearch = async () => {
+    if (!user) {
+      navigate({ to: "/auth", search: { mode: "login", next: "/jobs" } as never });
+      return;
+    }
+    if (role && role !== "job_seeker" && role !== "admin") {
+      toast.error("Only job seekers can create alerts.");
+      return;
+    }
+    if (!search.q && !search.loc && !search.category) {
+      toast.error("Add a keyword, location, or category to create an alert.");
+      return;
+    }
+    const [city, state] = (search.loc ?? "").split(",").map((s: string) => s.trim());
+    const { error } = await supabase.from("job_alerts").insert({
+      applicant_id: user.id,
+      keyword: search.q || null,
+      city: city || null,
+      state: state ? state.toUpperCase().slice(0, 2) : null,
+      frequency: "daily",
+    });
+    if (error) toast.error(error.message);
+    else {
+      toast.success("Alert created — manage it in your dashboard.");
+      qc.invalidateQueries({ queryKey: ["seeker-alerts", user.id] });
+    }
+  };
+
+  const hasActiveSearch = !!(search.q || search.loc || search.category || search.shift || search.type);
 
   const featured = useMemo(() => jobs.filter((j) => j.featured), [jobs]);
   const rest = useMemo(() => jobs.filter((j) => !j.featured), [jobs]);
@@ -136,11 +171,21 @@ function JobsPage() {
 
         {/* RESULTS */}
         <main>
-          <div className="mb-4 flex items-baseline justify-between">
+          <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
             <h1 className="text-2xl font-bold text-[color:var(--ink)]">
               {isLoading ? "Searching…" : `${jobs.length} warehouse job${jobs.length === 1 ? "" : "s"}`}
               {search.q && <span className="text-muted-foreground"> for "{search.q}"</span>}
             </h1>
+            {hasActiveSearch && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={createAlertFromSearch}
+                className="gap-1.5"
+              >
+                <BellRing className="h-4 w-4 text-primary" /> Create alert from this search
+              </Button>
+            )}
           </div>
 
           {featured.length > 0 && (
