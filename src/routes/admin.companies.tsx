@@ -30,7 +30,7 @@ function AdminCompanies() {
     },
   });
 
-  const updateCompany = async (id: string, patch: Record<string, unknown>) => {
+  const updateCompany = async (id: string, patch: { verified?: boolean; status?: string; posting_credits?: number; featured_credits?: number }) => {
     const { error } = await supabase.from("companies").update(patch).eq("id", id);
     if (error) toast.error(error.message);
     else {
