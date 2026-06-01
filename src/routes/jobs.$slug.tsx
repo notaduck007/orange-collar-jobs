@@ -166,6 +166,19 @@ function JobDetail() {
 
   const alreadyApplied = !!job && appliedIds.has(job.id);
 
+  const { data: screeningCount = 0 } = useQuery({
+    queryKey: ["screening-questions-count", job?.id],
+    enabled: !!job?.id,
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("screening_questions")
+        .select("*", { count: "exact", head: true })
+        .eq("job_id", job!.id);
+      return count ?? 0;
+    },
+  });
+  const hasScreening = screeningCount > 0;
+
   const handleQuickApply = async () => {
     if (!user || !job || !quickApply.resumeUrl) return;
     setQuickSubmitting(true);
@@ -194,7 +207,7 @@ function JobDetail() {
       navigate({ to: "/auth", search: { mode: "login", next: `/jobs/${slug}` } as never });
       return;
     }
-    if (quickApply.ready) {
+    if (quickApply.ready && !hasScreening) {
       handleQuickApply();
       return;
     }
@@ -267,7 +280,7 @@ function JobDetail() {
             </section>
 
             <div className="mt-8 space-y-3">
-              {user && quickApply.ready && !alreadyApplied && (
+              {user && quickApply.ready && !hasScreening && !alreadyApplied && (
                 <div className="rounded-lg border border-dashed border-border bg-background p-3">
                   <button
                     type="button"
@@ -302,7 +315,7 @@ function JobDetail() {
                   >
                     {quickSubmitting
                       ? "Sending…"
-                      : user && quickApply.ready
+                      : user && quickApply.ready && !hasScreening
                         ? "Quick apply"
                         : "Apply now"}
                   </Button>

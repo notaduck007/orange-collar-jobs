@@ -29,6 +29,7 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { uniqueSlug } from "@/lib/slug";
 import { JOB_TEMPLATES, TEMPLATE_LIST } from "@/lib/job-templates";
+import { ScreeningQuestionsBuilder, type ScreeningQuestionDraft } from "@/components/screening-questions-builder";
 
 export const Route = createFileRoute("/employer/jobs/new")({
   head: () => ({ meta: [{ title: "Post a Job — WarehouseJobs Employers" }] }),
@@ -75,7 +76,7 @@ const stepSchemas = [
   }),
 ];
 
-const STEPS = ["Basics", "Schedule & pay", "Location", "Description"] as const;
+const STEPS = ["Basics", "Schedule & pay", "Location", "Description", "Screening"] as const;
 
 function NewJobPage() {
   const { user } = useAuth();
@@ -130,6 +131,7 @@ function NewJobPage() {
   const [step, setStep] = useState(0);
   const [templateOpen, setTemplateOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [questions, setQuestions] = useState<ScreeningQuestionDraft[]>([]);
   const [form, setForm] = useState({
     title: "",
     category: "",
@@ -217,7 +219,7 @@ function NewJobPage() {
     try {
       const slug = uniqueSlug(form.title);
       const expiresAt = new Date(Date.now() + durationDays * 86400_000).toISOString();
-      const { error } = await supabase.from("jobs").insert({
+      const { data: created, error } = await supabase.from("jobs").insert({
         company_id: company.id,
         posted_by: user.id,
         title: form.title,
@@ -238,8 +240,23 @@ function NewJobPage() {
         featured: wantsFeatured,
         posted_at: new Date().toISOString(),
         expires_at: expiresAt,
-      });
+      }).select("id").single();
       if (error) throw error;
+
+      const validQs = questions.filter((q) => q.prompt.trim().length > 0);
+      if (created && validQs.length) {
+        const rows = validQs.map((q, idx) => ({
+          job_id: created.id,
+          prompt: q.prompt.trim(),
+          type: q.type,
+          options: q.options.filter(Boolean).length ? (q.options.filter(Boolean) as unknown as never) : null,
+          required: q.required,
+          knockout_answer: (q.knockout_answer ?? null) as never,
+          sort_order: idx,
+        }));
+        const { error: qErr } = await supabase.from("screening_questions").insert(rows);
+        if (qErr) toast.error(`Job posted, but screening questions failed: ${qErr.message}`);
+      }
 
       const { error: cErr } = await supabase
         .from("companies")
@@ -574,6 +591,19 @@ function NewJobPage() {
                 </p>
               </div>
             </label>
+          </div>
+        )}
+
+        {step === 4 && (
+          <div className="space-y-3">
+            <div>
+              <h2 className="text-base font-semibold text-[color:var(--ink)]">Screening questions (optional)</h2>
+              <p className="text-xs text-muted-foreground">
+                Ask qualifying questions to filter applicants. Use the knockout setting to auto-flag
+                disqualifying answers on the applicants board.
+              </p>
+            </div>
+            <ScreeningQuestionsBuilder value={questions} onChange={setQuestions} />
           </div>
         )}
 

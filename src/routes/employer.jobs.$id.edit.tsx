@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ScreeningQuestionsBuilder, type ScreeningQuestionDraft } from "@/components/screening-questions-builder";
 
 export const Route = createFileRoute("/employer/jobs/$id/edit")({
   head: () => ({ meta: [{ title: "Edit Job — WarehouseJobs Employers" }] }),
@@ -50,6 +51,38 @@ function EditJobPage() {
     pay_min: "", pay_max: "", pay_period: "hour" as "hour" | "year",
   });
   const [saving, setSaving] = useState(false);
+  const [questions, setQuestions] = useState<ScreeningQuestionDraft[]>([]);
+  const [questionsLoaded, setQuestionsLoaded] = useState(false);
+
+  const { data: dbQuestions } = useQuery({
+    queryKey: ["screening-questions", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("screening_questions")
+        .select("*")
+        .eq("job_id", id)
+        .order("sort_order");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  useEffect(() => {
+    if (dbQuestions && !questionsLoaded) {
+      setQuestions(
+        dbQuestions.map((q: any, i: number) => ({
+          id: q.id,
+          prompt: q.prompt,
+          type: q.type,
+          options: Array.isArray(q.options) ? q.options : [],
+          required: q.required,
+          knockout_answer: q.knockout_answer,
+          sort_order: q.sort_order ?? i,
+        })),
+      );
+      setQuestionsLoaded(true);
+    }
+  }, [dbQuestions, questionsLoaded]);
 
   useEffect(() => {
     if (!job) return;
@@ -89,9 +122,29 @@ function EditJobPage() {
         pay_period: form.pay_period,
       }).eq("id", id);
       if (error) throw error;
+
+      // Replace screening questions: simplest approach — wipe and re-insert.
+      const { error: delErr } = await supabase.from("screening_questions").delete().eq("job_id", id);
+      if (delErr) throw delErr;
+      const validQs = questions.filter((q) => q.prompt.trim().length > 0);
+      if (validQs.length) {
+        const rows = validQs.map((q, idx) => ({
+          job_id: id,
+          prompt: q.prompt.trim(),
+          type: q.type,
+          options: q.options.filter(Boolean).length ? (q.options.filter(Boolean) as unknown as never) : null,
+          required: q.required,
+          knockout_answer: (q.knockout_answer ?? null) as never,
+          sort_order: idx,
+        }));
+        const { error: insErr } = await supabase.from("screening_questions").insert(rows);
+        if (insErr) throw insErr;
+      }
+
       toast.success("Job updated");
       qc.invalidateQueries({ queryKey: ["employer-job", id] });
       qc.invalidateQueries({ queryKey: ["employer-jobs"] });
+      qc.invalidateQueries({ queryKey: ["screening-questions", id] });
       navigate({ to: "/employer" });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Save failed");
@@ -174,6 +227,16 @@ function EditJobPage() {
         <div className="space-y-1.5">
           <Label htmlFor="requirements">Requirements</Label>
           <Textarea id="requirements" rows={5} value={form.requirements} onChange={(e) => setForm({ ...form, requirements: e.target.value })} />
+        </div>
+
+        <div className="space-y-3 border-t border-border pt-5">
+          <div>
+            <h2 className="text-base font-semibold text-[color:var(--ink)]">Screening questions</h2>
+            <p className="text-xs text-muted-foreground">
+              Ask qualifying questions. Use the knockout setting to auto-flag disqualifying answers.
+            </p>
+          </div>
+          <ScreeningQuestionsBuilder value={questions} onChange={setQuestions} />
         </div>
 
         <div className="flex items-center justify-end gap-2 border-t border-border pt-5">

@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { isKnockout, type QuestionType } from "@/components/screening-questions-builder";
 
 export const Route = createFileRoute("/employer/jobs/$id/applicants")({
   head: () => ({ meta: [{ title: "Applicants — WarehouseJobs Employers" }] }),
@@ -78,8 +79,32 @@ function ApplicantsPage() {
   const [rejectFor, setRejectFor] = useState<Applicant | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [openId, setOpenId] = useState<string | null>(null);
+  const [hideKnockouts, setHideKnockouts] = useState(false);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+
+  const { data: screening } = useQuery({
+    queryKey: ["screening-with-answers", id],
+    queryFn: async () => {
+      const { data: qs } = await supabase
+        .from("screening_questions")
+        .select("id, type, knockout_answer")
+        .eq("job_id", id);
+      const { data: ans } = await supabase
+        .from("application_answers")
+        .select("application_id, question_id, answer")
+        .in("question_id", (qs ?? []).map((q: any) => q.id).length ? (qs ?? []).map((q: any) => q.id) : ["00000000-0000-0000-0000-000000000000"]);
+      const qById: Record<string, { type: QuestionType; knockout_answer: unknown }> = {};
+      (qs ?? []).forEach((q: any) => { qById[q.id] = { type: q.type, knockout_answer: q.knockout_answer }; });
+      const knockedOut = new Set<string>();
+      (ans ?? []).forEach((a: any) => {
+        const q = qById[a.question_id];
+        if (q && isKnockout(q, a.answer)) knockedOut.add(a.application_id);
+      });
+      return { knockedOut };
+    },
+  });
+  const knockedOut = screening?.knockedOut ?? new Set<string>();
 
   const { data: job } = useQuery({
     queryKey: ["employer-job", id],
@@ -114,16 +139,21 @@ function ApplicantsPage() {
     },
   });
 
+  const visibleApplications = useMemo(
+    () => (hideKnockouts ? applications.filter((a) => !knockedOut.has(a.id)) : applications),
+    [applications, hideKnockouts, knockedOut],
+  );
+
   const byStatus = useMemo(() => {
     const groups: Record<AppStatus, Applicant[]> = {
       submitted: [], reviewed: [], interview: [], hired: [], rejected: [],
     };
-    for (const a of applications) {
+    for (const a of visibleApplications) {
       const key = (a.status === ("shortlisted" as AppStatus) ? "interview" : a.status) as AppStatus;
       if (groups[key]) groups[key].push(a);
     }
     return groups;
-  }, [applications]);
+  }, [visibleApplications]);
 
   const patchLocal = (appId: string, patch: Partial<Applicant>) =>
     qc.setQueryData<Applicant[]>(["employer-applicants", id], (prev) =>
@@ -205,12 +235,25 @@ function ApplicantsPage() {
               </p>
             )}
           </div>
-          <Tabs value={view} onValueChange={(v) => setView(v as "board" | "table")}>
-            <TabsList>
-              <TabsTrigger value="board" className="gap-1.5"><LayoutGrid className="h-4 w-4" /> Board</TabsTrigger>
-              <TabsTrigger value="table" className="gap-1.5"><List className="h-4 w-4" /> Table</TabsTrigger>
-            </TabsList>
-          </Tabs>
+          <div className="flex items-center gap-3">
+            {knockedOut.size > 0 && (
+              <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <input
+                  type="checkbox"
+                  className="accent-[color:var(--primary)]"
+                  checked={hideKnockouts}
+                  onChange={(e) => setHideKnockouts(e.target.checked)}
+                />
+                Hide knockouts ({knockedOut.size})
+              </label>
+            )}
+            <Tabs value={view} onValueChange={(v) => setView(v as "board" | "table")}>
+              <TabsList>
+                <TabsTrigger value="board" className="gap-1.5"><LayoutGrid className="h-4 w-4" /> Board</TabsTrigger>
+                <TabsTrigger value="table" className="gap-1.5"><List className="h-4 w-4" /> Table</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
         </div>
       </div>
 
@@ -235,6 +278,7 @@ function ApplicantsPage() {
                 key={col.value}
                 column={col}
                 items={byStatus[col.value]}
+                knockedOut={knockedOut}
                 onReject={(a) => { setRejectFor(a); setRejectReason(a.rejection_reason ?? ""); }}
                 onOpen={(a) => setOpenId(a.id)}
               />
@@ -246,7 +290,8 @@ function ApplicantsPage() {
         </DndContext>
       ) : (
         <TableView
-          applications={applications}
+          applications={visibleApplications}
+          knockedOut={knockedOut}
           onStatusChange={(appId, status) => {
             if (status === "rejected") {
               const a = applications.find((x) => x.id === appId);
@@ -301,10 +346,11 @@ function ApplicantsPage() {
 }
 
 function Column({
-  column, items, onReject, onOpen,
+  column, items, knockedOut, onReject, onOpen,
 }: {
   column: { value: AppStatus; label: string; accent: string };
   items: Applicant[];
+  knockedOut: Set<string>;
   onReject: (a: Applicant) => void;
   onOpen: (a: Applicant) => void;
 }) {
@@ -323,14 +369,14 @@ function Column({
           <p className="rounded-md border border-dashed border-border px-2 py-4 text-center text-[11px] text-muted-foreground">Drop here</p>
         )}
         {items.map((a) => (
-          <DraggableCard key={a.id} app={a} onReject={() => onReject(a)} onOpen={() => onOpen(a)} />
+          <DraggableCard key={a.id} app={a} knockout={knockedOut.has(a.id)} onReject={() => onReject(a)} onOpen={() => onOpen(a)} />
         ))}
       </div>
     </div>
   );
 }
 
-function DraggableCard({ app, onReject, onOpen }: { app: Applicant; onReject: () => void; onOpen: () => void }) {
+function DraggableCard({ app, knockout, onReject, onOpen }: { app: Applicant; knockout?: boolean; onReject: () => void; onOpen: () => void }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: app.id });
   return (
     <div
@@ -340,7 +386,7 @@ function DraggableCard({ app, onReject, onOpen }: { app: Applicant; onReject: ()
       {...listeners}
       className="cursor-grab active:cursor-grabbing touch-none"
     >
-      <ApplicantCard app={app} onReject={onReject} onOpen={onOpen} />
+      <ApplicantCard app={app} knockout={knockout} onReject={onReject} onOpen={onOpen} />
     </div>
   );
 }
@@ -361,12 +407,17 @@ function StarRow({ value, size = "sm" }: { value: number | null; size?: "sm" | "
 }
 
 function ApplicantCard({
-  app, dragging, onReject, onOpen,
+  app, dragging, knockout, onReject, onOpen,
 }: {
-  app: Applicant; dragging?: boolean; onReject?: () => void; onOpen?: () => void;
+  app: Applicant; dragging?: boolean; knockout?: boolean; onReject?: () => void; onOpen?: () => void;
 }) {
   return (
-    <div className={`rounded-lg border border-border bg-background p-3 shadow-sm ${dragging ? "ring-2 ring-primary shadow-lg" : ""}`}>
+    <div className={`rounded-lg border ${knockout ? "border-rose-300 bg-rose-50/40" : "border-border bg-background"} p-3 shadow-sm ${dragging ? "ring-2 ring-primary shadow-lg" : ""}`}>
+      {knockout && (
+        <p className="mb-1.5 inline-flex items-center gap-1 rounded bg-rose-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-rose-800">
+          <XCircle className="h-2.5 w-2.5" /> Knockout
+        </p>
+      )}
       <div className="flex items-start gap-2">
         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[color:var(--primary-tint)] text-primary">
           <UserIcon className="h-4 w-4" />
