@@ -131,6 +131,7 @@ function NewJobPage() {
   const [step, setStep] = useState(0);
   const [templateOpen, setTemplateOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [questions, setQuestions] = useState<ScreeningQuestionDraft[]>([]);
   const [form, setForm] = useState({
     title: "",
     category: "",
