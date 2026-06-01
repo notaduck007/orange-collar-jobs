@@ -75,7 +75,7 @@ function JobsPage() {
         p_category: search.category ?? null,
         p_shift: search.shift ?? null,
         p_type: search.type ?? null,
-        p_pay_min: search.pay_min ?? undefined,
+        p_pay_min: search.pay_min,
         p_radius_miles: null,
         p_sort: sort,
         p_limit: 50,
