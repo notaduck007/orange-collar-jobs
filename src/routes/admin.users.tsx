@@ -65,7 +65,9 @@ function AdminUsers() {
 
       <div className="grid gap-2">
         {users.map((u) => {
-          const role = (u.user_roles?.[0]?.role ?? "job_seeker") as AppRole;
+          const rolesField = u.user_roles as unknown;
+          const rolesArr = Array.isArray(rolesField) ? (rolesField as Array<{ role: AppRole }>) : rolesField ? [rolesField as { role: AppRole }] : [];
+          const role = (rolesArr[0]?.role ?? "job_seeker") as AppRole;
           return (
             <div key={u.id} className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card p-3">
               <div className="min-w-0 flex-1">
