@@ -76,7 +76,7 @@ const stepSchemas = [
   }),
 ];
 
-const STEPS = ["Basics", "Schedule & pay", "Location", "Description"] as const;
+const STEPS = ["Basics", "Schedule & pay", "Location", "Description", "Screening"] as const;
 
 function NewJobPage() {
   const { user } = useAuth();
