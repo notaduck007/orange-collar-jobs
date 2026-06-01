@@ -78,6 +78,7 @@ function EmployerLayout() {
           <SideLink to="/employer" icon={LayoutDashboard} label="Dashboard" exact />
           <SideLink to="/employer/jobs/new" icon={Briefcase} label="Post a Job" />
           <SideLink to="/employer/onboarding" icon={Building2} label="Company Profile" />
+          <SideLink to="/employer/ads" icon={Megaphone} label="Advertising" />
           <Link to="/pricing" className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-foreground hover:bg-muted">
             <CreditCard className="h-4 w-4" /> Buy Credits
           </Link>
