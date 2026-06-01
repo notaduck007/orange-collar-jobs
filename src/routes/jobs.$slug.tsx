@@ -11,18 +11,44 @@ import { useAuth } from "@/lib/auth";
 import { ApplyDialog } from "@/components/apply-dialog";
 import { AdSlot } from "@/components/ad-slot";
 
+const EMPLOYMENT_TYPE_SCHEMA: Record<string, string> = {
+  full_time: "FULL_TIME",
+  part_time: "PART_TIME",
+  temp: "TEMPORARY",
+  temp_to_hire: "TEMPORARY",
+  seasonal: "TEMPORARY",
+  contract: "CONTRACTOR",
+};
+
+const PAY_UNIT_SCHEMA: Record<string, string> = {
+  hour: "HOUR",
+  day: "DAY",
+  week: "WEEK",
+  month: "MONTH",
+  year: "YEAR",
+};
+
 export const Route = createFileRoute("/jobs/$slug")({
   loader: async ({ params }) => {
     const { data } = await supabase
       .from("jobs")
-      .select("title, description, location, category, companies(name)")
+      .select(
+        "title, description, location, category, city, state, zip, employment_type, pay_min, pay_max, pay_period, posted_at, created_at, expires_at, companies(name, website, logo_url)",
+      )
       .eq("slug", params.slug)
       .maybeSingle();
     return { meta: data };
   },
   head: ({ params, loaderData }) => {
     const m = loaderData?.meta as
-      | { title: string; description: string; location: string; category: string; companies: { name?: string } | null }
+      | {
+          title: string; description: string; location: string; category: string;
+          city: string | null; state: string | null; zip: string | null;
+          employment_type: string; pay_min: number | null; pay_max: number | null;
+          pay_period: string | null; posted_at: string | null; created_at: string | null;
+          expires_at: string | null;
+          companies: { name?: string; website?: string | null; logo_url?: string | null } | null;
+        }
       | null
       | undefined;
     const company = m?.companies?.name;
@@ -33,6 +59,52 @@ export const Route = createFileRoute("/jobs/$slug")({
       ? ((m.description ?? "").slice(0, 155).replace(/\s+/g, " ").trim() ||
         `${m.category} role in ${m.location}. Apply on WarehouseJobs.`)
       : "Apply to warehouse jobs near you on WarehouseJobs.";
+
+    let jsonLd: Record<string, unknown> | null = null;
+    if (m) {
+      const employmentType = EMPLOYMENT_TYPE_SCHEMA[m.employment_type] ?? "FULL_TIME";
+      const baseSalary = m.pay_min != null || m.pay_max != null ? {
+        "@type": "MonetaryAmount",
+        currency: "USD",
+        value: {
+          "@type": "QuantitativeValue",
+          minValue: m.pay_min ?? undefined,
+          maxValue: m.pay_max ?? m.pay_min ?? undefined,
+          unitText: PAY_UNIT_SCHEMA[m.pay_period ?? "hour"] ?? "HOUR",
+        },
+      } : undefined;
+      jsonLd = {
+        "@context": "https://schema.org",
+        "@type": "JobPosting",
+        title: m.title,
+        description: m.description,
+        datePosted: m.posted_at ?? m.created_at ?? undefined,
+        validThrough: m.expires_at ?? undefined,
+        employmentType,
+        hiringOrganization: company
+          ? {
+              "@type": "Organization",
+              name: company,
+              sameAs: m.companies?.website ?? undefined,
+              logo: m.companies?.logo_url ?? undefined,
+            }
+          : undefined,
+        jobLocation: {
+          "@type": "Place",
+          address: {
+            "@type": "PostalAddress",
+            streetAddress: undefined,
+            addressLocality: m.city ?? m.location,
+            addressRegion: m.state ?? undefined,
+            postalCode: m.zip ?? undefined,
+            addressCountry: "US",
+          },
+        },
+        baseSalary,
+        directApply: true,
+      };
+    }
+
     return {
       meta: [
         { title },
@@ -44,20 +116,8 @@ export const Route = createFileRoute("/jobs/$slug")({
         { name: "twitter:card", content: "summary" },
       ],
       links: [{ rel: "canonical", href: `/jobs/${params.slug}` }],
-      scripts: m
-        ? [
-            {
-              type: "application/ld+json",
-              children: JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "JobPosting",
-                title: m.title,
-                description: m.description,
-                jobLocation: { "@type": "Place", address: m.location },
-                hiringOrganization: company ? { "@type": "Organization", name: company } : undefined,
-              }),
-            },
-          ]
+      scripts: jsonLd
+        ? [{ type: "application/ld+json", children: JSON.stringify(jsonLd) }]
         : undefined,
     };
   },
