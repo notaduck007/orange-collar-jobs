@@ -8,7 +8,7 @@ import { SiteFooter } from "@/components/site-footer";
 export const Route = createFileRoute("/pricing")({
   head: () => ({
     meta: [
-      { title: "Posting Packages & Pricing — DockHire for Employers" },
+      { title: "Posting Packages & Pricing — WarehouseJobs for Employers" },
       { name: "description", content: "Post warehouse jobs to qualified workers. Flat-rate packages, no contracts." },
     ],
   }),

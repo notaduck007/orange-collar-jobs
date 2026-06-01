@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 
 export const Route = createFileRoute("/contact")({
-  head: () => ({ meta: [{ title: "Contact — DockHire" }] }),
+  head: () => ({ meta: [{ title: "Contact — WarehouseJobs" }] }),
   component: Contact,
 });
 

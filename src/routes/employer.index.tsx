@@ -13,7 +13,7 @@ import { uniqueSlug } from "@/lib/slug";
 import { TableSkeleton } from "@/components/ui/skeleton-list";
 
 export const Route = createFileRoute("/employer/")({
-  head: () => ({ meta: [{ title: "Employer Dashboard — DockHire" }] }),
+  head: () => ({ meta: [{ title: "Employer Dashboard — WarehouseJobs" }] }),
   component: EmployerDashboard,
 });
 

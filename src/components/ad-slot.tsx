@@ -21,7 +21,7 @@ const FALLBACKS: Record<AdSlotName, React.ReactNode> = {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <p className="label-caps text-white/50">Sponsored slot — yours for $299/month</p>
-          <p className="mt-1 text-xl font-bold">Put your warehouse brand on the DockHire homepage.</p>
+          <p className="mt-1 text-xl font-bold">Put your warehouse brand on the WarehouseJobs homepage.</p>
           <p className="mt-1 text-sm text-white/70">Reach thousands of forklift-certified workers each week.</p>
         </div>
         <span className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">See packages →</span>

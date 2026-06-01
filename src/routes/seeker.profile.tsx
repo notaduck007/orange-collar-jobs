@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export const Route = createFileRoute("/seeker/profile")({
-  head: () => ({ meta: [{ title: "Profile & Resume — DockHire" }] }),
+  head: () => ({ meta: [{ title: "Profile & Resume — WarehouseJobs" }] }),
   component: ProfilePage,
 });
 

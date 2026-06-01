@@ -13,7 +13,7 @@ import type { Database } from "@/integrations/supabase/types";
 type AppRole = Database["public"]["Enums"]["app_role"];
 
 export const Route = createFileRoute("/admin/users")({
-  head: () => ({ meta: [{ title: "Users — DockHire Admin" }] }),
+  head: () => ({ meta: [{ title: "Users — WarehouseJobs Admin" }] }),
   component: AdminUsers,
 });
 

@@ -65,9 +65,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "DockHire — Warehouse Jobs Hiring Now" },
+      { title: "WarehouseJobs — Warehouse Jobs Hiring Now" },
       { name: "description", content: "Find forklift, picker/packer, shipping & receiving, and warehouse jobs near you. Free for job seekers." },
-      { property: "og:title", content: "DockHire — Warehouse Jobs" },
+      { property: "og:title", content: "WarehouseJobs — Warehouse Jobs" },
       { property: "og:description", content: "The job board built for warehouse workers." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

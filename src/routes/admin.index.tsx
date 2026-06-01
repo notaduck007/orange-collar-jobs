@@ -4,7 +4,7 @@ import { Users, Building2, Briefcase, DollarSign, Megaphone, AlertTriangle } fro
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/admin/")({
-  head: () => ({ meta: [{ title: "Admin Dashboard — DockHire" }] }),
+  head: () => ({ meta: [{ title: "Admin Dashboard — WarehouseJobs" }] }),
   component: AdminDashboard,
 });
 

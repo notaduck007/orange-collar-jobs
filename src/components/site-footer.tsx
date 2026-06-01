@@ -11,7 +11,7 @@ export function SiteFooter() {
             <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary text-primary-foreground">
               <HardHat className="h-5 w-5" strokeWidth={2.5} />
             </div>
-            <span className="text-base font-bold tracking-tight">DockHire</span>
+            <span className="text-base font-bold tracking-tight">WarehouseJobs</span>
           </div>
           <p className="mt-3 max-w-xs text-sm text-white/60">
             The job board built for warehouse workers and the companies that hire them.
@@ -43,7 +43,7 @@ export function SiteFooter() {
       </div>
       <div className="border-t border-white/10">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-4 py-5 text-xs text-white/50 sm:flex-row sm:px-6">
-          <p>© {new Date().getFullYear()} DockHire. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} WarehouseJobs. All rights reserved.</p>
           <p>Built for the dock — boots-on-the-ground hiring.</p>
         </div>
       </div>

@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const Route = createFileRoute("/employer/ads")({
-  head: () => ({ meta: [{ title: "Advertising — DockHire Employer" }] }),
+  head: () => ({ meta: [{ title: "Advertising — WarehouseJobs Employer" }] }),
   component: EmployerAds,
 });
 
@@ -97,7 +97,7 @@ function EmployerAds() {
         {ads.length === 0 && (
           <div className="rounded-lg border border-dashed border-border bg-card p-10 text-center">
             <p className="text-base font-semibold text-[color:var(--ink)]">No ads yet.</p>
-            <p className="mt-1 text-sm text-muted-foreground">Create your first ad to promote your jobs across DockHire.</p>
+            <p className="mt-1 text-sm text-muted-foreground">Create your first ad to promote your jobs across WarehouseJobs.</p>
           </div>
         )}
         {ads.map((ad) => (

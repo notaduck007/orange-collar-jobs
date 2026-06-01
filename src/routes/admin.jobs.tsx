@@ -19,7 +19,7 @@ const searchSchema = z.object({
 
 export const Route = createFileRoute("/admin/jobs")({
   validateSearch: searchSchema,
-  head: () => ({ meta: [{ title: "Jobs — DockHire Admin" }] }),
+  head: () => ({ meta: [{ title: "Jobs — WarehouseJobs Admin" }] }),
   component: AdminJobs,
 });
 

@@ -7,7 +7,7 @@ import { StatusBadge } from "./seeker.index";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/seeker/applications")({
-  head: () => ({ meta: [{ title: "My Applications — DockHire" }] }),
+  head: () => ({ meta: [{ title: "My Applications — WarehouseJobs" }] }),
   component: ApplicationsPage,
 });
 

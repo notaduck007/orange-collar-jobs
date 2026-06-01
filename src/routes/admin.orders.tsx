@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/admin/orders")({
-  head: () => ({ meta: [{ title: "Orders — DockHire Admin" }] }),
+  head: () => ({ meta: [{ title: "Orders — WarehouseJobs Admin" }] }),
   component: AdminOrders,
 });
 

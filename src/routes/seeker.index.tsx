@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/seeker/")({
-  head: () => ({ meta: [{ title: "My Dashboard — DockHire" }] }),
+  head: () => ({ meta: [{ title: "My Dashboard — WarehouseJobs" }] }),
   component: SeekerOverview,
 });
 
