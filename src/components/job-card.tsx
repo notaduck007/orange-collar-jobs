@@ -38,11 +38,7 @@ export function JobCard({ job }: { job: JobSummary }) {
   const applied = appliedIds.has(job.id);
   const pay = job.pay_min && job.pay_max ? `$${job.pay_min}–$${job.pay_max}/hr` : null;
   return (
-    <Link
-      to="/jobs/$slug"
-      params={{ slug: job.slug }}
-      className="group relative block rounded-lg border border-border bg-card p-5 shadow-[var(--shadow-card)] transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-[var(--shadow-card-hover)]"
-    >
+    <div className="group relative rounded-lg border border-border bg-card p-5 shadow-[var(--shadow-card)] transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-[var(--shadow-card-hover)]">
       {job.featured && (
         <div className="absolute -top-px right-4 flex items-center gap-1 rounded-b-md bg-[color:var(--hazard)] px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[color:var(--ink)]">
           <Zap className="h-3 w-3" fill="currentColor" /> Featured
@@ -50,10 +46,26 @@ export function JobCard({ job }: { job: JobSummary }) {
       )}
       <p className="label-caps">{job.category} • {shiftLabel[job.shift]}</p>
       <h3 className="mt-1.5 text-lg font-semibold leading-tight text-[color:var(--ink)] group-hover:text-primary">
-        {job.title}
+        <Link
+          to="/jobs/$slug"
+          params={{ slug: job.slug }}
+          className="before:absolute before:inset-0 before:content-['']"
+        >
+          {job.title}
+        </Link>
       </h3>
       {job.companies && (
-        <p className="mt-0.5 text-sm font-medium text-foreground">{job.companies.name}</p>
+        job.companies.slug ? (
+          <Link
+            to="/companies/$slug"
+            params={{ slug: job.companies.slug }}
+            className="relative z-10 mt-0.5 inline-block text-sm font-medium text-foreground hover:text-primary hover:underline"
+          >
+            {job.companies.name}
+          </Link>
+        ) : (
+          <p className="mt-0.5 text-sm font-medium text-foreground">{job.companies.name}</p>
+        )
       )}
       <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-sm text-muted-foreground">
         <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> {job.location}</span>
@@ -65,6 +77,6 @@ export function JobCard({ job }: { job: JobSummary }) {
           <CheckCircle2 className="h-3 w-3" /> Applied
         </span>
       )}
-    </Link>
+    </div>
   );
 }

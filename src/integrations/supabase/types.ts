@@ -749,6 +749,25 @@ export type Database = {
         }
         Returns: boolean
       }
+      recommended_jobs: {
+        Args: { _limit?: number; _user_id: string }
+        Returns: {
+          category: string
+          company_name: string
+          company_slug: string
+          created_at: string
+          employment_type: Database["public"]["Enums"]["employment_type"]
+          featured: boolean
+          id: string
+          location: string
+          pay_max: number
+          pay_min: number
+          score: number
+          shift: Database["public"]["Enums"]["job_shift"]
+          slug: string
+          title: string
+        }[]
+      }
       search_jobs: {
         Args: {
           p_category?: string

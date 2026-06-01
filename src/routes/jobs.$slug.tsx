@@ -235,7 +235,7 @@ function JobDetail() {
                 <p className="label-caps text-primary">{job.category} • {shiftLabel[job.shift]}</p>
                 <h1 className="mt-2 text-3xl font-bold leading-tight text-[color:var(--ink)] sm:text-4xl">{job.title}</h1>
                 {job.companies && (
-                  <Link to="/jobs" search={{ q: job.companies.name } as never} className="mt-2 inline-flex items-center gap-1.5 text-base font-medium text-foreground hover:text-primary">
+                  <Link to="/companies/$slug" params={{ slug: job.companies.slug }} className="mt-2 inline-flex items-center gap-1.5 text-base font-medium text-foreground hover:text-primary hover:underline">
                     <Building2 className="h-4 w-4" /> {job.companies.name}
                   </Link>
                 )}
@@ -325,11 +325,16 @@ function JobDetail() {
           {job.companies && (
             <div className="rounded-xl border border-border bg-card p-5">
               <p className="label-caps">About the employer</p>
-              <p className="mt-2 text-base font-semibold text-[color:var(--ink)]">{job.companies.name}</p>
+              <Link to="/companies/$slug" params={{ slug: job.companies.slug }} className="mt-2 inline-block text-base font-semibold text-[color:var(--ink)] hover:text-primary hover:underline">
+                {job.companies.name}
+              </Link>
               <p className="mt-0.5 text-sm text-muted-foreground">{job.companies.location}</p>
               {job.companies.description && (
                 <p className="mt-3 text-sm leading-relaxed text-foreground">{job.companies.description}</p>
               )}
+              <Link to="/companies/$slug" params={{ slug: job.companies.slug }} className="mt-3 inline-block text-xs font-semibold text-primary hover:underline">
+                View all roles →
+              </Link>
             </div>
           )}
 

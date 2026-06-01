@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { FileText, Bookmark, BellRing, ArrowRight } from "lucide-react";
+import { FileText, Bookmark, BellRing, ArrowRight, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { JobCard, type JobSummary } from "@/components/job-card";
 
 export const Route = createFileRoute("/seeker/")({
   head: () => ({ meta: [{ title: "My Dashboard — WarehouseJobs" }] }),
@@ -47,6 +48,28 @@ function SeekerOverview() {
     },
   });
 
+  const { data: recommended = [] } = useQuery({
+    queryKey: ["seeker-recommended", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("recommended_jobs", { _user_id: user!.id, _limit: 6 });
+      if (error) throw error;
+      return (data ?? []).map((r: any) => ({
+        id: r.id,
+        slug: r.slug,
+        title: r.title,
+        location: r.location,
+        shift: r.shift,
+        employment_type: r.employment_type,
+        pay_min: r.pay_min,
+        pay_max: r.pay_max,
+        featured: r.featured,
+        category: r.category,
+        companies: r.company_name ? { name: r.company_name, slug: r.company_slug } : null,
+      })) as JobSummary[];
+    },
+  });
+
   return (
     <div className="space-y-6">
       <div>
@@ -63,6 +86,27 @@ function SeekerOverview() {
         <StatCard label="Saved jobs" value={stats?.saved ?? 0} icon={Bookmark} to="/seeker/saved" />
         <StatCard label="Active alerts" value={stats?.alerts ?? 0} icon={BellRing} to="/seeker/alerts" />
       </div>
+
+      {recommended.length > 0 && (
+        <div className="rounded-xl border border-border bg-card p-5">
+          <div className="flex items-center justify-between">
+            <h2 className="flex items-center gap-1.5 text-lg font-semibold text-[color:var(--ink)]">
+              <Sparkles className="h-4 w-4 text-primary" /> Recommended for you
+            </h2>
+            <Link to="/seeker/profile" className="text-xs font-semibold text-primary hover:underline">
+              Tune preferences <ArrowRight className="ml-0.5 inline h-3 w-3" />
+            </Link>
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Based on your shift, employment type, skills and location.
+          </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {recommended.map((job) => <JobCard key={job.id} job={job} />)}
+          </div>
+        </div>
+      )}
+
+
 
       <div className="rounded-xl border border-border bg-card p-5">
         <div className="flex items-center justify-between">
