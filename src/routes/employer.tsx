@@ -92,6 +92,7 @@ function EmployerLayout() {
           <p className="label-caps mb-2">Employer</p>
           <SideLink to="/employer" icon={LayoutDashboard} label="Dashboard" exact />
           <SideLink to="/employer/jobs/new" icon={Briefcase} label="Post a Job" />
+          <SideLink to="/employer/analytics" icon={BarChart3} label="Analytics" />
           <SideLink to="/employer/candidates" icon={Search} label="Find Candidates" />
           <SideLink to="/employer/onboarding" icon={Building2} label="Company Profile" />
           <SideLink to="/employer/team" icon={Users} label="Team" />
