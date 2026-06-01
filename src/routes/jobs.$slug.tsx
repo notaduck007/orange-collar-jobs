@@ -142,10 +142,12 @@ function JobDetail() {
             </div>
           )}
 
-          <Link to="/pricing" className="block overflow-hidden rounded-xl border border-border bg-[color:var(--ink)] p-5 text-white">
+          <AdSlot slot="job_sidebar" />
+
+          <Link to="/pricing" className="block overflow-hidden rounded-xl border border-border bg-card p-5">
             <div className="hazard-stripes mb-3 h-1.5 w-12 rounded-sm" />
-            <p className="text-sm font-semibold leading-snug">Hiring? Get this same placement for your jobs.</p>
-            <p className="mt-1 text-xs text-white/60">Featured upgrades start at $39 per post.</p>
+            <p className="text-sm font-semibold leading-snug text-[color:var(--ink)]">Hiring? Get this same placement for your jobs.</p>
+            <p className="mt-1 text-xs text-muted-foreground">Featured upgrades start at $39 per post.</p>
             <p className="mt-3 text-xs font-semibold text-primary">See packages →</p>
           </Link>
         </aside>
