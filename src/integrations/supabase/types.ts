@@ -53,6 +53,56 @@ export type Database = {
         }
         Relationships: []
       }
+      advertisements: {
+        Row: {
+          clicks: number
+          company_id: string | null
+          created_at: string
+          end_date: string | null
+          id: string
+          image_url: string
+          impressions: number
+          slot: string
+          start_date: string | null
+          status: string
+          target_url: string
+        }
+        Insert: {
+          clicks?: number
+          company_id?: string | null
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          image_url: string
+          impressions?: number
+          slot: string
+          start_date?: string | null
+          status?: string
+          target_url: string
+        }
+        Update: {
+          clicks?: number
+          company_id?: string | null
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          image_url?: string
+          impressions?: number
+          slot?: string
+          start_date?: string | null
+          status?: string
+          target_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advertisements_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       applications: {
         Row: {
           applicant_id: string
@@ -95,41 +145,133 @@ export type Database = {
         Row: {
           created_at: string
           description: string | null
+          featured_credits: number
+          hq_city: string | null
+          hq_state: string | null
           id: string
+          industry: string | null
           location: string | null
           logo_url: string | null
           name: string
           owner_id: string | null
+          posting_credits: number
           slug: string
+          status: string
+          verified: boolean
           website: string | null
         }
         Insert: {
           created_at?: string
           description?: string | null
+          featured_credits?: number
+          hq_city?: string | null
+          hq_state?: string | null
           id?: string
+          industry?: string | null
           location?: string | null
           logo_url?: string | null
           name: string
           owner_id?: string | null
+          posting_credits?: number
           slug: string
+          status?: string
+          verified?: boolean
           website?: string | null
         }
         Update: {
           created_at?: string
           description?: string | null
+          featured_credits?: number
+          hq_city?: string | null
+          hq_state?: string | null
           id?: string
+          industry?: string | null
           location?: string | null
           logo_url?: string | null
           name?: string
           owner_id?: string | null
+          posting_credits?: number
           slug?: string
+          status?: string
+          verified?: boolean
           website?: string | null
+        }
+        Relationships: []
+      }
+      job_alerts: {
+        Row: {
+          applicant_id: string
+          category_id: number | null
+          city: string | null
+          created_at: string
+          frequency: string
+          id: string
+          keyword: string | null
+          state: string | null
+        }
+        Insert: {
+          applicant_id: string
+          category_id?: number | null
+          city?: string | null
+          created_at?: string
+          frequency?: string
+          id?: string
+          keyword?: string | null
+          state?: string | null
+        }
+        Update: {
+          applicant_id?: string
+          category_id?: number | null
+          city?: string | null
+          created_at?: string
+          frequency?: string
+          id?: string
+          keyword?: string | null
+          state?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_alerts_applicant_id_fkey"
+            columns: ["applicant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_alerts_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "job_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_categories: {
+        Row: {
+          icon: string | null
+          id: number
+          name: string
+          slug: string
+        }
+        Insert: {
+          icon?: string | null
+          id?: number
+          name: string
+          slug: string
+        }
+        Update: {
+          icon?: string | null
+          id?: number
+          name?: string
+          slug?: string
         }
         Relationships: []
       }
       jobs: {
         Row: {
           category: string
+          category_id: number | null
+          city: string | null
           company_id: string
           created_at: string
           description: string
@@ -137,20 +279,27 @@ export type Database = {
           expires_at: string | null
           featured: boolean
           id: string
+          lat: number | null
+          lng: number | null
           location: string
           pay_max: number | null
           pay_min: number | null
           pay_period: string | null
+          posted_at: string
           posted_by: string | null
           requirements: string | null
           shift: Database["public"]["Enums"]["job_shift"]
           slug: string
+          state: string | null
           status: Database["public"]["Enums"]["job_status"]
           title: string
+          views: number
           zip: string | null
         }
         Insert: {
           category: string
+          category_id?: number | null
+          city?: string | null
           company_id: string
           created_at?: string
           description: string
@@ -158,20 +307,27 @@ export type Database = {
           expires_at?: string | null
           featured?: boolean
           id?: string
+          lat?: number | null
+          lng?: number | null
           location: string
           pay_max?: number | null
           pay_min?: number | null
           pay_period?: string | null
+          posted_at?: string
           posted_by?: string | null
           requirements?: string | null
           shift?: Database["public"]["Enums"]["job_shift"]
           slug: string
+          state?: string | null
           status?: Database["public"]["Enums"]["job_status"]
           title: string
+          views?: number
           zip?: string | null
         }
         Update: {
           category?: string
+          category_id?: number | null
+          city?: string | null
           company_id?: string
           created_at?: string
           description?: string
@@ -179,19 +335,31 @@ export type Database = {
           expires_at?: string | null
           featured?: boolean
           id?: string
+          lat?: number | null
+          lng?: number | null
           location?: string
           pay_max?: number | null
           pay_min?: number | null
           pay_period?: string | null
+          posted_at?: string
           posted_by?: string | null
           requirements?: string | null
           shift?: Database["public"]["Enums"]["job_shift"]
           slug?: string
+          state?: string | null
           status?: Database["public"]["Enums"]["job_status"]
           title?: string
+          views?: number
           zip?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "jobs_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "job_categories"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "jobs_company_id_fkey"
             columns: ["company_id"]
@@ -200,6 +368,105 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      orders: {
+        Row: {
+          amount_cents: number
+          company_id: string | null
+          created_at: string
+          featured_count_granted: number
+          id: string
+          package_id: string | null
+          posting_count_granted: number
+          status: string
+          stripe_payment_intent: string | null
+          stripe_session_id: string | null
+        }
+        Insert: {
+          amount_cents: number
+          company_id?: string | null
+          created_at?: string
+          featured_count_granted?: number
+          id?: string
+          package_id?: string | null
+          posting_count_granted?: number
+          status?: string
+          stripe_payment_intent?: string | null
+          stripe_session_id?: string | null
+        }
+        Update: {
+          amount_cents?: number
+          company_id?: string | null
+          created_at?: string
+          featured_count_granted?: number
+          id?: string
+          package_id?: string | null
+          posting_count_granted?: number
+          status?: string
+          stripe_payment_intent?: string | null
+          stripe_session_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      packages: {
+        Row: {
+          active: boolean
+          ad_slot: string | null
+          created_at: string
+          description: string | null
+          duration_days: number
+          featured_count: number
+          id: string
+          kind: string
+          name: string
+          posting_count: number
+          price_cents: number
+          sort_order: number
+        }
+        Insert: {
+          active?: boolean
+          ad_slot?: string | null
+          created_at?: string
+          description?: string | null
+          duration_days?: number
+          featured_count?: number
+          id?: string
+          kind: string
+          name: string
+          posting_count?: number
+          price_cents: number
+          sort_order?: number
+        }
+        Update: {
+          active?: boolean
+          ad_slot?: string | null
+          created_at?: string
+          description?: string | null
+          duration_days?: number
+          featured_count?: number
+          id?: string
+          kind?: string
+          name?: string
+          posting_count?: number
+          price_cents?: number
+          sort_order?: number
+        }
+        Relationships: []
       }
       posting_packages: {
         Row: {
@@ -242,24 +509,30 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
           created_at: string
           display_name: string | null
+          full_name: string | null
           id: string
           location: string | null
           phone: string | null
           updated_at: string
         }
         Insert: {
+          avatar_url?: string | null
           created_at?: string
           display_name?: string | null
+          full_name?: string | null
           id: string
           location?: string | null
           phone?: string | null
           updated_at?: string
         }
         Update: {
+          avatar_url?: string | null
           created_at?: string
           display_name?: string | null
+          full_name?: string | null
           id?: string
           location?: string | null
           phone?: string | null
