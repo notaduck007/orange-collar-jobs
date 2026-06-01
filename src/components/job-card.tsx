@@ -53,7 +53,18 @@ export function JobCard({ job }: { job: JobSummary }) {
         {job.title}
       </h3>
       {job.companies && (
-        <p className="mt-0.5 text-sm font-medium text-foreground">{job.companies.name}</p>
+        job.companies.slug ? (
+          <Link
+            to="/companies/$slug"
+            params={{ slug: job.companies.slug }}
+            onClick={(e) => e.stopPropagation()}
+            className="mt-0.5 inline-block text-sm font-medium text-foreground hover:text-primary hover:underline"
+          >
+            {job.companies.name}
+          </Link>
+        ) : (
+          <p className="mt-0.5 text-sm font-medium text-foreground">{job.companies.name}</p>
+        )
       )}
       <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-sm text-muted-foreground">
         <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> {job.location}</span>
