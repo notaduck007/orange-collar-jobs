@@ -14,45 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      ads: {
-        Row: {
-          active: boolean
-          created_at: string
-          ends_at: string | null
-          id: string
-          image_url: string | null
-          owner_id: string | null
-          placement: Database["public"]["Enums"]["ad_placement"]
-          starts_at: string
-          target_url: string
-          title: string
-        }
-        Insert: {
-          active?: boolean
-          created_at?: string
-          ends_at?: string | null
-          id?: string
-          image_url?: string | null
-          owner_id?: string | null
-          placement: Database["public"]["Enums"]["ad_placement"]
-          starts_at?: string
-          target_url: string
-          title: string
-        }
-        Update: {
-          active?: boolean
-          created_at?: string
-          ends_at?: string | null
-          id?: string
-          image_url?: string | null
-          owner_id?: string | null
-          placement?: Database["public"]["Enums"]["ad_placement"]
-          starts_at?: string
-          target_url?: string
-          title?: string
-        }
-        Relationships: []
-      }
       advertisements: {
         Row: {
           clicks: number
@@ -62,10 +23,12 @@ export type Database = {
           id: string
           image_url: string
           impressions: number
+          owner_id: string | null
           slot: string
           start_date: string | null
           status: string
           target_url: string
+          title: string | null
         }
         Insert: {
           clicks?: number
@@ -75,10 +38,12 @@ export type Database = {
           id?: string
           image_url: string
           impressions?: number
+          owner_id?: string | null
           slot: string
           start_date?: string | null
           status?: string
           target_url: string
+          title?: string | null
         }
         Update: {
           clicks?: number
@@ -88,10 +53,12 @@ export type Database = {
           id?: string
           image_url?: string
           impressions?: number
+          owner_id?: string | null
           slot?: string
           start_date?: string | null
           status?: string
           target_url?: string
+          title?: string | null
         }
         Relationships: [
           {
@@ -463,45 +430,6 @@ export type Database = {
           kind?: string
           name?: string
           posting_count?: number
-          price_cents?: number
-          sort_order?: number
-        }
-        Relationships: []
-      }
-      posting_packages: {
-        Row: {
-          active: boolean
-          created_at: string
-          description: string | null
-          duration_days: number
-          featured_credits: number
-          id: string
-          name: string
-          post_credits: number
-          price_cents: number
-          sort_order: number
-        }
-        Insert: {
-          active?: boolean
-          created_at?: string
-          description?: string | null
-          duration_days?: number
-          featured_credits?: number
-          id?: string
-          name: string
-          post_credits?: number
-          price_cents: number
-          sort_order?: number
-        }
-        Update: {
-          active?: boolean
-          created_at?: string
-          description?: string | null
-          duration_days?: number
-          featured_credits?: number
-          id?: string
-          name?: string
-          post_credits?: number
           price_cents?: number
           sort_order?: number
         }
