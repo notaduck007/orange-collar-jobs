@@ -29,6 +29,7 @@ import { Route as SeekerAlertsRouteImport } from './routes/seeker.alerts'
 import { Route as JobsSlugRouteImport } from './routes/jobs.$slug'
 import { Route as EmployerOnboardingRouteImport } from './routes/employer.onboarding'
 import { Route as EmployerAdsRouteImport } from './routes/employer.ads'
+import { Route as AdminJobsRouteImport } from './routes/admin.jobs'
 import { Route as AdminCompaniesRouteImport } from './routes/admin.companies'
 import { Route as AdminAdsRouteImport } from './routes/admin.ads'
 import { Route as EmployerJobsNewRouteImport } from './routes/employer.jobs.new'
@@ -135,6 +136,11 @@ const EmployerAdsRoute = EmployerAdsRouteImport.update({
   path: '/ads',
   getParentRoute: () => EmployerRoute,
 } as any)
+const AdminJobsRoute = AdminJobsRouteImport.update({
+  id: '/jobs',
+  path: '/jobs',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminCompaniesRoute = AdminCompaniesRouteImport.update({
   id: '/companies',
   path: '/companies',
@@ -175,6 +181,7 @@ export interface FileRoutesByFullPath {
   '/seeker': typeof SeekerRouteWithChildren
   '/admin/ads': typeof AdminAdsRoute
   '/admin/companies': typeof AdminCompaniesRoute
+  '/admin/jobs': typeof AdminJobsRoute
   '/employer/ads': typeof EmployerAdsRoute
   '/employer/onboarding': typeof EmployerOnboardingRoute
   '/jobs/$slug': typeof JobsSlugRoute
@@ -199,6 +206,7 @@ export interface FileRoutesByTo {
   '/pricing': typeof PricingRoute
   '/admin/ads': typeof AdminAdsRoute
   '/admin/companies': typeof AdminCompaniesRoute
+  '/admin/jobs': typeof AdminJobsRoute
   '/employer/ads': typeof EmployerAdsRoute
   '/employer/onboarding': typeof EmployerOnboardingRoute
   '/jobs/$slug': typeof JobsSlugRoute
@@ -227,6 +235,7 @@ export interface FileRoutesById {
   '/seeker': typeof SeekerRouteWithChildren
   '/admin/ads': typeof AdminAdsRoute
   '/admin/companies': typeof AdminCompaniesRoute
+  '/admin/jobs': typeof AdminJobsRoute
   '/employer/ads': typeof EmployerAdsRoute
   '/employer/onboarding': typeof EmployerOnboardingRoute
   '/jobs/$slug': typeof JobsSlugRoute
@@ -256,6 +265,7 @@ export interface FileRouteTypes {
     | '/seeker'
     | '/admin/ads'
     | '/admin/companies'
+    | '/admin/jobs'
     | '/employer/ads'
     | '/employer/onboarding'
     | '/jobs/$slug'
@@ -280,6 +290,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/admin/ads'
     | '/admin/companies'
+    | '/admin/jobs'
     | '/employer/ads'
     | '/employer/onboarding'
     | '/jobs/$slug'
@@ -307,6 +318,7 @@ export interface FileRouteTypes {
     | '/seeker'
     | '/admin/ads'
     | '/admin/companies'
+    | '/admin/jobs'
     | '/employer/ads'
     | '/employer/onboarding'
     | '/jobs/$slug'
@@ -477,6 +489,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EmployerAdsRouteImport
       parentRoute: typeof EmployerRoute
     }
+    '/admin/jobs': {
+      id: '/admin/jobs'
+      path: '/jobs'
+      fullPath: '/admin/jobs'
+      preLoaderRoute: typeof AdminJobsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/companies': {
       id: '/admin/companies'
       path: '/companies'
@@ -518,12 +537,14 @@ declare module '@tanstack/react-router' {
 interface AdminRouteChildren {
   AdminAdsRoute: typeof AdminAdsRoute
   AdminCompaniesRoute: typeof AdminCompaniesRoute
+  AdminJobsRoute: typeof AdminJobsRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAdsRoute: AdminAdsRoute,
   AdminCompaniesRoute: AdminCompaniesRoute,
+  AdminJobsRoute: AdminJobsRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
@@ -595,3 +616,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
