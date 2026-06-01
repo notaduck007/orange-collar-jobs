@@ -509,6 +509,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          active: boolean
           avatar_url: string | null
           created_at: string
           default_resume_url: string | null
@@ -520,6 +521,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          active?: boolean
           avatar_url?: string | null
           created_at?: string
           default_resume_url?: string | null
@@ -531,6 +533,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          active?: boolean
           avatar_url?: string | null
           created_at?: string
           default_resume_url?: string | null

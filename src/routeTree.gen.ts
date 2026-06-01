@@ -16,10 +16,12 @@ import { Route as FaqRouteImport } from './routes/faq'
 import { Route as EmployerRouteImport } from './routes/employer'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SeekerIndexRouteImport } from './routes/seeker.index'
 import { Route as EmployerIndexRouteImport } from './routes/employer.index'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as SeekerSavedRouteImport } from './routes/seeker.saved'
 import { Route as SeekerProfileRouteImport } from './routes/seeker.profile'
 import { Route as SeekerApplicationsRouteImport } from './routes/seeker.applications'
@@ -27,6 +29,11 @@ import { Route as SeekerAlertsRouteImport } from './routes/seeker.alerts'
 import { Route as JobsSlugRouteImport } from './routes/jobs.$slug'
 import { Route as EmployerOnboardingRouteImport } from './routes/employer.onboarding'
 import { Route as EmployerAdsRouteImport } from './routes/employer.ads'
+import { Route as AdminUsersRouteImport } from './routes/admin.users'
+import { Route as AdminPackagesRouteImport } from './routes/admin.packages'
+import { Route as AdminOrdersRouteImport } from './routes/admin.orders'
+import { Route as AdminJobsRouteImport } from './routes/admin.jobs'
+import { Route as AdminCompaniesRouteImport } from './routes/admin.companies'
 import { Route as AdminAdsRouteImport } from './routes/admin.ads'
 import { Route as EmployerJobsNewRouteImport } from './routes/employer.jobs.new'
 import { Route as EmployerJobsIdEditRouteImport } from './routes/employer.jobs.$id.edit'
@@ -67,6 +74,11 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
@@ -86,6 +98,11 @@ const EmployerIndexRoute = EmployerIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => EmployerRoute,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
 } as any)
 const SeekerSavedRoute = SeekerSavedRouteImport.update({
   id: '/saved',
@@ -122,10 +139,35 @@ const EmployerAdsRoute = EmployerAdsRouteImport.update({
   path: '/ads',
   getParentRoute: () => EmployerRoute,
 } as any)
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminPackagesRoute = AdminPackagesRouteImport.update({
+  id: '/packages',
+  path: '/packages',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminOrdersRoute = AdminOrdersRouteImport.update({
+  id: '/orders',
+  path: '/orders',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminJobsRoute = AdminJobsRouteImport.update({
+  id: '/jobs',
+  path: '/jobs',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCompaniesRoute = AdminCompaniesRouteImport.update({
+  id: '/companies',
+  path: '/companies',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminAdsRoute = AdminAdsRouteImport.update({
-  id: '/admin/ads',
-  path: '/admin/ads',
-  getParentRoute: () => rootRouteImport,
+  id: '/ads',
+  path: '/ads',
+  getParentRoute: () => AdminRoute,
 } as any)
 const EmployerJobsNewRoute = EmployerJobsNewRouteImport.update({
   id: '/jobs/new',
@@ -147,6 +189,7 @@ const EmployerJobsIdApplicantsRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/employer': typeof EmployerRouteWithChildren
@@ -155,6 +198,11 @@ export interface FileRoutesByFullPath {
   '/pricing': typeof PricingRoute
   '/seeker': typeof SeekerRouteWithChildren
   '/admin/ads': typeof AdminAdsRoute
+  '/admin/companies': typeof AdminCompaniesRoute
+  '/admin/jobs': typeof AdminJobsRoute
+  '/admin/orders': typeof AdminOrdersRoute
+  '/admin/packages': typeof AdminPackagesRoute
+  '/admin/users': typeof AdminUsersRoute
   '/employer/ads': typeof EmployerAdsRoute
   '/employer/onboarding': typeof EmployerOnboardingRoute
   '/jobs/$slug': typeof JobsSlugRoute
@@ -162,6 +210,7 @@ export interface FileRoutesByFullPath {
   '/seeker/applications': typeof SeekerApplicationsRoute
   '/seeker/profile': typeof SeekerProfileRoute
   '/seeker/saved': typeof SeekerSavedRoute
+  '/admin/': typeof AdminIndexRoute
   '/employer/': typeof EmployerIndexRoute
   '/seeker/': typeof SeekerIndexRoute
   '/employer/jobs/new': typeof EmployerJobsNewRoute
@@ -177,6 +226,11 @@ export interface FileRoutesByTo {
   '/jobs': typeof JobsRouteWithChildren
   '/pricing': typeof PricingRoute
   '/admin/ads': typeof AdminAdsRoute
+  '/admin/companies': typeof AdminCompaniesRoute
+  '/admin/jobs': typeof AdminJobsRoute
+  '/admin/orders': typeof AdminOrdersRoute
+  '/admin/packages': typeof AdminPackagesRoute
+  '/admin/users': typeof AdminUsersRoute
   '/employer/ads': typeof EmployerAdsRoute
   '/employer/onboarding': typeof EmployerOnboardingRoute
   '/jobs/$slug': typeof JobsSlugRoute
@@ -184,6 +238,7 @@ export interface FileRoutesByTo {
   '/seeker/applications': typeof SeekerApplicationsRoute
   '/seeker/profile': typeof SeekerProfileRoute
   '/seeker/saved': typeof SeekerSavedRoute
+  '/admin': typeof AdminIndexRoute
   '/employer': typeof EmployerIndexRoute
   '/seeker': typeof SeekerIndexRoute
   '/employer/jobs/new': typeof EmployerJobsNewRoute
@@ -194,6 +249,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/employer': typeof EmployerRouteWithChildren
@@ -202,6 +258,11 @@ export interface FileRoutesById {
   '/pricing': typeof PricingRoute
   '/seeker': typeof SeekerRouteWithChildren
   '/admin/ads': typeof AdminAdsRoute
+  '/admin/companies': typeof AdminCompaniesRoute
+  '/admin/jobs': typeof AdminJobsRoute
+  '/admin/orders': typeof AdminOrdersRoute
+  '/admin/packages': typeof AdminPackagesRoute
+  '/admin/users': typeof AdminUsersRoute
   '/employer/ads': typeof EmployerAdsRoute
   '/employer/onboarding': typeof EmployerOnboardingRoute
   '/jobs/$slug': typeof JobsSlugRoute
@@ -209,6 +270,7 @@ export interface FileRoutesById {
   '/seeker/applications': typeof SeekerApplicationsRoute
   '/seeker/profile': typeof SeekerProfileRoute
   '/seeker/saved': typeof SeekerSavedRoute
+  '/admin/': typeof AdminIndexRoute
   '/employer/': typeof EmployerIndexRoute
   '/seeker/': typeof SeekerIndexRoute
   '/employer/jobs/new': typeof EmployerJobsNewRoute
@@ -220,6 +282,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
+    | '/admin'
     | '/auth'
     | '/contact'
     | '/employer'
@@ -228,6 +291,11 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/seeker'
     | '/admin/ads'
+    | '/admin/companies'
+    | '/admin/jobs'
+    | '/admin/orders'
+    | '/admin/packages'
+    | '/admin/users'
     | '/employer/ads'
     | '/employer/onboarding'
     | '/jobs/$slug'
@@ -235,6 +303,7 @@ export interface FileRouteTypes {
     | '/seeker/applications'
     | '/seeker/profile'
     | '/seeker/saved'
+    | '/admin/'
     | '/employer/'
     | '/seeker/'
     | '/employer/jobs/new'
@@ -250,6 +319,11 @@ export interface FileRouteTypes {
     | '/jobs'
     | '/pricing'
     | '/admin/ads'
+    | '/admin/companies'
+    | '/admin/jobs'
+    | '/admin/orders'
+    | '/admin/packages'
+    | '/admin/users'
     | '/employer/ads'
     | '/employer/onboarding'
     | '/jobs/$slug'
@@ -257,6 +331,7 @@ export interface FileRouteTypes {
     | '/seeker/applications'
     | '/seeker/profile'
     | '/seeker/saved'
+    | '/admin'
     | '/employer'
     | '/seeker'
     | '/employer/jobs/new'
@@ -266,6 +341,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/about'
+    | '/admin'
     | '/auth'
     | '/contact'
     | '/employer'
@@ -274,6 +350,11 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/seeker'
     | '/admin/ads'
+    | '/admin/companies'
+    | '/admin/jobs'
+    | '/admin/orders'
+    | '/admin/packages'
+    | '/admin/users'
     | '/employer/ads'
     | '/employer/onboarding'
     | '/jobs/$slug'
@@ -281,6 +362,7 @@ export interface FileRouteTypes {
     | '/seeker/applications'
     | '/seeker/profile'
     | '/seeker/saved'
+    | '/admin/'
     | '/employer/'
     | '/seeker/'
     | '/employer/jobs/new'
@@ -291,6 +373,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
   ContactRoute: typeof ContactRoute
   EmployerRoute: typeof EmployerRouteWithChildren
@@ -298,7 +381,6 @@ export interface RootRouteChildren {
   JobsRoute: typeof JobsRouteWithChildren
   PricingRoute: typeof PricingRoute
   SeekerRoute: typeof SeekerRouteWithChildren
-  AdminAdsRoute: typeof AdminAdsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -352,6 +434,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/about': {
       id: '/about'
       path: '/about'
@@ -379,6 +468,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/employer/'
       preLoaderRoute: typeof EmployerIndexRouteImport
       parentRoute: typeof EmployerRoute
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/seeker/saved': {
       id: '/seeker/saved'
@@ -429,12 +525,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EmployerAdsRouteImport
       parentRoute: typeof EmployerRoute
     }
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/packages': {
+      id: '/admin/packages'
+      path: '/packages'
+      fullPath: '/admin/packages'
+      preLoaderRoute: typeof AdminPackagesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/orders': {
+      id: '/admin/orders'
+      path: '/orders'
+      fullPath: '/admin/orders'
+      preLoaderRoute: typeof AdminOrdersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/jobs': {
+      id: '/admin/jobs'
+      path: '/jobs'
+      fullPath: '/admin/jobs'
+      preLoaderRoute: typeof AdminJobsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/companies': {
+      id: '/admin/companies'
+      path: '/companies'
+      fullPath: '/admin/companies'
+      preLoaderRoute: typeof AdminCompaniesRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/ads': {
       id: '/admin/ads'
-      path: '/admin/ads'
+      path: '/ads'
       fullPath: '/admin/ads'
       preLoaderRoute: typeof AdminAdsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/employer/jobs/new': {
       id: '/employer/jobs/new'
@@ -459,6 +590,28 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface AdminRouteChildren {
+  AdminAdsRoute: typeof AdminAdsRoute
+  AdminCompaniesRoute: typeof AdminCompaniesRoute
+  AdminJobsRoute: typeof AdminJobsRoute
+  AdminOrdersRoute: typeof AdminOrdersRoute
+  AdminPackagesRoute: typeof AdminPackagesRoute
+  AdminUsersRoute: typeof AdminUsersRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminAdsRoute: AdminAdsRoute,
+  AdminCompaniesRoute: AdminCompaniesRoute,
+  AdminJobsRoute: AdminJobsRoute,
+  AdminOrdersRoute: AdminOrdersRoute,
+  AdminPackagesRoute: AdminPackagesRoute,
+  AdminUsersRoute: AdminUsersRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface EmployerRouteChildren {
   EmployerAdsRoute: typeof EmployerAdsRoute
@@ -514,6 +667,7 @@ const SeekerRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
   ContactRoute: ContactRoute,
   EmployerRoute: EmployerRouteWithChildren,
@@ -521,7 +675,6 @@ const rootRouteChildren: RootRouteChildren = {
   JobsRoute: JobsRouteWithChildren,
   PricingRoute: PricingRoute,
   SeekerRoute: SeekerRouteWithChildren,
-  AdminAdsRoute: AdminAdsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
