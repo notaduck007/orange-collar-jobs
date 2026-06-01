@@ -1,15 +1,17 @@
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { MapPin, Clock, DollarSign, Building2, ArrowLeft, Bookmark, Share2 } from "lucide-react";
+import { MapPin, Clock, DollarSign, Building2, ArrowLeft, Bookmark, Share2, CheckCircle2, ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/lib/auth";
 import { ApplyDialog } from "@/components/apply-dialog";
 import { AdSlot } from "@/components/ad-slot";
+import { useAppliedJobs, useQuickApplyReady } from "@/hooks/use-applied-jobs";
 
 const EMPLOYMENT_TYPE_SCHEMA: Record<string, string> = {
   full_time: "FULL_TIME",
