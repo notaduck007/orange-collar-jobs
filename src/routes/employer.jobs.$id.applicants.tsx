@@ -235,12 +235,25 @@ function ApplicantsPage() {
               </p>
             )}
           </div>
-          <Tabs value={view} onValueChange={(v) => setView(v as "board" | "table")}>
-            <TabsList>
-              <TabsTrigger value="board" className="gap-1.5"><LayoutGrid className="h-4 w-4" /> Board</TabsTrigger>
-              <TabsTrigger value="table" className="gap-1.5"><List className="h-4 w-4" /> Table</TabsTrigger>
-            </TabsList>
-          </Tabs>
+          <div className="flex items-center gap-3">
+            {knockedOut.size > 0 && (
+              <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <input
+                  type="checkbox"
+                  className="accent-[color:var(--primary)]"
+                  checked={hideKnockouts}
+                  onChange={(e) => setHideKnockouts(e.target.checked)}
+                />
+                Hide knockouts ({knockedOut.size})
+              </label>
+            )}
+            <Tabs value={view} onValueChange={(v) => setView(v as "board" | "table")}>
+              <TabsList>
+                <TabsTrigger value="board" className="gap-1.5"><LayoutGrid className="h-4 w-4" /> Board</TabsTrigger>
+                <TabsTrigger value="table" className="gap-1.5"><List className="h-4 w-4" /> Table</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
         </div>
       </div>
 
