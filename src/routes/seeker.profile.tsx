@@ -647,6 +647,31 @@ function ProfilePage() {
         </div>
       </div>
 
+      {/* Discoverability */}
+      <div className="rounded-xl border border-border bg-card p-6 sm:p-8">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-semibold text-[color:var(--ink)]">
+              Let employers find you
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              When on, employers searching for candidates can see your profile, skills,
+              certifications, and work history, and invite you to apply. Your contact
+              details stay private.
+            </p>
+          </div>
+          <Switch
+            checked={seeker.discoverable}
+            onCheckedChange={(v) => setSeeker({ ...seeker, discoverable: !!v })}
+          />
+        </div>
+        <div className="mt-4 flex justify-end">
+          <Button onClick={saveSeeker} disabled={savingSeeker} className="btn-primary">
+            {savingSeeker ? "Saving…" : "Save discoverability"}
+          </Button>
+        </div>
+      </div>
+
       {/* Work history */}
       <div className="rounded-xl border border-border bg-card p-6 sm:p-8">
         <div className="flex items-center justify-between">
