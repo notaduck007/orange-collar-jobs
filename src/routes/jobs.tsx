@@ -248,20 +248,3 @@ function FilterChip({ active, onClick, children }: { active: boolean; onClick: (
   );
 }
 
-function InlineAd() {
-  return (
-    <Link to="/pricing" className="group relative block overflow-hidden rounded-lg border border-border bg-[color:var(--ink)] p-5 text-white">
-      <div className="hazard-stripes absolute left-0 top-0 h-1 w-full" />
-      <div className="flex items-start gap-4">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
-          <Megaphone className="h-5 w-5" />
-        </div>
-        <div>
-          <p className="label-caps text-white/50">Sponsored</p>
-          <p className="mt-0.5 text-base font-semibold">Hire warehouse workers faster — see posting packages</p>
-          <p className="mt-1 text-sm text-white/60">From $99 a post. Featured upgrades, weekly applicant reports, and ZIP-targeted reach.</p>
-        </div>
-      </div>
-    </Link>
-  );
-}
