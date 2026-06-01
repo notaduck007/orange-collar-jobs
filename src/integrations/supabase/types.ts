@@ -601,6 +601,33 @@ export type Database = {
         }
         Relationships: []
       }
+      zip_codes: {
+        Row: {
+          city: string
+          created_at: string
+          lat: number
+          lng: number
+          state: string
+          zip: string
+        }
+        Insert: {
+          city: string
+          created_at?: string
+          lat: number
+          lng: number
+          state: string
+          zip: string
+        }
+        Update: {
+          city?: string
+          created_at?: string
+          lat?: number
+          lng?: number
+          state?: string
+          zip?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -618,6 +645,39 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      search_jobs: {
+        Args: {
+          p_category?: string
+          p_limit?: number
+          p_location?: string
+          p_offset?: number
+          p_pay_min?: number
+          p_query?: string
+          p_radius_miles?: number
+          p_shift?: string
+          p_sort?: string
+          p_type?: string
+        }
+        Returns: {
+          category: string
+          company_name: string
+          company_slug: string
+          created_at: string
+          distance_miles: number
+          employment_type: Database["public"]["Enums"]["employment_type"]
+          featured: boolean
+          id: string
+          location: string
+          pay_max: number
+          pay_min: number
+          pay_period: string
+          rank: number
+          shift: Database["public"]["Enums"]["job_shift"]
+          slug: string
+          title: string
+          total_count: number
+        }[]
       }
     }
     Enums: {
