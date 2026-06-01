@@ -27,12 +27,12 @@ export const Route = createFileRoute("/jobs/$slug")({
       | undefined;
     const company = m?.companies?.name;
     const title = m
-      ? `${m.title}${company ? ` at ${company}` : ""} — ${m.location} | DockHire`
-      : "Warehouse Job | DockHire";
+      ? `${m.title}${company ? ` at ${company}` : ""} — ${m.location} | WarehouseJobs`
+      : "Warehouse Job | WarehouseJobs";
     const desc = m
       ? ((m.description ?? "").slice(0, 155).replace(/\s+/g, " ").trim() ||
-        `${m.category} role in ${m.location}. Apply on DockHire.`)
-      : "Apply to warehouse jobs near you on DockHire.";
+        `${m.category} role in ${m.location}. Apply on WarehouseJobs.`)
+      : "Apply to warehouse jobs near you on WarehouseJobs.";
     return {
       meta: [
         { title },

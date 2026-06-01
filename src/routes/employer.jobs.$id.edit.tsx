@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const Route = createFileRoute("/employer/jobs/$id/edit")({
-  head: () => ({ meta: [{ title: "Edit Job — DockHire Employers" }] }),
+  head: () => ({ meta: [{ title: "Edit Job — WarehouseJobs Employers" }] }),
   component: EditJobPage,
 });
 

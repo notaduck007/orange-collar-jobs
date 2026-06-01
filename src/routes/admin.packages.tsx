@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const Route = createFileRoute("/admin/packages")({
-  head: () => ({ meta: [{ title: "Packages — DockHire Admin" }] }),
+  head: () => ({ meta: [{ title: "Packages — WarehouseJobs Admin" }] }),
   component: AdminPackages,
 });
 

@@ -7,7 +7,7 @@ import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/seeker/saved")({
-  head: () => ({ meta: [{ title: "Saved Jobs — DockHire" }] }),
+  head: () => ({ meta: [{ title: "Saved Jobs — WarehouseJobs" }] }),
   component: SavedJobsPage,
 });
 

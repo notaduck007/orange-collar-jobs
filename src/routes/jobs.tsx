@@ -26,7 +26,7 @@ export const Route = createFileRoute("/jobs")({
   validateSearch: searchSchema,
   head: () => ({
     meta: [
-      { title: "Warehouse Job Search — DockHire" },
+      { title: "Warehouse Job Search — WarehouseJobs" },
       { name: "description", content: "Search warehouse jobs by role, shift, employment type, and location." },
     ],
   }),

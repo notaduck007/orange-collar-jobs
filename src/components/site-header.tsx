@@ -13,8 +13,8 @@ export function SiteHeader() {
             <HardHat className="h-5 w-5" strokeWidth={2.5} />
           </div>
           <div className="flex flex-col leading-none">
-            <span className="text-base font-bold tracking-tight text-[color:var(--ink)]">DockHire</span>
-            <span className="label-caps text-[10px]">Warehouse Jobs</span>
+            <span className="text-base font-bold tracking-tight text-[color:var(--ink)]">WarehouseJobs</span>
+            <span className="label-caps text-[10px]">Hiring Now</span>
           </div>
         </Link>
 

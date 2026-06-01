@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label";
 
 export const Route = createFileRoute("/admin/companies")({
-  head: () => ({ meta: [{ title: "Companies — DockHire Admin" }] }),
+  head: () => ({ meta: [{ title: "Companies — WarehouseJobs Admin" }] }),
   component: AdminCompanies,
 });
 

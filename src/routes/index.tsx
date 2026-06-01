@@ -13,7 +13,7 @@ import { AdSlot } from "@/components/ad-slot";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "DockHire — Warehouse Jobs Hiring Now Near You" },
+      { title: "WarehouseJobs — Warehouse Jobs Hiring Now Near You" },
       { name: "description", content: "Forklift, picker/packer, shipping & receiving, and warehouse associate jobs across the U.S. Free for job seekers — apply in minutes." },
     ],
   }),
@@ -175,7 +175,7 @@ function Home() {
                 Stop wasting weeks on the wrong applicants.
               </h2>
               <p className="mt-3 max-w-md text-white/70">
-                DockHire reaches qualified warehouse workers — forklift-certified, ready to start, in your ZIP. Post in 4 minutes.
+                WarehouseJobs reaches qualified warehouse workers — forklift-certified, ready to start, in your ZIP. Post in 4 minutes.
               </p>
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link to="/pricing">

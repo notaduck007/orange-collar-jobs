@@ -16,7 +16,7 @@ const searchSchema = z.object({
 
 export const Route = createFileRoute("/auth")({
   validateSearch: searchSchema,
-  head: () => ({ meta: [{ title: "Sign in — DockHire" }] }),
+  head: () => ({ meta: [{ title: "Sign in — WarehouseJobs" }] }),
   component: AuthPage,
 });
 
@@ -68,14 +68,14 @@ function AuthPage() {
           <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary text-primary-foreground">
             <HardHat className="h-5 w-5" strokeWidth={2.5} />
           </div>
-          <span className="text-lg font-bold tracking-tight">DockHire</span>
+          <span className="text-lg font-bold tracking-tight">WarehouseJobs</span>
         </Link>
         <div className="max-w-md">
           <p className="label-caps text-primary">Built for the floor</p>
           <h2 className="mt-3 text-4xl font-bold leading-tight">Hire the dock, not the cubicle.</h2>
           <p className="mt-4 text-white/70">Forklift operators, pickers, packers, dock workers — qualified, in your ZIP, ready to start this week.</p>
         </div>
-        <p className="text-xs text-white/40">© {new Date().getFullYear()} DockHire</p>
+        <p className="text-xs text-white/40">© {new Date().getFullYear()} WarehouseJobs</p>
       </div>
 
       <div className="flex items-center justify-center p-6 sm:p-12">
@@ -83,7 +83,7 @@ function AuthPage() {
           <Link to="/" className="mb-8 flex items-center gap-2 text-sm text-muted-foreground hover:text-primary lg:hidden">← Back home</Link>
           <p className="label-caps text-primary">{isSignup ? "Get started" : "Welcome back"}</p>
           <h1 className="mt-2 text-3xl font-bold text-[color:var(--ink)]">
-            {isSignup ? "Create your account" : "Sign in to DockHire"}
+            {isSignup ? "Create your account" : "Sign in to WarehouseJobs"}
           </h1>
           <p className="mt-1.5 text-sm text-muted-foreground">
             {isSignup ? "Free for job seekers. Always." : "Apply faster, save jobs, and get alerts."}
@@ -132,7 +132,7 @@ function AuthPage() {
           </form>
 
           <p className="mt-6 text-center text-sm text-muted-foreground">
-            {isSignup ? "Already have an account?" : "New to DockHire?"}{" "}
+            {isSignup ? "Already have an account?" : "New to WarehouseJobs?"}{" "}
             <Link
               to="/auth"
               search={{ mode: isSignup ? "login" : "signup", next } as never}

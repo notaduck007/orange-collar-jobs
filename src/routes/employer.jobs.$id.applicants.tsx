@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const Route = createFileRoute("/employer/jobs/$id/applicants")({
-  head: () => ({ meta: [{ title: "Applicants — DockHire Employers" }] }),
+  head: () => ({ meta: [{ title: "Applicants — WarehouseJobs Employers" }] }),
   component: ApplicantsPage,
 });
 

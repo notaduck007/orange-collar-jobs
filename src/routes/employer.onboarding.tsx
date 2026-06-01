@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { slugify, uniqueSlug } from "@/lib/slug";
 
 export const Route = createFileRoute("/employer/onboarding")({
-  head: () => ({ meta: [{ title: "Company Profile — DockHire Employers" }] }),
+  head: () => ({ meta: [{ title: "Company Profile — WarehouseJobs Employers" }] }),
   component: OnboardingPage,
 });
 
