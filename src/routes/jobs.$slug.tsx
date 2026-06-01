@@ -235,7 +235,7 @@ function JobDetail() {
                 <p className="label-caps text-primary">{job.category} • {shiftLabel[job.shift]}</p>
                 <h1 className="mt-2 text-3xl font-bold leading-tight text-[color:var(--ink)] sm:text-4xl">{job.title}</h1>
                 {job.companies && (
-                  <Link to="/jobs" search={{ q: job.companies.name } as never} className="mt-2 inline-flex items-center gap-1.5 text-base font-medium text-foreground hover:text-primary">
+                  <Link to="/companies/$slug" params={{ slug: job.companies.slug }} className="mt-2 inline-flex items-center gap-1.5 text-base font-medium text-foreground hover:text-primary hover:underline">
                     <Building2 className="h-4 w-4" /> {job.companies.name}
                   </Link>
                 )}
