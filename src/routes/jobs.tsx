@@ -210,13 +210,29 @@ function JobsPage() {
 
         {/* RESULTS */}
         <main>
-          <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+          <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
             <h1 className="text-2xl font-bold text-[color:var(--ink)]">
               {isLoading ? "Searching…" : `${total} warehouse job${total === 1 ? "" : "s"}`}
               {search.q && <span className="text-muted-foreground"> for "{search.q}"</span>}
             </h1>
-            <div className="flex items-center gap-2">
-              <label className="text-xs text-muted-foreground">Sort:</label>
+            <div className="flex flex-wrap items-center gap-2">
+              <label className="text-xs text-muted-foreground">Min pay</label>
+              <select
+                value={search.pay_min ?? ""}
+                onChange={(e) =>
+                  updateSearch({ pay_min: e.target.value ? Number(e.target.value) : undefined })
+                }
+                className="rounded-md border border-border bg-card px-2 py-1 text-xs font-medium text-[color:var(--ink)]"
+              >
+                <option value="">Any</option>
+                <option value="15">$15+/hr</option>
+                <option value="17">$17+/hr</option>
+                <option value="18">$18+/hr</option>
+                <option value="20">$20+/hr</option>
+                <option value="22">$22+/hr</option>
+                <option value="25">$25+/hr</option>
+              </select>
+              <label className="ml-2 text-xs text-muted-foreground">Sort</label>
               <select
                 value={sort}
                 onChange={(e) => updateSearch({ sort: e.target.value as "relevance" | "date" | "pay_high" })}
@@ -233,6 +249,27 @@ function JobsPage() {
               )}
             </div>
           </div>
+
+          {activeChips.length > 0 && (
+            <div className="mb-4 flex flex-wrap items-center gap-1.5">
+              {activeChips.map((chip) => (
+                <button
+                  key={chip.key}
+                  onClick={chip.clear}
+                  className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-2.5 py-1 text-xs font-medium text-[color:var(--ink)] hover:border-primary hover:text-primary"
+                >
+                  {chip.label}
+                  <span aria-hidden className="text-muted-foreground">×</span>
+                </button>
+              ))}
+              <button
+                onClick={() => navigate({ to: "/jobs", search: {} as never })}
+                className="ml-1 text-xs font-semibold text-primary hover:underline"
+              >
+                Clear all
+              </button>
+            </div>
+          )}
 
           {featured.length > 0 && (
             <div className="mb-6">
