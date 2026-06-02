@@ -670,13 +670,6 @@ export type Database = {
             foreignKeyName: "job_alerts_applicant_id_fkey"
             columns: ["applicant_id"]
             isOneToOne: false
-            referencedRelation: "discoverable_candidates"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "job_alerts_applicant_id_fkey"
-            columns: ["applicant_id"]
-            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -1372,13 +1365,6 @@ export type Database = {
             foreignKeyName: "seeker_profiles_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: true
-            referencedRelation: "discoverable_candidates"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "seeker_profiles_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -1514,13 +1500,6 @@ export type Database = {
             foreignKeyName: "user_role_assignments_user_profiles_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "discoverable_candidates"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_role_assignments_user_profiles_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -1589,13 +1568,6 @@ export type Database = {
             foreignKeyName: "work_history_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "discoverable_candidates"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "work_history_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -1630,16 +1602,7 @@ export type Database = {
       }
     }
     Views: {
-      discoverable_candidates: {
-        Row: {
-          avatar_url: string | null
-          created_at: string | null
-          display_name: string | null
-          id: string | null
-          location: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       ad_increment_click: { Args: { _ad_id: string }; Returns: undefined }
@@ -1712,6 +1675,16 @@ export type Database = {
       is_company_member: {
         Args: { _company_id: string; _user_id: string }
         Returns: boolean
+      }
+      list_discoverable_candidates: {
+        Args: never
+        Returns: {
+          avatar_url: string
+          created_at: string
+          display_name: string
+          id: string
+          location: string
+        }[]
       }
       recommended_jobs: {
         Args: { _limit?: number; _user_id: string }
