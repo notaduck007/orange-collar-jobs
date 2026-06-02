@@ -1,8 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Briefcase, Users, Coins, Star, Plus, Eye, Pause, Play, Copy, X, Pencil, Sparkles } from "lucide-react";
+import { Briefcase, Users, Package as PackageIcon, Star, Plus, Eye, Pause, Play, Copy, X, Pencil, Sparkles, Rocket } from "lucide-react";
 import { toast } from "sonner";
-import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -11,6 +10,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Badge } from "@/components/ui/badge";
 import { uniqueSlug } from "@/lib/slug";
 import { TableSkeleton } from "@/components/ui/skeleton-list";
+
 
 export const Route = createFileRoute("/employer/")({
   head: () => ({ meta: [{ title: "Employer Dashboard — WarehouseJobs" }] }),
@@ -63,16 +63,18 @@ function EmployerDashboard() {
     },
   });
 
-  const { data: credits = [] } = useQuery({
-    queryKey: ["company-credits", company?.id],
+  const { data: activePackage } = useQuery({
+    queryKey: ["active-package", company?.id],
     enabled: !!company?.id,
     queryFn: async () => {
-      const { data } = await supabase.from("company_credits").select("*").eq("company_id", company!.id);
-      return data ?? [];
+      const { data } = await supabase.rpc("get_active_package", { p_company_id: company!.id });
+      const row = Array.isArray(data) ? data[0] : data;
+      return (row as { posts_remaining: number; featured_remaining: number; package_name: string | null; expires_at: string } | undefined) ?? null;
     },
   });
-  const postingCredits = credits.find((c) => c.credit_type === "post")?.balance ?? 0;
-  const featuredCredits = credits.find((c) => c.credit_type === "featured")?.balance ?? 0;
+  const postingCredits = activePackage?.posts_remaining ?? 0;
+  const featuredCredits = activePackage?.featured_remaining ?? 0;
+
 
   const { data: jobs = [], isLoading } = useQuery({
     queryKey: ["employer-jobs", company?.id],
@@ -212,18 +214,23 @@ function EmployerDashboard() {
               Welcome{company?.name ? `, ${company.name}` : ""}
             </h1>
           </div>
-          <PostJobButton
-            disabled={postingCredits < 1}
-            onClick={() => navigate({ to: "/employer/jobs/new" })}
-          />
+          <Button onClick={() => navigate({ to: "/employer/jobs/new" })} className="btn-primary gap-1.5">
+            <Plus className="h-4 w-4" /> Post a Job
+          </Button>
         </header>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard icon={Briefcase} label="Active jobs" value={activeJobs} accent />
           <StatCard icon={Users} label="Total applicants" value={totalApplicants} />
-          <StatCard icon={Coins} label="Posting credits" value={postingCredits} sub="standard posts" />
-          <StatCard icon={Star} label="Featured credits" value={featuredCredits} sub="upgrades" />
+          <StatCard
+            icon={PackageIcon}
+            label="Posts remaining"
+            value={postingCredits}
+            sub={activePackage?.package_name ?? "No active package"}
+          />
+          <StatCard icon={Star} label="Featured upgrades" value={featuredCredits} sub="on active package" />
         </div>
+
 
         <section className="rounded-xl border border-border bg-card">
           <div className="flex items-center justify-between border-b border-border px-5 py-4">
@@ -242,11 +249,11 @@ function EmployerDashboard() {
               <p className="mt-3 text-base font-semibold text-[color:var(--ink)]">No jobs yet</p>
               <p className="mt-1 text-sm text-muted-foreground">Post your first warehouse role to start receiving applicants.</p>
               <div className="mt-5">
-                <PostJobButton
-                  disabled={postingCredits < 1}
-                  onClick={() => navigate({ to: "/employer/jobs/new" })}
-                />
+                <Button onClick={() => navigate({ to: "/employer/jobs/new" })} className="btn-primary gap-1.5">
+                  <Plus className="h-4 w-4" /> Post a Job
+                </Button>
               </div>
+
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -289,30 +296,43 @@ function EmployerDashboard() {
                       <TableCell className="text-xs text-muted-foreground">{job.expires_at ? formatDate(job.expires_at) : "—"}</TableCell>
                       <TableCell>
                         <div className="flex items-center justify-end gap-0.5">
-                          <ActionIcon label="View" onClick={() => navigate({ to: "/jobs/$slug", params: { slug: job.slug } })}>
-                            <Eye className="h-3.5 w-3.5" />
-                          </ActionIcon>
-                          <ActionIcon label="Edit" onClick={() => navigate({ to: "/employer/jobs/$id/edit", params: { id: job.id } })}>
-                            <Pencil className="h-3.5 w-3.5" />
-                          </ActionIcon>
-                          <ActionIcon
-                            label={job.featured ? "Already featured" : `Mark featured (uses 1 credit, ${featuredCredits} left)`}
-                            onClick={() => markFeatured(job)}
-                            disabled={job.featured || featuredCredits < 1}
-                          >
-                            <Star className={`h-3.5 w-3.5 ${job.featured ? "fill-[color:var(--hazard)] text-[color:var(--hazard)]" : ""}`} />
-                          </ActionIcon>
-                          <ActionIcon label={job.status === "paused" ? "Resume" : "Pause"} onClick={() => togglePause(job)}>
-                            {job.status === "paused" ? <Play className="h-3.5 w-3.5" /> : <Pause className="h-3.5 w-3.5" />}
-                          </ActionIcon>
-                          <ActionIcon label={`Duplicate (uses 1 credit, ${postingCredits} left)`} onClick={() => duplicateJob(job)} disabled={postingCredits < 1}>
-                            <Copy className="h-3.5 w-3.5" />
-                          </ActionIcon>
-                          <ActionIcon label="Close" onClick={() => closeJob(job)}>
-                            <X className="h-3.5 w-3.5" />
-                          </ActionIcon>
+                          {job.status === "draft" ? (
+                            <Button
+                              size="sm"
+                              className="btn-primary h-7 gap-1 text-xs"
+                              onClick={() => navigate({ to: "/employer/jobs/new", search: { draft: job.id } })}
+                            >
+                              <Rocket className="h-3 w-3" /> Finish & publish
+                            </Button>
+                          ) : (
+                            <>
+                              <ActionIcon label="View" onClick={() => navigate({ to: "/jobs/$slug", params: { slug: job.slug } })}>
+                                <Eye className="h-3.5 w-3.5" />
+                              </ActionIcon>
+                              <ActionIcon label="Edit" onClick={() => navigate({ to: "/employer/jobs/$id/edit", params: { id: job.id } })}>
+                                <Pencil className="h-3.5 w-3.5" />
+                              </ActionIcon>
+                              <ActionIcon
+                                label={job.featured ? "Already featured" : `Mark featured (${featuredCredits} upgrades left)`}
+                                onClick={() => markFeatured(job)}
+                                disabled={job.featured || featuredCredits < 1}
+                              >
+                                <Star className={`h-3.5 w-3.5 ${job.featured ? "fill-[color:var(--hazard)] text-[color:var(--hazard)]" : ""}`} />
+                              </ActionIcon>
+                              <ActionIcon label={job.status === "paused" ? "Resume" : "Pause"} onClick={() => togglePause(job)}>
+                                {job.status === "paused" ? <Play className="h-3.5 w-3.5" /> : <Pause className="h-3.5 w-3.5" />}
+                              </ActionIcon>
+                              <ActionIcon label={`Duplicate (${postingCredits} posts left)`} onClick={() => duplicateJob(job)} disabled={postingCredits < 1}>
+                                <Copy className="h-3.5 w-3.5" />
+                              </ActionIcon>
+                              <ActionIcon label="Close" onClick={() => closeJob(job)}>
+                                <X className="h-3.5 w-3.5" />
+                              </ActionIcon>
+                            </>
+                          )}
                         </div>
                       </TableCell>
+
                     </TableRow>
                   ))}
                 </TableBody>
