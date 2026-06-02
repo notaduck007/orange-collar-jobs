@@ -1059,19 +1059,9 @@ function NewJobPage() {
               />
             </div>
 
-            <label className="flex items-start gap-3 rounded-lg border border-border bg-background p-4">
-              <Checkbox
-                checked={form.feature_it}
-                onCheckedChange={(c) => setForm({ ...form, feature_it: !!c })}
-              />
-              <div className="text-sm">
-                <p className="font-semibold text-[color:var(--ink)]">Feature this job</p>
-                <p className="text-xs text-muted-foreground">
-                  Highlight with the hazard-yellow badge and pin to the top of search. Uses 1 featured
-                  upgrade from your active package.
-                </p>
-              </div>
-            </label>
+            <p className="rounded-md border border-dashed border-border bg-background p-3 text-xs text-muted-foreground">
+              You'll choose reach (Standard vs Featured) on the final Review step.
+            </p>
           </div>
         )}
 
