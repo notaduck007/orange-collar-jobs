@@ -216,6 +216,67 @@ function NewJobPage() {
   const [resuming, setResuming] = useState(false);
   const [success, setSuccess] = useState<{ slug: string; title: string } | null>(null);
   const resumeHandledRef = useRef(false);
+  const [resumeOffer, setResumeOffer] = useState<null | {
+    form: FormState;
+    questions: ScreeningQuestionDraft[];
+    slots: Array<{ starts_at: string; capacity: number }>;
+    step: number;
+    savedAt: number;
+  }>(null);
+  const lsKey = user ? `wj:job-draft:${user.id}` : null;
+  const autosaveReadyRef = useRef(false);
+  const lsCheckedRef = useRef(false);
+
+  // On mount: if a local draft exists and we're not resuming a server draft, offer it.
+  useEffect(() => {
+    if (lsCheckedRef.current) return;
+    if (!lsKey) return;
+    if (search.draft) { lsCheckedRef.current = true; autosaveReadyRef.current = true; return; }
+    lsCheckedRef.current = true;
+    try {
+      const raw = localStorage.getItem(lsKey);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.form) setResumeOffer(parsed);
+      }
+    } catch { /* ignore */ }
+    // Allow autosave to begin after we've checked (avoid clobbering before offer is shown).
+    autosaveReadyRef.current = true;
+  }, [lsKey, search.draft]);
+
+  // Debounced autosave of wizard state to localStorage.
+  useEffect(() => {
+    if (!lsKey || !autosaveReadyRef.current || resumeOffer) return;
+    const t = setTimeout(() => {
+      try {
+        localStorage.setItem(
+          lsKey,
+          JSON.stringify({ form, questions, slots, step, savedAt: Date.now() }),
+        );
+      } catch { /* ignore quota */ }
+    }, 600);
+    return () => clearTimeout(t);
+  }, [lsKey, form, questions, slots, step, resumeOffer]);
+
+  const clearLocalDraft = () => {
+    if (lsKey) {
+      try { localStorage.removeItem(lsKey); } catch { /* ignore */ }
+    }
+  };
+
+  const acceptResume = () => {
+    if (!resumeOffer) return;
+    setForm(resumeOffer.form);
+    setQuestions(resumeOffer.questions ?? []);
+    setSlots(resumeOffer.slots ?? []);
+    setStep(resumeOffer.step ?? 0);
+    setResumeOffer(null);
+    toast.success("Draft restored");
+  };
+  const discardResume = () => {
+    clearLocalDraft();
+    setResumeOffer(null);
+  };
 
   const addSlot = () => setSlots((s) => [...s, { starts_at: "", capacity: 1 }]);
   const updateSlot = (i: number, patch: Partial<{ starts_at: string; capacity: number }>) =>
@@ -411,6 +472,7 @@ function NewJobPage() {
     qc.invalidateQueries({ queryKey: ["employer-jobs", company!.id] });
     const { data: row } = await supabase.from("jobs").select("slug, title").eq("id", jobId).maybeSingle();
     setSuccess({ slug: row?.slug ?? "", title: row?.title ?? form.title });
+    clearLocalDraft();
   };
 
   const submit = async () => {
@@ -533,6 +595,7 @@ function NewJobPage() {
           qc.invalidateQueries({ queryKey: ["employer-jobs", company.id] });
           const { data: row } = await supabase.from("jobs").select("slug, title").eq("id", search.draft!).maybeSingle();
           setSuccess({ slug: row?.slug ?? "", title: row?.title ?? form.title });
+          clearLocalDraft();
           navigate({ to: "/employer/jobs/new", search: {}, replace: true });
         } catch (e) {
           toast.error(e instanceof Error ? e.message : "Couldn't auto-publish your draft");
@@ -630,6 +693,25 @@ function NewJobPage() {
         <div className="flex items-center gap-2 rounded-lg border border-primary/40 bg-[color:var(--primary-tint)] p-3 text-sm text-[color:var(--ink)]">
           <Loader2 className="h-4 w-4 animate-spin text-primary" />
           Payment received — finishing publishing your draft…
+        </div>
+      )}
+
+      {resumeOffer && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-primary/40 bg-[color:var(--primary-tint)] p-3 text-sm text-[color:var(--ink)]">
+          <div>
+            <p className="font-semibold">Resume your draft?</p>
+            <p className="text-xs text-muted-foreground">
+              We found unsaved work from {new Date(resumeOffer.savedAt).toLocaleString()}.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button type="button" size="sm" variant="outline" onClick={discardResume}>
+              Discard
+            </Button>
+            <Button type="button" size="sm" className="btn-primary" onClick={acceptResume}>
+              Restore draft
+            </Button>
+          </div>
         </div>
       )}
 

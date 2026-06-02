@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Briefcase, Users, Package as PackageIcon, Star, Plus, Eye, Pause, Play, Copy, X, Pencil, Sparkles, Rocket } from "lucide-react";
+import { Briefcase, Users, Package as PackageIcon, Star, Plus, Eye, Pause, Play, Copy, X, Pencil, Sparkles, Rocket, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -123,6 +123,14 @@ function EmployerDashboard() {
     const { error } = await supabase.from("jobs").update({ status: "closed" }).eq("id", job.id);
     if (error) return toast.error(error.message);
     toast.success("Job closed");
+    refresh();
+  };
+
+  const deleteDraft = async (job: JobRow) => {
+    if (!confirm(`Delete draft "${job.title}"? This cannot be undone.`)) return;
+    const { error } = await supabase.from("jobs").delete().eq("id", job.id).eq("status", "draft");
+    if (error) return toast.error(error.message);
+    toast.success("Draft deleted");
     refresh();
   };
 
@@ -297,13 +305,18 @@ function EmployerDashboard() {
                       <TableCell>
                         <div className="flex items-center justify-end gap-0.5">
                           {job.status === "draft" ? (
-                            <Button
-                              size="sm"
-                              className="btn-primary h-7 gap-1 text-xs"
-                              onClick={() => navigate({ to: "/employer/jobs/new", search: { draft: job.id } })}
-                            >
-                              <Rocket className="h-3 w-3" /> Finish & publish
-                            </Button>
+                            <>
+                              <Button
+                                size="sm"
+                                className="btn-primary h-7 gap-1 text-xs"
+                                onClick={() => navigate({ to: "/employer/jobs/new", search: { draft: job.id } })}
+                              >
+                                <Rocket className="h-3 w-3" /> Finish & publish
+                              </Button>
+                              <ActionIcon label="Delete draft" onClick={() => deleteDraft(job)}>
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </ActionIcon>
+                            </>
                           ) : (
                             <>
                               <ActionIcon label="View" onClick={() => navigate({ to: "/jobs/$slug", params: { slug: job.slug } })}>
