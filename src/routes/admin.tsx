@@ -14,18 +14,12 @@ type NavItem = { to: string; icon: typeof LayoutDashboard; label: string; exact?
 
 const NAV: NavItem[] = [
   { to: "/admin", icon: LayoutDashboard, label: "Dashboard", exact: true },
-  { to: "/admin/moderation", icon: Gavel, label: "Moderation", cap: "moderation" },
+  { to: "/admin/users", icon: Users, label: "Users", cap: "users" },
   { to: "/admin/companies", icon: Building2, label: "Companies", cap: "moderation" },
   { to: "/admin/jobs", icon: Briefcase, label: "Jobs", cap: "moderation" },
   { to: "/admin/ads", icon: Megaphone, label: "Advertisements", cap: "ads" },
   { to: "/admin/packages", icon: Package, label: "Packages", cap: "settings" },
-  { to: "/admin/categories", icon: Tags, label: "Categories", cap: "settings" },
-  { to: "/admin/content", icon: FileText, label: "Content", cap: "settings" },
-  { to: "/admin/users", icon: Users, label: "Users", cap: "users" },
-  { to: "/admin/support", icon: LifeBuoy, label: "Support", cap: "support" },
   { to: "/admin/orders", icon: Receipt, label: "Orders", cap: "billing" },
-  { to: "/admin/billing", icon: DollarSign, label: "Billing", cap: "billing" },
-  { to: "/admin/settings", icon: SettingsIcon, label: "Settings", cap: "settings" },
 ];
 
 // Route → required capability (for runtime guard)
