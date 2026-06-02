@@ -243,6 +243,12 @@ function AdminSupport() {
       if (error) throw error;
       const payload = data as { error?: string } | null;
       if (payload?.error) throw new Error(payload.error);
+      await supabase
+        .from("deletion_requests")
+        .update({ status: "completed", processed_at: new Date().toISOString() })
+        .eq("user_id", userId)
+        .eq("type", "delete")
+        .neq("status", "completed");
       toast.success(`User ${mode}-deleted`);
       qc.invalidateQueries({ queryKey: ["admin-dsr"] });
     } catch (e) {
