@@ -175,6 +175,11 @@ function NewJobPage() {
     weekly_pay: false,
     quick_hire: false,
   });
+  const [slots, setSlots] = useState<Array<{ starts_at: string; capacity: number }>>([]);
+  const addSlot = () => setSlots((s) => [...s, { starts_at: "", capacity: 1 }]);
+  const updateSlot = (i: number, patch: Partial<{ starts_at: string; capacity: number }>) =>
+    setSlots((s) => s.map((slot, idx) => (idx === i ? { ...slot, ...patch } : slot)));
+  const removeSlot = (i: number) => setSlots((s) => s.filter((_, idx) => idx !== i));
 
   // Prefill city/state from company on first render (after company loads).
   useMemo(() => {
