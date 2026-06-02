@@ -64,7 +64,15 @@ const PRESETS: { label: string; days: number }[] = [
   { label: "90d", days: 90 },
 ];
 
-const COLORS = ["hsl(var(--primary))", "#8b5cf6", "#10b981", "#f59e0b", "#ef4444", "#06b6d4", "#ec4899"];
+const COLORS = [
+  "hsl(var(--primary))",
+  "#8b5cf6",
+  "#10b981",
+  "#f59e0b",
+  "#ef4444",
+  "#06b6d4",
+  "#ec4899",
+];
 
 function AdminDashboard() {
   const [range, setRange] = useState<Range>({ from: subDays(new Date(), 30), to: new Date() });
@@ -95,10 +103,20 @@ function AdminDashboard() {
         openTickets,
       ] = await Promise.all([
         supabase.from("profiles").select("id, created_at"),
-        supabase.from("profiles").select("id, created_at").gte("created_at", fromISO).lte("created_at", toISO),
+        supabase
+          .from("profiles")
+          .select("id, created_at")
+          .gte("created_at", fromISO)
+          .lte("created_at", toISO),
         supabase.from("user_roles").select("role, user_id"),
-        supabase.from("jobs").select("id, status, category, created_at, views, featured, expires_at"),
-        supabase.from("jobs").select("id, created_at").gte("created_at", fromISO).lte("created_at", toISO),
+        supabase
+          .from("jobs")
+          .select("id, status, category, created_at, views, featured, expires_at"),
+        supabase
+          .from("jobs")
+          .select("id, created_at")
+          .gte("created_at", fromISO)
+          .lte("created_at", toISO),
         supabase
           .from("jobs")
           .select("id, title, expires_at, company_id, companies(name)")
@@ -109,8 +127,16 @@ function AdminDashboard() {
           .order("expires_at", { ascending: true })
           .limit(10),
         supabase.from("companies").select("id, name, verified, created_at"),
-        supabase.from("companies").select("id, created_at").gte("created_at", fromISO).lte("created_at", toISO),
-        supabase.from("applications").select("id, job_id, created_at, status").gte("created_at", fromISO).lte("created_at", toISO),
+        supabase
+          .from("companies")
+          .select("id, created_at")
+          .gte("created_at", fromISO)
+          .lte("created_at", toISO),
+        supabase
+          .from("applications")
+          .select("id, job_id, created_at, status")
+          .gte("created_at", fromISO)
+          .lte("created_at", toISO),
         supabase.from("applications").select("id", { count: "exact", head: true }),
         supabase
           .from("orders")
@@ -119,10 +145,19 @@ function AdminDashboard() {
           .gte("created_at", fromISO)
           .lte("created_at", toISO),
         supabase.from("packages").select("id, name, kind"),
-        supabase.from("jobs").select("id", { count: "exact", head: true }).eq("status", "pending_review"),
-        supabase.from("advertisements").select("id", { count: "exact", head: true }).eq("status", "pending"),
+        supabase
+          .from("jobs")
+          .select("id", { count: "exact", head: true })
+          .eq("status", "pending_review"),
+        supabase
+          .from("advertisements")
+          .select("id", { count: "exact", head: true })
+          .eq("status", "pending"),
         supabase.from("reports").select("id", { count: "exact", head: true }).eq("status", "open"),
-        supabase.from("support_tickets").select("id", { count: "exact", head: true }).eq("status", "open"),
+        supabase
+          .from("support_tickets")
+          .select("id", { count: "exact", head: true })
+          .eq("status", "open"),
       ]);
 
       return {
@@ -173,7 +208,10 @@ function AdminDashboard() {
         const k = dayKey(o.created_at);
         if (map.has(k)) map.set(k, (map.get(k) ?? 0) + (o.amount_cents ?? 0) / 100);
       });
-      return Array.from(map.entries()).map(([date, amount]) => ({ date, amount: Number(amount.toFixed(2)) }));
+      return Array.from(map.entries()).map(([date, amount]) => ({
+        date,
+        amount: Number(amount.toFixed(2)),
+      }));
     })();
 
     // Roles distribution
@@ -191,7 +229,9 @@ function AdminDashboard() {
       appUsersByDay.get(k)!.add(a.job_id);
     });
     const dau = appUsersByDay.size
-      ? Math.round(Array.from(appUsersByDay.values()).reduce((s, x) => s + x.size, 0) / appUsersByDay.size)
+      ? Math.round(
+          Array.from(appUsersByDay.values()).reduce((s, x) => s + x.size, 0) / appUsersByDay.size,
+        )
       : 0;
 
     // Jobs by status
@@ -221,8 +261,13 @@ function AdminDashboard() {
     const conversion = totalViews > 0 ? (data.applicationsNew.length / totalViews) * 100 : 0;
 
     // Revenue
-    const revenueCents = data.ordersPaid.reduce((s: number, o: any) => s + (o.amount_cents ?? 0), 0);
-    const adPkgIds = new Set(data.packages.filter((p: any) => p.kind === "ad_slot" || p.ad_slot).map((p: any) => p.id));
+    const revenueCents = data.ordersPaid.reduce(
+      (s: number, o: any) => s + (o.amount_cents ?? 0),
+      0,
+    );
+    const adPkgIds = new Set(
+      data.packages.filter((p: any) => p.kind === "ad_slot" || p.ad_slot).map((p: any) => p.id),
+    );
     const adRevenueCents = data.ordersPaid
       .filter((o: any) => o.package_id && adPkgIds.has(o.package_id))
       .reduce((s: number, o: any) => s + (o.amount_cents ?? 0), 0);
@@ -286,10 +331,30 @@ function AdminDashboard() {
       <div>
         <h2 className="mb-3 text-sm font-semibold text-[color:var(--ink)]">Needs review</h2>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <ReviewCard label="Jobs pending" count={data?.pendingJobs ?? 0} to="/admin/jobs" icon={Briefcase} />
-          <ReviewCard label="Ads pending" count={data?.pendingAds ?? 0} to="/admin/ads" icon={Megaphone} />
-          <ReviewCard label="Open reports" count={data?.openReports ?? 0} to="/admin/support" icon={AlertTriangle} />
-          <ReviewCard label="Open tickets" count={data?.openTickets ?? 0} to="/admin/support" icon={AlertTriangle} />
+          <ReviewCard
+            label="Jobs pending"
+            count={data?.pendingJobs ?? 0}
+            to="/admin/jobs"
+            icon={Briefcase}
+          />
+          <ReviewCard
+            label="Ads pending"
+            count={data?.pendingAds ?? 0}
+            to="/admin/ads"
+            icon={Megaphone}
+          />
+          <ReviewCard
+            label="Open reports"
+            count={data?.openReports ?? 0}
+            to="/admin/support"
+            icon={AlertTriangle}
+          />
+          <ReviewCard
+            label="Open tickets"
+            count={data?.openTickets ?? 0}
+            to="/admin/support"
+            icon={AlertTriangle}
+          />
         </div>
       </div>
 
@@ -305,7 +370,9 @@ function AdminDashboard() {
           icon={Briefcase}
           label="Active jobs"
           value={
-            data ? data.jobsAll.filter((j: any) => ["active", "published"].includes(j.status)).length : "—"
+            data
+              ? data.jobsAll.filter((j: any) => ["active", "published"].includes(j.status)).length
+              : "—"
           }
           sub={data ? `+${data.jobsNew.length} posted` : ""}
         />
@@ -318,7 +385,11 @@ function AdminDashboard() {
         <Stat
           icon={DollarSign}
           label="Revenue"
-          value={metrics ? `$${(metrics.revenueCents / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })}` : "—"}
+          value={
+            metrics
+              ? `$${(metrics.revenueCents / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })}`
+              : "—"
+          }
           sub={metrics ? `Ad revenue $${(metrics.adRevenueCents / 100).toLocaleString()}` : ""}
         />
       </div>
@@ -329,7 +400,9 @@ function AdminDashboard() {
           users: data?.profilesAll.length,
           companies: data?.companiesAll.length,
           jobs: data?.jobsAll.length,
-          activeJobs: data ? data.jobsAll.filter((j: any) => ["active", "published"].includes(j.status)).length : undefined,
+          activeJobs: data
+            ? data.jobsAll.filter((j: any) => ["active", "published"].includes(j.status)).length
+            : undefined,
           pendingJobs: data?.pendingJobs,
           pendingAds: data?.pendingAds,
           openReports: data?.openReports,
@@ -351,10 +424,19 @@ function AdminDashboard() {
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="date" tick={{ fontSize: 11 }} tickFormatter={(d) => format(new Date(d), "MMM d")} />
+              <XAxis
+                dataKey="date"
+                tick={{ fontSize: 11 }}
+                tickFormatter={(d) => format(new Date(d), "MMM d")}
+              />
               <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
               <Tooltip />
-              <Area type="monotone" dataKey="count" stroke="hsl(var(--primary))" fill="url(#gUsers)" />
+              <Area
+                type="monotone"
+                dataKey="count"
+                stroke="hsl(var(--primary))"
+                fill="url(#gUsers)"
+              />
             </AreaChart>
           </ResponsiveContainer>
         </ChartCard>
@@ -363,7 +445,11 @@ function AdminDashboard() {
           <ResponsiveContainer width="100%" height={240}>
             <LineChart data={metrics?.jobsTrend ?? []}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="date" tick={{ fontSize: 11 }} tickFormatter={(d) => format(new Date(d), "MMM d")} />
+              <XAxis
+                dataKey="date"
+                tick={{ fontSize: 11 }}
+                tickFormatter={(d) => format(new Date(d), "MMM d")}
+              />
               <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
               <Tooltip />
               <Line type="monotone" dataKey="count" stroke="#8b5cf6" strokeWidth={2} dot={false} />
@@ -375,7 +461,11 @@ function AdminDashboard() {
           <ResponsiveContainer width="100%" height={240}>
             <BarChart data={metrics?.appsTrend ?? []}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="date" tick={{ fontSize: 11 }} tickFormatter={(d) => format(new Date(d), "MMM d")} />
+              <XAxis
+                dataKey="date"
+                tick={{ fontSize: 11 }}
+                tickFormatter={(d) => format(new Date(d), "MMM d")}
+              />
               <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
               <Tooltip />
               <Bar dataKey="count" fill="#10b981" radius={[4, 4, 0, 0]} />
@@ -393,7 +483,11 @@ function AdminDashboard() {
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="date" tick={{ fontSize: 11 }} tickFormatter={(d) => format(new Date(d), "MMM d")} />
+              <XAxis
+                dataKey="date"
+                tick={{ fontSize: 11 }}
+                tickFormatter={(d) => format(new Date(d), "MMM d")}
+              />
               <YAxis tick={{ fontSize: 11 }} />
               <Tooltip formatter={(v: number) => `$${v.toFixed(2)}`} />
               <Area type="monotone" dataKey="amount" stroke="#f59e0b" fill="url(#gRev)" />
@@ -439,7 +533,11 @@ function AdminDashboard() {
 
         <ChartCard title="Funnel">
           <div className="space-y-3 p-2">
-            <FunnelRow label="Job views" value={metrics?.totalViews ?? 0} max={metrics?.totalViews ?? 1} />
+            <FunnelRow
+              label="Job views"
+              value={metrics?.totalViews ?? 0}
+              max={metrics?.totalViews ?? 1}
+            />
             <FunnelRow
               label="Applications"
               value={data?.applicationsNew.length ?? 0}
@@ -457,7 +555,8 @@ function AdminDashboard() {
               </span>
             </div>
             <div className="text-xs text-muted-foreground">
-              Approx. DAU (active seekers/day): <span className="font-semibold text-[color:var(--ink)]">{metrics?.dau ?? 0}</span>
+              Approx. DAU (active seekers/day):{" "}
+              <span className="font-semibold text-[color:var(--ink)]">{metrics?.dau ?? 0}</span>
             </div>
           </div>
         </ChartCard>
@@ -529,7 +628,9 @@ function AdminDashboard() {
               {(metrics?.revenueByPackage ?? []).map((r) => (
                 <tr key={r.name} className="border-t border-border">
                   <td className="py-2">{r.name}</td>
-                  <td className="py-2 text-right font-semibold">${r.value.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                  <td className="py-2 text-right font-semibold">
+                    ${r.value.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  </td>
                 </tr>
               ))}
               {!metrics?.revenueByPackage.length && (
@@ -619,7 +720,11 @@ function DateRangeControl({ range, onChange }: { range: Range; onChange: (r: Ran
       ))}
       <Popover>
         <PopoverTrigger asChild>
-          <Button variant="outline" size="sm" className={cn("min-w-[220px] justify-start text-left font-normal")}>
+          <Button
+            variant="outline"
+            size="sm"
+            className={cn("min-w-[220px] justify-start text-left font-normal")}
+          >
             <CalendarIcon className="mr-2 h-4 w-4" />
             {format(range.from, "MMM d, yyyy")} – {format(range.to, "MMM d, yyyy")}
           </Button>
@@ -681,14 +786,18 @@ function ReviewCard({
       to={to}
       className={cn(
         "flex items-center justify-between rounded-xl border bg-card p-5 transition",
-        active ? "border-amber-500/60 hover:border-amber-500" : "border-border hover:border-primary/60",
+        active
+          ? "border-amber-500/60 hover:border-amber-500"
+          : "border-border hover:border-primary/60",
       )}
     >
       <div className="flex items-center gap-3">
         <div
           className={cn(
             "flex h-10 w-10 items-center justify-center rounded-md",
-            active ? "bg-amber-500/10 text-amber-600" : "bg-[color:var(--primary-tint)] text-primary",
+            active
+              ? "bg-amber-500/10 text-amber-600"
+              : "bg-[color:var(--primary-tint)] text-primary",
           )}
         >
           {active ? <AlertTriangle className="h-5 w-5" /> : <CheckCircle2 className="h-5 w-5" />}
@@ -763,11 +872,22 @@ type HubCardDef = {
 
 type HubGroup = { heading: string; cards: HubCardDef[] };
 
-function HubGrid({ counts }: { counts: {
-  users?: number; companies?: number; jobs?: number; activeJobs?: number;
-  pendingJobs?: number; pendingAds?: number; openReports?: number; openTickets?: number;
-  paidOrders?: number; packages?: number;
-} }) {
+function HubGrid({
+  counts,
+}: {
+  counts: {
+    users?: number;
+    companies?: number;
+    jobs?: number;
+    activeJobs?: number;
+    pendingJobs?: number;
+    pendingAds?: number;
+    openReports?: number;
+    openTickets?: number;
+    paidOrders?: number;
+    packages?: number;
+  };
+}) {
   const moderationPending =
     (counts.pendingJobs ?? 0) + (counts.pendingAds ?? 0) + (counts.openReports ?? 0);
 
@@ -775,58 +895,159 @@ function HubGrid({ counts }: { counts: {
     {
       heading: "User Management",
       cards: [
-        { title: "Users", desc: "Browse, search, and manage all accounts.", icon: Users, to: "/admin/users", count: counts.users, countLabel: "total" },
-        { title: "Roles & Permissions", desc: "Admin RBAC: super-admin, moderator, finance, support.", icon: ShieldCheck, planned: true },
-        { title: "Audit Log", desc: "Immutable record of every admin action.", icon: ScrollText, planned: true },
+        {
+          title: "Users",
+          desc: "Browse, search, and manage all accounts.",
+          icon: Users,
+          to: "/admin/users",
+          count: counts.users,
+          countLabel: "total",
+        },
+        {
+          title: "Roles & Permissions",
+          desc: "Admin RBAC: super-admin, moderator, finance, support.",
+          icon: ShieldCheck,
+          planned: true,
+        },
+        {
+          title: "Audit Log",
+          desc: "Immutable record of every admin action.",
+          icon: ScrollText,
+          planned: true,
+        },
       ],
     },
     {
       heading: "Company Management",
       cards: [
-        { title: "Companies", desc: "Approve, edit, and manage employer profiles.", icon: Building2, to: "/admin/companies", count: counts.companies, countLabel: "total" },
-        { title: "Verification & Trust Badges", desc: "Verify employers and issue trust badges.", icon: BadgeCheck, planned: true },
+        {
+          title: "Companies",
+          desc: "Approve, edit, and manage employer profiles.",
+          icon: Building2,
+          to: "/admin/companies",
+          count: counts.companies,
+          countLabel: "total",
+        },
+        {
+          title: "Verification & Trust Badges",
+          desc: "Verify employers and issue trust badges.",
+          icon: BadgeCheck,
+          planned: true,
+        },
       ],
     },
     {
       heading: "Jobs & Moderation",
       cards: [
-        { title: "Jobs", desc: "All postings — review, edit, unpublish.", icon: Briefcase, to: "/admin/jobs", count: counts.jobs, countLabel: "total" },
-        { title: "Moderation Queue", desc: "Jobs, ads, reviews, and abuse reports in one place.", icon: ListChecks, planned: true, count: moderationPending, countLabel: "pending" },
+        {
+          title: "Jobs",
+          desc: "All postings — review, edit, unpublish.",
+          icon: Briefcase,
+          to: "/admin/jobs",
+          count: counts.jobs,
+          countLabel: "total",
+        },
+        {
+          title: "Moderation Queue",
+          desc: "Jobs, ads, reviews, and abuse reports in one place.",
+          icon: ListChecks,
+          planned: true,
+          count: moderationPending,
+          countLabel: "pending",
+        },
       ],
     },
     {
       heading: "Payments & Monetization",
       cards: [
-        { title: "Orders", desc: "Transaction log and receipts.", icon: Receipt, to: "/admin/orders", count: counts.paidOrders, countLabel: "paid" },
-        { title: "Packages & Pricing", desc: "Configure job-posting and ad packages.", icon: Package, to: "/admin/packages", count: counts.packages, countLabel: "active" },
-        { title: "Advertisements", desc: "Review and manage promoted slots.", icon: Megaphone, to: "/admin/ads", count: counts.pendingAds, countLabel: "pending" },
-        { title: "Billing & Refunds Console", desc: "Revenue, Stripe refunds, credits, CSV export.", icon: CreditCard, planned: true },
+        {
+          title: "Orders",
+          desc: "Transaction log and receipts.",
+          icon: Receipt,
+          to: "/admin/orders",
+          count: counts.paidOrders,
+          countLabel: "paid",
+        },
+        {
+          title: "Packages & Pricing",
+          desc: "Configure job-posting and ad packages.",
+          icon: Package,
+          to: "/admin/packages",
+          count: counts.packages,
+          countLabel: "active",
+        },
+        {
+          title: "Advertisements",
+          desc: "Review and manage promoted slots.",
+          icon: Megaphone,
+          to: "/admin/ads",
+          count: counts.pendingAds,
+          countLabel: "pending",
+        },
+        {
+          title: "Billing & Refunds Console",
+          desc: "Revenue, Stripe refunds, credits, CSV export.",
+          icon: CreditCard,
+          planned: true,
+        },
       ],
     },
     {
       heading: "Content & Marketing",
       cards: [
-        { title: "Content / CMS & Categories", desc: "About, FAQ, job categories, marketing pages.", icon: FileText, planned: true },
+        {
+          title: "Content / CMS & Categories",
+          desc: "About, FAQ, job categories, marketing pages.",
+          icon: FileText,
+          planned: true,
+        },
       ],
     },
     {
       heading: "Analytics & Reports",
       cards: [
-        { title: "Admin Analytics Dashboard", desc: "Trends, funnel, and revenue charts.", icon: BarChart3, planned: true },
-        { title: "Report Exports", desc: "Scheduled exports and CSV downloads.", icon: Download, planned: true },
+        {
+          title: "Admin Analytics Dashboard",
+          desc: "Trends, funnel, and revenue charts.",
+          icon: BarChart3,
+          planned: true,
+        },
+        {
+          title: "Report Exports",
+          desc: "Scheduled exports and CSV downloads.",
+          icon: Download,
+          planned: true,
+        },
       ],
     },
     {
       heading: "Trust & Support",
       cards: [
-        { title: "Abuse Reports & Support Inbox", desc: "Triage user reports and support tickets.", icon: LifeBuoy, planned: true, count: (counts.openReports ?? 0) + (counts.openTickets ?? 0), countLabel: "open" },
-        { title: "Privacy / GDPR-CCPA Data Tools", desc: "Fulfill export and deletion requests.", icon: Lock, planned: true },
+        {
+          title: "Abuse Reports & Support Inbox",
+          desc: "Triage user reports and support tickets.",
+          icon: LifeBuoy,
+          planned: true,
+          count: (counts.openReports ?? 0) + (counts.openTickets ?? 0),
+          countLabel: "open",
+        },
+        {
+          title: "Privacy / GDPR-CCPA Data Tools",
+          desc: "Fulfill export and deletion requests.",
+          icon: Lock,
+          planned: true,
+        },
       ],
     },
     {
       heading: "Settings",
       cards: [
-        { title: "Feature Flags & Site Settings", desc: "Toggle features and edit global settings.", icon: SettingsIcon, planned: true },
+        {
+          title: "Feature Flags & Site Settings",
+          desc: "Toggle features and edit global settings.",
+          icon: SettingsIcon,
+          planned: true,
+        },
       ],
     },
   ];
@@ -835,7 +1056,9 @@ function HubGrid({ counts }: { counts: {
     <section aria-label="Admin areas" className="space-y-6">
       <div className="flex items-end justify-between">
         <h2 className="text-sm font-semibold text-[color:var(--ink)]">All admin areas</h2>
-        <p className="text-xs text-muted-foreground">Live areas link out · Planned items are placeholders</p>
+        <p className="text-xs text-muted-foreground">
+          Live areas link out · Planned items are placeholders
+        </p>
       </div>
       {groups.map((g) => (
         <div key={g.heading}>
@@ -864,7 +1087,9 @@ function HubCard({ title, desc, icon: Icon, to, count, countLabel, planned }: Hu
           </span>
         ) : count !== undefined ? (
           <span className="text-right text-xs text-muted-foreground">
-            <span className="block text-sm font-bold text-[color:var(--ink)]">{count.toLocaleString()}</span>
+            <span className="block text-sm font-bold text-[color:var(--ink)]">
+              {count.toLocaleString()}
+            </span>
             {countLabel}
           </span>
         ) : null}
@@ -880,11 +1105,7 @@ function HubCard({ title, desc, icon: Icon, to, count, countLabel, planned }: Hu
 
   if (planned) {
     return (
-      <div
-        aria-disabled="true"
-        role="group"
-        className={`${base} cursor-not-allowed opacity-60`}
-      >
+      <div aria-disabled="true" role="group" className={`${base} cursor-not-allowed opacity-60`}>
         {body}
       </div>
     );

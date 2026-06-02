@@ -2,13 +2,31 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import {
-  ArrowLeft, Download, Mail, Phone, FileText, User as UserIcon,
-  LayoutGrid, List, ExternalLink, XCircle, Star, Trash2, Send,
+  ArrowLeft,
+  Download,
+  Mail,
+  Phone,
+  FileText,
+  User as UserIcon,
+  LayoutGrid,
+  List,
+  ExternalLink,
+  XCircle,
+  Star,
+  Trash2,
+  Send,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
-  DndContext, DragOverlay, PointerSensor, useDraggable, useDroppable,
-  useSensor, useSensors, type DragEndEvent, type DragStartEvent,
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  useDraggable,
+  useDroppable,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+  type DragStartEvent,
 } from "@dnd-kit/core";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -17,11 +35,29 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { isKnockout, type QuestionType } from "@/components/screening-questions-builder";
 
 export const Route = createFileRoute("/employer/jobs/$id/applicants")({
@@ -93,9 +129,16 @@ function ApplicantsPage() {
       const { data: ans } = await supabase
         .from("application_answers")
         .select("application_id, question_id, answer")
-        .in("question_id", (qs ?? []).map((q: any) => q.id).length ? (qs ?? []).map((q: any) => q.id) : ["00000000-0000-0000-0000-000000000000"]);
+        .in(
+          "question_id",
+          (qs ?? []).map((q: any) => q.id).length
+            ? (qs ?? []).map((q: any) => q.id)
+            : ["00000000-0000-0000-0000-000000000000"],
+        );
       const qById: Record<string, { type: QuestionType; knockout_answer: unknown }> = {};
-      (qs ?? []).forEach((q: any) => { qById[q.id] = { type: q.type, knockout_answer: q.knockout_answer }; });
+      (qs ?? []).forEach((q: any) => {
+        qById[q.id] = { type: q.type, knockout_answer: q.knockout_answer };
+      });
       const knockedOut = new Set<string>();
       (ans ?? []).forEach((a: any) => {
         const q = qById[a.question_id];
@@ -109,7 +152,11 @@ function ApplicantsPage() {
   const { data: job } = useQuery({
     queryKey: ["employer-job", id],
     queryFn: async () => {
-      const { data } = await supabase.from("jobs").select("id, title, slug, location, category").eq("id", id).maybeSingle();
+      const { data } = await supabase
+        .from("jobs")
+        .select("id, title, slug, location, category")
+        .eq("id", id)
+        .maybeSingle();
       return data;
     },
   });
@@ -135,7 +182,10 @@ function ApplicantsPage() {
           return acc;
         }, {});
       }
-      return (apps ?? []).map((a) => ({ ...a, profile: profilesById[a.applicant_id] })) as Applicant[];
+      return (apps ?? []).map((a) => ({
+        ...a,
+        profile: profilesById[a.applicant_id],
+      })) as Applicant[];
     },
   });
 
@@ -146,7 +196,11 @@ function ApplicantsPage() {
 
   const byStatus = useMemo(() => {
     const groups: Record<AppStatus, Applicant[]> = {
-      submitted: [], reviewed: [], interview: [], hired: [], rejected: [],
+      submitted: [],
+      reviewed: [],
+      interview: [],
+      hired: [],
+      rejected: [],
     };
     for (const a of visibleApplications) {
       const key = (a.status === ("shortlisted" as AppStatus) ? "interview" : a.status) as AppStatus;
@@ -173,7 +227,10 @@ function ApplicantsPage() {
 
   const updateRating = async (appId: string, rating: number | null) => {
     patchLocal(appId, { rating });
-    const { error } = await supabase.from("applications").update({ rating } as never).eq("id", appId);
+    const { error } = await supabase
+      .from("applications")
+      .update({ rating } as never)
+      .eq("id", appId);
     if (error) {
       toast.error(error.message);
       qc.invalidateQueries({ queryKey: ["employer-applicants", id] });
@@ -219,17 +276,26 @@ function ApplicantsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <Link to="/employer" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-primary">
+        <Link
+          to="/employer"
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-primary"
+        >
           <ArrowLeft className="h-4 w-4" /> Back to dashboard
         </Link>
         <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
           <div>
             <p className="label-caps text-primary">Applicants</p>
-            <h1 className="mt-1 text-3xl font-bold tracking-tight text-[color:var(--ink)]">{job?.title ?? "Job"}</h1>
+            <h1 className="mt-1 text-3xl font-bold tracking-tight text-[color:var(--ink)]">
+              {job?.title ?? "Job"}
+            </h1>
             {job && (
               <p className="mt-1 text-sm text-muted-foreground">
                 {job.category} · {job.location} ·{" "}
-                <Link to="/jobs/$slug" params={{ slug: job.slug }} className="font-semibold text-primary hover:underline">
+                <Link
+                  to="/jobs/$slug"
+                  params={{ slug: job.slug }}
+                  className="font-semibold text-primary hover:underline"
+                >
                   View public listing <ExternalLink className="inline h-3 w-3" />
                 </Link>
               </p>
@@ -249,8 +315,12 @@ function ApplicantsPage() {
             )}
             <Tabs value={view} onValueChange={(v) => setView(v as "board" | "table")}>
               <TabsList>
-                <TabsTrigger value="board" className="gap-1.5"><LayoutGrid className="h-4 w-4" /> Board</TabsTrigger>
-                <TabsTrigger value="table" className="gap-1.5"><List className="h-4 w-4" /> Table</TabsTrigger>
+                <TabsTrigger value="board" className="gap-1.5">
+                  <LayoutGrid className="h-4 w-4" /> Board
+                </TabsTrigger>
+                <TabsTrigger value="table" className="gap-1.5">
+                  <List className="h-4 w-4" /> Table
+                </TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
@@ -263,7 +333,9 @@ function ApplicantsPage() {
         <div className="rounded-xl border border-border bg-card p-12 text-center">
           <Mail className="mx-auto h-10 w-10 text-muted-foreground/40" />
           <p className="mt-3 text-base font-semibold text-[color:var(--ink)]">No applicants yet</p>
-          <p className="mt-1 text-sm text-muted-foreground">Once seekers apply, you'll see them here.</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Once seekers apply, you'll see them here.
+          </p>
         </div>
       ) : view === "board" ? (
         <DndContext
@@ -279,14 +351,15 @@ function ApplicantsPage() {
                 column={col}
                 items={byStatus[col.value]}
                 knockedOut={knockedOut}
-                onReject={(a) => { setRejectFor(a); setRejectReason(a.rejection_reason ?? ""); }}
+                onReject={(a) => {
+                  setRejectFor(a);
+                  setRejectReason(a.rejection_reason ?? "");
+                }}
                 onOpen={(a) => setOpenId(a.id)}
               />
             ))}
           </div>
-          <DragOverlay>
-            {activeApp ? <ApplicantCard app={activeApp} dragging /> : null}
-          </DragOverlay>
+          <DragOverlay>{activeApp ? <ApplicantCard app={activeApp} dragging /> : null}</DragOverlay>
         </DndContext>
       ) : (
         <TableView
@@ -295,11 +368,18 @@ function ApplicantsPage() {
           onStatusChange={(appId, status) => {
             if (status === "rejected") {
               const a = applications.find((x) => x.id === appId);
-              if (a) { setRejectFor(a); setRejectReason(a.rejection_reason ?? ""); return; }
+              if (a) {
+                setRejectFor(a);
+                setRejectReason(a.rejection_reason ?? "");
+                return;
+              }
             }
             updateStatus(appId, status);
           }}
-          onReject={(a) => { setRejectFor(a); setRejectReason(a.rejection_reason ?? ""); }}
+          onReject={(a) => {
+            setRejectFor(a);
+            setRejectReason(a.rejection_reason ?? "");
+          }}
           onOpen={(a) => setOpenId(a.id)}
         />
       )}
@@ -309,7 +389,8 @@ function ApplicantsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Reject this applicant?</AlertDialogTitle>
             <AlertDialogDescription>
-              {rejectFor?.profile?.display_name ?? "Applicant"} will be moved to the Rejected column. The reason is recorded for your team only.
+              {rejectFor?.profile?.display_name ?? "Applicant"} will be moved to the Rejected
+              column. The reason is recorded for your team only.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <Textarea
@@ -335,7 +416,10 @@ function ApplicantsPage() {
               app={openApp}
               currentUserId={user?.id ?? null}
               onRate={(r) => updateRating(openApp.id, r)}
-              onReject={() => { setRejectFor(openApp); setRejectReason(openApp.rejection_reason ?? ""); }}
+              onReject={() => {
+                setRejectFor(openApp);
+                setRejectReason(openApp.rejection_reason ?? "");
+              }}
               onStatusChange={(s) => updateStatus(openApp.id, s)}
             />
           )}
@@ -346,7 +430,11 @@ function ApplicantsPage() {
 }
 
 function Column({
-  column, items, knockedOut, onReject, onOpen,
+  column,
+  items,
+  knockedOut,
+  onReject,
+  onOpen,
 }: {
   column: { value: AppStatus; label: string; accent: string };
   items: Applicant[];
@@ -361,22 +449,44 @@ function Column({
       className={`rounded-xl border border-border border-t-4 ${column.accent} bg-card p-3 transition-colors ${isOver ? "bg-muted/60" : ""}`}
     >
       <div className="flex items-center justify-between px-1 pb-2">
-        <p className="text-xs font-bold uppercase tracking-wider text-[color:var(--ink)]">{column.label}</p>
-        <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">{items.length}</span>
+        <p className="text-xs font-bold uppercase tracking-wider text-[color:var(--ink)]">
+          {column.label}
+        </p>
+        <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
+          {items.length}
+        </span>
       </div>
       <div className="space-y-2 min-h-[60px]">
         {items.length === 0 && (
-          <p className="rounded-md border border-dashed border-border px-2 py-4 text-center text-[11px] text-muted-foreground">Drop here</p>
+          <p className="rounded-md border border-dashed border-border px-2 py-4 text-center text-[11px] text-muted-foreground">
+            Drop here
+          </p>
         )}
         {items.map((a) => (
-          <DraggableCard key={a.id} app={a} knockout={knockedOut.has(a.id)} onReject={() => onReject(a)} onOpen={() => onOpen(a)} />
+          <DraggableCard
+            key={a.id}
+            app={a}
+            knockout={knockedOut.has(a.id)}
+            onReject={() => onReject(a)}
+            onOpen={() => onOpen(a)}
+          />
         ))}
       </div>
     </div>
   );
 }
 
-function DraggableCard({ app, knockout, onReject, onOpen }: { app: Applicant; knockout?: boolean; onReject: () => void; onOpen: () => void }) {
+function DraggableCard({
+  app,
+  knockout,
+  onReject,
+  onOpen,
+}: {
+  app: Applicant;
+  knockout?: boolean;
+  onReject: () => void;
+  onOpen: () => void;
+}) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: app.id });
   return (
     <div
@@ -407,12 +517,22 @@ function StarRow({ value, size = "sm" }: { value: number | null; size?: "sm" | "
 }
 
 function ApplicantCard({
-  app, dragging, knockout, onReject, onOpen,
+  app,
+  dragging,
+  knockout,
+  onReject,
+  onOpen,
 }: {
-  app: Applicant; dragging?: boolean; knockout?: boolean; onReject?: () => void; onOpen?: () => void;
+  app: Applicant;
+  dragging?: boolean;
+  knockout?: boolean;
+  onReject?: () => void;
+  onOpen?: () => void;
 }) {
   return (
-    <div className={`rounded-lg border ${knockout ? "border-rose-300 bg-rose-50/40" : "border-border bg-background"} p-3 shadow-sm ${dragging ? "ring-2 ring-primary shadow-lg" : ""}`}>
+    <div
+      className={`rounded-lg border ${knockout ? "border-rose-300 bg-rose-50/40" : "border-border bg-background"} p-3 shadow-sm ${dragging ? "ring-2 ring-primary shadow-lg" : ""}`}
+    >
       {knockout && (
         <p className="mb-1.5 inline-flex items-center gap-1 rounded bg-rose-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-rose-800">
           <XCircle className="h-2.5 w-2.5" /> Knockout
@@ -438,7 +558,11 @@ function ApplicantCard({
             </p>
           )}
           <p className="text-[11px] text-muted-foreground">
-            Applied {new Date(app.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+            Applied{" "}
+            {new Date(app.created_at).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+            })}
           </p>
         </div>
         {app.rating && <StarRow value={app.rating} />}
@@ -497,7 +621,11 @@ function ApplicantCard({
 }
 
 function TableView({
-  applications, knockedOut, onStatusChange, onReject, onOpen,
+  applications,
+  knockedOut,
+  onStatusChange,
+  onReject,
+  onOpen,
 }: {
   applications: Applicant[];
   knockedOut: Set<string>;
@@ -521,7 +649,6 @@ function TableView({
         <tbody className="divide-y divide-border">
           {applications.map((a) => (
             <tr key={a.id} className="hover:bg-muted/30">
-
               <td className="px-4 py-3">
                 <button
                   onClick={() => onOpen(a)}
@@ -530,43 +657,80 @@ function TableView({
                   {a.profile?.display_name ?? "Applicant"}
                 </button>
                 {knockedOut.has(a.id) && (
-                  <Badge variant="outline" className="ml-2 border-destructive/40 bg-destructive/10 text-[9px] font-semibold uppercase text-destructive">
+                  <Badge
+                    variant="outline"
+                    className="ml-2 border-destructive/40 bg-destructive/10 text-[9px] font-semibold uppercase text-destructive"
+                  >
                     Knockout
                   </Badge>
                 )}
-                {a.profile?.phone && <p className="text-xs text-muted-foreground">{a.profile.phone}</p>}
+                {a.profile?.phone && (
+                  <p className="text-xs text-muted-foreground">{a.profile.phone}</p>
+                )}
               </td>
               <td className="px-4 py-3 text-muted-foreground">
-                {new Date(a.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                {new Date(a.created_at).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })}
               </td>
-              <td className="px-4 py-3"><StarRow value={a.rating} /></td>
+              <td className="px-4 py-3">
+                <StarRow value={a.rating} />
+              </td>
               <td className="px-4 py-3">
                 {a.resume_url ? (
-                  <a href={a.resume_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
+                  <a
+                    href={a.resume_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 text-primary hover:underline"
+                  >
                     <FileText className="h-3.5 w-3.5" /> View
                   </a>
-                ) : <span className="text-xs text-muted-foreground">—</span>}
+                ) : (
+                  <span className="text-xs text-muted-foreground">—</span>
+                )}
               </td>
               <td className="px-4 py-3">
-                <Badge variant="outline" className={`border ${statusStyles[a.status] ?? "bg-muted"} text-[10px] font-semibold uppercase`}>
+                <Badge
+                  variant="outline"
+                  className={`border ${statusStyles[a.status] ?? "bg-muted"} text-[10px] font-semibold uppercase`}
+                >
                   {a.status}
                 </Badge>
               </td>
               <td className="px-4 py-3">
                 <div className="flex items-center justify-end gap-2">
-                  <Select value={a.status} onValueChange={(v) => onStatusChange(a.id, v as AppStatus)}>
-                    <SelectTrigger className="h-8 w-[140px] text-xs"><SelectValue /></SelectTrigger>
+                  <Select
+                    value={a.status}
+                    onValueChange={(v) => onStatusChange(a.id, v as AppStatus)}
+                  >
+                    <SelectTrigger className="h-8 w-[140px] text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
-                      {COLUMNS.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+                      {COLUMNS.map((s) => (
+                        <SelectItem key={s.value} value={s.value}>
+                          {s.label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   {a.resume_url && (
                     <Button asChild size="sm" variant="outline" className="h-8 gap-1">
-                      <a href={a.resume_url} download><Download className="h-3.5 w-3.5" /></a>
+                      <a href={a.resume_url} download>
+                        <Download className="h-3.5 w-3.5" />
+                      </a>
                     </Button>
                   )}
                   {a.status !== "rejected" && (
-                    <Button size="sm" variant="outline" onClick={() => onReject(a)} className="h-8 gap-1 border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => onReject(a)}
+                      className="h-8 gap-1 border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100"
+                    >
                       <XCircle className="h-3.5 w-3.5" />
                     </Button>
                   )}
@@ -580,7 +744,13 @@ function TableView({
   );
 }
 
-function RatingControl({ value, onChange }: { value: number | null; onChange: (v: number | null) => void }) {
+function RatingControl({
+  value,
+  onChange,
+}: {
+  value: number | null;
+  onChange: (v: number | null) => void;
+}) {
   const [hover, setHover] = useState<number | null>(null);
   const shown = hover ?? value ?? 0;
   return (
@@ -595,7 +765,9 @@ function RatingControl({ value, onChange }: { value: number | null; onChange: (v
           aria-label={`Rate ${n} of 5`}
           className="p-0.5"
         >
-          <Star className={`h-5 w-5 transition-colors ${n <= shown ? "fill-amber-400 text-amber-400" : "text-muted-foreground/40 hover:text-amber-300"}`} />
+          <Star
+            className={`h-5 w-5 transition-colors ${n <= shown ? "fill-amber-400 text-amber-400" : "text-muted-foreground/40 hover:text-amber-300"}`}
+          />
         </button>
       ))}
       {value && (
@@ -612,7 +784,11 @@ function RatingControl({ value, onChange }: { value: number | null; onChange: (v
 }
 
 function ApplicantDrawer({
-  app, currentUserId, onRate, onReject, onStatusChange,
+  app,
+  currentUserId,
+  onRate,
+  onReject,
+  onStatusChange,
 }: {
   app: Applicant;
   currentUserId: string | null;
@@ -637,9 +813,12 @@ function ApplicantDrawer({
       let byId: Record<string, { display_name: string | null }> = {};
       if (authorIds.length) {
         const { data: profs } = await supabase
-          .from("profiles").select("id, display_name").in("id", authorIds);
+          .from("profiles")
+          .select("id, display_name")
+          .in("id", authorIds);
         byId = (profs ?? []).reduce<typeof byId>((acc, p) => {
-          acc[p.id] = { display_name: p.display_name }; return acc;
+          acc[p.id] = { display_name: p.display_name };
+          return acc;
         }, {});
       }
       return (data ?? []).map((n: any) => ({ ...n, author: byId[n.author_id] })) as AppNote[];
@@ -655,14 +834,20 @@ function ApplicantDrawer({
       body: draft.trim(),
     });
     setPosting(false);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     setDraft("");
     qc.invalidateQueries({ queryKey: ["application-notes", app.id] });
   };
 
   const deleteNote = async (noteId: string) => {
     const { error } = await supabase.from("application_notes").delete().eq("id", noteId);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     qc.invalidateQueries({ queryKey: ["application-notes", app.id] });
   };
 
@@ -671,7 +856,12 @@ function ApplicantDrawer({
       <SheetHeader>
         <SheetTitle>{app.profile?.display_name ?? "Applicant"}</SheetTitle>
         <SheetDescription>
-          Applied {new Date(app.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+          Applied{" "}
+          {new Date(app.created_at).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          })}
         </SheetDescription>
       </SheetHeader>
 
@@ -679,21 +869,36 @@ function ApplicantDrawer({
         {app.resume_url && (
           <>
             <Button asChild size="sm" variant="outline" className="gap-1">
-              <a href={app.resume_url} target="_blank" rel="noreferrer"><ExternalLink className="h-3.5 w-3.5" /> View resume</a>
+              <a href={app.resume_url} target="_blank" rel="noreferrer">
+                <ExternalLink className="h-3.5 w-3.5" /> View resume
+              </a>
             </Button>
             <Button asChild size="sm" variant="outline" className="gap-1">
-              <a href={app.resume_url} download><Download className="h-3.5 w-3.5" /> Download</a>
+              <a href={app.resume_url} download>
+                <Download className="h-3.5 w-3.5" /> Download
+              </a>
             </Button>
           </>
         )}
         <Select value={app.status} onValueChange={(v) => onStatusChange(v as AppStatus)}>
-          <SelectTrigger className="h-9 w-[140px] text-xs"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="h-9 w-[140px] text-xs">
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
-            {COLUMNS.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+            {COLUMNS.map((s) => (
+              <SelectItem key={s.value} value={s.value}>
+                {s.label}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
         {app.status !== "rejected" && (
-          <Button size="sm" variant="outline" onClick={onReject} className="gap-1 border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={onReject}
+            className="gap-1 border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100"
+          >
             <XCircle className="h-3.5 w-3.5" /> Reject…
           </Button>
         )}
@@ -716,7 +921,9 @@ function ApplicantDrawer({
       {app.status === "rejected" && app.rejection_reason && (
         <section>
           <p className="label-caps mb-1.5 text-rose-700">Rejection reason</p>
-          <p className="rounded-md border border-rose-200 bg-rose-50 p-3 text-sm text-rose-900">{app.rejection_reason}</p>
+          <p className="rounded-md border border-rose-200 bg-rose-50 p-3 text-sm text-rose-900">
+            {app.rejection_reason}
+          </p>
         </section>
       )}
 
@@ -735,7 +942,12 @@ function ApplicantDrawer({
                 <p className="text-xs font-semibold text-[color:var(--ink)]">
                   {n.author?.display_name ?? "Teammate"}
                   <span className="ml-2 font-normal text-muted-foreground">
-                    {new Date(n.created_at).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
+                    {new Date(n.created_at).toLocaleString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      hour: "numeric",
+                      minute: "2-digit",
+                    })}
                   </span>
                 </p>
                 {n.author_id === currentUserId && (
@@ -762,7 +974,12 @@ function ApplicantDrawer({
             maxLength={2000}
           />
           <div className="flex justify-end">
-            <Button size="sm" onClick={addNote} disabled={!draft.trim() || posting} className="gap-1">
+            <Button
+              size="sm"
+              onClick={addNote}
+              disabled={!draft.trim() || posting}
+              className="gap-1"
+            >
               <Send className="h-3.5 w-3.5" /> {posting ? "Posting…" : "Post note"}
             </Button>
           </div>

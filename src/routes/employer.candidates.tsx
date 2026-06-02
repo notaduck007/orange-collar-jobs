@@ -109,14 +109,20 @@ function CandidatesPage() {
     [company],
   );
 
-  const { data: candidates = [], isLoading, refetch } = useQuery({
+  const {
+    data: candidates = [],
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ["candidate-search", { keyword, cert, shift, location, relocateOnly, entitled }],
     enabled: !!entitled,
     queryFn: async (): Promise<Candidate[]> => {
       // Fetch discoverable seeker_profiles
       let q = supabase
         .from("seeker_profiles")
-        .select("user_id, headline, summary, skills, certifications, desired_shift, willing_to_relocate")
+        .select(
+          "user_id, headline, summary, skills, certifications, desired_shift, willing_to_relocate",
+        )
         .eq("discoverable" as never, true as never)
         .limit(100);
       if (shift) q = q.eq("desired_shift", shift as never);
@@ -194,8 +200,12 @@ function CandidatesPage() {
     return (
       <div className="rounded-xl border border-border bg-card p-10 text-center">
         <Lock className="mx-auto h-10 w-10 text-muted-foreground" />
-        <h2 className="mt-3 text-lg font-semibold text-[color:var(--ink)]">Candidate search is disabled</h2>
-        <p className="mt-1 text-sm text-muted-foreground">An administrator has turned off candidate search site-wide.</p>
+        <h2 className="mt-3 text-lg font-semibold text-[color:var(--ink)]">
+          Candidate search is disabled
+        </h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          An administrator has turned off candidate search site-wide.
+        </p>
       </div>
     );
   }
@@ -212,7 +222,6 @@ function CandidatesPage() {
         </p>
       </div>
 
-
       {!companyLoading && !entitled && (
         <div className="rounded-xl border border-amber-300 bg-amber-50 p-6">
           <div className="flex items-start gap-3">
@@ -222,8 +231,8 @@ function CandidatesPage() {
                 Candidate search is a paid feature
               </h2>
               <p className="mt-1 text-sm text-amber-900/80">
-                You need active posting or featured credits to search candidates. Buy a
-                package to unlock sourcing.
+                You need active posting or featured credits to search candidates. Buy a package to
+                unlock sourcing.
               </p>
               <Link
                 to="/pricing"
@@ -255,28 +264,38 @@ function CandidatesPage() {
               </div>
               <div className="space-y-1.5">
                 <Label>Certification</Label>
-                <Select value={cert || undefined} onValueChange={(v) => setCert(v === "__any" ? "" : v)}>
+                <Select
+                  value={cert || undefined}
+                  onValueChange={(v) => setCert(v === "__any" ? "" : v)}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Any" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="__any">Any</SelectItem>
                     {CERT_OPTIONS.map((c) => (
-                      <SelectItem key={c} value={c}>{c}</SelectItem>
+                      <SelectItem key={c} value={c}>
+                        {c}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-1.5">
                 <Label>Preferred shift</Label>
-                <Select value={shift || undefined} onValueChange={(v) => setShift(v === "__any" ? "" : v)}>
+                <Select
+                  value={shift || undefined}
+                  onValueChange={(v) => setShift(v === "__any" ? "" : v)}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Any" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="__any">Any</SelectItem>
                     {SHIFTS.map((s) => (
-                      <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                      <SelectItem key={s.value} value={s.value}>
+                        {s.label}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -299,10 +318,14 @@ function CandidatesPage() {
             </div>
             <div className="mt-4 flex items-center justify-between">
               <p className="text-xs text-muted-foreground">
-                {isLoading ? "Searching…" : `${candidates.length} candidate${candidates.length === 1 ? "" : "s"} match`}
+                {isLoading
+                  ? "Searching…"
+                  : `${candidates.length} candidate${candidates.length === 1 ? "" : "s"} match`}
               </p>
               <div className="flex gap-2">
-                <Button variant="ghost" size="sm" onClick={resetFilters}>Reset</Button>
+                <Button variant="ghost" size="sm" onClick={resetFilters}>
+                  Reset
+                </Button>
                 <Button size="sm" onClick={() => refetch()}>
                   <Search className="mr-1 h-4 w-4" /> Search
                 </Button>
@@ -313,8 +336,12 @@ function CandidatesPage() {
           {!isLoading && candidates.length === 0 && (
             <div className="rounded-xl border border-dashed border-border bg-background p-12 text-center">
               <UserCheck className="mx-auto h-10 w-10 text-muted-foreground/40" />
-              <p className="mt-3 text-base font-semibold text-[color:var(--ink)]">No candidates match</p>
-              <p className="mt-1 text-sm text-muted-foreground">Try broader filters or fewer keywords.</p>
+              <p className="mt-3 text-base font-semibold text-[color:var(--ink)]">
+                No candidates match
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Try broader filters or fewer keywords.
+              </p>
             </div>
           )}
 
@@ -355,17 +382,27 @@ function CandidateCard({ candidate, onInvite }: { candidate: Candidate; onInvite
             {candidate.display_name ?? "Candidate"}
           </p>
           {candidate.headline && (
-            <p className="mt-0.5 line-clamp-1 text-sm text-muted-foreground">{candidate.headline}</p>
+            <p className="mt-0.5 line-clamp-1 text-sm text-muted-foreground">
+              {candidate.headline}
+            </p>
           )}
           <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
             {candidate.location && (
-              <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" />{candidate.location}</span>
+              <span className="inline-flex items-center gap-1">
+                <MapPin className="h-3 w-3" />
+                {candidate.location}
+              </span>
             )}
             {candidate.desired_shift && (
-              <span className="inline-flex items-center gap-1"><Briefcase className="h-3 w-3" />{candidate.desired_shift}</span>
+              <span className="inline-flex items-center gap-1">
+                <Briefcase className="h-3 w-3" />
+                {candidate.desired_shift}
+              </span>
             )}
             {candidate.willing_to_relocate && (
-              <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-semibold uppercase">Open to relocate</span>
+              <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-semibold uppercase">
+                Open to relocate
+              </span>
             )}
           </div>
         </div>
@@ -378,7 +415,9 @@ function CandidateCard({ candidate, onInvite }: { candidate: Candidate; onInvite
           </p>
           <div className="flex flex-wrap gap-1.5">
             {candidate.certifications.slice(0, 6).map((c) => (
-              <Badge key={c} variant="secondary" className="text-[11px]">{c}</Badge>
+              <Badge key={c} variant="secondary" className="text-[11px]">
+                {c}
+              </Badge>
             ))}
           </div>
         </div>
@@ -389,7 +428,9 @@ function CandidateCard({ candidate, onInvite }: { candidate: Candidate; onInvite
           <p className="label-caps mb-1.5 text-[10px]">Skills</p>
           <div className="flex flex-wrap gap-1.5">
             {candidate.skills.slice(0, 8).map((s) => (
-              <Badge key={s} variant="outline" className="text-[11px]">{s}</Badge>
+              <Badge key={s} variant="outline" className="text-[11px]">
+                {s}
+              </Badge>
             ))}
           </div>
         </div>
@@ -422,7 +463,9 @@ function InviteDialog({
     if (!candidate || !senderId) return;
     setSending(true);
     const title = `${companyName || "An employer"} invited you to apply`;
-    const body = message.trim() || `${companyName || "An employer"} reviewed your profile and would like you to apply to one of their roles.`;
+    const body =
+      message.trim() ||
+      `${companyName || "An employer"} reviewed your profile and would like you to apply to one of their roles.`;
     const { error } = await supabase.from("notifications" as never).insert({
       user_id: candidate.user_id,
       sender_id: senderId,
@@ -442,13 +485,11 @@ function InviteDialog({
     <Dialog open={!!candidate} onOpenChange={(o) => !o && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>
-            Invite {candidate?.display_name ?? "candidate"} to apply
-          </DialogTitle>
+          <DialogTitle>Invite {candidate?.display_name ?? "candidate"} to apply</DialogTitle>
         </DialogHeader>
         <p className="text-sm text-muted-foreground">
-          We&apos;ll send an in-app notification and an email to this candidate inviting them
-          to apply to your open roles. Your message is optional.
+          We&apos;ll send an in-app notification and an email to this candidate inviting them to
+          apply to your open roles. Your message is optional.
         </p>
         <div className="space-y-1.5">
           <Label htmlFor="msg">Personal message</Label>
@@ -462,7 +503,9 @@ function InviteDialog({
           />
         </div>
         <DialogFooter>
-          <Button variant="ghost" onClick={onClose}>Cancel</Button>
+          <Button variant="ghost" onClick={onClose}>
+            Cancel
+          </Button>
           <Button onClick={send} disabled={sending} className="btn-primary">
             <Send className="mr-1 h-4 w-4" /> {sending ? "Sending…" : "Send invite"}
           </Button>

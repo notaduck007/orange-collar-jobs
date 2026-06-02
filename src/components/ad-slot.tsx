@@ -16,20 +16,32 @@ type Ad = {
 
 const FALLBACKS: Record<AdSlotName, React.ReactNode> = {
   home_banner: (
-    <Link to="/pricing" className="relative block overflow-hidden rounded-2xl border border-border bg-[color:var(--ink)] p-6 text-white sm:p-8">
+    <Link
+      to="/pricing"
+      className="relative block overflow-hidden rounded-2xl border border-border bg-[color:var(--ink)] p-6 text-white sm:p-8"
+    >
       <div className="hazard-stripes absolute left-0 top-0 h-1.5 w-full" />
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <p className="label-caps text-white/50">Sponsored slot — yours for $299/month</p>
-          <p className="mt-1 text-xl font-bold">Put your warehouse brand on the WarehouseJobs homepage.</p>
-          <p className="mt-1 text-sm text-white/70">Reach thousands of forklift-certified workers each week.</p>
+          <p className="mt-1 text-xl font-bold">
+            Put your warehouse brand on the WarehouseJobs homepage.
+          </p>
+          <p className="mt-1 text-sm text-white/70">
+            Reach thousands of forklift-certified workers each week.
+          </p>
         </div>
-        <span className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">See packages →</span>
+        <span className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">
+          See packages →
+        </span>
       </div>
     </Link>
   ),
   search_inline: (
-    <Link to="/pricing" className="group relative block overflow-hidden rounded-lg border border-border bg-[color:var(--ink)] p-5 text-white">
+    <Link
+      to="/pricing"
+      className="group relative block overflow-hidden rounded-lg border border-border bg-[color:var(--ink)] p-5 text-white"
+    >
       <div className="hazard-stripes absolute left-0 top-0 h-1 w-full" />
       <div className="flex items-start gap-4">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
@@ -37,16 +49,25 @@ const FALLBACKS: Record<AdSlotName, React.ReactNode> = {
         </div>
         <div>
           <p className="label-caps text-white/50">Sponsored</p>
-          <p className="mt-0.5 text-base font-semibold">Hire warehouse workers faster — see posting packages</p>
-          <p className="mt-1 text-sm text-white/60">From $49 a post. Featured upgrades and ZIP-targeted reach.</p>
+          <p className="mt-0.5 text-base font-semibold">
+            Hire warehouse workers faster — see posting packages
+          </p>
+          <p className="mt-1 text-sm text-white/60">
+            From $49 a post. Featured upgrades and ZIP-targeted reach.
+          </p>
         </div>
       </div>
     </Link>
   ),
   job_sidebar: (
-    <Link to="/pricing" className="block overflow-hidden rounded-xl border border-border bg-[color:var(--ink)] p-5 text-white">
+    <Link
+      to="/pricing"
+      className="block overflow-hidden rounded-xl border border-border bg-[color:var(--ink)] p-5 text-white"
+    >
       <div className="hazard-stripes mb-3 h-1.5 w-12 rounded-sm" />
-      <p className="text-sm font-semibold leading-snug">Hiring? Get this same placement for your jobs.</p>
+      <p className="text-sm font-semibold leading-snug">
+        Hiring? Get this same placement for your jobs.
+      </p>
       <p className="mt-1 text-xs text-white/60">Featured upgrades start at $39 per post.</p>
       <p className="mt-3 text-xs font-semibold text-primary">See packages →</p>
     </Link>
@@ -101,8 +122,8 @@ export function AdSlot({ slot, className }: { slot: AdSlotName; className?: stri
     slot === "home_banner"
       ? "aspect-[4/1] sm:aspect-[6/1]"
       : slot === "job_sidebar"
-      ? "aspect-[4/5]"
-      : "aspect-[5/1]";
+        ? "aspect-[4/5]"
+        : "aspect-[5/1]";
 
   return (
     <a

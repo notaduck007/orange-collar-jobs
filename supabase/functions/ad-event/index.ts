@@ -11,7 +11,9 @@ const cors = {
 async function hashIp(ip: string) {
   const data = new TextEncoder().encode(ip + (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""));
   const buf = await crypto.subtle.digest("SHA-256", data);
-  return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
+  return Array.from(new Uint8Array(buf))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 serve(async (req) => {
@@ -20,7 +22,8 @@ serve(async (req) => {
     const { advertisement_id, type, ad_slot } = await req.json();
     if (!advertisement_id || !["impression", "click"].includes(type)) {
       return new Response(JSON.stringify({ error: "Invalid payload" }), {
-        status: 400, headers: { ...cors, "Content-Type": "application/json" },
+        status: 400,
+        headers: { ...cors, "Content-Type": "application/json" },
       });
     }
 
@@ -37,13 +40,19 @@ serve(async (req) => {
       .eq("id", advertisement_id)
       .maybeSingle();
     if (!ad || ad.status !== "active") {
-      return new Response(JSON.stringify({ ok: false }), { headers: { ...cors, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ ok: false }), {
+        headers: { ...cors, "Content-Type": "application/json" },
+      });
     }
-    if (ad.start_date && ad.start_date > today) return new Response(JSON.stringify({ ok: false }), { headers: cors });
-    if (ad.end_date && ad.end_date < today) return new Response(JSON.stringify({ ok: false }), { headers: cors });
+    if (ad.start_date && ad.start_date > today)
+      return new Response(JSON.stringify({ ok: false }), { headers: cors });
+    if (ad.end_date && ad.end_date < today)
+      return new Response(JSON.stringify({ ok: false }), { headers: cors });
 
-    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
-      || req.headers.get("cf-connecting-ip") || "unknown";
+    const ip =
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      req.headers.get("cf-connecting-ip") ||
+      "unknown";
     const ip_hash = await hashIp(ip);
 
     // Debounce: dedupe identical (ad, type, ip) events within last 30s
@@ -63,11 +72,15 @@ serve(async (req) => {
     }
 
     await admin.from("ad_events").insert({
-      advertisement_id, type, ip_hash, ad_slot: ad_slot ?? null,
+      advertisement_id,
+      type,
+      ip_hash,
+      ad_slot: ad_slot ?? null,
     });
 
     // Keep aggregate counters fresh
-    if (type === "impression") await admin.rpc("ad_increment_impression", { _ad_id: advertisement_id });
+    if (type === "impression")
+      await admin.rpc("ad_increment_impression", { _ad_id: advertisement_id });
     else await admin.rpc("ad_increment_click", { _ad_id: advertisement_id });
 
     return new Response(JSON.stringify({ ok: true }), {
@@ -76,7 +89,8 @@ serve(async (req) => {
   } catch (e: any) {
     console.error("ad-event error", e);
     return new Response(JSON.stringify({ error: e.message ?? "Server error" }), {
-      status: 500, headers: { ...cors, "Content-Type": "application/json" },
+      status: 500,
+      headers: { ...cors, "Content-Type": "application/json" },
     });
   }
 });

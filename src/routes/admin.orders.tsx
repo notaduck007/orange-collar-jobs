@@ -69,8 +69,8 @@ function AdminOrders() {
               const refundUrl = intent
                 ? `https://dashboard.stripe.com/payments/${intent}`
                 : o.stripe_session_id
-                ? `https://dashboard.stripe.com/checkout/sessions/${o.stripe_session_id}`
-                : null;
+                  ? `https://dashboard.stripe.com/checkout/sessions/${o.stripe_session_id}`
+                  : null;
               return (
                 <tr key={o.id} className="border-t border-border">
                   <td className="px-3 py-2 text-xs text-muted-foreground">
@@ -92,12 +92,22 @@ function AdminOrders() {
                   <td className="px-3 py-2">
                     <div className="flex items-center gap-2 text-xs">
                       {o.status === "paid" && (
-                        <a href={`/billing/receipt/${o.id}`} target="_blank" rel="noreferrer" className="text-primary hover:underline">
+                        <a
+                          href={`/billing/receipt/${o.id}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-primary hover:underline"
+                        >
                           Invoice
                         </a>
                       )}
                       {o.receipt_url ? (
-                        <a href={o.receipt_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-muted-foreground hover:underline">
+                        <a
+                          href={o.receipt_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1 text-muted-foreground hover:underline"
+                        >
                           Stripe <ExternalLink className="h-3 w-3" />
                         </a>
                       ) : (
@@ -113,7 +123,8 @@ function AdminOrders() {
                         rel="noreferrer"
                         className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
                       >
-                        {o.status === "paid" ? "Refund" : "View"} <ExternalLink className="h-3 w-3" />
+                        {o.status === "paid" ? "Refund" : "View"}{" "}
+                        <ExternalLink className="h-3 w-3" />
                       </a>
                     ) : (
                       <span className="text-xs text-muted-foreground">—</span>
@@ -123,7 +134,11 @@ function AdminOrders() {
               );
             })}
             {orders.length === 0 && (
-              <tr><td colSpan={8} className="px-3 py-8 text-center text-sm text-muted-foreground">No orders yet.</td></tr>
+              <tr>
+                <td colSpan={8} className="px-3 py-8 text-center text-sm text-muted-foreground">
+                  No orders yet.
+                </td>
+              </tr>
             )}
           </tbody>
         </table>

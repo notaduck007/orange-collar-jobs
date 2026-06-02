@@ -15,7 +15,13 @@ import {
 } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export const Route = createFileRoute("/employer/analytics")({
   head: () => ({ meta: [{ title: "Analytics — Employer" }] }),
@@ -34,7 +40,11 @@ function EmployerAnalytics() {
     queryKey: ["employer-company", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data: owned } = await supabase.from("companies").select("*").eq("owner_id", user!.id).maybeSingle();
+      const { data: owned } = await supabase
+        .from("companies")
+        .select("*")
+        .eq("owner_id", user!.id)
+        .maybeSingle();
       if (owned) return owned;
       const { data: m } = await supabase
         .from("company_members")
@@ -44,7 +54,11 @@ function EmployerAnalytics() {
         .limit(1)
         .maybeSingle();
       if (!m?.company_id) return null;
-      const { data: c } = await supabase.from("companies").select("*").eq("id", m.company_id).maybeSingle();
+      const { data: c } = await supabase
+        .from("companies")
+        .select("*")
+        .eq("id", m.company_id)
+        .maybeSingle();
       return c ?? null;
     },
   });
@@ -120,21 +134,31 @@ function EmployerAnalytics() {
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="label-caps text-primary">Analytics</p>
-          <h1 className="mt-1 text-3xl font-bold tracking-tight text-[color:var(--ink)]">Hiring performance</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Views, applications, and stage conversion across your jobs.</p>
+          <h1 className="mt-1 text-3xl font-bold tracking-tight text-[color:var(--ink)]">
+            Hiring performance
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Views, applications, and stage conversion across your jobs.
+          </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Select value={jobFilter} onValueChange={setJobFilter}>
-            <SelectTrigger className="w-[200px]"><SelectValue placeholder="Job" /></SelectTrigger>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Job" />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All jobs</SelectItem>
               {(data?.allJobs ?? []).map((j) => (
-                <SelectItem key={j.id} value={j.id}>{j.title}</SelectItem>
+                <SelectItem key={j.id} value={j.id}>
+                  {j.title}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
           <Select value={String(days)} onValueChange={(v) => setDays(Number(v))}>
-            <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="7">Last 7 days</SelectItem>
               <SelectItem value="14">Last 14 days</SelectItem>
@@ -148,15 +172,34 @@ function EmployerAnalytics() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Stat icon={Eye} label="Job views" value={data?.totalViews ?? 0} loading={isLoading} />
-        <Stat icon={Users} label="Applications" value={data?.totalApps ?? 0} sub={`Last ${days} days`} loading={isLoading} />
-        <Stat icon={TrendingUp} label="Conversion" value={`${(data?.conversion ?? 0).toFixed(1)}%`} sub="views → apply" loading={isLoading} />
-        <Stat icon={BarChart3} label="Active jobs" value={data?.allJobs.length ?? 0} loading={isLoading} />
+        <Stat
+          icon={Users}
+          label="Applications"
+          value={data?.totalApps ?? 0}
+          sub={`Last ${days} days`}
+          loading={isLoading}
+        />
+        <Stat
+          icon={TrendingUp}
+          label="Conversion"
+          value={`${(data?.conversion ?? 0).toFixed(1)}%`}
+          sub="views → apply"
+          loading={isLoading}
+        />
+        <Stat
+          icon={BarChart3}
+          label="Active jobs"
+          value={data?.allJobs.length ?? 0}
+          loading={isLoading}
+        />
       </div>
 
       <section className="rounded-xl border border-border bg-card p-5">
         <div className="mb-4">
           <h2 className="text-base font-semibold text-[color:var(--ink)]">Applications trend</h2>
-          <p className="text-xs text-muted-foreground">Daily applications over the selected window.</p>
+          <p className="text-xs text-muted-foreground">
+            Daily applications over the selected window.
+          </p>
         </div>
         <div className="h-72 w-full">
           <ResponsiveContainer width="100%" height="100%">
@@ -165,7 +208,13 @@ function EmployerAnalytics() {
               <XAxis dataKey="date" tick={{ fontSize: 11 }} />
               <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
               <Tooltip />
-              <Line type="monotone" dataKey="applications" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+              <Line
+                type="monotone"
+                dataKey="applications"
+                stroke="hsl(var(--primary))"
+                strokeWidth={2}
+                dot={false}
+              />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -213,7 +262,11 @@ function EmployerAnalytics() {
                 </tr>
               ))}
               {!isLoading && (data?.perJob ?? []).length === 0 && (
-                <tr><td colSpan={4} className="px-5 py-10 text-center text-sm text-muted-foreground">No jobs yet.</td></tr>
+                <tr>
+                  <td colSpan={4} className="px-5 py-10 text-center text-sm text-muted-foreground">
+                    No jobs yet.
+                  </td>
+                </tr>
               )}
             </tbody>
           </table>
@@ -223,14 +276,28 @@ function EmployerAnalytics() {
   );
 }
 
-function Stat({ icon: Icon, label, value, sub, loading }: { icon: typeof Eye; label: string; value: number | string; sub?: string; loading?: boolean }) {
+function Stat({
+  icon: Icon,
+  label,
+  value,
+  sub,
+  loading,
+}: {
+  icon: typeof Eye;
+  label: string;
+  value: number | string;
+  sub?: string;
+  loading?: boolean;
+}) {
   return (
     <div className="rounded-xl border border-border bg-card p-5">
       <div className="flex items-center justify-between">
         <p className="label-caps">{label}</p>
         <Icon className="h-4 w-4 text-muted-foreground" />
       </div>
-      <p className="mt-3 text-3xl font-bold tabular-nums text-[color:var(--ink)]">{loading ? "—" : value}</p>
+      <p className="mt-3 text-3xl font-bold tabular-nums text-[color:var(--ink)]">
+        {loading ? "—" : value}
+      </p>
       {sub && <p className="mt-0.5 text-xs text-muted-foreground">{sub}</p>}
     </div>
   );

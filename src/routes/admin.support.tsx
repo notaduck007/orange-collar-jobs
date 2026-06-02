@@ -3,7 +3,17 @@ import { useState, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
-import { Flag, LifeBuoy, Mail, Send, User2, Clock, ShieldCheck, Download, Trash2 } from "lucide-react";
+import {
+  Flag,
+  LifeBuoy,
+  Mail,
+  Send,
+  User2,
+  Clock,
+  ShieldCheck,
+  Download,
+  Trash2,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -12,7 +22,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -45,15 +59,30 @@ const CANNED: { label: string; subject: string; body: string }[] = [
 ];
 
 type Ticket = {
-  id: string; user_id: string | null; email: string;
-  subject: string; body: string; status: string; priority: string;
-  assigned_to: string | null; created_at: string; updated_at: string;
+  id: string;
+  user_id: string | null;
+  email: string;
+  subject: string;
+  body: string;
+  status: string;
+  priority: string;
+  assigned_to: string | null;
+  created_at: string;
+  updated_at: string;
 };
 type Report = {
-  id: string; reporter_id: string | null; entity_type: string; entity_id: string;
-  reason: string; details: string | null; status: string;
-  assigned_to: string | null; resolution_note: string | null;
-  resolved_at: string | null; resolved_by: string | null; created_at: string;
+  id: string;
+  reporter_id: string | null;
+  entity_type: string;
+  entity_id: string;
+  reason: string;
+  details: string | null;
+  status: string;
+  assigned_to: string | null;
+  resolution_note: string | null;
+  resolved_at: string | null;
+  resolved_by: string | null;
+  created_at: string;
 };
 
 function AdminSupport() {
@@ -74,8 +103,13 @@ function AdminSupport() {
         .limit(200);
       if (error) throw error;
       return data as Array<{
-        id: string; user_id: string; type: string; status: string;
-        reason: string | null; created_at: string; processed_at: string | null;
+        id: string;
+        user_id: string;
+        type: string;
+        status: string;
+        reason: string | null;
+        created_at: string;
+        processed_at: string | null;
       }>;
     },
   });
@@ -123,10 +157,15 @@ function AdminSupport() {
 
   const updateTicket = async (id: string, patch: Partial<Ticket>): Promise<void> => {
     const { error } = await supabase.from("support_tickets").update(patch).eq("id", id);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     await supabase.from("audit_log").insert({
-      actor_id: user!.id, action: "ticket_update",
-      entity_type: "support_ticket", entity_id: id,
+      actor_id: user!.id,
+      action: "ticket_update",
+      entity_type: "support_ticket",
+      entity_id: id,
       metadata: patch as never,
     });
     qc.invalidateQueries({ queryKey: ["admin-tickets"] });
@@ -135,10 +174,15 @@ function AdminSupport() {
 
   const updateReport = async (id: string, patch: Partial<Report>): Promise<void> => {
     const { error } = await supabase.from("reports").update(patch).eq("id", id);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     await supabase.from("audit_log").insert({
-      actor_id: user!.id, action: "report_update",
-      entity_type: "report", entity_id: id,
+      actor_id: user!.id,
+      action: "report_update",
+      entity_type: "report",
+      entity_id: id,
       metadata: patch as never,
     });
     qc.invalidateQueries({ queryKey: ["admin-reports"] });
@@ -180,7 +224,10 @@ function AdminSupport() {
   };
 
   const deleteUser = async (userId: string, mode: "soft" | "hard"): Promise<void> => {
-    if (!confirm(`Confirm ${mode}-delete for user ${userId.slice(0, 8)}? This anonymizes their PII.`)) return;
+    if (
+      !confirm(`Confirm ${mode}-delete for user ${userId.slice(0, 8)}? This anonymizes their PII.`)
+    )
+      return;
     setDsrBusy(userId + ":delete");
     try {
       const { data, error } = await supabase.functions.invoke("delete-user-account", {
@@ -212,9 +259,18 @@ function AdminSupport() {
           </p>
         </div>
         <div className="flex items-center gap-3 text-sm">
-          <Badge variant="secondary"><LifeBuoy className="mr-1 h-3 w-3" />{openTickets} open tickets</Badge>
-          <Badge variant="secondary"><Flag className="mr-1 h-3 w-3" />{openReports} open reports</Badge>
-          <Badge variant="secondary"><ShieldCheck className="mr-1 h-3 w-3" />{openDsr} open DSR</Badge>
+          <Badge variant="secondary">
+            <LifeBuoy className="mr-1 h-3 w-3" />
+            {openTickets} open tickets
+          </Badge>
+          <Badge variant="secondary">
+            <Flag className="mr-1 h-3 w-3" />
+            {openReports} open reports
+          </Badge>
+          <Badge variant="secondary">
+            <ShieldCheck className="mr-1 h-3 w-3" />
+            {openDsr} open DSR
+          </Badge>
         </div>
       </div>
 
@@ -226,11 +282,15 @@ function AdminSupport() {
             <TabsTrigger value="dsr">DSR ({openDsr})</TabsTrigger>
           </TabsList>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-40">
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All statuses</SelectItem>
               {(tab === "tickets" ? TICKET_STATUSES : REPORT_STATUSES).map((s) => (
-                <SelectItem key={s} value={s}>{s}</SelectItem>
+                <SelectItem key={s} value={s}>
+                  {s}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -250,21 +310,35 @@ function AdminSupport() {
               </thead>
               <tbody>
                 {tickets.map((t) => (
-                  <tr key={t.id} onClick={() => setOpenTicket(t)}
-                      className="cursor-pointer border-t border-border hover:bg-muted/40">
+                  <tr
+                    key={t.id}
+                    onClick={() => setOpenTicket(t)}
+                    className="cursor-pointer border-t border-border hover:bg-muted/40"
+                  >
                     <td className="px-3 py-2 font-medium">{t.subject}</td>
                     <td className="px-3 py-2 text-muted-foreground">
-                      <span className="inline-flex items-center gap-1"><Mail className="h-3 w-3" />{t.email}</span>
+                      <span className="inline-flex items-center gap-1">
+                        <Mail className="h-3 w-3" />
+                        {t.email}
+                      </span>
                     </td>
-                    <td className="px-3 py-2"><Badge variant="outline">{t.priority}</Badge></td>
-                    <td className="px-3 py-2"><Badge>{t.status}</Badge></td>
+                    <td className="px-3 py-2">
+                      <Badge variant="outline">{t.priority}</Badge>
+                    </td>
+                    <td className="px-3 py-2">
+                      <Badge>{t.status}</Badge>
+                    </td>
                     <td className="px-3 py-2 text-xs text-muted-foreground">
                       {formatDistanceToNow(new Date(t.created_at), { addSuffix: true })}
                     </td>
                   </tr>
                 ))}
                 {tickets.length === 0 && (
-                  <tr><td colSpan={5} className="px-3 py-8 text-center text-muted-foreground">No tickets.</td></tr>
+                  <tr>
+                    <td colSpan={5} className="px-3 py-8 text-center text-muted-foreground">
+                      No tickets.
+                    </td>
+                  </tr>
                 )}
               </tbody>
             </table>
@@ -285,24 +359,42 @@ function AdminSupport() {
               </thead>
               <tbody>
                 {reports.map((r) => (
-                  <tr key={r.id} onClick={() => setOpenReport(r)}
-                      className="cursor-pointer border-t border-border hover:bg-muted/40">
+                  <tr
+                    key={r.id}
+                    onClick={() => setOpenReport(r)}
+                    className="cursor-pointer border-t border-border hover:bg-muted/40"
+                  >
                     <td className="px-3 py-2">
                       <Badge variant="outline">{r.entity_type}</Badge>
-                      <span className="ml-2 font-mono text-xs text-muted-foreground">{r.entity_id.slice(0,8)}</span>
+                      <span className="ml-2 font-mono text-xs text-muted-foreground">
+                        {r.entity_id.slice(0, 8)}
+                      </span>
                     </td>
                     <td className="px-3 py-2 font-medium">{r.reason}</td>
                     <td className="px-3 py-2 text-xs text-muted-foreground">
-                      {r.reporter_id ? <span className="inline-flex items-center gap-1"><User2 className="h-3 w-3" />{r.reporter_id.slice(0,8)}</span> : "anonymous"}
+                      {r.reporter_id ? (
+                        <span className="inline-flex items-center gap-1">
+                          <User2 className="h-3 w-3" />
+                          {r.reporter_id.slice(0, 8)}
+                        </span>
+                      ) : (
+                        "anonymous"
+                      )}
                     </td>
-                    <td className="px-3 py-2"><Badge>{r.status}</Badge></td>
+                    <td className="px-3 py-2">
+                      <Badge>{r.status}</Badge>
+                    </td>
                     <td className="px-3 py-2 text-xs text-muted-foreground">
                       {formatDistanceToNow(new Date(r.created_at), { addSuffix: true })}
                     </td>
                   </tr>
                 ))}
                 {reports.length === 0 && (
-                  <tr><td colSpan={5} className="px-3 py-8 text-center text-muted-foreground">No reports.</td></tr>
+                  <tr>
+                    <td colSpan={5} className="px-3 py-8 text-center text-muted-foreground">
+                      No reports.
+                    </td>
+                  </tr>
                 )}
               </tbody>
             </table>
@@ -313,7 +405,8 @@ function AdminSupport() {
           <div className="rounded-lg border border-border bg-card p-4">
             <h3 className="text-sm font-semibold">Fulfill a data-subject request</h3>
             <p className="mt-1 text-xs text-muted-foreground">
-              Export or delete on behalf of a user (e.g. emailed privacy request). Actions are audited.
+              Export or delete on behalf of a user (e.g. emailed privacy request). Actions are
+              audited.
             </p>
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <Input
@@ -323,21 +416,24 @@ function AdminSupport() {
                 className="w-80 font-mono text-xs"
               />
               <Button
-                size="sm" variant="outline"
+                size="sm"
+                variant="outline"
                 disabled={!dsrUserId || dsrBusy === dsrUserId + ":export"}
                 onClick={() => exportUserData(dsrUserId)}
               >
                 <Download className="mr-2 h-4 w-4" /> Export
               </Button>
               <Button
-                size="sm" variant="outline"
+                size="sm"
+                variant="outline"
                 disabled={!dsrUserId || dsrBusy === dsrUserId + ":delete"}
                 onClick={() => deleteUser(dsrUserId, "soft")}
               >
                 <ShieldCheck className="mr-2 h-4 w-4" /> Soft-delete (anonymize)
               </Button>
               <Button
-                size="sm" variant="destructive"
+                size="sm"
+                variant="destructive"
                 disabled={!dsrUserId || dsrBusy === dsrUserId + ":delete"}
                 onClick={() => deleteUser(dsrUserId, "hard")}
               >
@@ -362,23 +458,33 @@ function AdminSupport() {
                 {(dsrQ.data ?? []).map((d) => (
                   <tr key={d.id} className="border-t border-border">
                     <td className="px-3 py-2 font-mono text-xs">{d.user_id.slice(0, 8)}</td>
-                    <td className="px-3 py-2"><Badge variant="outline">{d.type}</Badge></td>
-                    <td className="px-3 py-2"><Badge>{d.status}</Badge></td>
+                    <td className="px-3 py-2">
+                      <Badge variant="outline">{d.type}</Badge>
+                    </td>
+                    <td className="px-3 py-2">
+                      <Badge>{d.status}</Badge>
+                    </td>
                     <td className="px-3 py-2 text-xs text-muted-foreground">{d.reason ?? "—"}</td>
                     <td className="px-3 py-2 text-xs text-muted-foreground">
                       {formatDistanceToNow(new Date(d.created_at), { addSuffix: true })}
                     </td>
                     <td className="px-3 py-2">
                       <div className="flex gap-2">
-                        <Button size="sm" variant="ghost"
+                        <Button
+                          size="sm"
+                          variant="ghost"
                           onClick={() => exportUserData(d.user_id)}
-                          disabled={dsrBusy === d.user_id + ":export"}>
+                          disabled={dsrBusy === d.user_id + ":export"}
+                        >
                           <Download className="h-3.5 w-3.5" />
                         </Button>
                         {d.type === "delete" && d.status !== "completed" && (
-                          <Button size="sm" variant="ghost"
+                          <Button
+                            size="sm"
+                            variant="ghost"
                             onClick={() => deleteUser(d.user_id, "soft")}
-                            disabled={dsrBusy === d.user_id + ":delete"}>
+                            disabled={dsrBusy === d.user_id + ":delete"}
+                          >
                             <ShieldCheck className="h-3.5 w-3.5" />
                           </Button>
                         )}
@@ -387,7 +493,11 @@ function AdminSupport() {
                   </tr>
                 ))}
                 {(!dsrQ.data || dsrQ.data.length === 0) && (
-                  <tr><td colSpan={6} className="px-3 py-8 text-center text-muted-foreground">No requests.</td></tr>
+                  <tr>
+                    <td colSpan={6} className="px-3 py-8 text-center text-muted-foreground">
+                      No requests.
+                    </td>
+                  </tr>
                 )}
               </tbody>
             </table>
@@ -412,7 +522,10 @@ function AdminSupport() {
 }
 
 function TicketSheet({
-  ticket, onClose, currentUserId, onUpdate,
+  ticket,
+  onClose,
+  currentUserId,
+  onUpdate,
 }: {
   ticket: Ticket | null;
   onClose: () => void;
@@ -436,14 +549,20 @@ function TicketSheet({
       body: { to: ticket.email, subject: replySubject, body: replyBody },
     });
     setSending(false);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     await supabase.from("audit_log").insert({
-      actor_id: currentUserId!, action: "ticket_reply",
-      entity_type: "support_ticket", entity_id: ticket.id,
+      actor_id: currentUserId!,
+      action: "ticket_reply",
+      entity_type: "support_ticket",
+      entity_id: ticket.id,
       metadata: { subject: replySubject } as never,
     });
     toast.success("Reply sent");
-    setReplySubject(""); setReplyBody("");
+    setReplySubject("");
+    setReplyBody("");
     await onUpdate(ticket.id, { status: "pending" });
   };
 
@@ -457,28 +576,54 @@ function TicketSheet({
             </SheetHeader>
             <div className="mt-4 space-y-4 text-sm">
               <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                <span className="inline-flex items-center gap-1"><Mail className="h-3 w-3" />{ticket.email}</span>
-                <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" />{new Date(ticket.created_at).toLocaleString()}</span>
+                <span className="inline-flex items-center gap-1">
+                  <Mail className="h-3 w-3" />
+                  {ticket.email}
+                </span>
+                <span className="inline-flex items-center gap-1">
+                  <Clock className="h-3 w-3" />
+                  {new Date(ticket.created_at).toLocaleString()}
+                </span>
               </div>
 
-              <div className="rounded-md border border-border bg-muted/30 p-3 whitespace-pre-wrap">{ticket.body}</div>
+              <div className="rounded-md border border-border bg-muted/30 p-3 whitespace-pre-wrap">
+                {ticket.body}
+              </div>
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
                   <Label className="text-xs">Status</Label>
-                  <Select value={ticket.status} onValueChange={(v) => onUpdate(ticket.id, { status: v })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                  <Select
+                    value={ticket.status}
+                    onValueChange={(v) => onUpdate(ticket.id, { status: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
-                      {TICKET_STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                      {TICKET_STATUSES.map((s) => (
+                        <SelectItem key={s} value={s}>
+                          {s}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
                   <Label className="text-xs">Priority</Label>
-                  <Select value={ticket.priority} onValueChange={(v) => onUpdate(ticket.id, { priority: v })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                  <Select
+                    value={ticket.priority}
+                    onValueChange={(v) => onUpdate(ticket.id, { priority: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
-                      {PRIORITIES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                      {PRIORITIES.map((s) => (
+                        <SelectItem key={s} value={s}>
+                          {s}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -494,16 +639,27 @@ function TicketSheet({
                       })
                     }
                   >
-                    {ticket.assigned_to === currentUserId ? "Unassign me" : ticket.assigned_to ? "Take over" : "Assign to me"}
+                    {ticket.assigned_to === currentUserId
+                      ? "Unassign me"
+                      : ticket.assigned_to
+                        ? "Take over"
+                        : "Assign to me"}
                   </Button>
                 </div>
               </div>
 
               <div className="border-t border-border pt-4">
-                <Label className="mb-1.5 block text-xs uppercase tracking-wide text-muted-foreground">Reply</Label>
+                <Label className="mb-1.5 block text-xs uppercase tracking-wide text-muted-foreground">
+                  Reply
+                </Label>
                 <div className="mb-2 flex flex-wrap gap-2">
                   {CANNED.map((c) => (
-                    <Button key={c.label} variant="outline" size="sm" onClick={() => applyCanned(c)}>
+                    <Button
+                      key={c.label}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => applyCanned(c)}
+                    >
                       {c.label}
                     </Button>
                   ))}
@@ -533,7 +689,10 @@ function TicketSheet({
 }
 
 function ReportSheet({
-  report, onClose, currentUserId, onUpdate,
+  report,
+  onClose,
+  currentUserId,
+  onUpdate,
 }: {
   report: Report | null;
   onClose: () => void;
@@ -561,10 +720,19 @@ function ReportSheet({
               )}
               <div>
                 <Label className="text-xs">Status</Label>
-                <Select value={report.status} onValueChange={(v) => onUpdate(report.id, { status: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                <Select
+                  value={report.status}
+                  onValueChange={(v) => onUpdate(report.id, { status: v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
-                    {REPORT_STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                    {REPORT_STATUSES.map((s) => (
+                      <SelectItem key={s} value={s}>
+                        {s}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -576,7 +744,11 @@ function ReportSheet({
                   })
                 }
               >
-                {report.assigned_to === currentUserId ? "Unassign me" : report.assigned_to ? "Take over" : "Assign to me"}
+                {report.assigned_to === currentUserId
+                  ? "Unassign me"
+                  : report.assigned_to
+                    ? "Take over"
+                    : "Assign to me"}
               </Button>
               <div className="space-y-1.5 border-t border-border pt-4">
                 <Label className="text-xs">Resolution note</Label>
@@ -603,7 +775,9 @@ function ReportSheet({
                   <Button
                     variant="outline"
                     className="flex-1"
-                    onClick={() => onUpdate(report.id, { status: "dismissed", resolution_note: note || null })}
+                    onClick={() =>
+                      onUpdate(report.id, { status: "dismissed", resolution_note: note || null })
+                    }
                   >
                     Dismiss
                   </Button>

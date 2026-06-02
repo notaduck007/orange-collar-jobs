@@ -172,7 +172,14 @@ function ModerationHub() {
 
   const openAction = useCallback(
     (action: Action, ids?: string[]) => {
-      const target = ids && ids.length ? ids : selected.size ? [...selected] : items[cursor] ? [items[cursor].id] : [];
+      const target =
+        ids && ids.length
+          ? ids
+          : selected.size
+            ? [...selected]
+            : items[cursor]
+              ? [items[cursor].id]
+              : [];
       if (!target.length) {
         toast.error("Nothing selected");
         return;
@@ -266,7 +273,8 @@ function ModerationHub() {
                 : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
           >
-            {t.label} <span className="ml-1 rounded bg-muted px-1.5 text-[11px]">{counts[t.key]}</span>
+            {t.label}{" "}
+            <span className="ml-1 rounded bg-muted px-1.5 text-[11px]">{counts[t.key]}</span>
           </button>
         ))}
       </div>
@@ -280,10 +288,20 @@ function ModerationHub() {
           <Button size="sm" onClick={() => openAction("approve")} className="btn-primary gap-1">
             <Check className="h-4 w-4" /> Approve
           </Button>
-          <Button size="sm" variant="outline" onClick={() => openAction("reject")} className="gap-1">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => openAction("reject")}
+            className="gap-1"
+          >
             <X className="h-4 w-4" /> Reject
           </Button>
-          <Button size="sm" variant="outline" onClick={() => openAction("escalate")} className="gap-1">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => openAction("escalate")}
+            className="gap-1"
+          >
             <AlertTriangle className="h-4 w-4" /> Escalate
           </Button>
         </div>
@@ -343,7 +361,11 @@ function ModerationHub() {
               )}
             </div>
             <div className="flex shrink-0 flex-col gap-1">
-              <Button size="sm" onClick={() => openAction("approve", [it.id])} className="btn-primary gap-1">
+              <Button
+                size="sm"
+                onClick={() => openAction("approve", [it.id])}
+                className="btn-primary gap-1"
+              >
                 <Check className="h-4 w-4" />
               </Button>
               <Button size="sm" variant="outline" onClick={() => openAction("reject", [it.id])}>
@@ -361,13 +383,16 @@ function ModerationHub() {
       <Dialog open={!!dialog} onOpenChange={(o) => !o && setDialog(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="capitalize">{dialog?.action} {dialog?.ids.length} item{dialog && dialog.ids.length === 1 ? "" : "s"}</DialogTitle>
+            <DialogTitle className="capitalize">
+              {dialog?.action} {dialog?.ids.length} item
+              {dialog && dialog.ids.length === 1 ? "" : "s"}
+            </DialogTitle>
             <DialogDescription>
               {dialog?.action === "approve"
                 ? "Content will be published and the owner notified."
                 : dialog?.action === "reject"
-                ? "Provide a reason. The owner will be notified."
-                : "Escalate to a super admin with a note."}
+                  ? "Provide a reason. The owner will be notified."
+                  : "Escalate to a super admin with a note."}
             </DialogDescription>
           </DialogHeader>
           <Textarea
@@ -403,15 +428,15 @@ async function applyAction(item: Item, action: Action, reason: string, actorId?:
   if (item.kind === "jobs") {
     notifyLink = `/jobs/${item.id}`;
     if (action === "approve") {
-      const { error } = await supabase.from("jobs").update({ status: "published" }).eq("id", item.id);
+      const { error } = await supabase
+        .from("jobs")
+        .update({ status: "published" })
+        .eq("id", item.id);
       if (error) throw error;
       notifyTitle = "Your job posting is live";
       notifyBody = `"${item.title}" has been approved and is now visible to job seekers.`;
     } else if (action === "reject") {
-      const { error } = await supabase
-        .from("jobs")
-        .update({ status: "draft" })
-        .eq("id", item.id);
+      const { error } = await supabase.from("jobs").update({ status: "draft" }).eq("id", item.id);
       if (error) throw error;
       notifyTitle = "Your job posting needs changes";
       notifyBody = `"${item.title}" was not approved. Reason: ${reason}`;
@@ -463,7 +488,8 @@ async function applyAction(item: Item, action: Action, reason: string, actorId?:
       notifyBody = reason;
     }
   } else if (item.kind === "reports") {
-    const newStatus = action === "approve" ? "resolved" : action === "reject" ? "rejected" : "escalated";
+    const newStatus =
+      action === "approve" ? "resolved" : action === "reject" ? "rejected" : "escalated";
     const { error } = await supabase
       .from("reports")
       .update({

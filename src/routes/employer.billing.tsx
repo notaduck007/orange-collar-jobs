@@ -32,12 +32,25 @@ function BillingPage() {
     queryKey: ["billing-company", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data: owned } = await supabase.from("companies").select("*").eq("owner_id", user!.id).maybeSingle();
+      const { data: owned } = await supabase
+        .from("companies")
+        .select("*")
+        .eq("owner_id", user!.id)
+        .maybeSingle();
       if (owned) return owned;
       const { data: mem } = await supabase
-        .from("company_members").select("company_id").eq("user_id", user!.id).eq("status", "active").limit(1).maybeSingle();
+        .from("company_members")
+        .select("company_id")
+        .eq("user_id", user!.id)
+        .eq("status", "active")
+        .limit(1)
+        .maybeSingle();
       if (!mem?.company_id) return null;
-      const { data } = await supabase.from("companies").select("*").eq("id", mem.company_id).maybeSingle();
+      const { data } = await supabase
+        .from("companies")
+        .select("*")
+        .eq("id", mem.company_id)
+        .maybeSingle();
       return data;
     },
   });
@@ -74,15 +87,18 @@ function BillingPage() {
 
   // Confirmation: find the matching order by session id (after redirect)
   const confirmOrder = session_id
-    ? orders.find((o) => o.stripe_session_id === session_id) ?? null
+    ? (orders.find((o) => o.stripe_session_id === session_id) ?? null)
     : null;
   const confirmPkg = confirmOrder
-    ? packages.find((p) => p.order_id === confirmOrder.id) ?? null
+    ? (packages.find((p) => p.order_id === confirmOrder.id) ?? null)
     : null;
 
   const now = Date.now();
   const activePackages = packages.filter(
-    (p) => p.status === "active" && new Date(p.expires_at).getTime() > now && p.posts_used < p.posts_total,
+    (p) =>
+      p.status === "active" &&
+      new Date(p.expires_at).getTime() > now &&
+      p.posts_used < p.posts_total,
   );
   const inactivePackages = packages.filter((p) => !activePackages.includes(p));
 
@@ -102,12 +118,16 @@ function BillingPage() {
             <div className="flex-1">
               <h2 className="text-lg font-semibold text-[color:var(--ink)]">Payment confirmed</h2>
               <p className="text-sm text-muted-foreground">
-                Invoice <span className="font-mono">{confirmOrder.invoice_number ?? "pending"}</span> ·{" "}
+                Invoice{" "}
+                <span className="font-mono">{confirmOrder.invoice_number ?? "pending"}</span> ·{" "}
                 {new Date(confirmOrder.created_at).toLocaleString()}
               </p>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 <SummaryCell label="Package" value={confirmOrder.packages?.name ?? "—"} />
-                <SummaryCell label="Amount" value={money(confirmOrder.amount_cents, confirmOrder.currency)} />
+                <SummaryCell
+                  label="Amount"
+                  value={money(confirmOrder.amount_cents, confirmOrder.currency)}
+                />
                 <SummaryCell
                   label="Posts included"
                   value={String(confirmOrder.posting_count_granted ?? 0)}
@@ -159,7 +179,11 @@ function BillingPage() {
 
       {checkout === "cancelled" && (
         <div className="rounded-md border border-border bg-muted p-4 text-sm">
-          Checkout was cancelled. <Link to="/pricing" className="font-semibold underline">Try again</Link>.
+          Checkout was cancelled.{" "}
+          <Link to="/pricing" className="font-semibold underline">
+            Try again
+          </Link>
+          .
         </div>
       )}
 
@@ -167,11 +191,17 @@ function BillingPage() {
       <section>
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-[color:var(--ink)]">Active packages</h2>
-          <Link to="/pricing" className="btn-primary text-sm">Buy a package</Link>
+          <Link to="/pricing" className="btn-primary text-sm">
+            Buy a package
+          </Link>
         </div>
         {activePackages.length === 0 ? (
           <div className="rounded-lg border border-dashed border-border bg-card p-6 text-sm text-muted-foreground">
-            No active package. <Link to="/pricing" className="font-semibold underline">Browse packages</Link>.
+            No active package.{" "}
+            <Link to="/pricing" className="font-semibold underline">
+              Browse packages
+            </Link>
+            .
           </div>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
@@ -230,8 +260,8 @@ function BillingPage() {
                         o.status === "paid"
                           ? "bg-[color:var(--success)]/15 text-[color:var(--success)]"
                           : o.status === "refunded"
-                          ? "bg-muted text-foreground"
-                          : "bg-muted text-muted-foreground"
+                            ? "bg-muted text-foreground"
+                            : "bg-muted text-muted-foreground"
                       }`}
                     >
                       {o.status}
@@ -303,8 +333,8 @@ function PackageCard({ pkg, dim }: { pkg: any; dim?: boolean }) {
             expired
               ? "bg-muted text-muted-foreground"
               : pkg.status === "depleted"
-              ? "bg-muted text-foreground"
-              : "bg-[color:var(--success)]/15 text-[color:var(--success)]"
+                ? "bg-muted text-foreground"
+                : "bg-[color:var(--success)]/15 text-[color:var(--success)]"
           }`}
         >
           {expired ? "Expired" : pkg.status}

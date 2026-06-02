@@ -8,7 +8,13 @@ import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -39,7 +45,12 @@ function AlertsPage() {
   const { data: categories = [] } = useQuery({
     queryKey: ["job-categories"],
     queryFn: async () => {
-      const { data } = await supabase.from("job_categories").select("id, name").eq("active", true).order("sort_order").order("name");
+      const { data } = await supabase
+        .from("job_categories")
+        .select("id, name")
+        .eq("active", true)
+        .order("sort_order")
+        .order("name");
       return data ?? [];
     },
   });
@@ -96,7 +107,9 @@ function AlertsPage() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="label-caps text-primary">Notifications</p>
-          <h1 className="mt-1 text-3xl font-bold tracking-tight text-[color:var(--ink)]">Job alerts</h1>
+          <h1 className="mt-1 text-3xl font-bold tracking-tight text-[color:var(--ink)]">
+            Job alerts
+          </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Get notified when new warehouse jobs match your criteria.
           </p>
@@ -111,7 +124,8 @@ function AlertsPage() {
             <DialogHeader>
               <DialogTitle>Create a job alert</DialogTitle>
               <DialogDescription>
-                Use any combination of keyword, category, and location. We'll email you when matching jobs are posted.
+                Use any combination of keyword, category, and location. We'll email you when
+                matching jobs are posted.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-3">
@@ -157,13 +171,18 @@ function AlertsPage() {
                     id="state"
                     maxLength={2}
                     value={form.state}
-                    onChange={(e) => setForm({ ...form, state: e.target.value.toUpperCase().slice(0, 2) })}
+                    onChange={(e) =>
+                      setForm({ ...form, state: e.target.value.toUpperCase().slice(0, 2) })
+                    }
                   />
                 </div>
               </div>
               <div className="space-y-1.5">
                 <Label>Frequency</Label>
-                <Select value={form.frequency} onValueChange={(v) => setForm({ ...form, frequency: v })}>
+                <Select
+                  value={form.frequency}
+                  onValueChange={(v) => setForm({ ...form, frequency: v })}
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -230,8 +249,8 @@ function AlertsPage() {
                   {a.frequency === "instant"
                     ? "As soon as posted"
                     : a.frequency === "weekly"
-                    ? "Weekly digest"
-                    : "Daily digest"}{" "}
+                      ? "Weekly digest"
+                      : "Daily digest"}{" "}
                   · created {new Date(a.created_at).toLocaleDateString()}
                 </p>
               </div>

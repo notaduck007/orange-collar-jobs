@@ -86,10 +86,14 @@ export function ReportButton({
           <div className="space-y-1.5">
             <Label>Reason</Label>
             <Select value={reason} onValueChange={setReason}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 {REASONS[entityType].map((r) => (
-                  <SelectItem key={r} value={r}>{r}</SelectItem>
+                  <SelectItem key={r} value={r}>
+                    {r}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -105,7 +109,9 @@ export function ReportButton({
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)} disabled={submitting}>Cancel</Button>
+          <Button variant="outline" onClick={() => setOpen(false)} disabled={submitting}>
+            Cancel
+          </Button>
           <Button onClick={submit} disabled={submitting} className="btn-primary">
             {submitting ? "Sending…" : "Submit report"}
           </Button>

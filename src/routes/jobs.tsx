@@ -40,7 +40,10 @@ export const Route = createFileRoute("/jobs")({
   head: () => ({
     meta: [
       { title: "Warehouse Job Search — WarehouseJobs" },
-      { name: "description", content: "Search warehouse jobs by role, shift, employment type, and location." },
+      {
+        name: "description",
+        content: "Search warehouse jobs by role, shift, employment type, and location.",
+      },
     ],
   }),
   component: JobsPage,
@@ -78,13 +81,7 @@ function JobsPage() {
   const sort = search.sort ?? (search.q ? "relevance" : "date");
 
   const PAGE_SIZE = 20;
-  const {
-    data,
-    isLoading,
-    isFetchingNextPage,
-    hasNextPage,
-    fetchNextPage,
-  } = useInfiniteQuery({
+  const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useInfiniteQuery({
     queryKey: ["jobs-search", search, sort],
     initialPageParam: 0,
     queryFn: async ({ pageParam }) => {
@@ -109,22 +106,41 @@ function JobsPage() {
       } as never);
       if (error) throw error;
       const rows = (data ?? []) as Array<{
-        id: string; slug: string; title: string; location: string;
-        shift: string; employment_type: string;
-        pay_min: number | null; pay_max: number | null;
-        category: string; featured: boolean;
-        company_name: string | null; company_slug: string | null; company_verified: boolean | null;
-        temperature_env: string | null; certifications_required: string[] | null;
-        weekly_pay: boolean | null; quick_hire: boolean | null;
-        overtime_available: boolean | null; lift_requirement_lbs: number | null;
+        id: string;
+        slug: string;
+        title: string;
+        location: string;
+        shift: string;
+        employment_type: string;
+        pay_min: number | null;
+        pay_max: number | null;
+        category: string;
+        featured: boolean;
+        company_name: string | null;
+        company_slug: string | null;
+        company_verified: boolean | null;
+        temperature_env: string | null;
+        certifications_required: string[] | null;
+        weekly_pay: boolean | null;
+        quick_hire: boolean | null;
+        overtime_available: boolean | null;
+        lift_requirement_lbs: number | null;
         total_count: number;
       }>;
       const jobs: JobSummary[] = rows.map((r) => ({
-        id: r.id, slug: r.slug, title: r.title, location: r.location,
-        shift: r.shift, employment_type: r.employment_type,
-        pay_min: r.pay_min, pay_max: r.pay_max, featured: r.featured,
+        id: r.id,
+        slug: r.slug,
+        title: r.title,
+        location: r.location,
+        shift: r.shift,
+        employment_type: r.employment_type,
+        pay_min: r.pay_min,
+        pay_max: r.pay_max,
+        featured: r.featured,
         category: r.category,
-        companies: r.company_name ? { name: r.company_name, slug: r.company_slug ?? "", verified: r.company_verified } : null,
+        companies: r.company_name
+          ? { name: r.company_name, slug: r.company_slug ?? "", verified: r.company_verified }
+          : null,
         temperature_env: r.temperature_env,
         certifications_required: r.certifications_required,
         weekly_pay: r.weekly_pay,
@@ -140,10 +156,7 @@ function JobsPage() {
     },
   });
 
-  const jobs = useMemo(
-    () => (data?.pages.flatMap((p) => p.jobs) ?? []) as JobSummary[],
-    [data],
-  );
+  const jobs = useMemo(() => (data?.pages.flatMap((p) => p.jobs) ?? []) as JobSummary[], [data]);
   const total = data?.pages[0]?.total ?? 0;
 
   const createAlertFromSearch = async () => {
@@ -178,35 +191,115 @@ function JobsPage() {
     navigate({ to: "/jobs", search: { ...search, ...patch } as never });
   };
 
-  const hasActiveSearch = !!(search.q || search.loc || search.category || search.shift || search.type || search.pay_min || search.radius || search.temp || search.certs || search.weekly_pay || search.quick_hire || search.overtime || search.max_lift);
+  const hasActiveSearch = !!(
+    search.q ||
+    search.loc ||
+    search.category ||
+    search.shift ||
+    search.type ||
+    search.pay_min ||
+    search.radius ||
+    search.temp ||
+    search.certs ||
+    search.weekly_pay ||
+    search.quick_hire ||
+    search.overtime ||
+    search.max_lift
+  );
 
   const shiftLabel = SHIFTS.find((s) => s.value === search.shift)?.label;
   const typeLabel = TYPES.find((t) => t.value === search.type)?.label;
   const activeChips: Array<{ key: string; label: string; clear: () => void }> = [];
-  if (search.q) activeChips.push({ key: "q", label: `"${search.q}"`, clear: () => updateSearch({ q: undefined }) });
-  if (search.loc) activeChips.push({ key: "loc", label: search.loc, clear: () => updateSearch({ loc: undefined, radius: undefined }) });
-  if (search.loc && search.radius) activeChips.push({ key: "radius", label: `within ${search.radius} mi`, clear: () => updateSearch({ radius: undefined }) });
-  if (search.category) activeChips.push({ key: "category", label: search.category, clear: () => updateSearch({ category: undefined }) });
-  if (shiftLabel) activeChips.push({ key: "shift", label: shiftLabel, clear: () => updateSearch({ shift: undefined }) });
-  if (typeLabel) activeChips.push({ key: "type", label: typeLabel, clear: () => updateSearch({ type: undefined }) });
-  if (search.pay_min) activeChips.push({ key: "pay_min", label: `≥ $${search.pay_min}/hr`, clear: () => updateSearch({ pay_min: undefined }) });
-  if (search.temp) activeChips.push({ key: "temp", label: TEMP_LABEL[search.temp] ?? search.temp, clear: () => updateSearch({ temp: undefined }) });
-  if (search.certs) {
-    search.certs.split(",").filter(Boolean).forEach((c: string) => {
-      activeChips.push({
-        key: `cert-${c}`,
-        label: CERT_LABEL[c] ?? c,
-        clear: () => {
-          const next = (search.certs ?? "").split(",").filter(Boolean).filter((x: string) => x !== c);
-          updateSearch({ certs: next.length ? next.join(",") : undefined });
-        },
-      });
+  if (search.q)
+    activeChips.push({
+      key: "q",
+      label: `"${search.q}"`,
+      clear: () => updateSearch({ q: undefined }),
     });
+  if (search.loc)
+    activeChips.push({
+      key: "loc",
+      label: search.loc,
+      clear: () => updateSearch({ loc: undefined, radius: undefined }),
+    });
+  if (search.loc && search.radius)
+    activeChips.push({
+      key: "radius",
+      label: `within ${search.radius} mi`,
+      clear: () => updateSearch({ radius: undefined }),
+    });
+  if (search.category)
+    activeChips.push({
+      key: "category",
+      label: search.category,
+      clear: () => updateSearch({ category: undefined }),
+    });
+  if (shiftLabel)
+    activeChips.push({
+      key: "shift",
+      label: shiftLabel,
+      clear: () => updateSearch({ shift: undefined }),
+    });
+  if (typeLabel)
+    activeChips.push({
+      key: "type",
+      label: typeLabel,
+      clear: () => updateSearch({ type: undefined }),
+    });
+  if (search.pay_min)
+    activeChips.push({
+      key: "pay_min",
+      label: `≥ $${search.pay_min}/hr`,
+      clear: () => updateSearch({ pay_min: undefined }),
+    });
+  if (search.temp)
+    activeChips.push({
+      key: "temp",
+      label: TEMP_LABEL[search.temp] ?? search.temp,
+      clear: () => updateSearch({ temp: undefined }),
+    });
+  if (search.certs) {
+    search.certs
+      .split(",")
+      .filter(Boolean)
+      .forEach((c: string) => {
+        activeChips.push({
+          key: `cert-${c}`,
+          label: CERT_LABEL[c] ?? c,
+          clear: () => {
+            const next = (search.certs ?? "")
+              .split(",")
+              .filter(Boolean)
+              .filter((x: string) => x !== c);
+            updateSearch({ certs: next.length ? next.join(",") : undefined });
+          },
+        });
+      });
   }
-  if (search.weekly_pay) activeChips.push({ key: "weekly", label: "Weekly pay", clear: () => updateSearch({ weekly_pay: undefined }) });
-  if (search.quick_hire) activeChips.push({ key: "quick", label: "Same-day hire", clear: () => updateSearch({ quick_hire: undefined }) });
-  if (search.overtime) activeChips.push({ key: "ot", label: "OT available", clear: () => updateSearch({ overtime: undefined }) });
-  if (search.max_lift) activeChips.push({ key: "lift", label: `≤ ${search.max_lift} lbs`, clear: () => updateSearch({ max_lift: undefined }) });
+  if (search.weekly_pay)
+    activeChips.push({
+      key: "weekly",
+      label: "Weekly pay",
+      clear: () => updateSearch({ weekly_pay: undefined }),
+    });
+  if (search.quick_hire)
+    activeChips.push({
+      key: "quick",
+      label: "Same-day hire",
+      clear: () => updateSearch({ quick_hire: undefined }),
+    });
+  if (search.overtime)
+    activeChips.push({
+      key: "ot",
+      label: "OT available",
+      clear: () => updateSearch({ overtime: undefined }),
+    });
+  if (search.max_lift)
+    activeChips.push({
+      key: "lift",
+      label: `≤ ${search.max_lift} lbs`,
+      clear: () => updateSearch({ max_lift: undefined }),
+    });
 
   const featured = useMemo(() => jobs.filter((j) => j.featured), [jobs]);
   const rest = useMemo(() => jobs.filter((j) => !j.featured), [jobs]);
@@ -241,7 +334,10 @@ function JobsPage() {
     <div className="min-h-screen bg-background">
       <SiteHeader />
 
-      <section className="relative border-b border-border bg-[color:var(--ink)] py-8" aria-label="Search">
+      <section
+        className="relative border-b border-border bg-[color:var(--ink)] py-8"
+        aria-label="Search"
+      >
         <img
           src={jobsStrip}
           alt="Three smiling warehouse workers walking through a sunlit pallet-rack aisle in a distribution center."
@@ -253,18 +349,41 @@ function JobsPage() {
         />
         <div className="absolute inset-0 bg-gradient-to-r from-[color:var(--ink)] via-[color:var(--ink)]/80 to-[color:var(--ink)]/60" />
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6">
-          <form onSubmit={submit} role="search" aria-label="Search warehouse jobs" className="flex flex-col gap-2 rounded-xl bg-white p-2 shadow-xl sm:flex-row sm:items-stretch">
+          <form
+            onSubmit={submit}
+            role="search"
+            aria-label="Search warehouse jobs"
+            className="flex flex-col gap-2 rounded-xl bg-white p-2 shadow-xl sm:flex-row sm:items-stretch"
+          >
             <div className="flex flex-1 items-center gap-2 px-3 py-2.5">
               <Search className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
-              <label htmlFor="jobs-keyword" className="sr-only">Job title, keyword, or company</label>
-              <input id="jobs-keyword" value={keyword} onChange={(e) => setKeyword(e.target.value)} placeholder="Job title, keyword, or company" className="w-full bg-transparent text-[color:var(--ink)] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded" />
+              <label htmlFor="jobs-keyword" className="sr-only">
+                Job title, keyword, or company
+              </label>
+              <input
+                id="jobs-keyword"
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                placeholder="Job title, keyword, or company"
+                className="w-full bg-transparent text-[color:var(--ink)] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+              />
             </div>
             <div className="flex flex-1 items-center gap-2 border-t border-border px-3 py-2.5 sm:border-l sm:border-t-0">
               <MapPin className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
-              <label htmlFor="jobs-location" className="sr-only">Location (city, state, or ZIP)</label>
-              <input id="jobs-location" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="City, state, or ZIP" className="w-full bg-transparent text-[color:var(--ink)] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded" />
+              <label htmlFor="jobs-location" className="sr-only">
+                Location (city, state, or ZIP)
+              </label>
+              <input
+                id="jobs-location"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder="City, state, or ZIP"
+                className="w-full bg-transparent text-[color:var(--ink)] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+              />
             </div>
-            <button type="submit" className="btn-primary sm:px-6">Search</button>
+            <button type="submit" className="btn-primary sm:px-6">
+              Search
+            </button>
           </form>
         </div>
       </section>
@@ -279,13 +398,29 @@ function JobsPage() {
 
           <FilterGroup label="Shift">
             {SHIFTS.map((s) => (
-              <FilterChip key={s.value} active={search.shift === s.value} onClick={() => updateSearch({ shift: search.shift === s.value ? undefined : s.value })}>{s.label}</FilterChip>
+              <FilterChip
+                key={s.value}
+                active={search.shift === s.value}
+                onClick={() =>
+                  updateSearch({ shift: search.shift === s.value ? undefined : s.value })
+                }
+              >
+                {s.label}
+              </FilterChip>
             ))}
           </FilterGroup>
 
           <FilterGroup label="Employment Type">
             {TYPES.map((t) => (
-              <FilterChip key={t.value} active={search.type === t.value} onClick={() => updateSearch({ type: search.type === t.value ? undefined : t.value })}>{t.label}</FilterChip>
+              <FilterChip
+                key={t.value}
+                active={search.type === t.value}
+                onClick={() =>
+                  updateSearch({ type: search.type === t.value ? undefined : t.value })
+                }
+              >
+                {t.label}
+              </FilterChip>
             ))}
           </FilterGroup>
 
@@ -294,7 +429,9 @@ function JobsPage() {
               <FilterChip
                 key={t.value}
                 active={search.temp === t.value}
-                onClick={() => updateSearch({ temp: search.temp === t.value ? undefined : t.value })}
+                onClick={() =>
+                  updateSearch({ temp: search.temp === t.value ? undefined : t.value })
+                }
               >
                 {t.short}
               </FilterChip>
@@ -310,7 +447,9 @@ function JobsPage() {
                   active={active}
                   onClick={() => {
                     const cur = (search.certs ?? "").split(",").filter(Boolean);
-                    const next = active ? cur.filter((x: string) => x !== c.value) : [...cur, c.value];
+                    const next = active
+                      ? cur.filter((x: string) => x !== c.value)
+                      : [...cur, c.value];
                     updateSearch({ certs: next.length ? next.join(",") : undefined });
                   }}
                 >
@@ -321,17 +460,39 @@ function JobsPage() {
           </FilterGroup>
 
           <FilterGroup label="Perks">
-            <FilterChip active={!!search.weekly_pay} onClick={() => updateSearch({ weekly_pay: search.weekly_pay ? undefined : true })}>Weekly pay</FilterChip>
-            <FilterChip active={!!search.quick_hire} onClick={() => updateSearch({ quick_hire: search.quick_hire ? undefined : true })}>Same-day hire</FilterChip>
-            <FilterChip active={!!search.overtime} onClick={() => updateSearch({ overtime: search.overtime ? undefined : true })}>OT available</FilterChip>
+            <FilterChip
+              active={!!search.weekly_pay}
+              onClick={() => updateSearch({ weekly_pay: search.weekly_pay ? undefined : true })}
+            >
+              Weekly pay
+            </FilterChip>
+            <FilterChip
+              active={!!search.quick_hire}
+              onClick={() => updateSearch({ quick_hire: search.quick_hire ? undefined : true })}
+            >
+              Same-day hire
+            </FilterChip>
+            <FilterChip
+              active={!!search.overtime}
+              onClick={() => updateSearch({ overtime: search.overtime ? undefined : true })}
+            >
+              OT available
+            </FilterChip>
           </FilterGroup>
 
           <div>
-            <label htmlFor="filter-lift" className="mb-2 block text-sm font-semibold text-[color:var(--ink)]">Max lift (lbs)</label>
+            <label
+              htmlFor="filter-lift"
+              className="mb-2 block text-sm font-semibold text-[color:var(--ink)]"
+            >
+              Max lift (lbs)
+            </label>
             <select
               id="filter-lift"
               value={search.max_lift ?? ""}
-              onChange={(e) => updateSearch({ max_lift: e.target.value ? Number(e.target.value) : undefined })}
+              onChange={(e) =>
+                updateSearch({ max_lift: e.target.value ? Number(e.target.value) : undefined })
+              }
               className="w-full rounded-md border border-border bg-card px-2 py-1.5 text-xs font-medium text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
               <option value="">Any</option>
@@ -343,7 +504,12 @@ function JobsPage() {
           </div>
 
           {hasActiveSearch && (
-            <button onClick={() => navigate({ to: "/jobs", search: {} as never })} className="text-xs font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded">Clear all filters</button>
+            <button
+              onClick={() => navigate({ to: "/jobs", search: {} as never })}
+              className="text-xs font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+            >
+              Clear all filters
+            </button>
           )}
         </aside>
 
@@ -355,7 +521,9 @@ function JobsPage() {
               {search.q && <span className="text-muted-foreground"> for "{search.q}"</span>}
             </h1>
             <div className="flex flex-wrap items-center gap-2">
-              <label htmlFor="filter-pay" className="text-xs text-muted-foreground">Min pay</label>
+              <label htmlFor="filter-pay" className="text-xs text-muted-foreground">
+                Min pay
+              </label>
               <select
                 id="filter-pay"
                 value={search.pay_min ?? ""}
@@ -372,7 +540,9 @@ function JobsPage() {
                 <option value="22">$22+/hr</option>
                 <option value="25">$25+/hr</option>
               </select>
-              <label htmlFor="filter-radius" className="ml-2 text-xs text-muted-foreground">Within</label>
+              <label htmlFor="filter-radius" className="ml-2 text-xs text-muted-foreground">
+                Within
+              </label>
               <select
                 id="filter-radius"
                 value={search.radius ?? ""}
@@ -380,35 +550,55 @@ function JobsPage() {
                   updateSearch({ radius: e.target.value ? Number(e.target.value) : undefined })
                 }
                 disabled={!search.loc}
-                title={search.loc ? "Search radius around location" : "Enter a location to enable radius"}
+                title={
+                  search.loc ? "Search radius around location" : "Enter a location to enable radius"
+                }
                 className="rounded-md border border-border bg-card px-2 py-1 text-xs font-medium text-[color:var(--ink)] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 <option value="">Any distance</option>
                 {RADIUS_OPTIONS.map((r) => (
-                  <option key={r} value={r}>{r} miles</option>
+                  <option key={r} value={r}>
+                    {r} miles
+                  </option>
                 ))}
               </select>
-              <label htmlFor="filter-sort" className="ml-2 text-xs text-muted-foreground">Sort</label>
+              <label htmlFor="filter-sort" className="ml-2 text-xs text-muted-foreground">
+                Sort
+              </label>
               <select
                 id="filter-sort"
                 value={sort}
-                onChange={(e) => updateSearch({ sort: e.target.value as "relevance" | "date" | "pay_high" })}
+                onChange={(e) =>
+                  updateSearch({ sort: e.target.value as "relevance" | "date" | "pay_high" })
+                }
                 className="rounded-md border border-border bg-card px-2 py-1 text-xs font-medium text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 {SORTS.map((s) => (
-                  <option key={s.value} value={s.value}>{s.label}</option>
+                  <option key={s.value} value={s.value}>
+                    {s.label}
+                  </option>
                 ))}
               </select>
               {hasActiveSearch && (
-                <Button variant="outline" size="sm" onClick={createAlertFromSearch} className="gap-1.5">
-                  <BellRing className="h-4 w-4 text-primary" aria-hidden="true" /> Get alerts for this search
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={createAlertFromSearch}
+                  className="gap-1.5"
+                >
+                  <BellRing className="h-4 w-4 text-primary" aria-hidden="true" /> Get alerts for
+                  this search
                 </Button>
               )}
             </div>
           </div>
 
           {activeChips.length > 0 && (
-            <div className="mb-4 flex flex-wrap items-center gap-1.5" role="region" aria-label="Active filters">
+            <div
+              className="mb-4 flex flex-wrap items-center gap-1.5"
+              role="region"
+              aria-label="Active filters"
+            >
               {activeChips.map((chip) => (
                 <button
                   key={chip.key}
@@ -417,7 +607,9 @@ function JobsPage() {
                   className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-2.5 py-1 text-xs font-medium text-[color:var(--ink)] hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 >
                   {chip.label}
-                  <span aria-hidden="true" className="text-muted-foreground">×</span>
+                  <span aria-hidden="true" className="text-muted-foreground">
+                    ×
+                  </span>
                 </button>
               ))}
               <button
@@ -435,7 +627,9 @@ function JobsPage() {
                 <span className="hazard-stripes inline-block h-3 w-3 rounded-sm" /> Featured
               </p>
               <div className="grid gap-3">
-                {featured.map((j) => <JobCard key={j.id} job={j} />)}
+                {featured.map((j) => (
+                  <JobCard key={j.id} job={j} />
+                ))}
               </div>
             </div>
           )}
@@ -501,7 +695,15 @@ function FilterGroup({ label, children }: { label: string; children: React.React
   );
 }
 
-function FilterChip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+function FilterChip({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
   return (
     <button
       type="button"
@@ -517,4 +719,3 @@ function FilterChip({ active, onClick, children }: { active: boolean; onClick: (
     </button>
   );
 }
-

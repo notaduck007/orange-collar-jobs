@@ -1,7 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Search, UserCheck, UserX, KeyRound, MailCheck, ShieldCheck, Eye, UserCog } from "lucide-react";
+import {
+  Search,
+  UserCheck,
+  UserX,
+  KeyRound,
+  MailCheck,
+  ShieldCheck,
+  Eye,
+  UserCog,
+} from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -9,13 +18,31 @@ import { startImpersonation } from "@/lib/impersonation";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useAdminPermissions } from "@/lib/admin-permissions";
 import type { Database } from "@/integrations/supabase/types";
-
 
 type AppRole = Database["public"]["Enums"]["app_role"];
 type RoleRef = { id: string; key: string; name: string; is_system: boolean };
@@ -49,12 +76,19 @@ function AdminUsers() {
   const { data: rolesCatalog = [] } = useQuery({
     queryKey: ["roles-catalog"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("roles").select("id, key, name, is_system").order("is_system", { ascending: false }).order("name");
+      const { data, error } = await supabase
+        .from("roles")
+        .select("id, key, name, is_system")
+        .order("is_system", { ascending: false })
+        .order("name");
       if (error) throw error;
       return data as RoleRef[];
     },
   });
-  const roleByKey = useMemo(() => Object.fromEntries(rolesCatalog.map((r) => [r.key, r])), [rolesCatalog]);
+  const roleByKey = useMemo(
+    () => Object.fromEntries(rolesCatalog.map((r) => [r.key, r])),
+    [rolesCatalog],
+  );
 
   const { data: users = [], isLoading } = useQuery({
     queryKey: ["admin-users", q, rolesCatalog.length],
@@ -62,16 +96,23 @@ function AdminUsers() {
     queryFn: async () => {
       let query = supabase
         .from("profiles")
-        .select("id, display_name, full_name, phone, location, active, created_at, user_role_assignments(role_id)")
+        .select(
+          "id, display_name, full_name, phone, location, active, created_at, user_role_assignments(role_id)",
+        )
         .order("created_at", { ascending: false })
         .limit(500);
-      if (q) query = query.or(`display_name.ilike.%${q}%,full_name.ilike.%${q}%,phone.ilike.%${q}%`);
+      if (q)
+        query = query.or(`display_name.ilike.%${q}%,full_name.ilike.%${q}%,phone.ilike.%${q}%`);
       const { data, error } = await query;
       if (error) throw error;
       const byId = new Map(rolesCatalog.map((r) => [r.id, r]));
       return (data ?? []).map((u): Row => {
         const rf = u.user_role_assignments as unknown;
-        const arr = Array.isArray(rf) ? (rf as Array<{ role_id: string }>) : rf ? [rf as { role_id: string }] : [];
+        const arr = Array.isArray(rf)
+          ? (rf as Array<{ role_id: string }>)
+          : rf
+            ? [rf as { role_id: string }]
+            : [];
         const roles = arr.map((r) => byId.get(r.role_id)).filter(Boolean) as RoleRef[];
         return { ...u, roles };
       });
@@ -94,9 +135,10 @@ function AdminUsers() {
     });
   }, [users, roleFilter, statusFilter, signedFilter]);
 
-
   const invokeAction = async (payload: Record<string, unknown>, successMsg: string) => {
-    const { data, error } = await supabase.functions.invoke("admin-user-actions", { body: payload });
+    const { data, error } = await supabase.functions.invoke("admin-user-actions", {
+      body: payload,
+    });
     if (error || (data as { error?: string })?.error) {
       toast.error((data as { error?: string })?.error ?? error?.message ?? "Action failed");
       return false;
@@ -108,8 +150,13 @@ function AdminUsers() {
   };
 
   const grantRoleById = async (userId: string, roleId: string) => {
-    const { error } = await supabase.from("user_role_assignments").insert({ user_id: userId, role_id: roleId });
-    if (error) { toast.error(error.message); return false; }
+    const { error } = await supabase
+      .from("user_role_assignments")
+      .insert({ user_id: userId, role_id: roleId });
+    if (error) {
+      toast.error(error.message);
+      return false;
+    }
     toast.success("Role granted");
     qc.invalidateQueries({ queryKey: ["admin-users"] });
     qc.invalidateQueries({ queryKey: ["admin-user-detail"] });
@@ -119,10 +166,18 @@ function AdminUsers() {
   const revokeRoleById = async (userId: string, roleId: string) => {
     const adminRole = roleByKey["admin"];
     if (adminRole && roleId === adminRole.id && userId === me?.id) {
-      if (!confirm("Revoke your OWN admin role? You will immediately lose admin access.")) return false;
+      if (!confirm("Revoke your OWN admin role? You will immediately lose admin access."))
+        return false;
     }
-    const { error } = await supabase.from("user_role_assignments").delete().eq("user_id", userId).eq("role_id", roleId);
-    if (error) { toast.error(error.message); return false; }
+    const { error } = await supabase
+      .from("user_role_assignments")
+      .delete()
+      .eq("user_id", userId)
+      .eq("role_id", roleId);
+    if (error) {
+      toast.error(error.message);
+      return false;
+    }
     toast.success("Role revoked");
     qc.invalidateQueries({ queryKey: ["admin-users"] });
     qc.invalidateQueries({ queryKey: ["admin-user-detail"] });
@@ -142,7 +197,8 @@ function AdminUsers() {
   const resendVerify = (userId: string) =>
     invokeAction({ action: "resend_verification", user_id: userId }, "Verification email resent");
   const impersonate = async (u: Row) => {
-    if (!confirm("Sign in as this user? Your session will be paused and all actions are audited.")) return;
+    if (!confirm("Sign in as this user? Your session will be paused and all actions are audited."))
+      return;
     const label = u.display_name || u.full_name || u.id.slice(0, 8);
     const roleKeys = u.roles.map((r) => r.key);
     const redirectTo = roleKeys.includes("employer")
@@ -164,8 +220,12 @@ function AdminUsers() {
     return (
       <div className="rounded-lg border border-border bg-card p-10 text-center">
         <ShieldCheck className="mx-auto h-10 w-10 text-muted-foreground" />
-        <h2 className="mt-3 text-lg font-semibold text-[color:var(--ink)]">Insufficient permissions</h2>
-        <p className="mt-1 text-sm text-muted-foreground">Requires the <b>users</b> capability.</p>
+        <h2 className="mt-3 text-lg font-semibold text-[color:var(--ink)]">
+          Insufficient permissions
+        </h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Requires the <b>users</b> capability.
+        </p>
       </div>
     );
   }
@@ -176,15 +236,24 @@ function AdminUsers() {
         <div>
           <p className="label-caps">People</p>
           <h1 className="mt-1 text-2xl font-bold text-[color:var(--ink)]">User console</h1>
-          <p className="text-xs text-muted-foreground">{filtered.length} of {users.length} users</p>
+          <p className="text-xs text-muted-foreground">
+            {filtered.length} of {users.length} users
+          </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex items-center gap-2 rounded-md border border-border bg-card px-3 py-1.5">
             <Search className="h-4 w-4 text-muted-foreground" />
-            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search name or phone…" className="h-7 w-56 border-0 bg-transparent p-0 focus-visible:ring-0" />
+            <Input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Search name or phone…"
+              className="h-7 w-56 border-0 bg-transparent p-0 focus-visible:ring-0"
+            />
           </div>
           <Select value={roleFilter} onValueChange={(v) => setRoleFilter(v as typeof roleFilter)}>
-            <SelectTrigger className="w-36"><SelectValue placeholder="Role" /></SelectTrigger>
+            <SelectTrigger className="w-36">
+              <SelectValue placeholder="Role" />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All roles</SelectItem>
               <SelectItem value="job_seeker">Job seekers</SelectItem>
@@ -192,16 +261,26 @@ function AdminUsers() {
               <SelectItem value="admin">Admins</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}>
-            <SelectTrigger className="w-36"><SelectValue placeholder="Status" /></SelectTrigger>
+          <Select
+            value={statusFilter}
+            onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}
+          >
+            <SelectTrigger className="w-36">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Any status</SelectItem>
               <SelectItem value="active">Active</SelectItem>
               <SelectItem value="suspended">Suspended</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={signedFilter} onValueChange={(v) => setSignedFilter(v as typeof signedFilter)}>
-            <SelectTrigger className="w-36"><SelectValue placeholder="Signed up" /></SelectTrigger>
+          <Select
+            value={signedFilter}
+            onValueChange={(v) => setSignedFilter(v as typeof signedFilter)}
+          >
+            <SelectTrigger className="w-36">
+              <SelectValue placeholder="Signed up" />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Any time</SelectItem>
               <SelectItem value="7d">Last 7 days</SelectItem>
@@ -226,64 +305,109 @@ function AdminUsers() {
           </TableHeader>
           <TableBody>
             {isLoading && (
-              <TableRow><TableCell colSpan={6} className="text-center text-sm text-muted-foreground">Loading…</TableCell></TableRow>
-            )}
-            {!isLoading && filtered.map((u) => (
-              <TableRow key={u.id}>
-                <TableCell>
-                  <button onClick={() => setOpenUserId(u.id)} className="font-semibold text-[color:var(--ink)] hover:underline">
-                    {u.display_name || u.full_name || u.id.slice(0, 8)}
-                  </button>
-                  {u.phone && <p className="text-xs text-muted-foreground">{u.phone}</p>}
-                </TableCell>
-                <TableCell>
-                  <div className="flex flex-wrap gap-1">
-                    {rolesCatalog.map((r) => {
-                      const has = u.roles.some((ur) => ur.id === r.id);
-                      return (
-                        <button
-                          key={r.id}
-                          type="button"
-                          onClick={() => toggleRoleById(u.id, r.id, has)}
-                          className={`rounded-md border px-2 py-0.5 text-[11px] font-medium transition-colors ${
-                            has
-                              ? r.key === "admin"
-                                ? "border-primary bg-primary/15 text-primary"
-                                : r.is_system
-                                  ? "border-emerald-300 bg-emerald-100 text-emerald-900"
-                                  : "border-violet-300 bg-violet-100 text-violet-900"
-                              : "border-border bg-transparent text-muted-foreground hover:bg-muted"
-                          }`}
-                          title={has ? `Revoke ${r.name}` : `Grant ${r.name}`}
-                        >
-                          {r.name}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </TableCell>
-
-
-                <TableCell>
-                  {u.active
-                    ? <Badge className="border-0 bg-emerald-100 text-emerald-900">Active</Badge>
-                    : <Badge className="border-0 bg-red-100 text-red-900">Suspended</Badge>}
-                </TableCell>
-                <TableCell className="text-sm text-muted-foreground">{u.location ?? "—"}</TableCell>
-                <TableCell className="text-sm text-muted-foreground">{new Date(u.created_at).toLocaleDateString()}</TableCell>
-                <TableCell>
-                  <div className="flex justify-end gap-1">
-                    <Button size="sm" variant="ghost" onClick={() => setOpenUserId(u.id)} className="h-8 gap-1"><Eye className="h-3.5 w-3.5" /> View</Button>
-                    <Button size="sm" variant="ghost" onClick={() => impersonate(u)} className="h-8 gap-1" title="Impersonate"><UserCog className="h-3.5 w-3.5" /></Button>
-                    <Button size="sm" variant="outline" onClick={() => toggleActive(u.id, u.active)} className="h-8 gap-1">
-                      {u.active ? <><UserX className="h-3.5 w-3.5" /> Suspend</> : <><UserCheck className="h-3.5 w-3.5" /> Reactivate</>}
-                    </Button>
-                  </div>
+              <TableRow>
+                <TableCell colSpan={6} className="text-center text-sm text-muted-foreground">
+                  Loading…
                 </TableCell>
               </TableRow>
-            ))}
+            )}
+            {!isLoading &&
+              filtered.map((u) => (
+                <TableRow key={u.id}>
+                  <TableCell>
+                    <button
+                      onClick={() => setOpenUserId(u.id)}
+                      className="font-semibold text-[color:var(--ink)] hover:underline"
+                    >
+                      {u.display_name || u.full_name || u.id.slice(0, 8)}
+                    </button>
+                    {u.phone && <p className="text-xs text-muted-foreground">{u.phone}</p>}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap gap-1">
+                      {rolesCatalog.map((r) => {
+                        const has = u.roles.some((ur) => ur.id === r.id);
+                        return (
+                          <button
+                            key={r.id}
+                            type="button"
+                            onClick={() => toggleRoleById(u.id, r.id, has)}
+                            className={`rounded-md border px-2 py-0.5 text-[11px] font-medium transition-colors ${
+                              has
+                                ? r.key === "admin"
+                                  ? "border-primary bg-primary/15 text-primary"
+                                  : r.is_system
+                                    ? "border-emerald-300 bg-emerald-100 text-emerald-900"
+                                    : "border-violet-300 bg-violet-100 text-violet-900"
+                                : "border-border bg-transparent text-muted-foreground hover:bg-muted"
+                            }`}
+                            title={has ? `Revoke ${r.name}` : `Grant ${r.name}`}
+                          >
+                            {r.name}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </TableCell>
+
+                  <TableCell>
+                    {u.active ? (
+                      <Badge className="border-0 bg-emerald-100 text-emerald-900">Active</Badge>
+                    ) : (
+                      <Badge className="border-0 bg-red-100 text-red-900">Suspended</Badge>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
+                    {u.location ?? "—"}
+                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
+                    {new Date(u.created_at).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex justify-end gap-1">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setOpenUserId(u.id)}
+                        className="h-8 gap-1"
+                      >
+                        <Eye className="h-3.5 w-3.5" /> View
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => impersonate(u)}
+                        className="h-8 gap-1"
+                        title="Impersonate"
+                      >
+                        <UserCog className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => toggleActive(u.id, u.active)}
+                        className="h-8 gap-1"
+                      >
+                        {u.active ? (
+                          <>
+                            <UserX className="h-3.5 w-3.5" /> Suspend
+                          </>
+                        ) : (
+                          <>
+                            <UserCheck className="h-3.5 w-3.5" /> Reactivate
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
             {!isLoading && filtered.length === 0 && (
-              <TableRow><TableCell colSpan={6} className="text-center text-sm text-muted-foreground">No users match.</TableCell></TableRow>
+              <TableRow>
+                <TableCell colSpan={6} className="text-center text-sm text-muted-foreground">
+                  No users match.
+                </TableCell>
+              </TableRow>
             )}
           </TableBody>
         </Table>
@@ -298,13 +422,18 @@ function AdminUsers() {
         onResend={(id) => resendVerify(id)}
         onToggleRole={(id, roleId, has) => toggleRoleById(id, roleId, has)}
       />
-
     </div>
   );
 }
 
 function UserDrawer({
-  userId, rolesCatalog, onOpenChange, onSuspend, onReset, onResend, onToggleRole,
+  userId,
+  rolesCatalog,
+  onOpenChange,
+  onSuspend,
+  onReset,
+  onResend,
+  onToggleRole,
 }: {
   userId: string | null;
   rolesCatalog: RoleRef[];
@@ -314,25 +443,54 @@ function UserDrawer({
   onResend: (id: string) => void;
   onToggleRole: (id: string, roleId: string, has: boolean) => void;
 }) {
-
   const { data, isLoading } = useQuery({
     queryKey: ["admin-user-detail", userId],
     enabled: !!userId,
     queryFn: async () => {
       const id = userId!;
-      const [profileR, rolesR, companiesR, jobsR, appsR, auditR, metaR, permsR] = await Promise.all([
-        supabase.from("profiles").select("*").eq("id", id).maybeSingle(),
-        supabase.from("user_role_assignments").select("role_id").eq("user_id", id),
-        supabase.from("companies").select("id, name, slug, verified, created_at").eq("owner_id", id),
-        supabase.from("jobs").select("id, title, status, created_at").eq("posted_by", id).order("created_at", { ascending: false }).limit(20),
-        supabase.from("applications").select("id, job_id, status, created_at").eq("applicant_id", id).order("created_at", { ascending: false }).limit(20),
-        supabase.from("audit_log").select("id, action, reason, metadata, created_at, actor_id").eq("entity_type", "user").eq("entity_id", id).order("created_at", { ascending: false }).limit(50),
-        supabase.functions.invoke("admin-user-actions", { body: { action: "get_meta", user_id: id } }),
-        supabase.rpc("get_user_permissions", { _user_id: id }),
-      ]);
+      const [profileR, rolesR, companiesR, jobsR, appsR, auditR, metaR, permsR] = await Promise.all(
+        [
+          supabase.from("profiles").select("*").eq("id", id).maybeSingle(),
+          supabase.from("user_role_assignments").select("role_id").eq("user_id", id),
+          supabase
+            .from("companies")
+            .select("id, name, slug, verified, created_at")
+            .eq("owner_id", id),
+          supabase
+            .from("jobs")
+            .select("id, title, status, created_at")
+            .eq("posted_by", id)
+            .order("created_at", { ascending: false })
+            .limit(20),
+          supabase
+            .from("applications")
+            .select("id, job_id, status, created_at")
+            .eq("applicant_id", id)
+            .order("created_at", { ascending: false })
+            .limit(20),
+          supabase
+            .from("audit_log")
+            .select("id, action, reason, metadata, created_at, actor_id")
+            .eq("entity_type", "user")
+            .eq("entity_id", id)
+            .order("created_at", { ascending: false })
+            .limit(50),
+          supabase.functions.invoke("admin-user-actions", {
+            body: { action: "get_meta", user_id: id },
+          }),
+          supabase.rpc("get_user_permissions", { _user_id: id }),
+        ],
+      );
 
       // Fetch orders for any companies owned by user
-      let orders: Array<{ id: string; amount_cents: number; currency: string; status: string; created_at: string; receipt_url: string | null }> = [];
+      let orders: Array<{
+        id: string;
+        amount_cents: number;
+        currency: string;
+        status: string;
+        created_at: string;
+        receipt_url: string | null;
+      }> = [];
       const companyIds = (companiesR.data ?? []).map((c) => c.id);
       if (companyIds.length) {
         const { data } = await supabase
@@ -345,14 +503,17 @@ function UserDrawer({
       }
 
       const meta = (metaR.data ?? {}) as {
-        email?: string | null; email_confirmed_at?: string | null;
-        last_sign_in_at?: string | null; banned_until?: string | null; created_at?: string | null;
+        email?: string | null;
+        email_confirmed_at?: string | null;
+        last_sign_in_at?: string | null;
+        banned_until?: string | null;
+        created_at?: string | null;
       };
 
       const roleIds = ((rolesR.data ?? []) as Array<{ role_id: string }>).map((r) => r.role_id);
-      const effectivePerms = ((permsR.data ?? []) as Array<string | { get_user_permissions: string }>).map(
-        (r) => (typeof r === "string" ? r : r.get_user_permissions),
-      );
+      const effectivePerms = (
+        (permsR.data ?? []) as Array<string | { get_user_permissions: string }>
+      ).map((r) => (typeof r === "string" ? r : r.get_user_permissions));
 
       return {
         profile: profileR.data,
@@ -368,14 +529,16 @@ function UserDrawer({
     },
   });
 
-
   return (
     <Sheet open={!!userId} onOpenChange={onOpenChange}>
       <SheetContent className="w-full overflow-y-auto sm:max-w-2xl">
         <SheetHeader>
-          <SheetTitle>{data?.profile?.display_name || data?.profile?.full_name || "User"}</SheetTitle>
+          <SheetTitle>
+            {data?.profile?.display_name || data?.profile?.full_name || "User"}
+          </SheetTitle>
           <SheetDescription>
-            {data?.meta?.email ?? "—"} · joined {data?.meta?.created_at ? new Date(data.meta.created_at).toLocaleDateString() : "—"}
+            {data?.meta?.email ?? "—"} · joined{" "}
+            {data?.meta?.created_at ? new Date(data.meta.created_at).toLocaleDateString() : "—"}
           </SheetDescription>
         </SheetHeader>
 
@@ -384,9 +547,28 @@ function UserDrawer({
         ) : (
           <div className="mt-6 space-y-6">
             <div className="grid grid-cols-2 gap-3 rounded-md border border-border bg-muted/30 p-3 text-xs">
-              <Meta label="Email verified" value={data.meta?.email_confirmed_at ? new Date(data.meta.email_confirmed_at).toLocaleString() : "Unverified"} />
-              <Meta label="Last sign in" value={data.meta?.last_sign_in_at ? new Date(data.meta.last_sign_in_at).toLocaleString() : "Never"} />
-              <Meta label="Banned until" value={data.meta?.banned_until ? new Date(data.meta.banned_until).toLocaleString() : "—"} />
+              <Meta
+                label="Email verified"
+                value={
+                  data.meta?.email_confirmed_at
+                    ? new Date(data.meta.email_confirmed_at).toLocaleString()
+                    : "Unverified"
+                }
+              />
+              <Meta
+                label="Last sign in"
+                value={
+                  data.meta?.last_sign_in_at
+                    ? new Date(data.meta.last_sign_in_at).toLocaleString()
+                    : "Never"
+                }
+              />
+              <Meta
+                label="Banned until"
+                value={
+                  data.meta?.banned_until ? new Date(data.meta.banned_until).toLocaleString() : "—"
+                }
+              />
               <Meta label="Phone" value={data.profile?.phone ?? "—"} />
             </div>
 
@@ -410,20 +592,44 @@ function UserDrawer({
                           : "border-border bg-transparent text-muted-foreground hover:bg-muted"
                       }`}
                     >
-                      {has ? "✓ " : "+ "}{r.name}
+                      {has ? "✓ " : "+ "}
+                      {r.name}
                     </button>
                   );
                 })}
               </div>
-              <Button size="sm" variant="outline" onClick={() => userId && onSuspend(userId, !!data.profile?.active)} className="gap-1">
-                {data.profile?.active ? <><UserX className="h-3.5 w-3.5" /> Suspend</> : <><UserCheck className="h-3.5 w-3.5" /> Reactivate</>}
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => userId && onSuspend(userId, !!data.profile?.active)}
+                className="gap-1"
+              >
+                {data.profile?.active ? (
+                  <>
+                    <UserX className="h-3.5 w-3.5" /> Suspend
+                  </>
+                ) : (
+                  <>
+                    <UserCheck className="h-3.5 w-3.5" /> Reactivate
+                  </>
+                )}
               </Button>
 
-              <Button size="sm" variant="outline" onClick={() => userId && onReset(userId)} className="gap-1">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => userId && onReset(userId)}
+                className="gap-1"
+              >
                 <KeyRound className="h-3.5 w-3.5" /> Force password reset
               </Button>
               {!data.meta?.email_confirmed_at && (
-                <Button size="sm" variant="outline" onClick={() => userId && onResend(userId)} className="gap-1">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => userId && onResend(userId)}
+                  className="gap-1"
+                >
                   <MailCheck className="h-3.5 w-3.5" /> Resend verification
                 </Button>
               )}
@@ -434,53 +640,89 @@ function UserDrawer({
                 Effective permissions ({data.effectivePerms.length})
               </p>
               {data.roleIds.some((id) => rolesCatalog.find((r) => r.id === id)?.key === "admin") ? (
-                <p className="text-xs text-[color:var(--ink)]">Administrator — implicitly holds all permissions.</p>
+                <p className="text-xs text-[color:var(--ink)]">
+                  Administrator — implicitly holds all permissions.
+                </p>
               ) : data.effectivePerms.length === 0 ? (
                 <p className="text-xs text-muted-foreground">No permissions granted.</p>
               ) : (
                 <div className="flex flex-wrap gap-1">
                   {data.effectivePerms.sort().map((p) => (
-                    <span key={p} className="rounded-md border border-border bg-card px-1.5 py-0.5 font-mono text-[10px] text-[color:var(--ink)]">{p}</span>
+                    <span
+                      key={p}
+                      className="rounded-md border border-border bg-card px-1.5 py-0.5 font-mono text-[10px] text-[color:var(--ink)]"
+                    >
+                      {p}
+                    </span>
                   ))}
                 </div>
               )}
             </div>
 
-
             <Tabs defaultValue="companies">
               <TabsList>
                 <TabsTrigger value="companies">Companies ({data.companies.length})</TabsTrigger>
                 <TabsTrigger value="jobs">Jobs ({data.jobs.length})</TabsTrigger>
-                <TabsTrigger value="applications">Applications ({data.applications.length})</TabsTrigger>
+                <TabsTrigger value="applications">
+                  Applications ({data.applications.length})
+                </TabsTrigger>
                 <TabsTrigger value="orders">Orders ({data.orders.length})</TabsTrigger>
                 <TabsTrigger value="audit">Audit ({data.audit.length})</TabsTrigger>
               </TabsList>
               <TabsContent value="companies" className="space-y-1.5">
                 {data.companies.map((c) => (
-                  <Item key={c.id} title={c.name} subtitle={`${c.verified ? "Verified · " : ""}${new Date(c.created_at).toLocaleDateString()}`} />
+                  <Item
+                    key={c.id}
+                    title={c.name}
+                    subtitle={`${c.verified ? "Verified · " : ""}${new Date(c.created_at).toLocaleDateString()}`}
+                  />
                 ))}
                 {data.companies.length === 0 && <Empty />}
               </TabsContent>
               <TabsContent value="jobs" className="space-y-1.5">
                 {data.jobs.map((j) => (
-                  <Item key={j.id} title={j.title} subtitle={`${j.status} · ${new Date(j.created_at).toLocaleDateString()}`} />
+                  <Item
+                    key={j.id}
+                    title={j.title}
+                    subtitle={`${j.status} · ${new Date(j.created_at).toLocaleDateString()}`}
+                  />
                 ))}
                 {data.jobs.length === 0 && <Empty />}
               </TabsContent>
               <TabsContent value="applications" className="space-y-1.5">
                 {data.applications.map((a) => (
-                  <Item key={a.id} title={`Application ${a.id.slice(0, 8)}`} subtitle={`${a.status} · ${new Date(a.created_at).toLocaleDateString()}`} />
+                  <Item
+                    key={a.id}
+                    title={`Application ${a.id.slice(0, 8)}`}
+                    subtitle={`${a.status} · ${new Date(a.created_at).toLocaleDateString()}`}
+                  />
                 ))}
                 {data.applications.length === 0 && <Empty />}
               </TabsContent>
               <TabsContent value="orders" className="space-y-1.5">
                 {data.orders.map((o) => (
-                  <div key={o.id} className="flex items-center justify-between rounded-md border border-border bg-card p-2 text-sm">
+                  <div
+                    key={o.id}
+                    className="flex items-center justify-between rounded-md border border-border bg-card p-2 text-sm"
+                  >
                     <div>
-                      <p className="font-medium">${(o.amount_cents / 100).toFixed(2)} {o.currency.toUpperCase()}</p>
-                      <p className="text-xs text-muted-foreground">{o.status} · {new Date(o.created_at).toLocaleDateString()}</p>
+                      <p className="font-medium">
+                        ${(o.amount_cents / 100).toFixed(2)} {o.currency.toUpperCase()}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {o.status} · {new Date(o.created_at).toLocaleDateString()}
+                      </p>
                     </div>
-                    {o.receipt_url && <a href={o.receipt_url} target="_blank" rel="noreferrer" className="text-xs text-primary hover:underline">Receipt</a>}
+                    {o.receipt_url && (
+                      <a
+                        href={o.receipt_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-xs text-primary hover:underline"
+                      >
+                        Receipt
+                      </a>
+                    )}
                   </div>
                 ))}
                 {data.orders.length === 0 && <Empty />}
@@ -489,7 +731,10 @@ function UserDrawer({
                 {data.audit.map((a) => (
                   <div key={a.id} className="rounded-md border border-border bg-card p-2 text-xs">
                     <p className="font-medium text-[color:var(--ink)]">{a.action}</p>
-                    <p className="text-muted-foreground">{new Date(a.created_at).toLocaleString()}{a.reason ? ` · ${a.reason}` : ""}</p>
+                    <p className="text-muted-foreground">
+                      {new Date(a.created_at).toLocaleString()}
+                      {a.reason ? ` · ${a.reason}` : ""}
+                    </p>
                   </div>
                 ))}
                 {data.audit.length === 0 && <Empty />}
@@ -518,4 +763,6 @@ function Item({ title, subtitle }: { title: string; subtitle: string }) {
     </div>
   );
 }
-function Empty() { return <p className="text-xs text-muted-foreground">Nothing here yet.</p>; }
+function Empty() {
+  return <p className="text-xs text-muted-foreground">Nothing here yet.</p>;
+}

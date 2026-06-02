@@ -1,17 +1,40 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import crewImage from "@/assets/crew-productive.webp";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Briefcase, Users, Package as PackageIcon, Star, Plus, Eye, Pause, Play, Copy, X, Pencil, Sparkles, Rocket, Trash2, AlertTriangle, CalendarClock } from "lucide-react";
+import {
+  Briefcase,
+  Users,
+  Package as PackageIcon,
+  Star,
+  Plus,
+  Eye,
+  Pause,
+  Play,
+  Copy,
+  X,
+  Pencil,
+  Sparkles,
+  Rocket,
+  Trash2,
+  AlertTriangle,
+  CalendarClock,
+} from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { uniqueSlug } from "@/lib/slug";
 import { TableSkeleton } from "@/components/ui/skeleton-list";
-
 
 export const Route = createFileRoute("/employer/")({
   head: () => ({ meta: [{ title: "Employer Dashboard — WarehouseJobs" }] }),
@@ -54,12 +77,25 @@ function EmployerDashboard() {
     queryKey: ["employer-company", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data: owned } = await supabase.from("companies").select("*").eq("owner_id", user!.id).maybeSingle();
+      const { data: owned } = await supabase
+        .from("companies")
+        .select("*")
+        .eq("owner_id", user!.id)
+        .maybeSingle();
       if (owned) return owned;
       const { data: mem } = await supabase
-        .from("company_members").select("company_id").eq("user_id", user!.id).eq("status", "active").limit(1).maybeSingle();
+        .from("company_members")
+        .select("company_id")
+        .eq("user_id", user!.id)
+        .eq("status", "active")
+        .limit(1)
+        .maybeSingle();
       if (!mem?.company_id) return null;
-      const { data } = await supabase.from("companies").select("*").eq("id", mem.company_id).maybeSingle();
+      const { data } = await supabase
+        .from("companies")
+        .select("*")
+        .eq("id", mem.company_id)
+        .maybeSingle();
       return data;
     },
   });
@@ -70,7 +106,9 @@ function EmployerDashboard() {
     queryFn: async () => {
       const { data } = await supabase
         .from("company_packages")
-        .select("id, package_id, posts_total, posts_used, featured_total, featured_used, expires_at, packages(name)")
+        .select(
+          "id, package_id, posts_total, posts_used, featured_total, featured_used, expires_at, packages(name)",
+        )
         .eq("company_id", company!.id)
         .eq("status", "active")
         .gt("expires_at", new Date().toISOString())
@@ -97,7 +135,6 @@ function EmployerDashboard() {
     !!activePackage && (postingCredits <= 1 || (daysToExpiry !== null && daysToExpiry <= 5));
   const noPackage = !activePackage;
 
-
   const { data: jobs = [], isLoading } = useQuery({
     queryKey: ["employer-jobs", company?.id],
     enabled: !!company,
@@ -122,13 +159,15 @@ function EmployerDashboard() {
           return acc;
         }, {});
       }
-      return (jobsData ?? []).map((j) => ({ ...j, applicant_count: counts[j.id] ?? 0 })) as JobRow[];
+      return (jobsData ?? []).map((j) => ({
+        ...j,
+        applicant_count: counts[j.id] ?? 0,
+      })) as JobRow[];
     },
   });
 
   const activeJobs = jobs.filter((j) => j.status === "active" || j.status === "published").length;
   const totalApplicants = jobs.reduce((sum, j) => sum + j.applicant_count, 0);
-
 
   const refresh = () => qc.invalidateQueries({ queryKey: ["employer-jobs", company?.id] });
 
@@ -233,7 +272,6 @@ function EmployerDashboard() {
     refresh();
   };
 
-
   return (
     <TooltipProvider delayDuration={150}>
       <div className="space-y-8">
@@ -244,7 +282,10 @@ function EmployerDashboard() {
               Welcome{company?.name ? `, ${company.name}` : ""}
             </h1>
           </div>
-          <Button onClick={() => navigate({ to: "/employer/jobs/new" })} className="btn-primary gap-1.5">
+          <Button
+            onClick={() => navigate({ to: "/employer/jobs/new" })}
+            className="btn-primary gap-1.5"
+          >
             <Plus className="h-4 w-4" /> Post a Job
             {postingCredits === 0 && (
               <span className="ml-1 rounded bg-[color:var(--hazard)] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[color:var(--ink)]">
@@ -262,11 +303,11 @@ function EmployerDashboard() {
                 <p className="font-semibold text-[color:var(--ink)]">
                   {noPackage
                     ? "No active package"
-                    : postingCredits <= 1 && (daysToExpiry !== null && daysToExpiry <= 5)
-                    ? `${postingCredits} post${postingCredits === 1 ? "" : "s"} left · expires in ${daysToExpiry} day${daysToExpiry === 1 ? "" : "s"}`
-                    : postingCredits <= 1
-                    ? `${postingCredits} post${postingCredits === 1 ? "" : "s"} remaining on your package`
-                    : `Your package expires in ${daysToExpiry} day${daysToExpiry === 1 ? "" : "s"}`}
+                    : postingCredits <= 1 && daysToExpiry !== null && daysToExpiry <= 5
+                      ? `${postingCredits} post${postingCredits === 1 ? "" : "s"} left · expires in ${daysToExpiry} day${daysToExpiry === 1 ? "" : "s"}`
+                      : postingCredits <= 1
+                        ? `${postingCredits} post${postingCredits === 1 ? "" : "s"} remaining on your package`
+                        : `Your package expires in ${daysToExpiry} day${daysToExpiry === 1 ? "" : "s"}`}
                 </p>
                 <p className="text-xs text-muted-foreground">
                   Renew now to keep posting without interruption.
@@ -291,14 +332,17 @@ function EmployerDashboard() {
           />
         </div>
 
-
         <section className="rounded-xl border border-border bg-card">
           <div className="flex items-center justify-between border-b border-border px-5 py-4">
             <div>
               <h2 className="text-base font-semibold text-[color:var(--ink)]">Your jobs</h2>
-              <p className="text-xs text-muted-foreground">Manage status, view applicants, re-post.</p>
+              <p className="text-xs text-muted-foreground">
+                Manage status, view applicants, re-post.
+              </p>
             </div>
-            <Link to="/pricing" className="text-xs font-semibold text-primary hover:underline">Buy a package →</Link>
+            <Link to="/pricing" className="text-xs font-semibold text-primary hover:underline">
+              Buy a package →
+            </Link>
           </div>
 
           {isLoading ? (
@@ -317,12 +361,18 @@ function EmployerDashboard() {
                 />
                 <div className="text-center sm:text-left">
                   <p className="label-caps text-primary">Get started</p>
-                  <p className="mt-1 text-xl font-bold text-[color:var(--ink)]">Post your first job</p>
+                  <p className="mt-1 text-xl font-bold text-[color:var(--ink)]">
+                    Post your first job
+                  </p>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    Reach forklift operators, pickers, and dock workers ready to start this week. Your free Starter package is loaded and waiting.
+                    Reach forklift operators, pickers, and dock workers ready to start this week.
+                    Your free Starter package is loaded and waiting.
                   </p>
                   <div className="mt-5 flex flex-wrap justify-center gap-2 sm:justify-start">
-                    <Button onClick={() => navigate({ to: "/employer/jobs/new" })} className="btn-primary gap-1.5">
+                    <Button
+                      onClick={() => navigate({ to: "/employer/jobs/new" })}
+                      className="btn-primary gap-1.5"
+                    >
                       <Plus className="h-4 w-4" /> Post a Job
                     </Button>
                   </div>
@@ -347,7 +397,11 @@ function EmployerDashboard() {
                   {jobs.map((job) => (
                     <TableRow key={job.id}>
                       <TableCell className="max-w-[280px]">
-                        <Link to="/jobs/$slug" params={{ slug: job.slug }} className="font-semibold text-[color:var(--ink)] hover:text-primary">
+                        <Link
+                          to="/jobs/$slug"
+                          params={{ slug: job.slug }}
+                          className="font-semibold text-[color:var(--ink)] hover:text-primary"
+                        >
                           {job.title}
                         </Link>
                         <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -359,15 +413,27 @@ function EmployerDashboard() {
                           )}
                         </div>
                       </TableCell>
-                      <TableCell><StatusBadge status={job.status} /></TableCell>
-                      <TableCell className="text-right tabular-nums text-sm">{job.views ?? 0}</TableCell>
+                      <TableCell>
+                        <StatusBadge status={job.status} />
+                      </TableCell>
                       <TableCell className="text-right tabular-nums text-sm">
-                        <Link to="/employer/jobs/$id/applicants" params={{ id: job.id }} className="font-semibold text-primary hover:underline">
+                        {job.views ?? 0}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums text-sm">
+                        <Link
+                          to="/employer/jobs/$id/applicants"
+                          params={{ id: job.id }}
+                          className="font-semibold text-primary hover:underline"
+                        >
                           {job.applicant_count}
                         </Link>
                       </TableCell>
-                      <TableCell className="text-xs text-muted-foreground">{formatDate(job.posted_at ?? job.created_at)}</TableCell>
-                      <TableCell className="text-xs text-muted-foreground">{job.expires_at ? formatDate(job.expires_at) : "—"}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        {formatDate(job.posted_at ?? job.created_at)}
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        {job.expires_at ? formatDate(job.expires_at) : "—"}
+                      </TableCell>
                       <TableCell>
                         <div className="flex items-center justify-end gap-0.5">
                           {job.status === "draft" ? (
@@ -375,7 +441,9 @@ function EmployerDashboard() {
                               <Button
                                 size="sm"
                                 className="btn-primary h-7 gap-1 text-xs"
-                                onClick={() => navigate({ to: "/employer/jobs/new", search: { draft: job.id } })}
+                                onClick={() =>
+                                  navigate({ to: "/employer/jobs/new", search: { draft: job.id } })
+                                }
                               >
                                 <Rocket className="h-3 w-3" /> Finish & publish
                               </Button>
@@ -385,23 +453,53 @@ function EmployerDashboard() {
                             </>
                           ) : (
                             <>
-                              <ActionIcon label="View" onClick={() => navigate({ to: "/jobs/$slug", params: { slug: job.slug } })}>
+                              <ActionIcon
+                                label="View"
+                                onClick={() =>
+                                  navigate({ to: "/jobs/$slug", params: { slug: job.slug } })
+                                }
+                              >
                                 <Eye className="h-3.5 w-3.5" />
                               </ActionIcon>
-                              <ActionIcon label="Edit" onClick={() => navigate({ to: "/employer/jobs/$id/edit", params: { id: job.id } })}>
+                              <ActionIcon
+                                label="Edit"
+                                onClick={() =>
+                                  navigate({
+                                    to: "/employer/jobs/$id/edit",
+                                    params: { id: job.id },
+                                  })
+                                }
+                              >
                                 <Pencil className="h-3.5 w-3.5" />
                               </ActionIcon>
                               <ActionIcon
-                                label={job.featured ? "Already featured" : `Mark featured (${featuredCredits} upgrades left)`}
+                                label={
+                                  job.featured
+                                    ? "Already featured"
+                                    : `Mark featured (${featuredCredits} upgrades left)`
+                                }
                                 onClick={() => markFeatured(job)}
                                 disabled={job.featured || featuredCredits < 1}
                               >
-                                <Star className={`h-3.5 w-3.5 ${job.featured ? "fill-[color:var(--hazard)] text-[color:var(--hazard)]" : ""}`} />
+                                <Star
+                                  className={`h-3.5 w-3.5 ${job.featured ? "fill-[color:var(--hazard)] text-[color:var(--hazard)]" : ""}`}
+                                />
                               </ActionIcon>
-                              <ActionIcon label={job.status === "paused" ? "Resume" : "Pause"} onClick={() => togglePause(job)}>
-                                {job.status === "paused" ? <Play className="h-3.5 w-3.5" /> : <Pause className="h-3.5 w-3.5" />}
+                              <ActionIcon
+                                label={job.status === "paused" ? "Resume" : "Pause"}
+                                onClick={() => togglePause(job)}
+                              >
+                                {job.status === "paused" ? (
+                                  <Play className="h-3.5 w-3.5" />
+                                ) : (
+                                  <Pause className="h-3.5 w-3.5" />
+                                )}
                               </ActionIcon>
-                              <ActionIcon label={`Duplicate (${postingCredits} posts left)`} onClick={() => duplicateJob(job)} disabled={postingCredits < 1}>
+                              <ActionIcon
+                                label={`Duplicate (${postingCredits} posts left)`}
+                                onClick={() => duplicateJob(job)}
+                                disabled={postingCredits < 1}
+                              >
                                 <Copy className="h-3.5 w-3.5" />
                               </ActionIcon>
                               <ActionIcon label="Close" onClick={() => closeJob(job)}>
@@ -411,7 +509,6 @@ function EmployerDashboard() {
                           )}
                         </div>
                       </TableCell>
-
                     </TableRow>
                   ))}
                 </TableBody>
@@ -450,27 +547,40 @@ function PackageCard({
       {empty ? (
         <>
           <p className="mt-3 text-base font-semibold text-[color:var(--ink)]">No active package</p>
-          <Link to="/pricing" className="mt-1 inline-block text-xs font-semibold text-primary hover:underline">
+          <Link
+            to="/pricing"
+            className="mt-1 inline-block text-xs font-semibold text-primary hover:underline"
+          >
             Browse packages →
           </Link>
         </>
       ) : (
         <>
-          <p className="mt-3 truncate text-base font-semibold text-[color:var(--ink)]">{packageName ?? "Package"}</p>
+          <p className="mt-3 truncate text-base font-semibold text-[color:var(--ink)]">
+            {packageName ?? "Package"}
+          </p>
           <div className="mt-2 flex items-baseline gap-4">
             <div>
-              <p className="text-2xl font-bold tabular-nums text-[color:var(--ink)]">{postsRemaining}</p>
-              <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Posts left</p>
+              <p className="text-2xl font-bold tabular-nums text-[color:var(--ink)]">
+                {postsRemaining}
+              </p>
+              <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                Posts left
+              </p>
             </div>
             <div>
-              <p className="text-2xl font-bold tabular-nums text-[color:var(--ink)]">{featuredRemaining}</p>
+              <p className="text-2xl font-bold tabular-nums text-[color:var(--ink)]">
+                {featuredRemaining}
+              </p>
               <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Featured</p>
             </div>
           </div>
           {expiryLabel && (
             <p className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
               <CalendarClock className="h-3 w-3" /> {expiryLabel}
-              {extraCount > 0 && <span className="ml-1 text-muted-foreground">· +{extraCount} more</span>}
+              {extraCount > 0 && (
+                <span className="ml-1 text-muted-foreground">· +{extraCount} more</span>
+              )}
             </p>
           )}
         </>
@@ -479,9 +589,23 @@ function PackageCard({
   );
 }
 
-function StatCard({ icon: Icon, label, value, sub, accent }: { icon: typeof Briefcase; label: string; value: number; sub?: string; accent?: boolean }) {
+function StatCard({
+  icon: Icon,
+  label,
+  value,
+  sub,
+  accent,
+}: {
+  icon: typeof Briefcase;
+  label: string;
+  value: number;
+  sub?: string;
+  accent?: boolean;
+}) {
   return (
-    <div className={`rounded-xl border p-5 ${accent ? "border-primary/30 bg-[color:var(--primary-tint)]" : "border-border bg-card"}`}>
+    <div
+      className={`rounded-xl border p-5 ${accent ? "border-primary/30 bg-[color:var(--primary-tint)]" : "border-border bg-card"}`}
+    >
       <div className="flex items-center justify-between">
         <p className="label-caps">{label}</p>
         <Icon className={`h-4 w-4 ${accent ? "text-primary" : "text-muted-foreground"}`} />
@@ -511,13 +635,26 @@ function PostJobButton({ disabled, onClick }: { disabled: boolean; onClick: () =
       </TooltipTrigger>
       <TooltipContent side="bottom" className="max-w-xs">
         You're out of posting credits.{" "}
-        <Link to="/pricing" className="font-semibold underline">Buy a package</Link> to post.
+        <Link to="/pricing" className="font-semibold underline">
+          Buy a package
+        </Link>{" "}
+        to post.
       </TooltipContent>
     </Tooltip>
   );
 }
 
-function ActionIcon({ children, label, onClick, disabled }: { children: React.ReactNode; label: string; onClick: () => void; disabled?: boolean }) {
+function ActionIcon({
+  children,
+  label,
+  onClick,
+  disabled,
+}: {
+  children: React.ReactNode;
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+}) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
@@ -546,9 +683,20 @@ function StatusBadge({ status }: { status: string }) {
     closed: { label: "Closed", cls: "bg-muted text-muted-foreground" },
   };
   const m = map[status] ?? { label: status, cls: "bg-muted text-muted-foreground" };
-  return <Badge variant="outline" className={`border ${m.cls} text-[11px] font-semibold uppercase tracking-wide`}>{m.label}</Badge>;
+  return (
+    <Badge
+      variant="outline"
+      className={`border ${m.cls} text-[11px] font-semibold uppercase tracking-wide`}
+    >
+      {m.label}
+    </Badge>
+  );
 }
 
 function formatDate(d: string) {
-  return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  return new Date(d).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 }

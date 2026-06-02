@@ -19,11 +19,22 @@ function SeekerOverview() {
     enabled: !!user,
     queryFn: async () => {
       const [apps, saved, alerts] = await Promise.all([
-        supabase.from("applications").select("id, status", { count: "exact", head: false }).eq("applicant_id", user!.id),
-        supabase.from("saved_jobs").select("id", { count: "exact", head: true }).eq("user_id", user!.id),
-        supabase.from("job_alerts").select("id", { count: "exact", head: true }).eq("applicant_id", user!.id),
+        supabase
+          .from("applications")
+          .select("id, status", { count: "exact", head: false })
+          .eq("applicant_id", user!.id),
+        supabase
+          .from("saved_jobs")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", user!.id),
+        supabase
+          .from("job_alerts")
+          .select("id", { count: "exact", head: true })
+          .eq("applicant_id", user!.id),
       ]);
-      const active = (apps.data ?? []).filter((a) => !["rejected", "hired"].includes(a.status as string)).length;
+      const active = (apps.data ?? []).filter(
+        (a) => !["rejected", "hired"].includes(a.status as string),
+      ).length;
       const hired = (apps.data ?? []).filter((a) => a.status === "hired").length;
       return {
         totalApps: apps.data?.length ?? 0,
@@ -53,7 +64,10 @@ function SeekerOverview() {
     queryKey: ["seeker-recommended", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("recommended_jobs", { _user_id: user!.id, _limit: 6 });
+      const { data, error } = await supabase.rpc("recommended_jobs", {
+        _user_id: user!.id,
+        _limit: 6,
+      });
       if (error) throw error;
       return (data ?? []).map((r: any) => ({
         id: r.id,
@@ -85,7 +99,9 @@ function SeekerOverview() {
         />
         <div>
           <p className="label-caps text-primary">My dashboard</p>
-          <h1 className="mt-1 text-3xl font-bold tracking-tight text-[color:var(--ink)]">Welcome back</h1>
+          <h1 className="mt-1 text-3xl font-bold tracking-tight text-[color:var(--ink)]">
+            Welcome back
+          </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Track your warehouse job search in one place — you've got this.
           </p>
@@ -93,10 +109,25 @@ function SeekerOverview() {
       </div>
 
       <div className="grid gap-3 sm:grid-cols-4">
-        <StatCard label="Active applications" value={stats?.activeApps ?? 0} icon={FileText} to="/seeker/applications" />
-        <StatCard label="Hired" value={stats?.hired ?? 0} icon={FileText} to="/seeker/applications" />
+        <StatCard
+          label="Active applications"
+          value={stats?.activeApps ?? 0}
+          icon={FileText}
+          to="/seeker/applications"
+        />
+        <StatCard
+          label="Hired"
+          value={stats?.hired ?? 0}
+          icon={FileText}
+          to="/seeker/applications"
+        />
         <StatCard label="Saved jobs" value={stats?.saved ?? 0} icon={Bookmark} to="/seeker/saved" />
-        <StatCard label="Active alerts" value={stats?.alerts ?? 0} icon={BellRing} to="/seeker/alerts" />
+        <StatCard
+          label="Active alerts"
+          value={stats?.alerts ?? 0}
+          icon={BellRing}
+          to="/seeker/alerts"
+        />
       </div>
 
       {recommended.length > 0 && (
@@ -105,7 +136,10 @@ function SeekerOverview() {
             <h2 className="flex items-center gap-1.5 text-lg font-semibold text-[color:var(--ink)]">
               <Sparkles className="h-4 w-4 text-primary" /> Recommended for you
             </h2>
-            <Link to="/seeker/profile" className="text-xs font-semibold text-primary hover:underline">
+            <Link
+              to="/seeker/profile"
+              className="text-xs font-semibold text-primary hover:underline"
+            >
               Tune preferences <ArrowRight className="ml-0.5 inline h-3 w-3" />
             </Link>
           </div>
@@ -113,17 +147,20 @@ function SeekerOverview() {
             Based on your shift, employment type, skills and location.
           </p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            {recommended.map((job) => <JobCard key={job.id} job={job} />)}
+            {recommended.map((job) => (
+              <JobCard key={job.id} job={job} />
+            ))}
           </div>
         </div>
       )}
 
-
-
       <div className="rounded-xl border border-border bg-card p-5">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-[color:var(--ink)]">Recent applications</h2>
-          <Link to="/seeker/applications" className="text-xs font-semibold text-primary hover:underline">
+          <Link
+            to="/seeker/applications"
+            className="text-xs font-semibold text-primary hover:underline"
+          >
             See all <ArrowRight className="ml-0.5 inline h-3 w-3" />
           </Link>
         </div>
@@ -205,7 +242,9 @@ export function StatusBadge({ status }: { status: string }) {
   };
   const m = map[status] ?? map.submitted;
   return (
-    <span className={`rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-wider ${m.cls}`}>
+    <span
+      className={`rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-wider ${m.cls}`}
+    >
       {m.label}
     </span>
   );

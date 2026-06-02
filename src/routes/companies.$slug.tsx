@@ -18,11 +18,14 @@ export const Route = createFileRoute("/companies/$slug")({
     return { meta: data };
   },
   head: ({ params, loaderData }) => {
-    const m = loaderData?.meta as { name: string; description: string | null; location: string | null } | null | undefined;
+    const m = loaderData?.meta as
+      | { name: string; description: string | null; location: string | null }
+      | null
+      | undefined;
     const title = m ? `${m.name} — Warehouse jobs | WarehouseJobs` : "Company | WarehouseJobs";
     const desc = m
-      ? ((m.description ?? "").slice(0, 155).replace(/\s+/g, " ").trim() ||
-        `Open warehouse roles at ${m.name}${m.location ? ` in ${m.location}` : ""}.`)
+      ? (m.description ?? "").slice(0, 155).replace(/\s+/g, " ").trim() ||
+        `Open warehouse roles at ${m.name}${m.location ? ` in ${m.location}` : ""}.`
       : "View open warehouse roles by employer.";
     return {
       meta: [
@@ -36,12 +39,16 @@ export const Route = createFileRoute("/companies/$slug")({
   },
   component: CompanyProfile,
   errorComponent: ({ error }) => (
-    <div className="p-12 text-center text-sm text-muted-foreground">Couldn't load company: {error.message}</div>
+    <div className="p-12 text-center text-sm text-muted-foreground">
+      Couldn't load company: {error.message}
+    </div>
   ),
   notFoundComponent: () => (
     <div className="p-12 text-center">
       <p className="text-lg font-semibold">Company not found</p>
-      <Link to="/jobs" className="mt-2 inline-block text-primary hover:underline">Browse jobs</Link>
+      <Link to="/jobs" className="mt-2 inline-block text-primary hover:underline">
+        Browse jobs
+      </Link>
     </div>
   ),
 });
@@ -54,7 +61,9 @@ function CompanyProfile() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("companies")
-        .select("id, name, description, location, website, logo_url, hq_city, hq_state, industry, verified")
+        .select(
+          "id, name, description, location, website, logo_url, hq_city, hq_state, industry, verified",
+        )
         .eq("slug", slug)
         .maybeSingle();
       if (error) throw error;
@@ -69,12 +78,17 @@ function CompanyProfile() {
     queryFn: async () => {
       const { data } = await supabase
         .from("jobs")
-        .select("id, slug, title, location, shift, employment_type, pay_min, pay_max, featured, category")
+        .select(
+          "id, slug, title, location, shift, employment_type, pay_min, pay_max, featured, category",
+        )
         .eq("company_id", company!.id)
         .in("status", ["active", "published"])
         .order("featured", { ascending: false })
         .order("created_at", { ascending: false });
-      return (data ?? []).map((j) => ({ ...j, companies: { name: company!.name, slug, verified: company!.verified } })) as JobSummary[];
+      return (data ?? []).map((j) => ({
+        ...j,
+        companies: { name: company!.name, slug, verified: company!.verified },
+      })) as JobSummary[];
     },
   });
 
@@ -93,7 +107,10 @@ function CompanyProfile() {
     <div className="min-h-screen bg-background">
       <SiteHeader />
       <div className="mx-auto max-w-7xl px-4 pt-8 sm:px-6">
-        <Link to="/jobs" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-primary">
+        <Link
+          to="/jobs"
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-primary"
+        >
           <ArrowLeft className="h-4 w-4" /> Back to search
         </Link>
       </div>
@@ -102,7 +119,15 @@ function CompanyProfile() {
         <header className="flex flex-wrap items-start gap-5 rounded-xl border border-border bg-card p-6 sm:p-8">
           <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-background">
             {company.logo_url ? (
-              <img src={company.logo_url} alt={`${company.name} logo`} loading="lazy" decoding="async" width={80} height={80} className="h-full w-full object-contain" />
+              <img
+                src={company.logo_url}
+                alt={`${company.name} logo`}
+                loading="lazy"
+                decoding="async"
+                width={80}
+                height={80}
+                className="h-full w-full object-contain"
+              />
             ) : (
               <Building2 className="h-9 w-9 text-muted-foreground" aria-hidden="true" />
             )}
@@ -121,7 +146,8 @@ function CompanyProfile() {
               {(company.location || company.hq_city) && (
                 <span className="inline-flex items-center gap-1">
                   <MapPin className="h-3.5 w-3.5" />
-                  {company.location ?? [company.hq_city, company.hq_state].filter(Boolean).join(", ")}
+                  {company.location ??
+                    [company.hq_city, company.hq_state].filter(Boolean).join(", ")}
                 </span>
               )}
               {company.website && (
@@ -149,7 +175,8 @@ function CompanyProfile() {
 
         <section className="mt-8">
           <h2 className="text-lg font-semibold text-[color:var(--ink)]">
-            Open roles {jobs.length > 0 && <span className="text-muted-foreground">({jobs.length})</span>}
+            Open roles{" "}
+            {jobs.length > 0 && <span className="text-muted-foreground">({jobs.length})</span>}
           </h2>
           {jobs.length === 0 ? (
             <p className="mt-3 rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
@@ -157,7 +184,9 @@ function CompanyProfile() {
             </p>
           ) : (
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              {jobs.map((j) => <JobCard key={j.id} job={j} />)}
+              {jobs.map((j) => (
+                <JobCard key={j.id} job={j} />
+              ))}
             </div>
           )}
         </section>

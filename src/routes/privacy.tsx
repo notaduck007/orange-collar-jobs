@@ -9,7 +9,11 @@ export const Route = createFileRoute("/privacy")({
   head: () => ({
     meta: [
       { title: "Privacy Policy — WarehouseJobs" },
-      { name: "description", content: "How we collect, use, and protect your data, plus your rights to export or delete it." },
+      {
+        name: "description",
+        content:
+          "How we collect, use, and protect your data, plus your rights to export or delete it.",
+      },
     ],
   }),
   component: PrivacyPage,

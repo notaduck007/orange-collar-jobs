@@ -21,7 +21,9 @@ function SavedJobsPage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("saved_jobs")
-        .select("id, created_at, jobs(id, slug, title, location, shift, pay_min, pay_max, pay_period, companies(name))")
+        .select(
+          "id, created_at, jobs(id, slug, title, location, shift, pay_min, pay_max, pay_period, companies(name))",
+        )
         .eq("user_id", user!.id)
         .order("created_at", { ascending: false });
       return data ?? [];
@@ -42,7 +44,9 @@ function SavedJobsPage() {
     <div className="space-y-5">
       <div>
         <p className="label-caps text-primary">Bookmarks</p>
-        <h1 className="mt-1 text-3xl font-bold tracking-tight text-[color:var(--ink)]">Saved jobs</h1>
+        <h1 className="mt-1 text-3xl font-bold tracking-tight text-[color:var(--ink)]">
+          Saved jobs
+        </h1>
         <p className="mt-1 text-sm text-muted-foreground">{saved.length} bookmarked</p>
       </div>
 
@@ -63,9 +67,15 @@ function SavedJobsPage() {
           {saved.map((s: any) => {
             const j = s.jobs;
             if (!j) return null;
-            const pay = j.pay_min && j.pay_max ? `$${j.pay_min}–$${j.pay_max} / ${j.pay_period ?? "hour"}` : null;
+            const pay =
+              j.pay_min && j.pay_max
+                ? `$${j.pay_min}–$${j.pay_max} / ${j.pay_period ?? "hour"}`
+                : null;
             return (
-              <div key={s.id} className="flex items-start justify-between rounded-xl border border-border bg-card p-4">
+              <div
+                key={s.id}
+                className="flex items-start justify-between rounded-xl border border-border bg-card p-4"
+              >
                 <div className="min-w-0">
                   <Link
                     to="/jobs/$slug"

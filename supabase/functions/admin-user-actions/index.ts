@@ -4,19 +4,24 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 function corsHeaders(req: Request) {
   const allowed = (Deno.env.get("ALLOWED_ORIGINS") ?? "")
-    .split(",").map((s) => s.trim()).filter(Boolean);
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
   const origin = req.headers.get("origin") ?? "";
   const allowOrigin = allowed.includes(origin) ? origin : (allowed[0] ?? "null");
   return {
     "Access-Control-Allow-Origin": allowOrigin,
-    "Vary": "Origin",
+    Vary: "Origin",
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
   };
 }
 
 const json = (req: Request, b: unknown, status = 200) =>
-  new Response(JSON.stringify(b), { status, headers: { ...corsHeaders(req), "Content-Type": "application/json" } });
+  new Response(JSON.stringify(b), {
+    status,
+    headers: { ...corsHeaders(req), "Content-Type": "application/json" },
+  });
 
 serve(async (req) => {
   const cors = corsHeaders(req);
@@ -49,7 +54,6 @@ serve(async (req) => {
       _permission_key: "users.view_all",
     });
     if (!isAdmin && !hasCap) return json(req, { error: "Forbidden" }, 403);
-
 
     const body = await req.json();
     const action: string = body.action;
@@ -118,9 +122,17 @@ serve(async (req) => {
         if (!isAdmin) return json(req, { error: "Only admins can change roles" }, 403);
         if (role !== "admin") {
           // Block removing the last admin.
-          const { data: hadAdmin } = await admin.from("user_roles").select("role").eq("user_id", targetId).eq("role", "admin").maybeSingle();
+          const { data: hadAdmin } = await admin
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", targetId)
+            .eq("role", "admin")
+            .maybeSingle();
           if (hadAdmin) {
-            const { count } = await admin.from("user_roles").select("user_id", { count: "exact", head: true }).eq("role", "admin");
+            const { count } = await admin
+              .from("user_roles")
+              .select("user_id", { count: "exact", head: true })
+              .eq("role", "admin");
             if ((count ?? 0) <= 1) return json(req, { error: "Cannot remove the last admin" }, 400);
           }
         }
@@ -133,9 +145,12 @@ serve(async (req) => {
       }
       case "grant_role": {
         const role: string = body.role;
-        if (!["job_seeker", "employer", "admin"].includes(role)) return json(req, { error: "invalid role" }, 400);
+        if (!["job_seeker", "employer", "admin"].includes(role))
+          return json(req, { error: "invalid role" }, 400);
         if (!isAdmin) return json(req, { error: "Only admins can change roles" }, 403);
-        const { error } = await admin.from("user_roles").upsert({ user_id: targetId, role }, { onConflict: "user_id,role" });
+        const { error } = await admin
+          .from("user_roles")
+          .upsert({ user_id: targetId, role }, { onConflict: "user_id,role" });
         if (error) return json(req, { error: error.message }, 400);
         metadata = { role };
         auditAction = `grant_role.${role}`;
@@ -143,13 +158,21 @@ serve(async (req) => {
       }
       case "revoke_role": {
         const role: string = body.role;
-        if (!["job_seeker", "employer", "admin"].includes(role)) return json(req, { error: "invalid role" }, 400);
+        if (!["job_seeker", "employer", "admin"].includes(role))
+          return json(req, { error: "invalid role" }, 400);
         if (!isAdmin) return json(req, { error: "Only admins can change roles" }, 403);
         if (role === "admin") {
-          const { count } = await admin.from("user_roles").select("user_id", { count: "exact", head: true }).eq("role", "admin");
+          const { count } = await admin
+            .from("user_roles")
+            .select("user_id", { count: "exact", head: true })
+            .eq("role", "admin");
           if ((count ?? 0) <= 1) return json(req, { error: "Cannot remove the last admin" }, 400);
         }
-        const { error } = await admin.from("user_roles").delete().eq("user_id", targetId).eq("role", role);
+        const { error } = await admin
+          .from("user_roles")
+          .delete()
+          .eq("user_id", targetId)
+          .eq("role", role);
         if (error) return json(req, { error: error.message }, 400);
         metadata = { role };
         auditAction = `revoke_role.${role}`;
@@ -158,7 +181,6 @@ serve(async (req) => {
       default:
         return json(req, { error: "unknown action" }, 400);
     }
-
 
     await admin.from("audit_log").insert({
       actor_id: actorId,

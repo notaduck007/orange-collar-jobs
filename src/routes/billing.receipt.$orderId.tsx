@@ -58,7 +58,11 @@ function ReceiptPage() {
   if (!user) {
     return (
       <div className="p-10 text-center text-sm">
-        Please <Link to="/auth" className="underline">sign in</Link> to view your receipt.
+        Please{" "}
+        <Link to="/auth" className="underline">
+          sign in
+        </Link>{" "}
+        to view your receipt.
       </div>
     );
   }
@@ -107,13 +111,18 @@ function ReceiptPage() {
         <tbody>
           <tr className="border-b border-border">
             <td className="py-3">
-              <p className="font-semibold">{data.packages?.name ?? snap.name ?? "Posting package"}</p>
+              <p className="font-semibold">
+                {data.packages?.name ?? snap.name ?? "Posting package"}
+              </p>
               <p className="text-xs text-muted-foreground">
-                {posts} job post{posts === 1 ? "" : "s"} · {feats} featured upgrade{feats === 1 ? "" : "s"}
+                {posts} job post{posts === 1 ? "" : "s"} · {feats} featured upgrade
+                {feats === 1 ? "" : "s"}
                 {cpkg && ` · valid until ${new Date(cpkg.expires_at).toLocaleDateString()}`}
               </p>
             </td>
-            <td className="py-3 text-right font-semibold">{money(data.amount_cents, data.currency)}</td>
+            <td className="py-3 text-right font-semibold">
+              {money(data.amount_cents, data.currency)}
+            </td>
           </tr>
         </tbody>
         <tfoot>

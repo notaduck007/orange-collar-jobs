@@ -10,7 +10,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { slugify, uniqueSlug } from "@/lib/slug";
 import crewImage from "@/assets/crew-productive.webp";
 
@@ -49,7 +55,11 @@ function OnboardingPage() {
     queryKey: ["employer-company", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data } = await supabase.from("companies").select("*").eq("owner_id", user!.id).maybeSingle();
+      const { data } = await supabase
+        .from("companies")
+        .select("*")
+        .eq("owner_id", user!.id)
+        .maybeSingle();
       return data;
     },
   });
@@ -91,7 +101,9 @@ function OnboardingPage() {
     try {
       const ext = file.name.split(".").pop() ?? "png";
       const path = `${user.id}/logo-${Date.now()}.${ext}`;
-      const { error } = await supabase.storage.from("company-logos").upload(path, file, { upsert: true });
+      const { error } = await supabase.storage
+        .from("company-logos")
+        .upload(path, file, { upsert: true });
       if (error) throw error;
       const { data } = supabase.storage.from("company-logos").getPublicUrl(path);
       setLogoUrl(data.publicUrl);
@@ -131,22 +143,28 @@ function OnboardingPage() {
         toast.success("Company profile updated");
       } else {
         const slug = uniqueSlug(form.name);
-        const { data: created, error } = await supabase.from("companies").insert({
-          owner_id: user.id,
-          name: form.name,
-          slug,
-          website: form.website || null,
-          industry: form.industry,
-          hq_city: form.hq_city,
-          hq_state: form.hq_state,
-          location: `${form.hq_city}, ${form.hq_state}`,
-          description: form.description || null,
-          logo_url: logoUrl,
-        }).select("id").single();
+        const { data: created, error } = await supabase
+          .from("companies")
+          .insert({
+            owner_id: user.id,
+            name: form.name,
+            slug,
+            website: form.website || null,
+            industry: form.industry,
+            hq_city: form.hq_city,
+            hq_state: form.hq_state,
+            location: `${form.hq_city}, ${form.hq_state}`,
+            description: form.description || null,
+            logo_url: logoUrl,
+          })
+          .select("id")
+          .single();
         if (error) throw error;
         // Free Starter package: 1 post, 30 days, $0 order — best-effort, idempotent
         if (created?.id) {
-          const { error: grantErr } = await supabase.rpc("grant_starter_package", { _company_id: created.id });
+          const { error: grantErr } = await supabase.rpc("grant_starter_package", {
+            _company_id: created.id,
+          });
           if (grantErr) console.warn("starter grant failed", grantErr.message);
         }
         toast.success("Company created — your free Starter package is ready (1 post, 30 days)");
@@ -172,64 +190,107 @@ function OnboardingPage() {
             This is what job seekers see at the top of every listing. Make it count.
           </p>
 
-      <form onSubmit={save} className="mt-8 space-y-6 rounded-xl border border-border bg-card p-6 sm:p-8">
-        <div>
-          <Label>Company logo</Label>
-          <div className="mt-2 flex items-center gap-4">
-            <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted">
-              {logoUrl ? (
-                <img src={logoUrl} alt="Logo" className="h-full w-full object-cover" />
-              ) : (
-                <Building2 className="h-8 w-8 text-muted-foreground" />
-              )}
+          <form
+            onSubmit={save}
+            className="mt-8 space-y-6 rounded-xl border border-border bg-card p-6 sm:p-8"
+          >
+            <div>
+              <Label>Company logo</Label>
+              <div className="mt-2 flex items-center gap-4">
+                <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted">
+                  {logoUrl ? (
+                    <img src={logoUrl} alt="Logo" className="h-full w-full object-cover" />
+                  ) : (
+                    <Building2 className="h-8 w-8 text-muted-foreground" />
+                  )}
+                </div>
+                <label className="cursor-pointer">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLogoUpload}
+                    className="hidden"
+                  />
+                  <span className="inline-flex items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm font-medium hover:bg-muted">
+                    <Upload className="h-4 w-4" /> {uploading ? "Uploading…" : "Upload logo"}
+                  </span>
+                </label>
+              </div>
+              <p className="mt-1.5 text-xs text-muted-foreground">PNG or JPG, max 2 MB.</p>
             </div>
-            <label className="cursor-pointer">
-              <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
-              <span className="inline-flex items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm font-medium hover:bg-muted">
-                <Upload className="h-4 w-4" /> {uploading ? "Uploading…" : "Upload logo"}
-              </span>
-            </label>
-          </div>
-          <p className="mt-1.5 text-xs text-muted-foreground">PNG or JPG, max 2 MB.</p>
-        </div>
 
-        <Field id="name" label="Company name" value={form.name} onChange={(v) => setForm({ ...form, name: v })} required />
+            <Field
+              id="name"
+              label="Company name"
+              value={form.name}
+              onChange={(v) => setForm({ ...form, name: v })}
+              required
+            />
 
-        <Field id="website" label="Website" type="url" placeholder="https://acme.com" value={form.website} onChange={(v) => setForm({ ...form, website: v })} />
+            <Field
+              id="website"
+              label="Website"
+              type="url"
+              placeholder="https://acme.com"
+              value={form.website}
+              onChange={(v) => setForm({ ...form, website: v })}
+            />
 
-        <div className="space-y-1.5">
-          <Label>Industry</Label>
-          <Select value={form.industry} onValueChange={(v) => setForm({ ...form, industry: v })}>
-            <SelectTrigger><SelectValue placeholder="Pick one" /></SelectTrigger>
-            <SelectContent>
-              {INDUSTRIES.map((i) => <SelectItem key={i} value={i}>{i}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
+            <div className="space-y-1.5">
+              <Label>Industry</Label>
+              <Select
+                value={form.industry}
+                onValueChange={(v) => setForm({ ...form, industry: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Pick one" />
+                </SelectTrigger>
+                <SelectContent>
+                  {INDUSTRIES.map((i) => (
+                    <SelectItem key={i} value={i}>
+                      {i}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-        <div className="grid gap-4 sm:grid-cols-[1fr_120px]">
-          <Field id="hq_city" label="HQ city" value={form.hq_city} onChange={(v) => setForm({ ...form, hq_city: v })} required />
-          <Field id="hq_state" label="State" placeholder="OH" value={form.hq_state} onChange={(v) => setForm({ ...form, hq_state: v.toUpperCase().slice(0, 2) })} required />
-        </div>
+            <div className="grid gap-4 sm:grid-cols-[1fr_120px]">
+              <Field
+                id="hq_city"
+                label="HQ city"
+                value={form.hq_city}
+                onChange={(v) => setForm({ ...form, hq_city: v })}
+                required
+              />
+              <Field
+                id="hq_state"
+                label="State"
+                placeholder="OH"
+                value={form.hq_state}
+                onChange={(v) => setForm({ ...form, hq_state: v.toUpperCase().slice(0, 2) })}
+                required
+              />
+            </div>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="description">About your warehouse</Label>
-          <Textarea
-            id="description"
-            rows={5}
-            placeholder="Briefly describe your operation — what you ship, shift culture, perks like climate-controlled, on-site break room, etc."
-            value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
-            maxLength={2000}
-          />
-        </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="description">About your warehouse</Label>
+              <Textarea
+                id="description"
+                rows={5}
+                placeholder="Briefly describe your operation — what you ship, shift culture, perks like climate-controlled, on-site break room, etc."
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                maxLength={2000}
+              />
+            </div>
 
-        <div className="flex items-center justify-end gap-2 border-t border-border pt-5">
-          <Button type="submit" disabled={saving || uploading} className="btn-primary">
-            {saving ? "Saving…" : existing ? "Save changes" : "Create company → Dashboard"}
-          </Button>
-        </div>
-      </form>
+            <div className="flex items-center justify-end gap-2 border-t border-border pt-5">
+              <Button type="submit" disabled={saving || uploading} className="btn-primary">
+                {saving ? "Saving…" : existing ? "Save changes" : "Create company → Dashboard"}
+              </Button>
+            </div>
+          </form>
         </div>
 
         <aside className="hidden lg:block">
@@ -257,16 +318,36 @@ function OnboardingPage() {
 }
 
 function Field({
-  id, label, value, onChange, type = "text", required, placeholder,
+  id,
+  label,
+  value,
+  onChange,
+  type = "text",
+  required,
+  placeholder,
 }: {
-  id: string; label: string; value: string;
+  id: string;
+  label: string;
+  value: string;
   onChange: (v: string) => void;
-  type?: string; required?: boolean; placeholder?: string;
+  type?: string;
+  required?: boolean;
+  placeholder?: string;
 }) {
   return (
     <div className="space-y-1.5">
-      <Label htmlFor={id}>{label}{required && <span className="text-destructive"> *</span>}</Label>
-      <Input id={id} type={type} placeholder={placeholder} value={value} onChange={(e) => onChange(e.target.value)} required={required} />
+      <Label htmlFor={id}>
+        {label}
+        {required && <span className="text-destructive"> *</span>}
+      </Label>
+      <Input
+        id={id}
+        type={type}
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        required={required}
+      />
     </div>
   );
 }

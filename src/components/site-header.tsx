@@ -19,16 +19,38 @@ export function SiteHeader() {
             )}
           </div>
           <div className="flex flex-col leading-none">
-            <span className="text-base font-bold tracking-tight text-[color:var(--ink)]">{settings.branding.site_name}</span>
+            <span className="text-base font-bold tracking-tight text-[color:var(--ink)]">
+              {settings.branding.site_name}
+            </span>
             <span className="label-caps text-[10px]">Hiring Now</span>
           </div>
         </Link>
 
         <nav className="hidden items-center gap-7 md:flex">
-          <Link to="/jobs" className="text-sm font-medium text-[color:var(--ink)] hover:text-primary">Find Jobs</Link>
-          <Link to="/pricing" className="text-sm font-medium text-[color:var(--ink)] hover:text-primary">For Employers</Link>
-          <Link to="/about" className="text-sm font-medium text-[color:var(--ink)] hover:text-primary">About</Link>
-          <Link to="/faq" className="text-sm font-medium text-[color:var(--ink)] hover:text-primary">FAQ</Link>
+          <Link
+            to="/jobs"
+            className="text-sm font-medium text-[color:var(--ink)] hover:text-primary"
+          >
+            Find Jobs
+          </Link>
+          <Link
+            to="/pricing"
+            className="text-sm font-medium text-[color:var(--ink)] hover:text-primary"
+          >
+            For Employers
+          </Link>
+          <Link
+            to="/about"
+            className="text-sm font-medium text-[color:var(--ink)] hover:text-primary"
+          >
+            About
+          </Link>
+          <Link
+            to="/faq"
+            className="text-sm font-medium text-[color:var(--ink)] hover:text-primary"
+          >
+            FAQ
+          </Link>
         </nav>
 
         <div className="flex items-center gap-2">
@@ -36,7 +58,10 @@ export function SiteHeader() {
             <>
               {role === "admin" ? (
                 <Link to="/admin">
-                  <Button size="sm" className="bg-primary text-primary-foreground shadow-[var(--shadow-orange)] hover:bg-[color:var(--primary-dark)]">
+                  <Button
+                    size="sm"
+                    className="bg-primary text-primary-foreground shadow-[var(--shadow-orange)] hover:bg-[color:var(--primary-dark)]"
+                  >
                     Admin Dashboard
                   </Button>
                 </Link>
@@ -44,12 +69,16 @@ export function SiteHeader() {
                 <>
                   {role === "employer" && (
                     <Link to="/employer">
-                      <Button variant="outline" size="sm">Employer Dashboard</Button>
+                      <Button variant="outline" size="sm">
+                        Employer Dashboard
+                      </Button>
                     </Link>
                   )}
                   {role === "job_seeker" && (
                     <Link to="/seeker">
-                      <Button variant="outline" size="sm">My Dashboard</Button>
+                      <Button variant="outline" size="sm">
+                        My Dashboard
+                      </Button>
                     </Link>
                   )}
                 </>
@@ -64,10 +93,15 @@ export function SiteHeader() {
           ) : (
             <>
               <Link to="/auth" search={{ mode: "login" }}>
-                <Button variant="ghost" size="sm">Sign in</Button>
+                <Button variant="ghost" size="sm">
+                  Sign in
+                </Button>
               </Link>
               <Link to="/auth" search={{ mode: "signup", role: "employer" } as never}>
-                <Button size="sm" className="bg-primary text-primary-foreground shadow-[var(--shadow-orange)] hover:bg-[color:var(--primary-dark)]">
+                <Button
+                  size="sm"
+                  className="bg-primary text-primary-foreground shadow-[var(--shadow-orange)] hover:bg-[color:var(--primary-dark)]"
+                >
                   Post a Job
                 </Button>
               </Link>

@@ -31,7 +31,9 @@ serve(async (req) => {
 
       const { data: existing } = await admin
         .from("orders")
-        .select("id, status, company_id, package_id, posting_count_granted, featured_count_granted, fulfilled_at")
+        .select(
+          "id, status, company_id, package_id, posting_count_granted, featured_count_granted, fulfilled_at",
+        )
         .eq("stripe_session_id", session.id)
         .maybeSingle();
 
@@ -46,15 +48,20 @@ serve(async (req) => {
 
       // Receipt URL
       let receiptUrl: string | null = null;
-      const paymentIntentId = typeof session.payment_intent === "string"
-        ? session.payment_intent
-        : session.payment_intent?.id ?? null;
+      const paymentIntentId =
+        typeof session.payment_intent === "string"
+          ? session.payment_intent
+          : (session.payment_intent?.id ?? null);
       if (paymentIntentId) {
         try {
-          const pi = await stripe.paymentIntents.retrieve(paymentIntentId, { expand: ["latest_charge"] });
+          const pi = await stripe.paymentIntents.retrieve(paymentIntentId, {
+            expand: ["latest_charge"],
+          });
           const charge = pi.latest_charge as Stripe.Charge | null;
           receiptUrl = charge?.receipt_url ?? null;
-        } catch (e) { console.error("PI retrieve failed", e); }
+        } catch (e) {
+          console.error("PI retrieve failed", e);
+        }
       }
 
       const { error: updErr } = await admin
@@ -74,7 +81,10 @@ serve(async (req) => {
       let durationDays = parseInt(md.duration_days ?? "0", 10);
       if (!durationDays && existing.package_id) {
         const { data: pkg } = await admin
-          .from("packages").select("duration_days").eq("id", existing.package_id).maybeSingle();
+          .from("packages")
+          .select("duration_days")
+          .eq("id", existing.package_id)
+          .maybeSingle();
         durationDays = pkg?.duration_days ?? 30;
       }
       if (!durationDays) durationDays = 30;
@@ -153,7 +163,8 @@ ${paidOrder?.receipt_url ? `Stripe receipt: ${paidOrder.receipt_url}\n` : ""}Vie
     }
 
     return new Response(JSON.stringify({ received: true }), {
-      status: 200, headers: { "Content-Type": "application/json" },
+      status: 200,
+      headers: { "Content-Type": "application/json" },
     });
   } catch (e: any) {
     console.error("webhook handler error", e);

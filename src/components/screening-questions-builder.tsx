@@ -4,7 +4,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 
 export type QuestionType = "yes_no" | "single" | "multi" | "number" | "text";
@@ -38,40 +42,89 @@ export function newQuestion(sort_order = 0): ScreeningQuestionDraft {
   };
 }
 
-export const SCREENING_PRESETS: { label: string; q: Omit<ScreeningQuestionDraft, "sort_order"> }[] = [
-  {
-    label: "Forklift certified?",
-    q: { prompt: "Are you currently forklift certified?", type: "yes_no", options: [], required: true, knockout_answer: false },
-  },
-  {
-    label: "Available overnight?",
-    q: { prompt: "Are you available to work overnight shifts?", type: "yes_no", options: [], required: true, knockout_answer: false },
-  },
-  {
-    label: "Can lift 50 lbs?",
-    q: { prompt: "Can you repeatedly lift up to 50 lbs?", type: "yes_no", options: [], required: true, knockout_answer: false },
-  },
-  {
-    label: "Stand 8+ hours?",
-    q: { prompt: "Can you stand and walk for 8+ hours per shift?", type: "yes_no", options: [], required: true, knockout_answer: false },
-  },
-  {
-    label: "Reliable transportation?",
-    q: { prompt: "Do you have reliable transportation to the warehouse?", type: "yes_no", options: [], required: true, knockout_answer: false },
-  },
-  {
-    label: "Pass drug screen?",
-    q: { prompt: "Are you able to pass a pre-employment drug screen?", type: "yes_no", options: [], required: true, knockout_answer: false },
-  },
-  {
-    label: "Years of warehouse experience",
-    q: { prompt: "How many years of warehouse experience do you have?", type: "number", options: [], required: false, knockout_answer: null },
-  },
-  {
-    label: "Earliest start date",
-    q: { prompt: "What is your earliest possible start date?", type: "text", options: [], required: false, knockout_answer: null },
-  },
-];
+export const SCREENING_PRESETS: { label: string; q: Omit<ScreeningQuestionDraft, "sort_order"> }[] =
+  [
+    {
+      label: "Forklift certified?",
+      q: {
+        prompt: "Are you currently forklift certified?",
+        type: "yes_no",
+        options: [],
+        required: true,
+        knockout_answer: false,
+      },
+    },
+    {
+      label: "Available overnight?",
+      q: {
+        prompt: "Are you available to work overnight shifts?",
+        type: "yes_no",
+        options: [],
+        required: true,
+        knockout_answer: false,
+      },
+    },
+    {
+      label: "Can lift 50 lbs?",
+      q: {
+        prompt: "Can you repeatedly lift up to 50 lbs?",
+        type: "yes_no",
+        options: [],
+        required: true,
+        knockout_answer: false,
+      },
+    },
+    {
+      label: "Stand 8+ hours?",
+      q: {
+        prompt: "Can you stand and walk for 8+ hours per shift?",
+        type: "yes_no",
+        options: [],
+        required: true,
+        knockout_answer: false,
+      },
+    },
+    {
+      label: "Reliable transportation?",
+      q: {
+        prompt: "Do you have reliable transportation to the warehouse?",
+        type: "yes_no",
+        options: [],
+        required: true,
+        knockout_answer: false,
+      },
+    },
+    {
+      label: "Pass drug screen?",
+      q: {
+        prompt: "Are you able to pass a pre-employment drug screen?",
+        type: "yes_no",
+        options: [],
+        required: true,
+        knockout_answer: false,
+      },
+    },
+    {
+      label: "Years of warehouse experience",
+      q: {
+        prompt: "How many years of warehouse experience do you have?",
+        type: "number",
+        options: [],
+        required: false,
+        knockout_answer: null,
+      },
+    },
+    {
+      label: "Earliest start date",
+      q: {
+        prompt: "What is your earliest possible start date?",
+        type: "text",
+        options: [],
+        required: false,
+        knockout_answer: null,
+      },
+    },
+  ];
 
 interface Props {
   value: ScreeningQuestionDraft[];
@@ -88,7 +141,9 @@ export function ScreeningQuestionsBuilder({ value, onChange }: Props) {
     onChange(value.filter((_, idx) => idx !== i).map((q, idx) => ({ ...q, sort_order: idx })));
   const add = () => onChange([...value, newQuestion(value.length)]);
   const addPreset = (preset: Omit<ScreeningQuestionDraft, "sort_order">) => {
-    const exists = value.some((q) => q.prompt.trim().toLowerCase() === preset.prompt.trim().toLowerCase());
+    const exists = value.some(
+      (q) => q.prompt.trim().toLowerCase() === preset.prompt.trim().toLowerCase(),
+    );
     if (exists) return;
     onChange([...value, { ...preset, sort_order: value.length }]);
   };
@@ -99,7 +154,9 @@ export function ScreeningQuestionsBuilder({ value, onChange }: Props) {
         <p className="mb-2 text-xs font-semibold text-[color:var(--ink)]">Warehouse presets</p>
         <div className="flex flex-wrap gap-1.5">
           {SCREENING_PRESETS.map((p) => {
-            const already = value.some((q) => q.prompt.trim().toLowerCase() === p.q.prompt.trim().toLowerCase());
+            const already = value.some(
+              (q) => q.prompt.trim().toLowerCase() === p.q.prompt.trim().toLowerCase(),
+            );
             return (
               <Button
                 key={p.label}
@@ -144,15 +201,24 @@ export function ScreeningQuestionsBuilder({ value, onChange }: Props) {
                       const t = v as QuestionType;
                       update(i, {
                         type: t,
-                        options: t === "single" || t === "multi" ? q.options.length ? q.options : ["", ""] : [],
+                        options:
+                          t === "single" || t === "multi"
+                            ? q.options.length
+                              ? q.options
+                              : ["", ""]
+                            : [],
                         knockout_answer: null,
                       });
                     }}
                   >
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
                       {(Object.keys(TYPE_LABELS) as QuestionType[]).map((t) => (
-                        <SelectItem key={t} value={t}>{TYPE_LABELS[t]}</SelectItem>
+                        <SelectItem key={t} value={t}>
+                          {TYPE_LABELS[t]}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -175,7 +241,9 @@ export function ScreeningQuestionsBuilder({ value, onChange }: Props) {
                         }}
                       />
                       <Button
-                        type="button" size="icon" variant="ghost"
+                        type="button"
+                        size="icon"
+                        variant="ghost"
                         onClick={() => update(i, { options: q.options.filter((_, x) => x !== oi) })}
                       >
                         <Trash2 className="h-4 w-4" />
@@ -183,7 +251,9 @@ export function ScreeningQuestionsBuilder({ value, onChange }: Props) {
                     </div>
                   ))}
                   <Button
-                    type="button" size="sm" variant="outline"
+                    type="button"
+                    size="sm"
+                    variant="outline"
                     onClick={() => update(i, { options: [...q.options, ""] })}
                   >
                     <Plus className="mr-1 h-3 w-3" /> Add option
@@ -205,14 +275,19 @@ export function ScreeningQuestionsBuilder({ value, onChange }: Props) {
                     <Label className="text-xs">Knockout answer (auto-flag)</Label>
                     <Select
                       value={
-                        q.knockout_answer === true ? "yes" :
-                        q.knockout_answer === false ? "no" : "none"
+                        q.knockout_answer === true
+                          ? "yes"
+                          : q.knockout_answer === false
+                            ? "no"
+                            : "none"
                       }
                       onValueChange={(v) =>
                         update(i, { knockout_answer: v === "none" ? null : v === "yes" })
                       }
                     >
-                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="none">No knockout</SelectItem>
                         <SelectItem value="yes">Flag if Yes</SelectItem>
@@ -229,11 +304,15 @@ export function ScreeningQuestionsBuilder({ value, onChange }: Props) {
                       value={typeof q.knockout_answer === "string" ? q.knockout_answer : "none"}
                       onValueChange={(v) => update(i, { knockout_answer: v === "none" ? null : v })}
                     >
-                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="none">No knockout</SelectItem>
                         {q.options.filter(Boolean).map((o) => (
-                          <SelectItem key={o} value={o}>Flag if "{o}"</SelectItem>
+                          <SelectItem key={o} value={o}>
+                            Flag if "{o}"
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -267,7 +346,11 @@ export function isKnockout(
   if (question.type === "single") {
     return answer === question.knockout_answer;
   }
-  if (question.type === "multi" && Array.isArray(answer) && Array.isArray(question.knockout_answer)) {
+  if (
+    question.type === "multi" &&
+    Array.isArray(answer) &&
+    Array.isArray(question.knockout_answer)
+  ) {
     return (question.knockout_answer as string[]).every((v) => (answer as string[]).includes(v));
   }
   return false;

@@ -1,7 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Search, ShieldCheck, ShieldOff, Eye, Ban, Play, BadgeCheck, FileText, X, Check, UserCog } from "lucide-react";
+import {
+  Search,
+  ShieldCheck,
+  ShieldOff,
+  Eye,
+  Ban,
+  Play,
+  BadgeCheck,
+  FileText,
+  X,
+  Check,
+  UserCog,
+} from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -9,7 +21,14 @@ import { startImpersonation } from "@/lib/impersonation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -74,13 +93,13 @@ function AdminCompanies() {
       return false;
     }
     const patch: Partial<Company> = approve
-      ? {
+      ? ({
           verified: true,
           verification_status: "verified",
           verified_at: new Date().toISOString(),
           verified_by: user?.id ?? null,
           verification_note: reason || null,
-        } as Partial<Company>
+        } as Partial<Company>)
       : {
           verified: false,
           verification_status: "rejected",
@@ -122,7 +141,9 @@ function AdminCompanies() {
               : `We couldn't verify ${c.name}. Reason: ${reason}`,
           },
         });
-      } catch { /* email is best-effort */ }
+      } catch {
+        /* email is best-effort */
+      }
     }
     toast.success(approve ? "Approved" : "Rejected");
     qc.invalidateQueries({ queryKey: ["admin-companies"] });
@@ -142,13 +163,20 @@ function AdminCompanies() {
             <div className="flex flex-wrap items-center gap-2">
               <p className="font-semibold text-[color:var(--ink)]">{c.name}</p>
               <VerificationPill status={c.verification_status} />
-              {c.status === "suspended" && <Badge className="border-0 bg-red-100 text-red-900">Suspended</Badge>}
+              {c.status === "suspended" && (
+                <Badge className="border-0 bg-red-100 text-red-900">Suspended</Badge>
+              )}
             </div>
             <p className="text-xs text-muted-foreground">
               {[c.industry, c.hq_city, c.hq_state].filter(Boolean).join(" · ") || "—"}
             </p>
             {c.website && (
-              <a href={c.website} target="_blank" rel="noreferrer" className="text-xs text-primary hover:underline">
+              <a
+                href={c.website}
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs text-primary hover:underline"
+              >
                 {c.website.replace(/^https?:\/\//, "")}
               </a>
             )}
@@ -156,16 +184,18 @@ function AdminCompanies() {
               {c.posting_credits} post · {c.featured_credits} featured credits
             </p>
             {c.verification_note && (
-              <p className="mt-1 text-xs italic text-muted-foreground">Note: {c.verification_note}</p>
+              <p className="mt-1 text-xs italic text-muted-foreground">
+                Note: {c.verification_note}
+              </p>
             )}
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          {c.verification_evidence_url && (
-            <EvidenceLink path={c.verification_evidence_url} />
-          )}
+          {c.verification_evidence_url && <EvidenceLink path={c.verification_evidence_url} />}
           <Link to="/admin/jobs" search={{ company: c.id } as never}>
-            <Button size="sm" variant="outline" className="gap-1"><Eye className="h-3.5 w-3.5" /> Jobs</Button>
+            <Button size="sm" variant="outline" className="gap-1">
+              <Eye className="h-3.5 w-3.5" /> Jobs
+            </Button>
           </Link>
           {c.owner_id && (
             <Button
@@ -175,7 +205,12 @@ function AdminCompanies() {
               title="Open this company's employer dashboard as their owner"
               onClick={async () => {
                 if (!c.owner_id) return;
-                if (!confirm(`View ${c.name}'s employer dashboard as the owner? All actions are audited.`)) return;
+                if (
+                  !confirm(
+                    `View ${c.name}'s employer dashboard as the owner? All actions are audited.`,
+                  )
+                )
+                  return;
                 try {
                   await startImpersonation(c.owner_id, {
                     label: c.name,
@@ -197,26 +232,68 @@ function AdminCompanies() {
             <>
               <DecisionDialog
                 kind="approve"
-                trigger={<Button size="sm" className="gap-1 bg-blue-600 text-white hover:bg-blue-700"><Check className="h-3.5 w-3.5" /> Approve</Button>}
+                trigger={
+                  <Button size="sm" className="gap-1 bg-blue-600 text-white hover:bg-blue-700">
+                    <Check className="h-3.5 w-3.5" /> Approve
+                  </Button>
+                }
                 onConfirm={(reason) => decide(c, true, reason)}
               />
               <DecisionDialog
                 kind="reject"
-                trigger={<Button size="sm" variant="outline" className="gap-1 text-red-600"><X className="h-3.5 w-3.5" /> Reject</Button>}
+                trigger={
+                  <Button size="sm" variant="outline" className="gap-1 text-red-600">
+                    <X className="h-3.5 w-3.5" /> Reject
+                  </Button>
+                }
                 onConfirm={(reason) => decide(c, false, reason)}
               />
             </>
           ) : (
-            <Button size="sm" variant="outline" onClick={() => updateCompany(c.id, c.verified ? { verified: false, verification_status: "unverified" } : { verified: true, verification_status: "verified", verified_at: new Date().toISOString() })} className="gap-1">
-              {c.verified ? <><ShieldOff className="h-3.5 w-3.5" /> Unverify</> : <><ShieldCheck className="h-3.5 w-3.5" /> Verify</>}
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() =>
+                updateCompany(
+                  c.id,
+                  c.verified
+                    ? { verified: false, verification_status: "unverified" }
+                    : {
+                        verified: true,
+                        verification_status: "verified",
+                        verified_at: new Date().toISOString(),
+                      },
+                )
+              }
+              className="gap-1"
+            >
+              {c.verified ? (
+                <>
+                  <ShieldOff className="h-3.5 w-3.5" /> Unverify
+                </>
+              ) : (
+                <>
+                  <ShieldCheck className="h-3.5 w-3.5" /> Verify
+                </>
+              )}
             </Button>
           )}
           {c.status === "suspended" ? (
-            <Button size="sm" variant="outline" onClick={() => updateCompany(c.id, { status: "active" })} className="gap-1">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => updateCompany(c.id, { status: "active" })}
+              className="gap-1"
+            >
               <Play className="h-3.5 w-3.5" /> Reactivate
             </Button>
           ) : (
-            <Button size="sm" variant="outline" onClick={() => updateCompany(c.id, { status: "suspended" })} className="gap-1">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => updateCompany(c.id, { status: "suspended" })}
+              className="gap-1"
+            >
               <Ban className="h-3.5 w-3.5" /> Suspend
             </Button>
           )}
@@ -233,11 +310,18 @@ function AdminCompanies() {
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="label-caps">Companies</p>
-          <h1 className="mt-1 text-2xl font-bold text-[color:var(--ink)]">Verification & management</h1>
+          <h1 className="mt-1 text-2xl font-bold text-[color:var(--ink)]">
+            Verification & management
+          </h1>
         </div>
         <div className="flex items-center gap-2 rounded-md border border-border bg-card px-3 py-2">
           <Search className="h-4 w-4 text-muted-foreground" />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by name…" className="w-56 bg-transparent text-sm focus:outline-none" />
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search by name…"
+            className="w-56 bg-transparent text-sm focus:outline-none"
+          />
         </div>
       </div>
 
@@ -264,7 +348,9 @@ function AdminCompanies() {
         <TabsContent value="all" className="mt-4">
           <div className="grid gap-3">
             {companies.map(renderRow)}
-            {companies.length === 0 && <p className="text-sm text-muted-foreground">No companies match.</p>}
+            {companies.length === 0 && (
+              <p className="text-sm text-muted-foreground">No companies match.</p>
+            )}
           </div>
         </TabsContent>
       </Tabs>
@@ -288,7 +374,9 @@ function EvidenceLink({ path }: { path: string }) {
   const open = async () => {
     setBusy(true);
     try {
-      const { data, error } = await supabase.storage.from("company-verification").createSignedUrl(path, 60);
+      const { data, error } = await supabase.storage
+        .from("company-verification")
+        .createSignedUrl(path, 60);
       if (error || !data?.signedUrl) throw error ?? new Error("No URL");
       window.open(data.signedUrl, "_blank");
     } catch (e) {
@@ -305,7 +393,9 @@ function EvidenceLink({ path }: { path: string }) {
 }
 
 function DecisionDialog({
-  kind, trigger, onConfirm,
+  kind,
+  trigger,
+  onConfirm,
 }: {
   kind: "approve" | "reject";
   trigger: React.ReactNode;
@@ -315,21 +405,49 @@ function DecisionDialog({
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
   return (
-    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setReason(""); }}>
+    <Dialog
+      open={open}
+      onOpenChange={(o) => {
+        setOpen(o);
+        if (!o) setReason("");
+      }}
+    >
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{kind === "approve" ? "Approve verification" : "Reject verification"}</DialogTitle>
+          <DialogTitle>
+            {kind === "approve" ? "Approve verification" : "Reject verification"}
+          </DialogTitle>
         </DialogHeader>
         <div className="space-y-2">
-          <Label>{kind === "approve" ? "Internal note (optional)" : "Reason (sent to the employer)"}</Label>
-          <Textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={4} placeholder={kind === "approve" ? "Confirmed via domain email…" : "Could not confirm business registration…"} />
+          <Label>
+            {kind === "approve" ? "Internal note (optional)" : "Reason (sent to the employer)"}
+          </Label>
+          <Textarea
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            rows={4}
+            placeholder={
+              kind === "approve"
+                ? "Confirmed via domain email…"
+                : "Could not confirm business registration…"
+            }
+          />
         </div>
         <DialogFooter>
           <Button
             disabled={busy || (kind === "reject" && !reason.trim())}
-            onClick={async () => { setBusy(true); const ok = await onConfirm(reason); setBusy(false); if (ok) setOpen(false); }}
-            className={kind === "approve" ? "bg-blue-600 text-white hover:bg-blue-700" : "bg-red-600 text-white hover:bg-red-700"}
+            onClick={async () => {
+              setBusy(true);
+              const ok = await onConfirm(reason);
+              setBusy(false);
+              if (ok) setOpen(false);
+            }}
+            className={
+              kind === "approve"
+                ? "bg-blue-600 text-white hover:bg-blue-700"
+                : "bg-red-600 text-white hover:bg-red-700"
+            }
           >
             {busy ? "Saving…" : kind === "approve" ? "Approve" : "Reject"}
           </Button>
@@ -339,27 +457,53 @@ function DecisionDialog({
   );
 }
 
-function CreditsDialog({ company, onSave }: { company: { id: string; name: string; posting_credits: number; featured_credits: number }; onSave: (patch: { posting_credits: number; featured_credits: number }) => void }) {
+function CreditsDialog({
+  company,
+  onSave,
+}: {
+  company: { id: string; name: string; posting_credits: number; featured_credits: number };
+  onSave: (patch: { posting_credits: number; featured_credits: number }) => void;
+}) {
   const [open, setOpen] = useState(false);
   const [posting, setPosting] = useState(company.posting_credits);
   const [featured, setFeatured] = useState(company.featured_credits);
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" variant="outline">Credits</Button>
+        <Button size="sm" variant="outline">
+          Credits
+        </Button>
       </DialogTrigger>
       <DialogContent>
-        <DialogHeader><DialogTitle>Adjust credits — {company.name}</DialogTitle></DialogHeader>
+        <DialogHeader>
+          <DialogTitle>Adjust credits — {company.name}</DialogTitle>
+        </DialogHeader>
         <div className="space-y-4">
           <div>
             <Label>Posting credits</Label>
-            <Input type="number" value={posting} onChange={(e) => setPosting(Number(e.target.value))} className="mt-1" />
+            <Input
+              type="number"
+              value={posting}
+              onChange={(e) => setPosting(Number(e.target.value))}
+              className="mt-1"
+            />
           </div>
           <div>
             <Label>Featured credits</Label>
-            <Input type="number" value={featured} onChange={(e) => setFeatured(Number(e.target.value))} className="mt-1" />
+            <Input
+              type="number"
+              value={featured}
+              onChange={(e) => setFeatured(Number(e.target.value))}
+              className="mt-1"
+            />
           </div>
-          <Button onClick={() => { onSave({ posting_credits: posting, featured_credits: featured }); setOpen(false); }} className="btn-primary w-full">
+          <Button
+            onClick={() => {
+              onSave({ posting_credits: posting, featured_credits: featured });
+              setOpen(false);
+            }}
+            className="btn-primary w-full"
+          >
             Save
           </Button>
         </div>

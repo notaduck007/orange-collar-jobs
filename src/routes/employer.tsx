@@ -1,7 +1,16 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { LayoutDashboard, Briefcase, Building2, CreditCard, Megaphone, Users, Search, BarChart3 } from "lucide-react";
+import {
+  LayoutDashboard,
+  Briefcase,
+  Building2,
+  CreditCard,
+  Megaphone,
+  Users,
+  Search,
+  BarChart3,
+} from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { useAuth } from "@/lib/auth";
@@ -114,7 +123,17 @@ function EmployerLayout() {
   );
 }
 
-function SideLink({ to, icon: Icon, label, exact }: { to: string; icon: typeof LayoutDashboard; label: string; exact?: boolean }) {
+function SideLink({
+  to,
+  icon: Icon,
+  label,
+  exact,
+}: {
+  to: string;
+  icon: typeof LayoutDashboard;
+  label: string;
+  exact?: boolean;
+}) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const active = exact ? pathname === to : pathname.startsWith(to);
   return (

@@ -82,21 +82,72 @@ function Contact() {
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-16 sm:px-6 md:grid-cols-2">
         <div>
           <p className="label-caps text-primary">Talk to us</p>
-          <h1 className="mt-3 text-4xl font-bold text-[color:var(--ink)]">{page?.title ?? "Get in touch."}</h1>
-          {page?.body && <div className="mt-3 text-foreground"><Markdown>{page.body}</Markdown></div>}
+          <h1 className="mt-3 text-4xl font-bold text-[color:var(--ink)]">
+            {page?.title ?? "Get in touch."}
+          </h1>
+          {page?.body && (
+            <div className="mt-3 text-foreground">
+              <Markdown>{page.body}</Markdown>
+            </div>
+          )}
           <ul className="mt-8 space-y-4 text-sm">
-            <li className="flex items-start gap-3"><Phone className="mt-0.5 h-5 w-5 text-primary" /> <span><strong>(555) 480-DOCK</strong><br /><span className="text-muted-foreground">Mon–Fri, 7am–7pm CT</span></span></li>
-            <li className="flex items-start gap-3"><Mail className="mt-0.5 h-5 w-5 text-primary" /> <span><strong>hiring@dockhire.example</strong></span></li>
-            <li className="flex items-start gap-3"><MapPin className="mt-0.5 h-5 w-5 text-primary" /> <span>2400 Industrial Pkwy<br />Indianapolis, IN 46241</span></li>
+            <li className="flex items-start gap-3">
+              <Phone className="mt-0.5 h-5 w-5 text-primary" />{" "}
+              <span>
+                <strong>(555) 480-DOCK</strong>
+                <br />
+                <span className="text-muted-foreground">Mon–Fri, 7am–7pm CT</span>
+              </span>
+            </li>
+            <li className="flex items-start gap-3">
+              <Mail className="mt-0.5 h-5 w-5 text-primary" />{" "}
+              <span>
+                <strong>hiring@dockhire.example</strong>
+              </span>
+            </li>
+            <li className="flex items-start gap-3">
+              <MapPin className="mt-0.5 h-5 w-5 text-primary" />{" "}
+              <span>
+                2400 Industrial Pkwy
+                <br />
+                Indianapolis, IN 46241
+              </span>
+            </li>
           </ul>
         </div>
-        <form onSubmit={submit} className="space-y-4 rounded-xl border border-border bg-card p-6 shadow-[var(--shadow-card)]">
-          <div className="space-y-1.5"><Label>Name</Label><Input name="name" required maxLength={120} /></div>
-          <div className="space-y-1.5"><Label>Company</Label><Input name="company" maxLength={120} /></div>
-          <div className="space-y-1.5"><Label>Email</Label><Input name="email" type="email" required maxLength={255} defaultValue={user?.email ?? ""} /></div>
-          <div className="space-y-1.5"><Label>Subject</Label><Input name="subject" required maxLength={200} placeholder="What's this about?" /></div>
-          <div className="space-y-1.5"><Label>How can we help?</Label><Textarea name="body" required rows={5} maxLength={4000} /></div>
-          <Button type="submit" disabled={sending} className="btn-primary w-full">{sending ? "Sending…" : "Send message"}</Button>
+        <form
+          onSubmit={submit}
+          className="space-y-4 rounded-xl border border-border bg-card p-6 shadow-[var(--shadow-card)]"
+        >
+          <div className="space-y-1.5">
+            <Label>Name</Label>
+            <Input name="name" required maxLength={120} />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Company</Label>
+            <Input name="company" maxLength={120} />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Email</Label>
+            <Input
+              name="email"
+              type="email"
+              required
+              maxLength={255}
+              defaultValue={user?.email ?? ""}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Subject</Label>
+            <Input name="subject" required maxLength={200} placeholder="What's this about?" />
+          </div>
+          <div className="space-y-1.5">
+            <Label>How can we help?</Label>
+            <Textarea name="body" required rows={5} maxLength={4000} />
+          </div>
+          <Button type="submit" disabled={sending} className="btn-primary w-full">
+            {sending ? "Sending…" : "Send message"}
+          </Button>
         </form>
       </div>
       <SiteFooter />

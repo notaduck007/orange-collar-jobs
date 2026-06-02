@@ -18,7 +18,9 @@ function buildPrompt(p: any) {
     (p.pay_min || p.pay_max) &&
       `Pay: ${p.pay_min ?? "?"}–${p.pay_max ?? "?"} ${p.pay_unit ?? "hour"}`,
     p.location && `Location: ${p.location}`,
-  ].filter(Boolean).join("\n");
+  ]
+    .filter(Boolean)
+    .join("\n");
 
   const system =
     "You write clear, honest, warehouse-industry job postings for hourly workers. " +
@@ -64,7 +66,8 @@ serve(async (req) => {
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!apiKey) {
       return new Response(JSON.stringify({ error: "Missing LOVABLE_API_KEY" }), {
-        status: 500, headers: { ...cors, "Content-Type": "application/json" },
+        status: 500,
+        headers: { ...cors, "Content-Type": "application/json" },
       });
     }
 
@@ -88,7 +91,8 @@ serve(async (req) => {
       const text = await upstream.text();
       const status = upstream.status === 429 || upstream.status === 402 ? upstream.status : 500;
       return new Response(JSON.stringify({ error: text || "AI gateway error" }), {
-        status, headers: { ...cors, "Content-Type": "application/json" },
+        status,
+        headers: { ...cors, "Content-Type": "application/json" },
       });
     }
 
@@ -101,7 +105,10 @@ serve(async (req) => {
     const stream = new ReadableStream({
       async pull(controller) {
         const { done, value } = await reader.read();
-        if (done) { controller.close(); return; }
+        if (done) {
+          controller.close();
+          return;
+        }
         buf += decoder.decode(value, { stream: true });
         const lines = buf.split("\n");
         buf = lines.pop() ?? "";
@@ -114,10 +121,14 @@ serve(async (req) => {
             const json = JSON.parse(data);
             const delta = json.choices?.[0]?.delta?.content ?? "";
             if (delta) controller.enqueue(encoder.encode(delta));
-          } catch { /* skip */ }
+          } catch {
+            /* skip */
+          }
         }
       },
-      cancel() { reader.cancel(); },
+      cancel() {
+        reader.cancel();
+      },
     });
 
     return new Response(stream, {
@@ -130,7 +141,8 @@ serve(async (req) => {
     });
   } catch (e: any) {
     return new Response(JSON.stringify({ error: e?.message ?? String(e) }), {
-      status: 500, headers: { ...cors, "Content-Type": "application/json" },
+      status: 500,
+      headers: { ...cors, "Content-Type": "application/json" },
     });
   }
 });

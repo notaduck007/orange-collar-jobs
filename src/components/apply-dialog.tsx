@@ -38,7 +38,14 @@ type QuestionRow = {
   sort_order: number;
 };
 
-export function ApplyDialog({ jobId, jobTitle, quickHire, open, onOpenChange, onApplied }: ApplyDialogProps) {
+export function ApplyDialog({
+  jobId,
+  jobTitle,
+  quickHire,
+  open,
+  onOpenChange,
+  onApplied,
+}: ApplyDialogProps) {
   const { user } = useAuth();
   const { settings } = useSiteSettings();
   const qc = useQueryClient();
@@ -107,7 +114,8 @@ export function ApplyDialog({ jobId, jobTitle, quickHire, open, onOpenChange, on
       if (!q.required) continue;
       const a = answers[q.id];
       if (a === undefined || a === null || a === "") return `Please answer: "${q.prompt}"`;
-      if (q.type === "multi" && Array.isArray(a) && a.length === 0) return `Please answer: "${q.prompt}"`;
+      if (q.type === "multi" && Array.isArray(a) && a.length === 0)
+        return `Please answer: "${q.prompt}"`;
     }
     return null;
   };
@@ -115,11 +123,16 @@ export function ApplyDialog({ jobId, jobTitle, quickHire, open, onOpenChange, on
   const submit = async () => {
     if (!user) return;
     if (!emailIsVerified(user, settings.toggles.require_email_verification)) {
-      toast.error("Please verify your email before applying. Check your inbox for the confirmation link.");
+      toast.error(
+        "Please verify your email before applying. Check your inbox for the confirmation link.",
+      );
       return;
     }
     const qErr = validateAnswers();
-    if (qErr) { toast.error(qErr); return; }
+    if (qErr) {
+      toast.error(qErr);
+      return;
+    }
     if (quickHire && slots.length > 0 && !slotId) {
       toast.error("Pick an interview slot to continue.");
       return;
@@ -154,12 +167,16 @@ export function ApplyDialog({ jobId, jobTitle, quickHire, open, onOpenChange, on
         return;
       }
 
-      const { data: created, error } = await supabase.from("applications").insert({
-        job_id: jobId,
-        applicant_id: user.id,
-        cover_letter: coverNote || null,
-        resume_url: resumePath,
-      }).select("id").single();
+      const { data: created, error } = await supabase
+        .from("applications")
+        .insert({
+          job_id: jobId,
+          applicant_id: user.id,
+          cover_letter: coverNote || null,
+          resume_url: resumePath,
+        })
+        .select("id")
+        .single();
       if (error) {
         if (error.code === "23505") {
           toast.error("You've already applied to this job.");
@@ -342,10 +359,7 @@ export function ApplyDialog({ jobId, jobTitle, quickHire, open, onOpenChange, on
                             <Checkbox
                               checked={checked}
                               onCheckedChange={(c) =>
-                                setAnswer(
-                                  q.id,
-                                  c ? [...cur, opt] : cur.filter((x) => x !== opt),
-                                )
+                                setAnswer(q.id, c ? [...cur, opt] : cur.filter((x) => x !== opt))
                               }
                             />
                             {opt}
@@ -382,12 +396,16 @@ export function ApplyDialog({ jobId, jobTitle, quickHire, open, onOpenChange, on
               </p>
               {slots.length === 0 ? (
                 <p className="text-xs text-muted-foreground">
-                  No interview slots are available right now. You can still apply and the employer will reach out.
+                  No interview slots are available right now. You can still apply and the employer
+                  will reach out.
                 </p>
               ) : (
                 <div className="space-y-1">
                   {slots.map((s) => (
-                    <label key={s.id} className="flex items-center gap-2 rounded-md border border-border p-2 text-sm">
+                    <label
+                      key={s.id}
+                      className="flex items-center gap-2 rounded-md border border-border p-2 text-sm"
+                    >
                       <input
                         type="radio"
                         name="slot"
@@ -410,7 +428,6 @@ export function ApplyDialog({ jobId, jobTitle, quickHire, open, onOpenChange, on
               )}
             </div>
           )}
-
 
           <div className="space-y-1.5">
             <Label htmlFor="cover">Cover note (optional)</Label>

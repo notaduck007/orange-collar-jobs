@@ -4,18 +4,23 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 function corsHeaders(req: Request) {
   const allowed = (Deno.env.get("ALLOWED_ORIGINS") ?? "")
-    .split(",").map((s) => s.trim()).filter(Boolean);
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
   const origin = req.headers.get("origin") ?? "";
   const allowOrigin = allowed.includes(origin) ? origin : (allowed[0] ?? "null");
   return {
     "Access-Control-Allow-Origin": allowOrigin,
-    "Vary": "Origin",
+    Vary: "Origin",
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
   };
 }
 const json = (req: Request, b: unknown, status = 200) =>
-  new Response(JSON.stringify(b), { status, headers: { ...corsHeaders(req), "Content-Type": "application/json" } });
+  new Response(JSON.stringify(b), {
+    status,
+    headers: { ...corsHeaders(req), "Content-Type": "application/json" },
+  });
 
 serve(async (req) => {
   const cors = corsHeaders(req);
@@ -55,7 +60,8 @@ serve(async (req) => {
     if (targetId === actorId) return json(req, { error: "Cannot impersonate self" }, 400);
 
     const { data: tgt, error: tgtErr } = await admin.auth.admin.getUserById(targetId);
-    if (tgtErr || !tgt.user?.email) return json(req, { error: "Target not found or has no email" }, 404);
+    if (tgtErr || !tgt.user?.email)
+      return json(req, { error: "Target not found or has no email" }, 404);
 
     const { data: link, error: linkErr } = await admin.auth.admin.generateLink({
       type: "magiclink",

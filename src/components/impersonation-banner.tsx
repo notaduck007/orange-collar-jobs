@@ -13,7 +13,9 @@ export function ImpersonationBanner() {
       if (e.key === null || e.key.includes("impersonation")) sync();
     };
     window.addEventListener("storage", onStorage);
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => sync());
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(() => sync());
     return () => {
       window.removeEventListener("storage", onStorage);
       subscription.unsubscribe();

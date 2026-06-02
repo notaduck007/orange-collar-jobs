@@ -138,10 +138,22 @@ function AdminCategories() {
               <tr key={c.id} className="border-t border-border">
                 <td className="px-3 py-2">
                   <div className="flex items-center gap-1">
-                    <Button size="icon" variant="ghost" className="h-7 w-7" disabled={i === 0} onClick={() => move(c, -1)}>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-7 w-7"
+                      disabled={i === 0}
+                      onClick={() => move(c, -1)}
+                    >
                       <ArrowUp className="h-3.5 w-3.5" />
                     </Button>
-                    <Button size="icon" variant="ghost" className="h-7 w-7" disabled={i === cats.length - 1} onClick={() => move(c, 1)}>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-7 w-7"
+                      disabled={i === cats.length - 1}
+                      onClick={() => move(c, 1)}
+                    >
                       <ArrowDown className="h-3.5 w-3.5" />
                     </Button>
                   </div>
@@ -172,14 +184,23 @@ function AdminCategories() {
                   <Switch checked={c.active} onCheckedChange={(v) => patch(c.id, { active: v })} />
                 </td>
                 <td className="px-3 py-2 text-right">
-                  <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => remove(c)}>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-7 w-7 text-destructive"
+                    onClick={() => remove(c)}
+                  >
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>
                 </td>
               </tr>
             ))}
             {!isLoading && cats.length === 0 && (
-              <tr><td colSpan={6} className="px-3 py-8 text-center text-sm text-muted-foreground">No categories yet.</td></tr>
+              <tr>
+                <td colSpan={6} className="px-3 py-8 text-center text-sm text-muted-foreground">
+                  No categories yet.
+                </td>
+              </tr>
             )}
           </tbody>
         </table>
@@ -187,20 +208,37 @@ function AdminCategories() {
 
       <Dialog open={creating} onOpenChange={setCreating}>
         <DialogContent>
-          <DialogHeader><DialogTitle>New category</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>New category</DialogTitle>
+          </DialogHeader>
           <div className="space-y-3">
             <div>
               <label className="text-xs font-medium text-muted-foreground">Name</label>
-              <Input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} className="mt-1" />
-              {form.name && <p className="mt-1 text-xs text-muted-foreground">Slug: <span className="font-mono">{slugify(form.name)}</span></p>}
+              <Input
+                value={form.name}
+                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                className="mt-1"
+              />
+              {form.name && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Slug: <span className="font-mono">{slugify(form.name)}</span>
+                </p>
+              )}
             </div>
             <div>
               <label className="text-xs font-medium text-muted-foreground">Icon (optional)</label>
-              <Input value={form.icon} onChange={(e) => setForm((f) => ({ ...f, icon: e.target.value }))} className="mt-1" placeholder="📦 or lucide name" />
+              <Input
+                value={form.icon}
+                onChange={(e) => setForm((f) => ({ ...f, icon: e.target.value }))}
+                className="mt-1"
+                placeholder="📦 or lucide name"
+              />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCreating(false)} disabled={saving}>Cancel</Button>
+            <Button variant="outline" onClick={() => setCreating(false)} disabled={saving}>
+              Cancel
+            </Button>
             <Button onClick={create} disabled={saving}>
               {saving && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />} Create
             </Button>

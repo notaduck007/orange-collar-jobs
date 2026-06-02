@@ -9,7 +9,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export const Route = createFileRoute("/employer/team")({
   head: () => ({ meta: [{ title: "Team — WarehouseJobs Employer" }] }),
@@ -40,7 +46,11 @@ function EmployerTeam() {
     queryKey: ["employer-company", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data: owned } = await supabase.from("companies").select("*").eq("owner_id", user!.id).maybeSingle();
+      const { data: owned } = await supabase
+        .from("companies")
+        .select("*")
+        .eq("owner_id", user!.id)
+        .maybeSingle();
       if (owned) return owned;
       const { data: m } = await supabase
         .from("company_members")
@@ -50,7 +60,11 @@ function EmployerTeam() {
         .limit(1)
         .maybeSingle();
       if (!m?.company_id) return null;
-      const { data: c } = await supabase.from("companies").select("*").eq("id", m.company_id).maybeSingle();
+      const { data: c } = await supabase
+        .from("companies")
+        .select("*")
+        .eq("id", m.company_id)
+        .maybeSingle();
       return c ?? null;
     },
   });
@@ -70,15 +84,26 @@ function EmployerTeam() {
       if (error) throw error;
 
       const userIds = (data ?? []).map((m) => m.user_id).filter((id): id is string => !!id);
-      let profilesById = new Map<string, { display_name: string | null; avatar_url: string | null }>();
+      let profilesById = new Map<
+        string,
+        { display_name: string | null; avatar_url: string | null }
+      >();
       if (userIds.length) {
         const { data: profs } = await supabase
           .from("profiles")
           .select("id, display_name, avatar_url")
           .in("id", userIds);
-        profilesById = new Map((profs ?? []).map((p) => [p.id, { display_name: p.display_name, avatar_url: p.avatar_url }]));
+        profilesById = new Map(
+          (profs ?? []).map((p) => [
+            p.id,
+            { display_name: p.display_name, avatar_url: p.avatar_url },
+          ]),
+        );
       }
-      return (data ?? []).map((m) => ({ ...m, profile: m.user_id ? profilesById.get(m.user_id) ?? null : null })) as Member[];
+      return (data ?? []).map((m) => ({
+        ...m,
+        profile: m.user_id ? (profilesById.get(m.user_id) ?? null) : null,
+      })) as Member[];
     },
   });
 
@@ -103,7 +128,10 @@ function EmployerTeam() {
 
       if (existing) {
         if (existing.status === "removed") {
-          await supabase.from("company_members").update({ status: "invited", role }).eq("id", existing.id);
+          await supabase
+            .from("company_members")
+            .update({ status: "invited", role })
+            .eq("id", existing.id);
         } else {
           toast.info("That email is already on the team.");
           setSubmitting(false);
@@ -141,21 +169,35 @@ function EmployerTeam() {
       toast.error("Cannot remove the owner.");
       return;
     }
-    if (!confirm(`Remove ${m.profile?.display_name || m.invited_email || "this member"} from the team?`)) return;
-    const { error } = await supabase.from("company_members").update({ status: "removed" }).eq("id", m.id);
+    if (
+      !confirm(
+        `Remove ${m.profile?.display_name || m.invited_email || "this member"} from the team?`,
+      )
+    )
+      return;
+    const { error } = await supabase
+      .from("company_members")
+      .update({ status: "removed" })
+      .eq("id", m.id);
     if (error) return toast.error(error.message);
     qc.invalidateQueries({ queryKey: ["company-members", company?.id] });
   };
 
   if (!company) {
-    return <div className="rounded-xl border border-border bg-card p-8 text-sm text-muted-foreground">Set up your company first.</div>;
+    return (
+      <div className="rounded-xl border border-border bg-card p-8 text-sm text-muted-foreground">
+        Set up your company first.
+      </div>
+    );
   }
 
   return (
     <div className="space-y-6">
       <header>
         <h1 className="text-2xl font-bold text-[color:var(--ink)]">Team</h1>
-        <p className="text-sm text-muted-foreground">Invite recruiters to collaborate on {company.name}.</p>
+        <p className="text-sm text-muted-foreground">
+          Invite recruiters to collaborate on {company.name}.
+        </p>
       </header>
 
       {canManage && (
@@ -163,7 +205,9 @@ function EmployerTeam() {
           <h2 className="mb-3 text-sm font-semibold text-[color:var(--ink)]">Invite a teammate</h2>
           <div className="grid gap-3 sm:grid-cols-[1fr_180px_auto]">
             <div className="space-y-1">
-              <Label htmlFor="invite-email" className="sr-only">Email</Label>
+              <Label htmlFor="invite-email" className="sr-only">
+                Email
+              </Label>
               <Input
                 id="invite-email"
                 type="email"
@@ -174,7 +218,9 @@ function EmployerTeam() {
             </div>
             <div>
               <Select value={role} onValueChange={(v) => setRole(v as MemberRole)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="recruiter">Recruiter</SelectItem>
                   <SelectItem value="admin">Admin</SelectItem>
@@ -224,21 +270,27 @@ function EmployerTeam() {
                 <td className="px-4 py-3">
                   {canManage && m.role !== "owner" ? (
                     <Select value={m.role} onValueChange={(v) => changeRole(m, v as MemberRole)}>
-                      <SelectTrigger className="h-8 w-[130px] text-xs"><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="h-8 w-[130px] text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="recruiter">Recruiter</SelectItem>
                         <SelectItem value="admin">Admin</SelectItem>
                       </SelectContent>
                     </Select>
                   ) : (
-                    <Badge variant="outline" className="text-[10px] font-semibold uppercase">{m.role}</Badge>
+                    <Badge variant="outline" className="text-[10px] font-semibold uppercase">
+                      {m.role}
+                    </Badge>
                   )}
                 </td>
                 <td className="px-4 py-3">
                   <Badge
                     variant="outline"
                     className={`text-[10px] font-semibold uppercase ${
-                      m.status === "active" ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700" : "border-amber-500/40 bg-amber-500/10 text-amber-700"
+                      m.status === "active"
+                        ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700"
+                        : "border-amber-500/40 bg-amber-500/10 text-amber-700"
                     }`}
                   >
                     {m.status}
@@ -247,7 +299,12 @@ function EmployerTeam() {
                 {canManage && (
                   <td className="px-4 py-3 text-right">
                     {m.role !== "owner" && (
-                      <Button size="sm" variant="outline" className="gap-1" onClick={() => remove(m)}>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="gap-1"
+                        onClick={() => remove(m)}
+                      >
                         <Trash2 className="h-3.5 w-3.5" /> Remove
                       </Button>
                     )}
@@ -257,7 +314,10 @@ function EmployerTeam() {
             ))}
             {members.length === 0 && (
               <tr>
-                <td colSpan={canManage ? 4 : 3} className="px-4 py-10 text-center text-sm text-muted-foreground">
+                <td
+                  colSpan={canManage ? 4 : 3}
+                  className="px-4 py-10 text-center text-sm text-muted-foreground"
+                >
                   No team members yet.
                 </td>
               </tr>
