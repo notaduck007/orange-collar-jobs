@@ -96,12 +96,54 @@ serve(async (req) => {
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY")!, { apiVersion: "2024-06-20" });
 
     const origin = req.headers.get("origin") || "";
-    const successBase = pending_job_id
-      ? `${origin}/employer/jobs/new?checkout=success&session_id={CHECKOUT_SESSION_ID}&draft=${pending_job_id}`
-      : `${origin}/employer/billing?checkout=success&session_id={CHECKOUT_SESSION_ID}`;
-    const cancelBase = pending_job_id
-      ? `${origin}/employer/jobs/new?checkout=cancelled&draft=${pending_job_id}`
-      : `${origin}/pricing?checkout=cancelled`;
+
+    // Allow-list of internal paths the client may target for success/cancel.
+    const ALLOWED_REDIRECT_PATHS = new Set([
+      "/employer/ads",
+      "/employer/billing",
+      "/employer/jobs/new",
+      "/pricing",
+    ]);
+    const toInternalPath = (raw: unknown): string | null => {
+      if (typeof raw !== "string" || raw.length === 0) return null;
+      let pathname: string;
+      try {
+        // Accept either a full URL (same origin) or a bare path.
+        const url = raw.startsWith("/")
+          ? new URL(raw, origin || "http://x")
+          : new URL(raw);
+        pathname = url.pathname;
+      } catch {
+        return null;
+      }
+      return ALLOWED_REDIRECT_PATHS.has(pathname) ? pathname : null;
+    };
+
+    const requestedSuccessPath = toInternalPath(body.success_url);
+    const requestedCancelPath = toInternalPath(body.cancel_url);
+
+    const successPath =
+      requestedSuccessPath ??
+      (pending_job_id ? "/employer/jobs/new" : "/employer/billing");
+    const cancelPath =
+      requestedCancelPath ??
+      (pending_job_id ? "/employer/jobs/new" : "/pricing");
+
+    const successQuery = new URLSearchParams({ checkout: "success", session_id: "{CHECKOUT_SESSION_ID}" });
+    const cancelQuery = new URLSearchParams({ checkout: "cancelled" });
+    if (pending_job_id && successPath === "/employer/jobs/new") {
+      successQuery.set("draft", pending_job_id);
+    }
+    if (pending_job_id && cancelPath === "/employer/jobs/new") {
+      cancelQuery.set("draft", pending_job_id);
+    }
+
+    // Stripe requires the unescaped {CHECKOUT_SESSION_ID} placeholder.
+    const successBase = `${origin}${successPath}?${successQuery.toString()}`.replace(
+      "session_id=%7BCHECKOUT_SESSION_ID%7D",
+      "session_id={CHECKOUT_SESSION_ID}",
+    );
+    const cancelBase = `${origin}${cancelPath}?${cancelQuery.toString()}`;
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
