@@ -1122,10 +1122,12 @@ function NewJobPage() {
 
 function ReviewStep({
   form,
+  setForm,
   company,
   activePackage,
 }: {
   form: FormState;
+  setForm: React.Dispatch<React.SetStateAction<FormState>>;
   company: { id: string; name: string; slug: string; verified?: boolean | null } | null | undefined;
   activePackage: ActivePackage | null;
 }) {
@@ -1149,6 +1151,30 @@ function ReviewStep({
     lift_requirement_lbs: form.lift_requirement_lbs ? Number(form.lift_requirement_lbs) : null,
   };
 
+  const postsLeft = activePackage?.posts_remaining ?? 0;
+  const featuredLeft = activePackage?.featured_remaining ?? 0;
+
+  const tiers = [
+    {
+      key: "standard" as const,
+      title: "Standard",
+      price: "1 post",
+      tag: "Included",
+      blurb: "Appears in search, category, and company pages.",
+      selected: !form.feature_it,
+      onSelect: () => setForm((f) => ({ ...f, feature_it: false })),
+    },
+    {
+      key: "featured" as const,
+      title: "Featured",
+      price: "1 post + 1 featured",
+      tag: "Recommended",
+      blurb: "Pinned to the top of search and category pages — ~3× more views.",
+      selected: form.feature_it,
+      onSelect: () => setForm((f) => ({ ...f, feature_it: true })),
+    },
+  ];
+
   return (
     <div className="space-y-5">
       <div>
@@ -1171,36 +1197,71 @@ function ReviewStep({
         )}
       </div>
 
-      <div className="rounded-lg border-2 border-dashed border-border bg-background p-4">
-        <div className="flex items-start gap-3">
-          <PackageIcon className="mt-0.5 h-5 w-5 text-primary" />
-          <div className="text-sm">
-            {activePackage ? (
-              <>
-                <p className="text-[color:var(--ink)]">
-                  Publishing uses <span className="font-semibold">1 of {activePackage.posts_remaining} remaining posts</span>{" "}
-                  on your <span className="font-semibold">{activePackage.package_name}</span> (valid until{" "}
-                  {formatDate(activePackage.expires_at)})
-                </p>
-                {form.feature_it && (
-                  <p className="mt-1 text-[color:var(--ink)]">
-                    + 1 featured upgrade ({activePackage.featured_remaining} remaining)
+      <div className="space-y-2">
+        <div className="flex items-baseline justify-between">
+          <h3 className="text-sm font-semibold text-[color:var(--ink)]">Choose reach</h3>
+          {activePackage ? (
+            <p className="text-xs text-muted-foreground">
+              {postsLeft} posts · {featuredLeft} featured left on {activePackage.package_name}
+            </p>
+          ) : (
+            <p className="text-xs text-muted-foreground">No active package — you'll pick one next.</p>
+          )}
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {tiers.map((t) => {
+            const isFeatured = t.key === "featured";
+            const outOfFeatured = isFeatured && !!activePackage && featuredLeft < 1;
+            return (
+              <button
+                key={t.key}
+                type="button"
+                onClick={t.onSelect}
+                className={`text-left rounded-lg border p-4 transition ${
+                  t.selected
+                    ? "border-primary bg-[color:var(--primary-tint)] shadow-[var(--shadow-card)]"
+                    : "border-border bg-card hover:border-primary/50"
+                }`}
+                aria-pressed={t.selected}
+              >
+                <div className="flex items-center justify-between">
+                  <p className="font-bold text-[color:var(--ink)]">{t.title}</p>
+                  {isFeatured ? (
+                    <span className="rounded bg-[color:var(--hazard)] px-2 py-0.5 text-[10px] font-bold uppercase text-[color:var(--ink)]">
+                      {t.tag}
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      {t.tag}
+                    </span>
+                  )}
+                </div>
+                <p className="mt-1 text-xs font-semibold text-primary">{t.price}</p>
+                <p className="mt-2 text-xs text-muted-foreground">{t.blurb}</p>
+                {outOfFeatured && (
+                  <p className="mt-2 text-[11px] text-amber-700">
+                    No featured upgrades left — we'll prompt you to add one when you publish.
                   </p>
                 )}
-                {form.feature_it && activePackage.featured_remaining < 1 && (
-                  <p className="mt-1 text-amber-700">
-                    You don't have featured upgrades left — we'll publish as a standard job.
-                  </p>
-                )}
-              </>
-            ) : (
-              <p className="text-[color:var(--ink)]">
-                You don't have an active package — choose one to publish.
-              </p>
-            )}
-          </div>
+              </button>
+            );
+          })}
         </div>
       </div>
+
+      {activePackage && (
+        <div className="rounded-lg border-2 border-dashed border-border bg-background p-4 text-sm text-[color:var(--ink)]">
+          <div className="flex items-start gap-3">
+            <PackageIcon className="mt-0.5 h-5 w-5 text-primary" />
+            <p>
+              Publishing uses <span className="font-semibold">1 post</span>
+              {form.feature_it ? <> + <span className="font-semibold">1 featured upgrade</span></> : null}{" "}
+              from <span className="font-semibold">{activePackage.package_name}</span> (valid until{" "}
+              {formatDate(activePackage.expires_at)}).
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
