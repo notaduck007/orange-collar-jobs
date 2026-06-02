@@ -304,14 +304,15 @@ function AdminUsers() {
 }
 
 function UserDrawer({
-  userId, onOpenChange, onSuspend, onReset, onResend, onToggleRole,
+  userId, rolesCatalog, onOpenChange, onSuspend, onReset, onResend, onToggleRole,
 }: {
   userId: string | null;
+  rolesCatalog: RoleRef[];
   onOpenChange: (o: boolean) => void;
   onSuspend: (id: string, active: boolean) => void;
   onReset: (id: string) => void;
   onResend: (id: string) => void;
-  onToggleRole: (id: string, r: AppRole, has: boolean) => void;
+  onToggleRole: (id: string, roleId: string, has: boolean) => void;
 }) {
 
   const { data, isLoading } = useQuery({
