@@ -3,7 +3,9 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Mail, Phone, MapPin } from "lucide-react";
+import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Button } from "@/components/ui/button";
@@ -17,7 +19,16 @@ export const Route = createFileRoute("/contact")({
   component: Contact,
 });
 
+const schema = z.object({
+  name: z.string().trim().min(1).max(120),
+  company: z.string().trim().max(120).optional(),
+  email: z.string().trim().email().max(255),
+  subject: z.string().trim().min(3).max(200),
+  body: z.string().trim().min(5).max(4000),
+});
+
 function Contact() {
+  const { user } = useAuth();
   const [sending, setSending] = useState(false);
   const { data: page } = useQuery({
     queryKey: ["site-page", "contact"],
@@ -31,15 +42,40 @@ function Contact() {
       return data;
     },
   });
-  const submit = (e: React.FormEvent) => {
+
+  const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const form = e.currentTarget;
+    const fd = new FormData(form);
+    const parsed = schema.safeParse({
+      name: fd.get("name"),
+      company: fd.get("company") || undefined,
+      email: fd.get("email"),
+      subject: fd.get("subject"),
+      body: fd.get("body"),
+    });
+    if (!parsed.success) {
+      toast.error(parsed.error.issues[0]?.message ?? "Please check the form");
+      return;
+    }
     setSending(true);
-    setTimeout(() => {
-      setSending(false);
-      toast.success("Message sent — we'll be back to you within one business day.");
-      (e.target as HTMLFormElement).reset();
-    }, 600);
+    const subject = parsed.data.subject;
+    const bodyText = `From: ${parsed.data.name}${parsed.data.company ? ` (${parsed.data.company})` : ""}\n\n${parsed.data.body}`;
+    const { error } = await supabase.from("support_tickets").insert({
+      user_id: user?.id ?? null,
+      email: parsed.data.email,
+      subject,
+      body: bodyText,
+    });
+    setSending(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Message sent — we'll be back to you within one business day.");
+    form.reset();
   };
+
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
@@ -55,10 +91,11 @@ function Contact() {
           </ul>
         </div>
         <form onSubmit={submit} className="space-y-4 rounded-xl border border-border bg-card p-6 shadow-[var(--shadow-card)]">
-          <div className="space-y-1.5"><Label>Name</Label><Input required /></div>
-          <div className="space-y-1.5"><Label>Company</Label><Input /></div>
-          <div className="space-y-1.5"><Label>Email</Label><Input type="email" required /></div>
-          <div className="space-y-1.5"><Label>How can we help?</Label><Textarea required rows={5} /></div>
+          <div className="space-y-1.5"><Label>Name</Label><Input name="name" required maxLength={120} /></div>
+          <div className="space-y-1.5"><Label>Company</Label><Input name="company" maxLength={120} /></div>
+          <div className="space-y-1.5"><Label>Email</Label><Input name="email" type="email" required maxLength={255} defaultValue={user?.email ?? ""} /></div>
+          <div className="space-y-1.5"><Label>Subject</Label><Input name="subject" required maxLength={200} placeholder="What's this about?" /></div>
+          <div className="space-y-1.5"><Label>How can we help?</Label><Textarea name="body" required rows={5} maxLength={4000} /></div>
           <Button type="submit" disabled={sending} className="btn-primary w-full">{sending ? "Sending…" : "Send message"}</Button>
         </form>
       </div>

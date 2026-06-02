@@ -77,6 +77,8 @@ function AdminDashboard() {
         packages,
         pendingJobs,
         pendingAds,
+        openReports,
+        openTickets,
       ] = await Promise.all([
         supabase.from("profiles").select("id, created_at"),
         supabase.from("profiles").select("id, created_at").gte("created_at", fromISO).lte("created_at", toISO),
@@ -105,6 +107,8 @@ function AdminDashboard() {
         supabase.from("packages").select("id, name, kind"),
         supabase.from("jobs").select("id", { count: "exact", head: true }).eq("status", "pending_review"),
         supabase.from("advertisements").select("id", { count: "exact", head: true }).eq("status", "pending"),
+        supabase.from("reports").select("id", { count: "exact", head: true }).eq("status", "open"),
+        supabase.from("support_tickets").select("id", { count: "exact", head: true }).eq("status", "open"),
       ]);
 
       return {
@@ -122,6 +126,8 @@ function AdminDashboard() {
         packages: packages.data ?? [],
         pendingJobs: pendingJobs.count ?? 0,
         pendingAds: pendingAds.count ?? 0,
+        openReports: openReports.count ?? 0,
+        openTickets: openTickets.count ?? 0,
       };
     },
   });
@@ -268,8 +274,8 @@ function AdminDashboard() {
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <ReviewCard label="Jobs pending" count={data?.pendingJobs ?? 0} to="/admin/jobs" icon={Briefcase} />
           <ReviewCard label="Ads pending" count={data?.pendingAds ?? 0} to="/admin/ads" icon={Megaphone} />
-          <ReviewCard label="Flagged reviews" count={0} to="/admin/jobs" icon={AlertTriangle} />
-          <ReviewCard label="Abuse reports" count={0} to="/admin/users" icon={AlertTriangle} />
+          <ReviewCard label="Open reports" count={data?.openReports ?? 0} to="/admin/support" icon={AlertTriangle} />
+          <ReviewCard label="Open tickets" count={data?.openTickets ?? 0} to="/admin/support" icon={AlertTriangle} />
         </div>
       </div>
 
