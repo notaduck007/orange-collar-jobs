@@ -375,6 +375,43 @@ export function ApplyDialog({ jobId, jobTitle, quickHire, open, onOpenChange, on
             </div>
           )}
 
+          {quickHire && (
+            <div className="space-y-2 rounded-lg border border-border bg-background p-3">
+              <p className="text-sm font-semibold text-[color:var(--ink)]">
+                Pick a phone-screen time
+              </p>
+              {slots.length === 0 ? (
+                <p className="text-xs text-muted-foreground">
+                  No interview slots are available right now. You can still apply and the employer will reach out.
+                </p>
+              ) : (
+                <div className="space-y-1">
+                  {slots.map((s) => (
+                    <label key={s.id} className="flex items-center gap-2 rounded-md border border-border p-2 text-sm">
+                      <input
+                        type="radio"
+                        name="slot"
+                        className="accent-[color:var(--primary)]"
+                        checked={slotId === s.id}
+                        onChange={() => setSlotId(s.id)}
+                      />
+                      <span>
+                        {new Date(s.starts_at).toLocaleString(undefined, {
+                          dateStyle: "medium",
+                          timeStyle: "short",
+                        })}
+                      </span>
+                      <span className="ml-auto text-xs text-muted-foreground">
+                        {s.capacity - (s.booked_count ?? 0)} left
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+
           <div className="space-y-1.5">
             <Label htmlFor="cover">Cover note (optional)</Label>
             <Textarea
