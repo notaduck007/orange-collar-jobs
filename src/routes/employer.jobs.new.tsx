@@ -30,6 +30,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { uniqueSlug } from "@/lib/slug";
 import { JOB_TEMPLATES, TEMPLATE_LIST } from "@/lib/job-templates";
 import { ScreeningQuestionsBuilder, type ScreeningQuestionDraft } from "@/components/screening-questions-builder";
+import { useSiteSettings } from "@/lib/site-settings";
 
 export const Route = createFileRoute("/employer/jobs/new")({
   head: () => ({ meta: [{ title: "Post a Job — WarehouseJobs Employers" }] }),
@@ -118,9 +119,13 @@ function NewJobPage() {
     },
   });
 
+  // Site-wide default job duration (configurable in /admin/settings)
+  const { settings } = useSiteSettings();
+  const defaultDuration = settings.defaults.job_duration_days || 30;
+
   // Look up the most recent completed order's package duration to set expires_at.
   const { data: lastOrderDuration } = useQuery({
-    queryKey: ["last-package-duration", company?.id],
+    queryKey: ["last-package-duration", company?.id, defaultDuration],
     enabled: !!company?.id,
     queryFn: async () => {
       const { data: order } = await supabase
@@ -131,16 +136,17 @@ function NewJobPage() {
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
-      if (!order?.package_id) return 30;
+      if (!order?.package_id) return defaultDuration;
       const { data: pkg } = await supabase
         .from("packages")
         .select("duration_days")
         .eq("id", order.package_id)
         .maybeSingle();
-      return pkg?.duration_days ?? 30;
+      return pkg?.duration_days ?? defaultDuration;
     },
   });
-  const durationDays = lastOrderDuration ?? 30;
+  const durationDays = lastOrderDuration ?? defaultDuration;
+
 
   const [step, setStep] = useState(0);
   const [templateOpen, setTemplateOpen] = useState(false);

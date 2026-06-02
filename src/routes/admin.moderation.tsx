@@ -5,6 +5,7 @@ import { Check, X, AlertTriangle, ExternalLink, Flag, Loader2 } from "lucide-rea
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { useSiteSettings } from "@/lib/site-settings";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -38,7 +39,7 @@ type Item = {
   meta?: Record<string, unknown>;
 };
 
-const TABS: { key: TabKey; label: string }[] = [
+const ALL_TABS: { key: TabKey; label: string }[] = [
   { key: "jobs", label: "Jobs" },
   { key: "ads", label: "Ads" },
   { key: "reviews", label: "Reviews" },
@@ -48,6 +49,12 @@ const TABS: { key: TabKey; label: string }[] = [
 function ModerationHub() {
   const qc = useQueryClient();
   const { user } = useAuth();
+  const { settings } = useSiteSettings();
+  const TABS = useMemo(
+    () => ALL_TABS.filter((t) => t.key !== "reviews" || settings.toggles.reviews_enabled),
+    [settings.toggles.reviews_enabled],
+  );
+
   const [tab, setTab] = useState<TabKey>("jobs");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [cursor, setCursor] = useState(0);
