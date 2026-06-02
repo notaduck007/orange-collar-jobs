@@ -177,7 +177,7 @@ function JobsPage() {
     navigate({ to: "/jobs", search: { ...search, ...patch } as never });
   };
 
-  const hasActiveSearch = !!(search.q || search.loc || search.category || search.shift || search.type || search.pay_min || search.radius);
+  const hasActiveSearch = !!(search.q || search.loc || search.category || search.shift || search.type || search.pay_min || search.radius || search.temp || search.certs || search.weekly_pay || search.quick_hire || search.overtime || search.max_lift);
 
   const shiftLabel = SHIFTS.find((s) => s.value === search.shift)?.label;
   const typeLabel = TYPES.find((t) => t.value === search.type)?.label;
@@ -189,6 +189,23 @@ function JobsPage() {
   if (shiftLabel) activeChips.push({ key: "shift", label: shiftLabel, clear: () => updateSearch({ shift: undefined }) });
   if (typeLabel) activeChips.push({ key: "type", label: typeLabel, clear: () => updateSearch({ type: undefined }) });
   if (search.pay_min) activeChips.push({ key: "pay_min", label: `≥ $${search.pay_min}/hr`, clear: () => updateSearch({ pay_min: undefined }) });
+  if (search.temp) activeChips.push({ key: "temp", label: TEMP_LABEL[search.temp] ?? search.temp, clear: () => updateSearch({ temp: undefined }) });
+  if (search.certs) {
+    search.certs.split(",").filter(Boolean).forEach((c: string) => {
+      activeChips.push({
+        key: `cert-${c}`,
+        label: CERT_LABEL[c] ?? c,
+        clear: () => {
+          const next = (search.certs ?? "").split(",").filter(Boolean).filter((x: string) => x !== c);
+          updateSearch({ certs: next.length ? next.join(",") : undefined });
+        },
+      });
+    });
+  }
+  if (search.weekly_pay) activeChips.push({ key: "weekly", label: "Weekly pay", clear: () => updateSearch({ weekly_pay: undefined }) });
+  if (search.quick_hire) activeChips.push({ key: "quick", label: "Same-day hire", clear: () => updateSearch({ quick_hire: undefined }) });
+  if (search.overtime) activeChips.push({ key: "ot", label: "OT available", clear: () => updateSearch({ overtime: undefined }) });
+  if (search.max_lift) activeChips.push({ key: "lift", label: `≤ ${search.max_lift} lbs`, clear: () => updateSearch({ max_lift: undefined }) });
 
   const featured = useMemo(() => jobs.filter((j) => j.featured), [jobs]);
   const rest = useMemo(() => jobs.filter((j) => !j.featured), [jobs]);
