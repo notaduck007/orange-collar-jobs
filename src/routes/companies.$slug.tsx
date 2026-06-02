@@ -132,6 +132,9 @@ function CompanyProfile() {
                 {company.description}
               </p>
             )}
+            <div className="mt-4">
+              <ReportButton entityType="company" entityId={company.id} variant="outline" />
+            </div>
           </div>
         </header>
 
