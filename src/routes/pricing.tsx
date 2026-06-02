@@ -1,11 +1,19 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Check, Zap } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Check, Zap, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { useAuth } from "@/lib/auth";
+
+type Search = { checkout?: "success" | "cancelled" };
 
 export const Route = createFileRoute("/pricing")({
+  validateSearch: (s: Record<string, unknown>): Search => ({
+    checkout: s.checkout === "success" || s.checkout === "cancelled" ? s.checkout : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Posting Packages & Pricing — WarehouseJobs for Employers" },
@@ -16,19 +24,58 @@ export const Route = createFileRoute("/pricing")({
 });
 
 function Pricing() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { checkout } = Route.useSearch();
+  const [buyingId, setBuyingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (checkout === "cancelled") toast.info("Checkout cancelled. No charge was made.");
+    if (checkout === "success") toast.success("Payment received! Credits will appear shortly.");
+  }, [checkout]);
+
   const { data: packages = [] } = useQuery({
     queryKey: ["packages"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("packages")
-        .select("*")
-        .eq("active", true)
-        .eq("kind", "posting")
-        .order("sort_order");
+        .from("packages").select("*").eq("active", true).eq("kind", "posting").order("sort_order");
       if (error) throw error;
       return data ?? [];
     },
   });
+
+  async function handleBuy(packageId: string) {
+    if (!user) {
+      navigate({ to: "/auth", search: { mode: "signup", role: "employer", next: "/pricing" } as never });
+      return;
+    }
+    setBuyingId(packageId);
+    try {
+      // Resolve company (owned or active membership)
+      const { data: owned } = await supabase.from("companies").select("id").eq("owner_id", user.id).maybeSingle();
+      let companyId = owned?.id;
+      if (!companyId) {
+        const { data: mem } = await supabase
+          .from("company_members").select("company_id").eq("user_id", user.id).eq("status", "active").limit(1).maybeSingle();
+        companyId = mem?.company_id;
+      }
+      if (!companyId) {
+        toast.error("Set up your company profile first.");
+        navigate({ to: "/employer/onboarding" });
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke("create-checkout", {
+        body: { package_id: packageId, company_id: companyId },
+      });
+      if (error) throw error;
+      if (!data?.url) throw new Error("No checkout URL returned");
+      window.location.href = data.url;
+    } catch (e: any) {
+      toast.error(e.message ?? "Could not start checkout");
+      setBuyingId(null);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -45,9 +92,15 @@ function Pricing() {
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
+        {checkout === "cancelled" && (
+          <div className="mb-6 rounded-md border border-border bg-muted p-4 text-sm">
+            Checkout cancelled — you have not been charged. Pick a package below to try again.
+          </div>
+        )}
         <div className="grid gap-6 md:grid-cols-3">
           {packages.map((p, idx) => {
             const popular = idx === 1;
+            const loading = buyingId === p.id;
             return (
               <div
                 key={p.id}
@@ -73,15 +126,17 @@ function Pricing() {
                   <Feature>Applicant management dashboard</Feature>
                   <Feature>Weekly applicant report</Feature>
                 </ul>
-                <Link
-                  to="/auth"
-                  search={{ mode: "signup", role: "employer" } as never}
-                  className={`mt-7 inline-flex items-center justify-center rounded-md px-4 py-2.5 text-sm font-semibold ${
+                <button
+                  type="button"
+                  disabled={loading || !!buyingId}
+                  onClick={() => handleBuy(p.id)}
+                  className={`mt-7 inline-flex items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-semibold disabled:opacity-60 ${
                     popular ? "btn-primary" : "border border-[color:var(--ink)] text-[color:var(--ink)] hover:bg-[color:var(--ink)] hover:text-white"
                   }`}
                 >
-                  Get started
-                </Link>
+                  {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {loading ? "Redirecting…" : user ? "Buy now" : "Get started"}
+                </button>
               </div>
             );
           })}

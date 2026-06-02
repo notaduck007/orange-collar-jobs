@@ -31,6 +31,7 @@ import { Route as JobsSlugRouteImport } from './routes/jobs.$slug'
 import { Route as EmployerTeamRouteImport } from './routes/employer.team'
 import { Route as EmployerOnboardingRouteImport } from './routes/employer.onboarding'
 import { Route as EmployerCandidatesRouteImport } from './routes/employer.candidates'
+import { Route as EmployerBillingRouteImport } from './routes/employer.billing'
 import { Route as EmployerAnalyticsRouteImport } from './routes/employer.analytics'
 import { Route as EmployerAdsRouteImport } from './routes/employer.ads'
 import { Route as CompaniesSlugRouteImport } from './routes/companies.$slug'
@@ -154,6 +155,11 @@ const EmployerCandidatesRoute = EmployerCandidatesRouteImport.update({
   path: '/candidates',
   getParentRoute: () => EmployerRoute,
 } as any)
+const EmployerBillingRoute = EmployerBillingRouteImport.update({
+  id: '/billing',
+  path: '/billing',
+  getParentRoute: () => EmployerRoute,
+} as any)
 const EmployerAnalyticsRoute = EmployerAnalyticsRouteImport.update({
   id: '/analytics',
   path: '/analytics',
@@ -237,6 +243,7 @@ export interface FileRoutesByFullPath {
   '/companies/$slug': typeof CompaniesSlugRoute
   '/employer/ads': typeof EmployerAdsRoute
   '/employer/analytics': typeof EmployerAnalyticsRoute
+  '/employer/billing': typeof EmployerBillingRoute
   '/employer/candidates': typeof EmployerCandidatesRoute
   '/employer/onboarding': typeof EmployerOnboardingRoute
   '/employer/team': typeof EmployerTeamRoute
@@ -270,6 +277,7 @@ export interface FileRoutesByTo {
   '/companies/$slug': typeof CompaniesSlugRoute
   '/employer/ads': typeof EmployerAdsRoute
   '/employer/analytics': typeof EmployerAnalyticsRoute
+  '/employer/billing': typeof EmployerBillingRoute
   '/employer/candidates': typeof EmployerCandidatesRoute
   '/employer/onboarding': typeof EmployerOnboardingRoute
   '/employer/team': typeof EmployerTeamRoute
@@ -307,6 +315,7 @@ export interface FileRoutesById {
   '/companies/$slug': typeof CompaniesSlugRoute
   '/employer/ads': typeof EmployerAdsRoute
   '/employer/analytics': typeof EmployerAnalyticsRoute
+  '/employer/billing': typeof EmployerBillingRoute
   '/employer/candidates': typeof EmployerCandidatesRoute
   '/employer/onboarding': typeof EmployerOnboardingRoute
   '/employer/team': typeof EmployerTeamRoute
@@ -345,6 +354,7 @@ export interface FileRouteTypes {
     | '/companies/$slug'
     | '/employer/ads'
     | '/employer/analytics'
+    | '/employer/billing'
     | '/employer/candidates'
     | '/employer/onboarding'
     | '/employer/team'
@@ -378,6 +388,7 @@ export interface FileRouteTypes {
     | '/companies/$slug'
     | '/employer/ads'
     | '/employer/analytics'
+    | '/employer/billing'
     | '/employer/candidates'
     | '/employer/onboarding'
     | '/employer/team'
@@ -414,6 +425,7 @@ export interface FileRouteTypes {
     | '/companies/$slug'
     | '/employer/ads'
     | '/employer/analytics'
+    | '/employer/billing'
     | '/employer/candidates'
     | '/employer/onboarding'
     | '/employer/team'
@@ -601,6 +613,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EmployerCandidatesRouteImport
       parentRoute: typeof EmployerRoute
     }
+    '/employer/billing': {
+      id: '/employer/billing'
+      path: '/billing'
+      fullPath: '/employer/billing'
+      preLoaderRoute: typeof EmployerBillingRouteImport
+      parentRoute: typeof EmployerRoute
+    }
     '/employer/analytics': {
       id: '/employer/analytics'
       path: '/analytics'
@@ -713,6 +732,7 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 interface EmployerRouteChildren {
   EmployerAdsRoute: typeof EmployerAdsRoute
   EmployerAnalyticsRoute: typeof EmployerAnalyticsRoute
+  EmployerBillingRoute: typeof EmployerBillingRoute
   EmployerCandidatesRoute: typeof EmployerCandidatesRoute
   EmployerOnboardingRoute: typeof EmployerOnboardingRoute
   EmployerTeamRoute: typeof EmployerTeamRoute
@@ -725,6 +745,7 @@ interface EmployerRouteChildren {
 const EmployerRouteChildren: EmployerRouteChildren = {
   EmployerAdsRoute: EmployerAdsRoute,
   EmployerAnalyticsRoute: EmployerAnalyticsRoute,
+  EmployerBillingRoute: EmployerBillingRoute,
   EmployerCandidatesRoute: EmployerCandidatesRoute,
   EmployerOnboardingRoute: EmployerOnboardingRoute,
   EmployerTeamRoute: EmployerTeamRoute,
