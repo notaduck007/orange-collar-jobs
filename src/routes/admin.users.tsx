@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Search, UserCheck, UserX, KeyRound, MailCheck, ShieldCheck, Eye } from "lucide-react";
+import { Search, UserCheck, UserX, KeyRound, MailCheck, ShieldCheck, Eye, UserCog } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { startImpersonation } from "@/lib/impersonation";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
