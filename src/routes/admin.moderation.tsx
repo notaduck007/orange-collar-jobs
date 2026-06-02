@@ -478,7 +478,7 @@ async function applyAction(item: Item, action: Action, reason: string, actorId?:
     entity_type: item.kind,
     entity_id: item.id,
     reason: reason || null,
-    metadata: item.meta ?? null,
+    metadata: (item.meta as never) ?? null,
   });
 
   // In-app notification to owner / reporter
