@@ -1132,6 +1132,45 @@ function NewJobPage() {
 
         {step === 3 && (
           <div className="space-y-5">
+            <div className="rounded-md border border-primary/20 bg-primary/5 p-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="text-xs">
+                  <p className="font-semibold text-[color:var(--ink)]">Write with AI</p>
+                  <p className="text-muted-foreground">
+                    Generate a clean draft from your title, shift, pay, and location — or tighten what you already have.
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={aiStreaming === "write" ? "secondary" : "default"}
+                    onClick={() => runAi("write")}
+                    disabled={aiStreaming === "improve"}
+                  >
+                    {aiStreaming === "write" ? (
+                      <><Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> Stop</>
+                    ) : (
+                      <><Sparkles className="mr-1.5 h-3.5 w-3.5" /> Write with AI</>
+                    )}
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={aiStreaming === "improve" ? "secondary" : "outline"}
+                    onClick={() => runAi("improve")}
+                    disabled={aiStreaming === "write" || (!form.description.trim() && aiStreaming !== "improve")}
+                  >
+                    {aiStreaming === "improve" ? (
+                      <><Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> Stop</>
+                    ) : (
+                      <>Improve draft</>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+
             <div className="space-y-1.5">
               <Label htmlFor="description">Job description *</Label>
               <Textarea
@@ -1142,11 +1181,27 @@ function NewJobPage() {
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
                 maxLength={5000}
+                readOnly={aiStreaming !== null}
               />
               <p className="text-xs text-muted-foreground">
                 {form.description.length} / 5000
+                {aiStreaming && <span className="ml-2 text-primary">· AI is writing…</span>}
               </p>
             </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="requirements">Requirements</Label>
+              <Textarea
+                id="requirements"
+                rows={6}
+                placeholder="Certifications, experience, physical requirements, etc."
+                value={form.requirements}
+                onChange={(e) => setForm({ ...form, requirements: e.target.value })}
+                maxLength={3000}
+                readOnly={aiStreaming !== null}
+              />
+            </div>
+
 
             <div className="space-y-1.5">
               <Label htmlFor="requirements">Requirements</Label>
