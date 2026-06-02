@@ -11,7 +11,7 @@ const CAPABILITY_KEYS: Record<AdminCapability, string[]> = {
   users: ["users.view_all", "users.manage_roles", "users.suspend"],
   settings: ["settings.manage"],
   ads: ["ads.manage"],
-  support: ["moderation.manage", "support.manage"],
+  support: ["moderation.manage"],
 };
 
 
