@@ -200,16 +200,18 @@ function JobsPage() {
     <div className="min-h-screen bg-background">
       <SiteHeader />
 
-      <section className="border-b border-border bg-[color:var(--ink)] py-8">
+      <section className="border-b border-border bg-[color:var(--ink)] py-8" aria-label="Search">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <form onSubmit={submit} className="flex flex-col gap-2 rounded-xl bg-white p-2 shadow-xl sm:flex-row sm:items-stretch">
+          <form onSubmit={submit} role="search" aria-label="Search warehouse jobs" className="flex flex-col gap-2 rounded-xl bg-white p-2 shadow-xl sm:flex-row sm:items-stretch">
             <div className="flex flex-1 items-center gap-2 px-3 py-2.5">
-              <Search className="h-5 w-5 text-muted-foreground" />
-              <input value={keyword} onChange={(e) => setKeyword(e.target.value)} placeholder="Job title, keyword, or company" className="w-full bg-transparent text-[color:var(--ink)] focus:outline-none" />
+              <Search className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+              <label htmlFor="jobs-keyword" className="sr-only">Job title, keyword, or company</label>
+              <input id="jobs-keyword" value={keyword} onChange={(e) => setKeyword(e.target.value)} placeholder="Job title, keyword, or company" className="w-full bg-transparent text-[color:var(--ink)] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded" />
             </div>
             <div className="flex flex-1 items-center gap-2 border-t border-border px-3 py-2.5 sm:border-l sm:border-t-0">
-              <MapPin className="h-5 w-5 text-muted-foreground" />
-              <input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="City, state, or ZIP" className="w-full bg-transparent text-[color:var(--ink)] focus:outline-none" />
+              <MapPin className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+              <label htmlFor="jobs-location" className="sr-only">Location (city, state, or ZIP)</label>
+              <input id="jobs-location" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="City, state, or ZIP" className="w-full bg-transparent text-[color:var(--ink)] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded" />
             </div>
             <button type="submit" className="btn-primary sm:px-6">Search</button>
           </form>
