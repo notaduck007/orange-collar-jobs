@@ -1553,6 +1553,15 @@ export type Database = {
         Args: { _company_id: string; _credit_type: string }
         Returns: boolean
       }
+      consume_post_and_publish: {
+        Args: { _company_id: string; _job_id: string; _want_featured?: boolean }
+        Returns: {
+          company_package_id: string
+          expires_at: string
+          featured: boolean
+          job_id: string
+        }[]
+      }
       get_active_package: {
         Args: { p_company_id: string }
         Returns: {
