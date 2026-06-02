@@ -1,6 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Building2, Globe, MapPin, ArrowLeft } from "lucide-react";
+import { Building2, Globe, MapPin, ArrowLeft, BadgeCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
@@ -72,7 +72,7 @@ function CompanyProfile() {
         .in("status", ["active", "published"])
         .order("featured", { ascending: false })
         .order("created_at", { ascending: false });
-      return (data ?? []).map((j) => ({ ...j, companies: { name: company!.name, slug } })) as JobSummary[];
+      return (data ?? []).map((j) => ({ ...j, companies: { name: company!.name, slug, verified: company!.verified } })) as JobSummary[];
     },
   });
 
@@ -99,7 +99,14 @@ function CompanyProfile() {
           </div>
           <div className="min-w-0 flex-1">
             <p className="label-caps text-primary">Employer</p>
-            <h1 className="mt-1 text-3xl font-bold tracking-tight text-[color:var(--ink)]">{company.name}</h1>
+            <h1 className="mt-1 flex flex-wrap items-center gap-2 text-3xl font-bold tracking-tight text-[color:var(--ink)]">
+              {company.name}
+              {company.verified && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-900">
+                  <BadgeCheck className="h-3.5 w-3.5" /> Verified employer
+                </span>
+              )}
+            </h1>
             <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
               {(company.location || company.hq_city) && (
                 <span className="inline-flex items-center gap-1">

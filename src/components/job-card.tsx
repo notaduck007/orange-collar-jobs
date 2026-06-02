@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { MapPin, Clock, DollarSign, Zap, CheckCircle2 } from "lucide-react";
+import { MapPin, Clock, DollarSign, Zap, CheckCircle2, BadgeCheck } from "lucide-react";
 import { useAppliedJobs } from "@/hooks/use-applied-jobs";
 
 export interface JobSummary {
@@ -13,7 +13,7 @@ export interface JobSummary {
   pay_max: number | null;
   featured: boolean;
   category: string;
-  companies?: { name: string; slug: string } | null;
+  companies?: { name: string; slug: string; verified?: boolean | null } | null;
 }
 
 const shiftLabel: Record<string, string> = {
@@ -55,17 +55,24 @@ export function JobCard({ job }: { job: JobSummary }) {
         </Link>
       </h3>
       {job.companies && (
-        job.companies.slug ? (
-          <Link
-            to="/companies/$slug"
-            params={{ slug: job.companies.slug }}
-            className="relative z-10 mt-0.5 inline-block text-sm font-medium text-foreground hover:text-primary hover:underline"
-          >
-            {job.companies.name}
-          </Link>
-        ) : (
-          <p className="mt-0.5 text-sm font-medium text-foreground">{job.companies.name}</p>
-        )
+        <div className="mt-0.5 flex items-center gap-1.5">
+          {job.companies.slug ? (
+            <Link
+              to="/companies/$slug"
+              params={{ slug: job.companies.slug }}
+              className="relative z-10 text-sm font-medium text-foreground hover:text-primary hover:underline"
+            >
+              {job.companies.name}
+            </Link>
+          ) : (
+            <span className="text-sm font-medium text-foreground">{job.companies.name}</span>
+          )}
+          {job.companies.verified && (
+            <span title="Verified employer" className="relative z-10 inline-flex items-center text-blue-600">
+              <BadgeCheck className="h-4 w-4" />
+            </span>
+          )}
+        </div>
       )}
       <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-sm text-muted-foreground">
         <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> {job.location}</span>
