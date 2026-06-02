@@ -208,7 +208,7 @@ function JobDetail() {
 
   const alreadyApplied = !!job && appliedIds.has(job.id);
 
-  const { data: screeningCount = 0 } = useQuery({
+  const { data: screeningCount = 0, isFetched: screeningFetched } = useQuery({
     queryKey: ["screening-questions-count", job?.id],
     enabled: !!job?.id,
     queryFn: async () => {
@@ -220,6 +220,7 @@ function JobDetail() {
     },
   });
   const hasScreening = screeningCount > 0;
+  const screeningKnown = !!job?.id && screeningFetched;
 
   const handleQuickApply = async () => {
     if (!user || !job || !quickApply.resumeUrl) return;
@@ -249,7 +250,7 @@ function JobDetail() {
       navigate({ to: "/auth", search: { mode: "login", next: `/jobs/${slug}` } as never });
       return;
     }
-    if (quickApply.ready && !hasScreening) {
+    if (quickApply.ready && screeningKnown && !hasScreening) {
       handleQuickApply();
       return;
     }
