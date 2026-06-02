@@ -167,6 +167,32 @@ function AdminCompanies() {
           <Link to="/admin/jobs" search={{ company: c.id } as never}>
             <Button size="sm" variant="outline" className="gap-1"><Eye className="h-3.5 w-3.5" /> Jobs</Button>
           </Link>
+          {c.owner_id && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1"
+              title="Open this company's employer dashboard as their owner"
+              onClick={async () => {
+                if (!c.owner_id) return;
+                if (!confirm(`View ${c.name}'s employer dashboard as the owner? All actions are audited.`)) return;
+                try {
+                  await startImpersonation(c.owner_id, {
+                    label: c.name,
+                    kind: "company",
+                    entityId: c.id,
+                    redirectTo: "/employer",
+                  });
+                  toast.success(`Now viewing as ${c.name}`);
+                  window.location.assign("/employer");
+                } catch (e) {
+                  toast.error((e as Error).message || "Could not start impersonation");
+                }
+              }}
+            >
+              <UserCog className="h-3.5 w-3.5" /> View as
+            </Button>
+          )}
           {c.verification_status === "pending" ? (
             <>
               <DecisionDialog
