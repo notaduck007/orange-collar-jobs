@@ -12,15 +12,23 @@ const cors = {
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   try {
-    const { package_id, company_id, success_url, cancel_url } = await req.json();
-    if (!package_id || !company_id) {
-      return new Response(JSON.stringify({ error: "package_id and company_id required" }), {
+    const body = await req.json().catch(() => ({}));
+    const package_id: string | undefined = body.package_id;
+    const intent: string = body.intent ?? "purchase";
+    const pending_job_id: string | null = body.pending_job_id ?? null;
+
+    if (!package_id) {
+      return new Response(JSON.stringify({ error: "package_id required" }), {
         status: 400, headers: { ...cors, "Content-Type": "application/json" },
       });
     }
 
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: cors });
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...cors, "Content-Type": "application/json" },
+      });
+    }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
@@ -31,40 +39,57 @@ serve(async (req) => {
     });
     const { data: userData, error: userErr } = await userClient.auth.getUser();
     if (userErr || !userData.user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: cors });
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...cors, "Content-Type": "application/json" },
+      });
     }
     const userId = userData.user.id;
-    const userEmail = userData.user.email;
+    const userEmail = userData.user.email ?? undefined;
 
     const admin = createClient(supabaseUrl, serviceKey);
 
-    // Verify user is owner or active member of the company
-    const { data: company } = await admin.from("companies").select("id, owner_id, name").eq("id", company_id).maybeSingle();
-    if (!company) return new Response(JSON.stringify({ error: "Company not found" }), { status: 404, headers: cors });
-
-    let allowed = company.owner_id === userId;
-    if (!allowed) {
+    // Resolve the company owned by (or actively administered by) this user
+    let companyId: string | null = null;
+    const { data: owned } = await admin
+      .from("companies").select("id").eq("owner_id", userId).limit(1).maybeSingle();
+    if (owned?.id) {
+      companyId = owned.id;
+    } else {
       const { data: mem } = await admin
         .from("company_members")
-        .select("id")
-        .eq("company_id", company_id)
+        .select("company_id")
         .eq("user_id", userId)
         .eq("status", "active")
         .in("role", ["owner", "admin"])
+        .limit(1)
         .maybeSingle();
-      allowed = !!mem;
+      companyId = mem?.company_id ?? null;
     }
-    if (!allowed) return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: cors });
+    if (!companyId) {
+      return new Response(JSON.stringify({ error: "No company found for this user" }), {
+        status: 400, headers: { ...cors, "Content-Type": "application/json" },
+      });
+    }
 
+    // Look up the package server-side — never trust client price
     const { data: pkg, error: pkgErr } = await admin
       .from("packages").select("*").eq("id", package_id).eq("active", true).maybeSingle();
     if (pkgErr || !pkg) {
-      return new Response(JSON.stringify({ error: "Package not found" }), { status: 404, headers: cors });
+      return new Response(JSON.stringify({ error: "Package not found" }), {
+        status: 404, headers: { ...cors, "Content-Type": "application/json" },
+      });
     }
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY")!, { apiVersion: "2024-06-20" });
 
     const origin = req.headers.get("origin") || "";
+    const successBase = pending_job_id
+      ? `${origin}/employer/jobs/new?checkout=success&session_id={CHECKOUT_SESSION_ID}&draft=${pending_job_id}`
+      : `${origin}/employer?checkout=success&session_id={CHECKOUT_SESSION_ID}`;
+    const cancelBase = pending_job_id
+      ? `${origin}/employer/jobs/new?checkout=cancelled&draft=${pending_job_id}`
+      : `${origin}/pricing?checkout=cancelled`;
+
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
@@ -77,17 +102,22 @@ serve(async (req) => {
         },
         quantity: 1,
       }],
-      success_url: success_url || `${origin}/employer/billing?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: cancel_url || `${origin}/pricing?checkout=cancelled`,
+      success_url: successBase,
+      cancel_url: cancelBase,
       metadata: {
+        company_id: companyId,
         package_id: pkg.id,
-        company_id,
+        posting_count: String(pkg.posting_count ?? 0),
+        featured_count: String(pkg.featured_count ?? 0),
+        duration_days: String(pkg.duration_days ?? 30),
+        pending_job_id: pending_job_id ?? "",
+        intent,
         user_id: userId,
       },
     });
 
     const { error: orderErr } = await admin.from("orders").insert({
-      company_id,
+      company_id: companyId,
       package_id: pkg.id,
       amount_cents: pkg.price_cents,
       currency: "usd",
