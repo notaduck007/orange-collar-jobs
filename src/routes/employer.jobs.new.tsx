@@ -1427,6 +1427,7 @@ function RenewUpgradeDialog({
   requireFeatured?: boolean;
 }) {
   const [busy, setBusy] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const { data: packages = [] } = useQuery({
     queryKey: ["posting-packages-active"],
@@ -1465,7 +1466,12 @@ function RenewUpgradeDialog({
     setBusy(pkgId);
     const res = await startCheckout(pkgId, intent, draftId);
     if (res?.error) {
-      toast.error(res.error);
+      if (res.code === "no_company") {
+        toast.info("Set up your company first to purchase a package.");
+        navigate({ to: "/employer/onboarding", search: { next: "/employer/jobs/new" } as never });
+      } else {
+        toast.error(res.error);
+      }
       setBusy(null);
     }
   };
@@ -1574,6 +1580,7 @@ function FeatureUpsell({
   onFeatured: () => void;
 }) {
   const [busy, setBusy] = useState(false);
+  const navigate = useNavigate();
   const featuredLeft = activePackage?.featured_remaining ?? 0;
   const hasCredit = featuredLeft >= 1;
 
@@ -1605,7 +1612,14 @@ function FeatureUpsell({
           return;
         }
         const res = await startCheckout(pkgId, "upgrade", null);
-        if (res?.error) toast.error(res.error);
+        if (res?.error) {
+          if (res.code === "no_company") {
+            toast.info("Set up your company first to purchase a package.");
+            navigate({ to: "/employer/onboarding", search: { next: "/employer/jobs/new" } as never });
+          } else {
+            toast.error(res.error);
+          }
+        }
       }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Couldn't feature this job");
