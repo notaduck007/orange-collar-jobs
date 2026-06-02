@@ -116,12 +116,18 @@ function AdminUsers() {
     invokeAction({ action: "password_reset", user_id: userId }, "Password reset email sent");
   const resendVerify = (userId: string) =>
     invokeAction({ action: "resend_verification", user_id: userId }, "Verification email resent");
-  const impersonate = async (userId: string) => {
+  const impersonate = async (u: Row) => {
     if (!confirm("Sign in as this user? Your session will be paused and all actions are audited.")) return;
+    const label = u.display_name || u.full_name || u.id.slice(0, 8);
+    const redirectTo = u.roles.includes("employer")
+      ? "/employer"
+      : u.roles.includes("job_seeker")
+        ? "/seeker"
+        : "/";
     try {
-      await startImpersonation(userId);
+      await startImpersonation(u.id, { label, kind: "user", redirectTo });
       toast.success("Now viewing as user");
-      window.location.assign("/");
+      window.location.assign(redirectTo);
     } catch (e) {
       toast.error((e as Error).message || "Impersonation failed");
     }
