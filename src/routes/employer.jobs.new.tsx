@@ -214,7 +214,7 @@ function NewJobPage() {
   const [draftId, setDraftId] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [resuming, setResuming] = useState(false);
-  const [success, setSuccess] = useState<{ slug: string; title: string } | null>(null);
+  const [success, setSuccess] = useState<{ slug: string; title: string; jobId: string; featured: boolean } | null>(null);
   const resumeHandledRef = useRef(false);
   const [resumeOffer, setResumeOffer] = useState<null | {
     form: FormState;
