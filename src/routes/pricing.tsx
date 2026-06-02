@@ -54,7 +54,7 @@ function Pricing() {
     setBuyingId(packageId);
     const result = await startCheckout(packageId, "purchase");
     if (result?.error) {
-      if (/no company/i.test(result.error)) {
+      if (result.code === "no_company" || /no company/i.test(result.error)) {
         toast.info("Set up your company first to purchase a package.");
         navigate({ to: "/employer/onboarding", search: { next: "/pricing" } as never });
       } else {
