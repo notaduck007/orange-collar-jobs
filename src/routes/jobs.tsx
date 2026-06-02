@@ -282,7 +282,7 @@ function JobsPage() {
                   active={active}
                   onClick={() => {
                     const cur = (search.certs ?? "").split(",").filter(Boolean);
-                    const next = active ? cur.filter((x) => x !== c.value) : [...cur, c.value];
+                    const next = active ? cur.filter((x: string) => x !== c.value) : [...cur, c.value];
                     updateSearch({ certs: next.length ? next.join(",") : undefined });
                   }}
                 >
