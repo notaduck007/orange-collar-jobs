@@ -214,6 +214,7 @@ function AdminSupport() {
         <div className="flex items-center gap-3 text-sm">
           <Badge variant="secondary"><LifeBuoy className="mr-1 h-3 w-3" />{openTickets} open tickets</Badge>
           <Badge variant="secondary"><Flag className="mr-1 h-3 w-3" />{openReports} open reports</Badge>
+          <Badge variant="secondary"><ShieldCheck className="mr-1 h-3 w-3" />{openDsr} open DSR</Badge>
         </div>
       </div>
 
@@ -222,6 +223,7 @@ function AdminSupport() {
           <TabsList>
             <TabsTrigger value="tickets">Tickets ({openTickets})</TabsTrigger>
             <TabsTrigger value="reports">Reports ({openReports})</TabsTrigger>
+            <TabsTrigger value="dsr">DSR ({openDsr})</TabsTrigger>
           </TabsList>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
