@@ -2,7 +2,11 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Forklift, Boxes, Truck, PackageCheck, ClipboardList, Warehouse, Search, MapPin, ArrowRight } from "lucide-react";
-import heroImage from "@/assets/warehouse-hero.jpg";
+import heroImage from "@/assets/warehouse-hero.webp";
+import crewImage from "@/assets/crew-productive.webp";
+import workerMarcus from "@/assets/worker-marcus.webp";
+import workerAisha from "@/assets/worker-aisha.webp";
+import workerLuis from "@/assets/worker-luis.webp";
 import { supabase } from "@/integrations/supabase/client";
 import { JobCard, type JobSummary } from "@/components/job-card";
 import { SiteHeader } from "@/components/site-header";
@@ -65,12 +69,12 @@ function Home() {
       <section className="relative overflow-hidden bg-[color:var(--ink)]" aria-labelledby="hero-heading">
         <img
           src={heroImage}
-          alt="Forklift operator working in a modern distribution warehouse"
+          alt="Diverse, happy warehouse crew in hi-vis vests on a loading dock at sunrise, giving a thumbs-up after a successful shift."
           width={1920}
           height={1280}
           fetchPriority="high"
           decoding="async"
-          className="absolute inset-0 h-full w-full object-cover opacity-50"
+          className="absolute inset-0 h-full w-full object-cover opacity-60"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-[color:var(--ink)]/95 via-[color:var(--ink)]/70 to-transparent" />
         <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28 lg:py-32">
@@ -155,6 +159,43 @@ function Home() {
         </div>
       </section>
 
+      {/* REAL PEOPLE BAND */}
+      <section className="border-y border-border bg-card">
+        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
+          <div className="mb-8 max-w-2xl">
+            <p className="label-caps text-primary">Real people, real shifts</p>
+            <h2 className="mt-1 text-2xl font-bold text-[color:var(--ink)] sm:text-3xl">The crew behind every shipment</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Pickers, packers, forklift operators, dock leads — folks getting hired through WarehouseJobs this month.
+            </p>
+          </div>
+          <div className="grid gap-5 sm:grid-cols-3">
+            {[
+              { src: workerMarcus, name: "Marcus", role: "Forklift Operator", alt: "Marcus, a smiling Black forklift operator in an orange hi-vis vest, holding his hard hat in front of a warehouse forklift." },
+              { src: workerAisha, name: "Aisha", role: "Picker / Packer", alt: "Aisha, a young Black woman picker-packer laughing while scanning a package in a warehouse pick aisle." },
+              { src: workerLuis, name: "Luis", role: "Shipping & Receiving Lead", alt: "Luis, a Latino shipping and receiving lead in a hard hat and orange vest, holding a clipboard at an open loading dock." },
+            ].map((p) => (
+              <figure key={p.name} className="group overflow-hidden rounded-xl border border-border bg-background">
+                <div className="aspect-[4/5] overflow-hidden">
+                  <img
+                    src={p.src}
+                    alt={p.alt}
+                    width={800}
+                    height={1000}
+                    loading="lazy"
+                    decoding="async"
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                  />
+                </div>
+                <figcaption className="border-t border-border px-4 py-3">
+                  <p className="text-sm font-semibold text-[color:var(--ink)]">{p.name} — <span className="font-normal text-muted-foreground">{p.role}</span></p>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* FEATURED */}
       <section className="bg-[color:var(--primary-tint)]/40">
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
@@ -180,10 +221,22 @@ function Home() {
 
       {/* EMPLOYER CTA */}
       <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6">
-        <div className="relative overflow-hidden rounded-2xl bg-[color:var(--charcoal)] p-8 text-white sm:p-12">
-          <div className="hazard-stripes absolute left-0 top-0 h-2 w-full" />
-          <div className="grid items-center gap-8 md:grid-cols-2">
-            <div>
+        <div className="relative overflow-hidden rounded-2xl bg-[color:var(--charcoal)] text-white">
+          <div className="hazard-stripes absolute left-0 top-0 z-10 h-2 w-full" />
+          <div className="grid items-stretch md:grid-cols-2">
+            <div className="relative min-h-[280px] md:min-h-full">
+              <img
+                src={crewImage}
+                alt="Productive warehouse crew of four diverse workers collaborating at a pick station inside a modern fulfillment center."
+                width={1600}
+                height={1067}
+                loading="lazy"
+                decoding="async"
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[color:var(--charcoal)]/60 md:to-[color:var(--charcoal)]" />
+            </div>
+            <div className="p-8 sm:p-12">
               <p className="label-caps text-[color:var(--hazard)]">For Employers</p>
               <h2 className="mt-2 text-3xl font-bold leading-tight sm:text-4xl">
                 Stop wasting weeks on the wrong applicants.
@@ -201,20 +254,20 @@ function Home() {
                   </Button>
                 </Link>
               </div>
+              <ul className="mt-8 grid grid-cols-2 gap-3 text-sm">
+                {[
+                  ["4 min", "Avg. time to post"],
+                  ["18k+", "Active warehouse workers"],
+                  ["48 hrs", "Avg. first qualified applicant"],
+                  ["$99", "Single post — flat rate"],
+                ].map(([num, label]) => (
+                  <li key={label} className="rounded-lg border border-white/10 bg-white/[0.04] p-3">
+                    <p className="text-xl font-bold text-primary">{num}</p>
+                    <p className="mt-0.5 text-[11px] uppercase tracking-wider text-white/60">{label}</p>
+                  </li>
+                ))}
+              </ul>
             </div>
-            <ul className="grid grid-cols-2 gap-4 text-sm">
-              {[
-                ["4 min", "Avg. time to post"],
-                ["18k+", "Active warehouse workers"],
-                ["48 hrs", "Avg. first qualified applicant"],
-                ["$99", "Single post — flat rate"],
-              ].map(([num, label]) => (
-                <li key={label} className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
-                  <p className="text-2xl font-bold text-primary">{num}</p>
-                  <p className="mt-1 text-xs uppercase tracking-wider text-white/60">{label}</p>
-                </li>
-              ))}
-            </ul>
           </div>
         </div>
       </section>

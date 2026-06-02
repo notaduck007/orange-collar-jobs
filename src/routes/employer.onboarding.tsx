@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { slugify, uniqueSlug } from "@/lib/slug";
+import crewImage from "@/assets/crew-productive.webp";
 
 export const Route = createFileRoute("/employer/onboarding")({
   head: () => ({ meta: [{ title: "Company Profile — WarehouseJobs Employers" }] }),
@@ -160,14 +161,16 @@ function OnboardingPage() {
   };
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
-      <p className="label-caps text-primary">{existing ? "Edit company" : "Step 1 of 1"}</p>
-      <h1 className="mt-2 text-3xl font-bold tracking-tight text-[color:var(--ink)]">
-        {existing ? "Company profile" : "Set up your company"}
-      </h1>
-      <p className="mt-2 text-sm text-muted-foreground">
-        This is what job seekers see at the top of every listing. Make it count.
-      </p>
+    <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+      <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
+        <div className="min-w-0">
+          <p className="label-caps text-primary">{existing ? "Edit company" : "Step 1 of 1"}</p>
+          <h1 className="mt-2 text-3xl font-bold tracking-tight text-[color:var(--ink)]">
+            {existing ? "Company profile" : "Set up your company"}
+          </h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            This is what job seekers see at the top of every listing. Make it count.
+          </p>
 
       <form onSubmit={save} className="mt-8 space-y-6 rounded-xl border border-border bg-card p-6 sm:p-8">
         <div>
@@ -227,6 +230,28 @@ function OnboardingPage() {
           </Button>
         </div>
       </form>
+        </div>
+
+        <aside className="hidden lg:block">
+          <div className="sticky top-20 overflow-hidden rounded-xl border border-border bg-card">
+            <img
+              src={crewImage}
+              alt="A strong, diverse warehouse crew collaborating at a conveyor pick station — the kind of team you'll reach on WarehouseJobs."
+              width={1600}
+              height={1067}
+              loading="lazy"
+              decoding="async"
+              className="aspect-[4/5] w-full object-cover"
+            />
+            <div className="border-t border-border p-4">
+              <p className="label-caps text-primary">The crew you'll reach</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                18k+ active warehouse workers — forklift-certified, ready to start, in your ZIP.
+              </p>
+            </div>
+          </div>
+        </aside>
+      </div>
     </div>
   );
 }

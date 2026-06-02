@@ -14,6 +14,7 @@ import { AdSlot } from "@/components/ad-slot";
 import { JobCardSkeletonList, EmptyState } from "@/components/ui/skeleton-list";
 import { Briefcase } from "lucide-react";
 import { TEMP_ENVS, CERTIFICATIONS, CERT_LABEL, TEMP_LABEL } from "@/lib/warehouse-attrs";
+import jobsStrip from "@/assets/jobs-strip.webp";
 
 const searchSchema = z.object({
   q: z.string().optional(),
@@ -240,8 +241,18 @@ function JobsPage() {
     <div className="min-h-screen bg-background">
       <SiteHeader />
 
-      <section className="border-b border-border bg-[color:var(--ink)] py-8" aria-label="Search">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+      <section className="relative border-b border-border bg-[color:var(--ink)] py-8" aria-label="Search">
+        <img
+          src={jobsStrip}
+          alt="Three smiling warehouse workers walking through a sunlit pallet-rack aisle in a distribution center."
+          width={1920}
+          height={600}
+          loading="lazy"
+          decoding="async"
+          className="absolute inset-0 h-full w-full object-cover opacity-30"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-[color:var(--ink)] via-[color:var(--ink)]/80 to-[color:var(--ink)]/60" />
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6">
           <form onSubmit={submit} role="search" aria-label="Search warehouse jobs" className="flex flex-col gap-2 rounded-xl bg-white p-2 shadow-xl sm:flex-row sm:items-stretch">
             <div className="flex flex-1 items-center gap-2 px-3 py-2.5">
               <Search className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
