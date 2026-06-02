@@ -230,6 +230,28 @@ function OnboardingPage() {
           </Button>
         </div>
       </form>
+        </div>
+
+        <aside className="hidden lg:block">
+          <div className="sticky top-20 overflow-hidden rounded-xl border border-border bg-card">
+            <img
+              src={crewImage}
+              alt="A strong, diverse warehouse crew collaborating at a conveyor pick station — the kind of team you'll reach on WarehouseJobs."
+              width={1600}
+              height={1067}
+              loading="lazy"
+              decoding="async"
+              className="aspect-[4/5] w-full object-cover"
+            />
+            <div className="border-t border-border p-4">
+              <p className="label-caps text-primary">The crew you'll reach</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                18k+ active warehouse workers — forklift-certified, ready to start, in your ZIP.
+              </p>
+            </div>
+          </div>
+        </aside>
+      </div>
     </div>
   );
 }
