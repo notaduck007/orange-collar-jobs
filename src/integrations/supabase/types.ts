@@ -14,48 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      abuse_reports: {
-        Row: {
-          created_at: string
-          details: string | null
-          entity_id: string
-          entity_type: string
-          id: string
-          reason: string
-          reporter_id: string | null
-          resolution_note: string | null
-          resolved_at: string | null
-          resolved_by: string | null
-          status: string
-        }
-        Insert: {
-          created_at?: string
-          details?: string | null
-          entity_id: string
-          entity_type: string
-          id?: string
-          reason: string
-          reporter_id?: string | null
-          resolution_note?: string | null
-          resolved_at?: string | null
-          resolved_by?: string | null
-          status?: string
-        }
-        Update: {
-          created_at?: string
-          details?: string | null
-          entity_id?: string
-          entity_type?: string
-          id?: string
-          reason?: string
-          reporter_id?: string | null
-          resolution_note?: string | null
-          resolved_at?: string | null
-          resolved_by?: string | null
-          status?: string
-        }
-        Relationships: []
-      }
       ad_events: {
         Row: {
           ad_slot: string | null
