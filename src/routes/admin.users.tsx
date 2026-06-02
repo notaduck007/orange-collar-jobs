@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Search, UserCheck, UserX, KeyRound, MailCheck, ShieldCheck, Eye, UserCog } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
 import { startImpersonation } from "@/lib/impersonation";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +15,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useAdminPermissions } from "@/lib/admin-permissions";
 import type { Database } from "@/integrations/supabase/types";
+
 
 type AppRole = Database["public"]["Enums"]["app_role"];
 
@@ -30,11 +32,14 @@ type Row = {
   location: string | null;
   active: boolean;
   created_at: string;
-  role: AppRole;
+  roles: AppRole[];
 };
+
+const ALL_ROLES: AppRole[] = ["admin", "employer", "job_seeker"];
 
 function AdminUsers() {
   const qc = useQueryClient();
+  const { user: me } = useAuth();
   const { can, loading: permsLoading } = useAdminPermissions();
   const [q, setQ] = useState("");
   const [roleFilter, setRoleFilter] = useState<"all" | AppRole>("all");
@@ -57,7 +62,7 @@ function AdminUsers() {
       return (data ?? []).map((u): Row => {
         const rf = u.user_roles as unknown;
         const arr = Array.isArray(rf) ? (rf as Array<{ role: AppRole }>) : rf ? [rf as { role: AppRole }] : [];
-        return { ...u, role: (arr[0]?.role ?? "job_seeker") as AppRole };
+        return { ...u, roles: arr.map((r) => r.role) };
       });
     },
   });
@@ -70,13 +75,14 @@ function AdminUsers() {
       return d;
     })();
     return users.filter((u) => {
-      if (roleFilter !== "all" && u.role !== roleFilter) return false;
+      if (roleFilter !== "all" && !u.roles.includes(roleFilter)) return false;
       if (statusFilter === "active" && !u.active) return false;
       if (statusFilter === "suspended" && u.active) return false;
       if (cutoff && new Date(u.created_at) < cutoff) return false;
       return true;
     });
   }, [users, roleFilter, statusFilter, signedFilter]);
+
 
   const invokeAction = async (payload: Record<string, unknown>, successMsg: string) => {
     const { data, error } = await supabase.functions.invoke("admin-user-actions", { body: payload });
@@ -90,8 +96,17 @@ function AdminUsers() {
     return true;
   };
 
-  const setRole = (userId: string, role: AppRole) =>
-    invokeAction({ action: "set_role", user_id: userId, role }, "Role updated");
+  const grantRole = (userId: string, role: AppRole) =>
+    invokeAction({ action: "grant_role", user_id: userId, role }, `Granted ${role}`);
+  const revokeRole = async (userId: string, role: AppRole) => {
+    if (role === "admin" && userId === me?.id) {
+      if (!confirm("Revoke your OWN admin role? You will immediately lose admin access.")) return false;
+    }
+    return invokeAction({ action: "revoke_role", user_id: userId, role }, `Revoked ${role}`);
+  };
+  const toggleRole = (userId: string, role: AppRole, has: boolean) =>
+    has ? revokeRole(userId, role) : grantRole(userId, role);
+
   const toggleActive = (userId: string, active: boolean) =>
     invokeAction(
       { action: active ? "suspend" : "reactivate", user_id: userId },
@@ -190,15 +205,30 @@ function AdminUsers() {
                   {u.phone && <p className="text-xs text-muted-foreground">{u.phone}</p>}
                 </TableCell>
                 <TableCell>
-                  <Select value={u.role} onValueChange={(v) => setRole(u.id, v as AppRole)}>
-                    <SelectTrigger className="h-8 w-32"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="job_seeker">Job seeker</SelectItem>
-                      <SelectItem value="employer">Employer</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="flex flex-wrap gap-1">
+                    {ALL_ROLES.map((r) => {
+                      const has = u.roles.includes(r);
+                      return (
+                        <button
+                          key={r}
+                          type="button"
+                          onClick={() => toggleRole(u.id, r, has)}
+                          className={`rounded-md border px-2 py-0.5 text-[11px] font-medium transition-colors ${
+                            has
+                              ? r === "admin"
+                                ? "border-primary bg-primary/15 text-primary"
+                                : "border-emerald-300 bg-emerald-100 text-emerald-900"
+                              : "border-border bg-transparent text-muted-foreground hover:bg-muted"
+                          }`}
+                          title={has ? `Revoke ${r}` : `Grant ${r}`}
+                        >
+                          {r.replace("_", " ")}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </TableCell>
+
                 <TableCell>
                   {u.active
                     ? <Badge className="border-0 bg-emerald-100 text-emerald-900">Active</Badge>
@@ -230,22 +260,24 @@ function AdminUsers() {
         onSuspend={(id, active) => toggleActive(id, active)}
         onReset={(id) => sendReset(id)}
         onResend={(id) => resendVerify(id)}
-        onSetRole={(id, r) => setRole(id, r)}
+        onToggleRole={(id, r, has) => toggleRole(id, r, has)}
       />
+
     </div>
   );
 }
 
 function UserDrawer({
-  userId, onOpenChange, onSuspend, onReset, onResend, onSetRole,
+  userId, onOpenChange, onSuspend, onReset, onResend, onToggleRole,
 }: {
   userId: string | null;
   onOpenChange: (o: boolean) => void;
   onSuspend: (id: string, active: boolean) => void;
   onReset: (id: string) => void;
   onResend: (id: string) => void;
-  onSetRole: (id: string, r: AppRole) => void;
+  onToggleRole: (id: string, r: AppRole, has: boolean) => void;
 }) {
+
   const { data, isLoading } = useQuery({
     queryKey: ["admin-user-detail", userId],
     enabled: !!userId,
@@ -282,7 +314,7 @@ function UserDrawer({
 
       return {
         profile: profileR.data,
-        role: (rolesR.data?.[0]?.role ?? "job_seeker") as AppRole,
+        roles: ((rolesR.data ?? []) as Array<{ role: AppRole }>).map((r) => r.role),
         companies: companiesR.data ?? [],
         jobs: jobsR.data ?? [],
         applications: appsR.data ?? [],
@@ -292,6 +324,7 @@ function UserDrawer({
       };
     },
   });
+
 
   return (
     <Sheet open={!!userId} onOpenChange={onOpenChange}>
@@ -315,17 +348,32 @@ function UserDrawer({
             </div>
 
             <div className="flex flex-wrap gap-2">
-              <Select value={data.role} onValueChange={(v) => userId && onSetRole(userId, v as AppRole)}>
-                <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="job_seeker">Job seeker</SelectItem>
-                  <SelectItem value="employer">Employer</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex flex-wrap items-center gap-1.5 rounded-md border border-border bg-muted/30 px-2 py-1.5">
+                <span className="label-caps text-[10px] text-muted-foreground">Roles</span>
+                {ALL_ROLES.map((r) => {
+                  const has = data.roles.includes(r);
+                  return (
+                    <button
+                      key={r}
+                      type="button"
+                      onClick={() => userId && onToggleRole(userId, r, has)}
+                      className={`rounded-md border px-2 py-0.5 text-[11px] font-medium transition-colors ${
+                        has
+                          ? r === "admin"
+                            ? "border-primary bg-primary/15 text-primary"
+                            : "border-emerald-300 bg-emerald-100 text-emerald-900"
+                          : "border-border bg-transparent text-muted-foreground hover:bg-muted"
+                      }`}
+                    >
+                      {has ? "✓ " : "+ "}{r.replace("_", " ")}
+                    </button>
+                  );
+                })}
+              </div>
               <Button size="sm" variant="outline" onClick={() => userId && onSuspend(userId, !!data.profile?.active)} className="gap-1">
                 {data.profile?.active ? <><UserX className="h-3.5 w-3.5" /> Suspend</> : <><UserCheck className="h-3.5 w-3.5" /> Reactivate</>}
               </Button>
+
               <Button size="sm" variant="outline" onClick={() => userId && onReset(userId)} className="gap-1">
                 <KeyRound className="h-3.5 w-3.5" /> Force password reset
               </Button>

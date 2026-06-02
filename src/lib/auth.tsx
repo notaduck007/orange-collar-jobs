@@ -7,15 +7,25 @@ export type AppRole = "admin" | "employer" | "job_seeker";
 interface AuthContextValue {
   user: User | null;
   session: Session | null;
+  /** Effective role chosen by priority: admin > employer > job_seeker. */
   role: AppRole | null;
+  /** Every role row attached to the user. Admins are a superset. */
+  roles: AppRole[];
   loading: boolean;
   signOut: () => Promise<void>;
+}
+
+const ROLE_PRIORITY: AppRole[] = ["admin", "employer", "job_seeker"];
+function pickEffective(roles: AppRole[]): AppRole | null {
+  for (const r of ROLE_PRIORITY) if (roles.includes(r)) return r;
+  return null;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
+  const [roles, setRoles] = useState<AppRole[]>([]);
   const [role, setRole] = useState<AppRole | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -27,6 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(s);
 
       if (!s?.user) {
+        setRoles([]);
         setRole(null);
         setLoading(false);
         return;
@@ -42,19 +53,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await supabase.auth.signOut();
         if (!active) return;
         setSession(null);
+        setRoles([]);
         setRole(null);
         setLoading(false);
         return;
       }
 
+      // IMPORTANT: a user may hold multiple roles (UNIQUE(user_id, role)).
+      // Fetch the full set and resolve effective role by priority — admin wins.
       const { data } = await supabase
         .from("user_roles")
         .select("role")
-        .eq("user_id", s.user.id)
-        .maybeSingle();
+        .eq("user_id", s.user.id);
 
       if (!active) return;
-      setRole((data?.role as AppRole) ?? "job_seeker");
+      const list = ((data ?? []) as Array<{ role: AppRole }>).map((r) => r.role);
+      const resolved = list.length > 0 ? pickEffective(list) ?? "job_seeker" : "job_seeker";
+      setRoles(list);
+      setRole(resolved);
       setLoading(false);
     };
 
@@ -77,6 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user: session?.user ?? null,
     session,
     role,
+    roles,
     loading,
     signOut: async () => {
       await supabase.auth.signOut();
