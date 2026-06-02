@@ -42,6 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!s?.user) {
         setRoles([]);
         setRole(null);
+        setPermissions([]);
         setLoading(false);
         return;
       }
@@ -58,22 +59,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(null);
         setRoles([]);
         setRole(null);
+        setPermissions([]);
         setLoading(false);
         return;
       }
 
       // IMPORTANT: a user may hold multiple roles (UNIQUE(user_id, role)).
       // Fetch the full set and resolve effective role by priority — admin wins.
-      const { data } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", s.user.id);
+      const [{ data }, { data: perms }] = await Promise.all([
+        supabase.from("user_roles").select("role").eq("user_id", s.user.id),
+        supabase.rpc("get_my_permissions"),
+      ]);
 
       if (!active) return;
       const list = ((data ?? []) as Array<{ role: AppRole }>).map((r) => r.role);
       const resolved = list.length > 0 ? pickEffective(list) ?? "job_seeker" : "job_seeker";
       setRoles(list);
       setRole(resolved);
+      setPermissions(Array.isArray(perms) ? (perms as string[]) : []);
       setLoading(false);
     };
 
