@@ -1,8 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Briefcase, Users, Coins, Star, Plus, Eye, Pause, Play, Copy, X, Pencil, Sparkles } from "lucide-react";
+import { Briefcase, Users, Package as PackageIcon, Star, Plus, Eye, Pause, Play, Copy, X, Pencil, Sparkles, Rocket } from "lucide-react";
 import { toast } from "sonner";
-import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -11,6 +10,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Badge } from "@/components/ui/badge";
 import { uniqueSlug } from "@/lib/slug";
 import { TableSkeleton } from "@/components/ui/skeleton-list";
+
 
 export const Route = createFileRoute("/employer/")({
   head: () => ({ meta: [{ title: "Employer Dashboard — WarehouseJobs" }] }),
