@@ -16,8 +16,9 @@ serve(async (req) => {
   try {
     event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret);
   } catch (err: unknown) {
-    console.error("Signature verification failed", err.message);
-    return new Response(`Webhook Error: ${err.message}`, { status: 400 });
+    const msg = (err as Error)?.message ?? "Server error";
+    console.error("Signature verification failed", msg);
+    return new Response(`Webhook Error: ${msg}`, { status: 400 });
   }
 
   const admin = createClient(
