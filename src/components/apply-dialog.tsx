@@ -4,6 +4,8 @@ import { FileText, Upload } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { useSiteSettings } from "@/lib/site-settings";
+import { checkRateLimit, emailIsVerified, LIMITS } from "@/lib/abuse";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -37,6 +39,7 @@ type QuestionRow = {
 
 export function ApplyDialog({ jobId, jobTitle, open, onOpenChange, onApplied }: ApplyDialogProps) {
   const { user } = useAuth();
+  const { settings } = useSiteSettings();
   const qc = useQueryClient();
   const fileInput = useRef<HTMLInputElement>(null);
   const [coverNote, setCoverNote] = useState("");
@@ -93,10 +96,24 @@ export function ApplyDialog({ jobId, jobTitle, open, onOpenChange, onApplied }: 
 
   const submit = async () => {
     if (!user) return;
+    if (!emailIsVerified(user, settings.toggles.require_email_verification)) {
+      toast.error("Please verify your email before applying. Check your inbox for the confirmation link.");
+      return;
+    }
     const qErr = validateAnswers();
     if (qErr) { toast.error(qErr); return; }
     setSubmitting(true);
     try {
+      const allowed = await checkRateLimit(
+        `apply:${user.id}`,
+        LIMITS.applyPerHour.windowSeconds,
+        LIMITS.applyPerHour.max,
+      );
+      if (!allowed) {
+        toast.error("You've hit the application limit for this hour. Try again later.");
+        setSubmitting(false);
+        return;
+      }
       let resumePath: string | null = null;
 
       if (useDefault && profile?.default_resume_url) {
