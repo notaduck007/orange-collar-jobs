@@ -209,6 +209,7 @@ function AdminUsers() {
                 <TableCell>
                   <div className="flex justify-end gap-1">
                     <Button size="sm" variant="ghost" onClick={() => setOpenUserId(u.id)} className="h-8 gap-1"><Eye className="h-3.5 w-3.5" /> View</Button>
+                    <Button size="sm" variant="ghost" onClick={() => impersonate(u.id)} className="h-8 gap-1" title="Impersonate"><UserCog className="h-3.5 w-3.5" /></Button>
                     <Button size="sm" variant="outline" onClick={() => toggleActive(u.id, u.active)} className="h-8 gap-1">
                       {u.active ? <><UserX className="h-3.5 w-3.5" /> Suspend</> : <><UserCheck className="h-3.5 w-3.5" /> Reactivate</>}
                     </Button>
