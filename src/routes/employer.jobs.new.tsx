@@ -214,7 +214,7 @@ function NewJobPage() {
   const [draftId, setDraftId] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [resuming, setResuming] = useState(false);
-  const [success, setSuccess] = useState<{ slug: string; title: string } | null>(null);
+  const [success, setSuccess] = useState<{ slug: string; title: string; jobId: string; featured: boolean } | null>(null);
   const resumeHandledRef = useRef(false);
   const [resumeOffer, setResumeOffer] = useState<null | {
     form: FormState;
@@ -471,7 +471,7 @@ function NewJobPage() {
     qc.invalidateQueries({ queryKey: ["active-package", company!.id] });
     qc.invalidateQueries({ queryKey: ["employer-jobs", company!.id] });
     const { data: row } = await supabase.from("jobs").select("slug, title").eq("id", jobId).maybeSingle();
-    setSuccess({ slug: row?.slug ?? "", title: row?.title ?? form.title });
+    setSuccess({ slug: row?.slug ?? "", title: row?.title ?? form.title, jobId, featured: wantsFeatured });
     clearLocalDraft();
   };
 
@@ -594,7 +594,7 @@ function NewJobPage() {
           qc.invalidateQueries({ queryKey: ["active-package", company.id] });
           qc.invalidateQueries({ queryKey: ["employer-jobs", company.id] });
           const { data: row } = await supabase.from("jobs").select("slug, title").eq("id", search.draft!).maybeSingle();
-          setSuccess({ slug: row?.slug ?? "", title: row?.title ?? form.title });
+          setSuccess({ slug: row?.slug ?? "", title: row?.title ?? form.title, jobId: search.draft!, featured: wantsFeatured });
           clearLocalDraft();
           navigate({ to: "/employer/jobs/new", search: {}, replace: true });
         } catch (e) {
@@ -630,6 +630,21 @@ function NewJobPage() {
             </Button>
           </div>
         </div>
+
+        {!success.featured && (
+          <FeatureUpsell
+            jobId={success.jobId}
+            companyId={company?.id ?? null}
+            activePackage={activePackage ?? null}
+            onFeatured={() => {
+              setSuccess((s) => (s ? { ...s, featured: true } : s));
+              if (company?.id) {
+                qc.invalidateQueries({ queryKey: ["active-package", company.id] });
+                qc.invalidateQueries({ queryKey: ["employer-jobs", company.id] });
+              }
+            }}
+          />
+        )}
       </div>
     );
   }
@@ -1059,19 +1074,9 @@ function NewJobPage() {
               />
             </div>
 
-            <label className="flex items-start gap-3 rounded-lg border border-border bg-background p-4">
-              <Checkbox
-                checked={form.feature_it}
-                onCheckedChange={(c) => setForm({ ...form, feature_it: !!c })}
-              />
-              <div className="text-sm">
-                <p className="font-semibold text-[color:var(--ink)]">Feature this job</p>
-                <p className="text-xs text-muted-foreground">
-                  Highlight with the hazard-yellow badge and pin to the top of search. Uses 1 featured
-                  upgrade from your active package.
-                </p>
-              </div>
-            </label>
+            <p className="rounded-md border border-dashed border-border bg-background p-3 text-xs text-muted-foreground">
+              You'll choose reach (Standard vs Featured) on the final Review step.
+            </p>
           </div>
         )}
 
@@ -1089,7 +1094,12 @@ function NewJobPage() {
         )}
 
         {step === 5 && (
-          <ReviewStep form={form} company={company} activePackage={activePackage ?? null} />
+          <ReviewStep
+            form={form}
+            setForm={setForm}
+            company={company}
+            activePackage={activePackage ?? null}
+          />
         )}
 
         <div className="flex items-center justify-between gap-2 border-t border-border pt-5">
@@ -1120,6 +1130,7 @@ function NewJobPage() {
         activePackage={activePackage ?? null}
         lastPackageId={lastPackageId ?? null}
         draftId={draftId}
+        requireFeatured={form.feature_it}
       />
     </div>
   );
@@ -1127,10 +1138,12 @@ function NewJobPage() {
 
 function ReviewStep({
   form,
+  setForm,
   company,
   activePackage,
 }: {
   form: FormState;
+  setForm: React.Dispatch<React.SetStateAction<FormState>>;
   company: { id: string; name: string; slug: string; verified?: boolean | null } | null | undefined;
   activePackage: ActivePackage | null;
 }) {
@@ -1154,6 +1167,30 @@ function ReviewStep({
     lift_requirement_lbs: form.lift_requirement_lbs ? Number(form.lift_requirement_lbs) : null,
   };
 
+  const postsLeft = activePackage?.posts_remaining ?? 0;
+  const featuredLeft = activePackage?.featured_remaining ?? 0;
+
+  const tiers = [
+    {
+      key: "standard" as const,
+      title: "Standard",
+      price: "1 post",
+      tag: "Included",
+      blurb: "Appears in search, category, and company pages.",
+      selected: !form.feature_it,
+      onSelect: () => setForm((f) => ({ ...f, feature_it: false })),
+    },
+    {
+      key: "featured" as const,
+      title: "Featured",
+      price: "1 post + 1 featured",
+      tag: "Recommended",
+      blurb: "Pinned to the top of search and category pages — ~3× more views.",
+      selected: form.feature_it,
+      onSelect: () => setForm((f) => ({ ...f, feature_it: true })),
+    },
+  ];
+
   return (
     <div className="space-y-5">
       <div>
@@ -1176,36 +1213,71 @@ function ReviewStep({
         )}
       </div>
 
-      <div className="rounded-lg border-2 border-dashed border-border bg-background p-4">
-        <div className="flex items-start gap-3">
-          <PackageIcon className="mt-0.5 h-5 w-5 text-primary" />
-          <div className="text-sm">
-            {activePackage ? (
-              <>
-                <p className="text-[color:var(--ink)]">
-                  Publishing uses <span className="font-semibold">1 of {activePackage.posts_remaining} remaining posts</span>{" "}
-                  on your <span className="font-semibold">{activePackage.package_name}</span> (valid until{" "}
-                  {formatDate(activePackage.expires_at)})
-                </p>
-                {form.feature_it && (
-                  <p className="mt-1 text-[color:var(--ink)]">
-                    + 1 featured upgrade ({activePackage.featured_remaining} remaining)
+      <div className="space-y-2">
+        <div className="flex items-baseline justify-between">
+          <h3 className="text-sm font-semibold text-[color:var(--ink)]">Choose reach</h3>
+          {activePackage ? (
+            <p className="text-xs text-muted-foreground">
+              {postsLeft} posts · {featuredLeft} featured left on {activePackage.package_name}
+            </p>
+          ) : (
+            <p className="text-xs text-muted-foreground">No active package — you'll pick one next.</p>
+          )}
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {tiers.map((t) => {
+            const isFeatured = t.key === "featured";
+            const outOfFeatured = isFeatured && !!activePackage && featuredLeft < 1;
+            return (
+              <button
+                key={t.key}
+                type="button"
+                onClick={t.onSelect}
+                className={`text-left rounded-lg border p-4 transition ${
+                  t.selected
+                    ? "border-primary bg-[color:var(--primary-tint)] shadow-[var(--shadow-card)]"
+                    : "border-border bg-card hover:border-primary/50"
+                }`}
+                aria-pressed={t.selected}
+              >
+                <div className="flex items-center justify-between">
+                  <p className="font-bold text-[color:var(--ink)]">{t.title}</p>
+                  {isFeatured ? (
+                    <span className="rounded bg-[color:var(--hazard)] px-2 py-0.5 text-[10px] font-bold uppercase text-[color:var(--ink)]">
+                      {t.tag}
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      {t.tag}
+                    </span>
+                  )}
+                </div>
+                <p className="mt-1 text-xs font-semibold text-primary">{t.price}</p>
+                <p className="mt-2 text-xs text-muted-foreground">{t.blurb}</p>
+                {outOfFeatured && (
+                  <p className="mt-2 text-[11px] text-amber-700">
+                    No featured upgrades left — we'll prompt you to add one when you publish.
                   </p>
                 )}
-                {form.feature_it && activePackage.featured_remaining < 1 && (
-                  <p className="mt-1 text-amber-700">
-                    You don't have featured upgrades left — we'll publish as a standard job.
-                  </p>
-                )}
-              </>
-            ) : (
-              <p className="text-[color:var(--ink)]">
-                You don't have an active package — choose one to publish.
-              </p>
-            )}
-          </div>
+              </button>
+            );
+          })}
         </div>
       </div>
+
+      {activePackage && (
+        <div className="rounded-lg border-2 border-dashed border-border bg-background p-4 text-sm text-[color:var(--ink)]">
+          <div className="flex items-start gap-3">
+            <PackageIcon className="mt-0.5 h-5 w-5 text-primary" />
+            <p>
+              Publishing uses <span className="font-semibold">1 post</span>
+              {form.feature_it ? <> + <span className="font-semibold">1 featured upgrade</span></> : null}{" "}
+              from <span className="font-semibold">{activePackage.package_name}</span> (valid until{" "}
+              {formatDate(activePackage.expires_at)}).
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1216,12 +1288,14 @@ function RenewUpgradeDialog({
   activePackage,
   lastPackageId,
   draftId,
+  requireFeatured,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   activePackage: ActivePackage | null;
   lastPackageId: string | null;
   draftId: string | null;
+  requireFeatured?: boolean;
 }) {
   const [busy, setBusy] = useState<string | null>(null);
 
@@ -1239,13 +1313,20 @@ function RenewUpgradeDialog({
     },
   });
 
-  const renewPkg = packages.find((p) => p.id === lastPackageId) ?? null;
-  const upgrades = packages.filter(
+  // When the user picked Featured but has no featured upgrades, only suggest packages that include one.
+  const eligible = requireFeatured
+    ? packages.filter((p) => (p.featured_count ?? 0) >= 1)
+    : packages;
+
+  const renewPkg = eligible.find((p) => p.id === lastPackageId) ?? null;
+  const upgrades = eligible.filter(
     (p) => p.id !== lastPackageId && (renewPkg ? p.posting_count > renewPkg.posting_count : true),
   );
   const popular = upgrades[Math.floor(upgrades.length / 2)] ?? null;
 
-  const reason = !activePackage
+  const reason = requireFeatured && activePackage && activePackage.posts_remaining >= 1
+    ? "You picked Featured but have no featured upgrades left — buy a package that includes one."
+    : !activePackage
     ? "You don't have an active package — pick one to publish your draft."
     : activePackage.posts_remaining < 1
     ? `Your ${activePackage.package_name} is used up — renew it or move up to publish.`
@@ -1350,4 +1431,81 @@ function RenewUpgradeDialog({
 
 function formatDate(s: string) {
   return new Date(s).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
+function FeatureUpsell({
+  jobId,
+  companyId,
+  activePackage,
+  onFeatured,
+}: {
+  jobId: string;
+  companyId: string | null;
+  activePackage: ActivePackage | null;
+  onFeatured: () => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const featuredLeft = activePackage?.featured_remaining ?? 0;
+  const hasCredit = featuredLeft >= 1;
+
+  const handleFeature = async () => {
+    if (!companyId) return;
+    setBusy(true);
+    try {
+      if (hasCredit) {
+        const { error } = await supabase.rpc("feature_existing_job", {
+          _job_id: jobId,
+          _company_id: companyId,
+        });
+        if (error) throw error;
+        toast.success("Your job is now featured");
+        onFeatured();
+      } else {
+        // No featured upgrade available — start checkout for a package that includes one.
+        const { data: pkgs } = await supabase
+          .from("packages")
+          .select("id, featured_count, price_cents, sort_order")
+          .eq("kind", "posting")
+          .eq("active", true)
+          .gte("featured_count", 1)
+          .order("price_cents", { ascending: true })
+          .limit(1);
+        const pkgId = pkgs?.[0]?.id;
+        if (!pkgId) {
+          toast.error("No upgrade package available right now");
+          return;
+        }
+        const res = await startCheckout(pkgId, "upgrade", null);
+        if (res?.error) toast.error(res.error);
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Couldn't feature this job");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="rounded-xl border-2 border-[color:var(--hazard)] bg-card p-5">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-start gap-3">
+          <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[color:var(--hazard)] text-[color:var(--ink)]">
+            <Sparkles className="h-5 w-5" />
+          </span>
+          <div>
+            <p className="font-bold text-[color:var(--ink)]">Get ~3× more applicants — feature this job</p>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              Pin it to the top of search and category pages.{" "}
+              {hasCredit
+                ? `Uses 1 of ${featuredLeft} featured upgrades on your package.`
+                : "You're out of featured upgrades — we'll open checkout for a package that includes one."}
+            </p>
+          </div>
+        </div>
+        <Button className="btn-primary" onClick={handleFeature} disabled={busy || !companyId}>
+          {busy ? "Working…" : hasCredit ? "Feature this job" : "Add featured upgrade"}
+        </Button>
+      </div>
+    </div>
+  );
 }
