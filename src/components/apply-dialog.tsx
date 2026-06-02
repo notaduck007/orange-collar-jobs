@@ -96,10 +96,24 @@ export function ApplyDialog({ jobId, jobTitle, open, onOpenChange, onApplied }: 
 
   const submit = async () => {
     if (!user) return;
+    if (!emailIsVerified(user, settings.toggles.require_email_verification)) {
+      toast.error("Please verify your email before applying. Check your inbox for the confirmation link.");
+      return;
+    }
     const qErr = validateAnswers();
     if (qErr) { toast.error(qErr); return; }
     setSubmitting(true);
     try {
+      const allowed = await checkRateLimit(
+        `apply:${user.id}`,
+        LIMITS.applyPerHour.windowSeconds,
+        LIMITS.applyPerHour.max,
+      );
+      if (!allowed) {
+        toast.error("You've hit the application limit for this hour. Try again later.");
+        setSubmitting(false);
+        return;
+      }
       let resumePath: string | null = null;
 
       if (useDefault && profile?.default_resume_url) {
