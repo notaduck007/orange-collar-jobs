@@ -14,6 +14,7 @@ import { AdSlot } from "@/components/ad-slot";
 import { JobCardSkeletonList, EmptyState } from "@/components/ui/skeleton-list";
 import { Briefcase } from "lucide-react";
 import { TEMP_ENVS, CERTIFICATIONS, CERT_LABEL, TEMP_LABEL } from "@/lib/warehouse-attrs";
+import jobsStrip from "@/assets/jobs-strip.webp";
 
 const searchSchema = z.object({
   q: z.string().optional(),
@@ -242,7 +243,7 @@ function JobsPage() {
 
       <section className="relative border-b border-border bg-[color:var(--ink)] py-8" aria-label="Search">
         <img
-          src={new URL("@/assets/jobs-strip.webp", import.meta.url).href}
+          src={jobsStrip}
           alt="Three smiling warehouse workers walking through a sunlit pallet-rack aisle in a distribution center."
           width={1920}
           height={600}
