@@ -9,6 +9,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Button } from "@/components/ui/button";
 import { AdSlot } from "@/components/ad-slot";
+import { JobCardSkeletonList } from "@/components/ui/skeleton-list";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -34,7 +35,7 @@ function Home() {
   const [keyword, setKeyword] = useState("");
   const [location, setLocation] = useState("");
 
-  const { data: featured = [] } = useQuery({
+  const { data: featured = [], isLoading: featuredLoading } = useQuery({
     queryKey: ["featured-jobs"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -56,21 +57,24 @@ function Home() {
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
+      <main id="main">
 
       {/* HERO */}
-      <section className="relative overflow-hidden bg-[color:var(--ink)]">
+      <section className="relative overflow-hidden bg-[color:var(--ink)]" aria-labelledby="hero-heading">
         <img
           src={heroImage}
           alt="Forklift operator working in a modern distribution warehouse"
           width={1920}
           height={1280}
+          fetchPriority="high"
+          decoding="async"
           className="absolute inset-0 h-full w-full object-cover opacity-50"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-[color:var(--ink)]/95 via-[color:var(--ink)]/70 to-transparent" />
         <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28 lg:py-32">
           <div className="max-w-2xl">
             <p className="label-caps text-primary">Hiring Now • Boots on the Dock</p>
-            <h1 className="mt-4 text-4xl font-bold leading-[1.05] tracking-tight text-white sm:text-5xl lg:text-6xl">
+            <h1 id="hero-heading" className="mt-4 text-4xl font-bold leading-[1.05] tracking-tight text-white sm:text-5xl lg:text-6xl">
               Warehouse jobs that pay <span className="text-primary">on time</span>, every time.
             </h1>
             <p className="mt-5 max-w-xl text-base text-white/80 sm:text-lg">
@@ -78,23 +82,27 @@ function Home() {
             </p>
 
             {/* SEARCH BAR */}
-            <form onSubmit={submitSearch} className="mt-8 rounded-xl bg-white p-2 shadow-2xl sm:flex sm:items-stretch sm:gap-1">
+            <form onSubmit={submitSearch} role="search" aria-label="Search warehouse jobs" className="mt-8 rounded-xl bg-white p-2 shadow-2xl sm:flex sm:items-stretch sm:gap-1">
               <div className="flex flex-1 items-center gap-2 px-3 py-2.5">
-                <Search className="h-5 w-5 shrink-0 text-muted-foreground" />
+                <Search className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+                <label htmlFor="hero-keyword" className="sr-only">Job title or keyword</label>
                 <input
+                  id="hero-keyword"
                   value={keyword}
                   onChange={(e) => setKeyword(e.target.value)}
                   placeholder="Job title or keyword"
-                  className="w-full bg-transparent text-[color:var(--ink)] placeholder:text-muted-foreground focus:outline-none"
+                  className="w-full bg-transparent text-[color:var(--ink)] placeholder:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
                 />
               </div>
               <div className="mt-1 flex flex-1 items-center gap-2 border-t border-border px-3 py-2.5 sm:mt-0 sm:border-l sm:border-t-0">
-                <MapPin className="h-5 w-5 shrink-0 text-muted-foreground" />
+                <MapPin className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+                <label htmlFor="hero-location" className="sr-only">Location (city, state, or ZIP)</label>
                 <input
+                  id="hero-location"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
                   placeholder="City, state, or ZIP"
-                  className="w-full bg-transparent text-[color:var(--ink)] placeholder:text-muted-foreground focus:outline-none"
+                  className="w-full bg-transparent text-[color:var(--ink)] placeholder:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
                 />
               </div>
               <button type="submit" className="btn-primary mt-1 w-full sm:mt-0 sm:w-auto sm:px-6">
@@ -102,10 +110,10 @@ function Home() {
               </button>
             </form>
 
-            <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-white/60">
-              <span className="label-caps text-white/40">Popular:</span>
+            <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-white/70">
+              <span className="label-caps text-white/60">Popular:</span>
               {["Forklift Operator", "Picker / Packer", "2nd Shift", "Order Selector"].map((t) => (
-                <button key={t} onClick={() => { setKeyword(t); navigate({ to: "/jobs", search: { q: t } as never }); }} className="hover:text-primary">
+                <button key={t} onClick={() => { setKeyword(t); navigate({ to: "/jobs", search: { q: t } as never }); }} className="rounded hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
                   {t}
                 </button>
               ))}
@@ -157,10 +165,14 @@ function Home() {
               View all <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            {featured.map((job) => <JobCard key={job.id} job={job} />)}
-            {featured.length === 0 && <p className="text-sm text-muted-foreground">Loading featured jobs…</p>}
-          </div>
+          {featuredLoading ? (
+            <JobCardSkeletonList count={4} />
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2">
+              {featured.map((job) => <JobCard key={job.id} job={job} />)}
+              {featured.length === 0 && <p className="text-sm text-muted-foreground">No featured jobs right now.</p>}
+            </div>
+          )}
         </div>
       </section>
 
@@ -205,6 +217,7 @@ function Home() {
         </div>
       </section>
 
+      </main>
       <SiteFooter />
     </div>
   );

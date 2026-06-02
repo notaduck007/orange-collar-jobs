@@ -200,16 +200,18 @@ function JobsPage() {
     <div className="min-h-screen bg-background">
       <SiteHeader />
 
-      <section className="border-b border-border bg-[color:var(--ink)] py-8">
+      <section className="border-b border-border bg-[color:var(--ink)] py-8" aria-label="Search">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <form onSubmit={submit} className="flex flex-col gap-2 rounded-xl bg-white p-2 shadow-xl sm:flex-row sm:items-stretch">
+          <form onSubmit={submit} role="search" aria-label="Search warehouse jobs" className="flex flex-col gap-2 rounded-xl bg-white p-2 shadow-xl sm:flex-row sm:items-stretch">
             <div className="flex flex-1 items-center gap-2 px-3 py-2.5">
-              <Search className="h-5 w-5 text-muted-foreground" />
-              <input value={keyword} onChange={(e) => setKeyword(e.target.value)} placeholder="Job title, keyword, or company" className="w-full bg-transparent text-[color:var(--ink)] focus:outline-none" />
+              <Search className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+              <label htmlFor="jobs-keyword" className="sr-only">Job title, keyword, or company</label>
+              <input id="jobs-keyword" value={keyword} onChange={(e) => setKeyword(e.target.value)} placeholder="Job title, keyword, or company" className="w-full bg-transparent text-[color:var(--ink)] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded" />
             </div>
             <div className="flex flex-1 items-center gap-2 border-t border-border px-3 py-2.5 sm:border-l sm:border-t-0">
-              <MapPin className="h-5 w-5 text-muted-foreground" />
-              <input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="City, state, or ZIP" className="w-full bg-transparent text-[color:var(--ink)] focus:outline-none" />
+              <MapPin className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+              <label htmlFor="jobs-location" className="sr-only">Location (city, state, or ZIP)</label>
+              <input id="jobs-location" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="City, state, or ZIP" className="w-full bg-transparent text-[color:var(--ink)] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded" />
             </div>
             <button type="submit" className="btn-primary sm:px-6">Search</button>
           </form>
@@ -249,13 +251,14 @@ function JobsPage() {
               {search.q && <span className="text-muted-foreground"> for "{search.q}"</span>}
             </h1>
             <div className="flex flex-wrap items-center gap-2">
-              <label className="text-xs text-muted-foreground">Min pay</label>
+              <label htmlFor="filter-pay" className="text-xs text-muted-foreground">Min pay</label>
               <select
+                id="filter-pay"
                 value={search.pay_min ?? ""}
                 onChange={(e) =>
                   updateSearch({ pay_min: e.target.value ? Number(e.target.value) : undefined })
                 }
-                className="rounded-md border border-border bg-card px-2 py-1 text-xs font-medium text-[color:var(--ink)]"
+                className="rounded-md border border-border bg-card px-2 py-1 text-xs font-medium text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 <option value="">Any</option>
                 <option value="15">$15+/hr</option>
@@ -265,26 +268,28 @@ function JobsPage() {
                 <option value="22">$22+/hr</option>
                 <option value="25">$25+/hr</option>
               </select>
-              <label className="ml-2 text-xs text-muted-foreground">Within</label>
+              <label htmlFor="filter-radius" className="ml-2 text-xs text-muted-foreground">Within</label>
               <select
+                id="filter-radius"
                 value={search.radius ?? ""}
                 onChange={(e) =>
                   updateSearch({ radius: e.target.value ? Number(e.target.value) : undefined })
                 }
                 disabled={!search.loc}
                 title={search.loc ? "Search radius around location" : "Enter a location to enable radius"}
-                className="rounded-md border border-border bg-card px-2 py-1 text-xs font-medium text-[color:var(--ink)] disabled:opacity-50"
+                className="rounded-md border border-border bg-card px-2 py-1 text-xs font-medium text-[color:var(--ink)] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 <option value="">Any distance</option>
                 {RADIUS_OPTIONS.map((r) => (
                   <option key={r} value={r}>{r} miles</option>
                 ))}
               </select>
-              <label className="ml-2 text-xs text-muted-foreground">Sort</label>
+              <label htmlFor="filter-sort" className="ml-2 text-xs text-muted-foreground">Sort</label>
               <select
+                id="filter-sort"
                 value={sort}
                 onChange={(e) => updateSearch({ sort: e.target.value as "relevance" | "date" | "pay_high" })}
-                className="rounded-md border border-border bg-card px-2 py-1 text-xs font-medium text-[color:var(--ink)]"
+                className="rounded-md border border-border bg-card px-2 py-1 text-xs font-medium text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 {SORTS.map((s) => (
                   <option key={s.value} value={s.value}>{s.label}</option>
@@ -292,27 +297,28 @@ function JobsPage() {
               </select>
               {hasActiveSearch && (
                 <Button variant="outline" size="sm" onClick={createAlertFromSearch} className="gap-1.5">
-                  <BellRing className="h-4 w-4 text-primary" /> Get alerts for this search
+                  <BellRing className="h-4 w-4 text-primary" aria-hidden="true" /> Get alerts for this search
                 </Button>
               )}
             </div>
           </div>
 
           {activeChips.length > 0 && (
-            <div className="mb-4 flex flex-wrap items-center gap-1.5">
+            <div className="mb-4 flex flex-wrap items-center gap-1.5" role="region" aria-label="Active filters">
               {activeChips.map((chip) => (
                 <button
                   key={chip.key}
                   onClick={chip.clear}
-                  className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-2.5 py-1 text-xs font-medium text-[color:var(--ink)] hover:border-primary hover:text-primary"
+                  aria-label={`Remove filter: ${chip.label}`}
+                  className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-2.5 py-1 text-xs font-medium text-[color:var(--ink)] hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 >
                   {chip.label}
-                  <span aria-hidden className="text-muted-foreground">×</span>
+                  <span aria-hidden="true" className="text-muted-foreground">×</span>
                 </button>
               ))}
               <button
                 onClick={() => navigate({ to: "/jobs", search: {} as never })}
-                className="ml-1 text-xs font-semibold text-primary hover:underline"
+                className="ml-1 text-xs font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
               >
                 Clear all
               </button>
@@ -396,7 +402,8 @@ function FilterChip({ active, onClick, children }: { active: boolean; onClick: (
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-md border px-2.5 py-1 text-xs font-medium transition-colors ${
+      aria-pressed={active}
+      className={`rounded-md border px-2.5 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
         active
           ? "border-primary bg-primary text-primary-foreground"
           : "border-border bg-card text-[color:var(--ink)] hover:border-primary/50"

@@ -227,7 +227,8 @@ export function ApplyDialog({ jobId, jobTitle, open, onOpenChange, onApplied }: 
                   ref={fileInput}
                   type="file"
                   accept=".pdf,.doc,.docx"
-                  className="hidden"
+                  aria-label="Upload resume file (PDF, DOC, or DOCX)"
+                  className="sr-only"
                   onChange={(e) => {
                     const f = e.target.files?.[0];
                     if (f) {

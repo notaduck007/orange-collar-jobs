@@ -6,6 +6,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { JobCard, type JobSummary } from "@/components/job-card";
 import { ReportButton } from "@/components/report-button";
+import { CompanyProfileSkeleton } from "@/components/ui/skeleton-list";
 
 export const Route = createFileRoute("/companies/$slug")({
   loader: async ({ params }) => {
@@ -77,7 +78,15 @@ function CompanyProfile() {
     },
   });
 
-  if (isLoading) return <div className="p-12 text-center text-sm text-muted-foreground">Loading…</div>;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <SiteHeader />
+        <CompanyProfileSkeleton />
+        <SiteFooter />
+      </div>
+    );
+  }
   if (!company) return null;
 
   return (
@@ -89,13 +98,13 @@ function CompanyProfile() {
         </Link>
       </div>
 
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
         <header className="flex flex-wrap items-start gap-5 rounded-xl border border-border bg-card p-6 sm:p-8">
           <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-background">
             {company.logo_url ? (
-              <img src={company.logo_url} alt={`${company.name} logo`} className="h-full w-full object-contain" />
+              <img src={company.logo_url} alt={`${company.name} logo`} loading="lazy" decoding="async" width={80} height={80} className="h-full w-full object-contain" />
             ) : (
-              <Building2 className="h-9 w-9 text-muted-foreground" />
+              <Building2 className="h-9 w-9 text-muted-foreground" aria-hidden="true" />
             )}
           </div>
           <div className="min-w-0 flex-1">
@@ -152,7 +161,7 @@ function CompanyProfile() {
             </div>
           )}
         </section>
-      </div>
+      </main>
 
       <SiteFooter />
     </div>
