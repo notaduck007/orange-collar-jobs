@@ -116,12 +116,18 @@ function AdminUsers() {
     invokeAction({ action: "password_reset", user_id: userId }, "Password reset email sent");
   const resendVerify = (userId: string) =>
     invokeAction({ action: "resend_verification", user_id: userId }, "Verification email resent");
-  const impersonate = async (userId: string) => {
+  const impersonate = async (u: Row) => {
     if (!confirm("Sign in as this user? Your session will be paused and all actions are audited.")) return;
+    const label = u.display_name || u.full_name || u.id.slice(0, 8);
+    const redirectTo = u.roles.includes("employer")
+      ? "/employer"
+      : u.roles.includes("job_seeker")
+        ? "/seeker"
+        : "/";
     try {
-      await startImpersonation(userId);
+      await startImpersonation(u.id, { label, kind: "user", redirectTo });
       toast.success("Now viewing as user");
-      window.location.assign("/");
+      window.location.assign(redirectTo);
     } catch (e) {
       toast.error((e as Error).message || "Impersonation failed");
     }
@@ -239,7 +245,7 @@ function AdminUsers() {
                 <TableCell>
                   <div className="flex justify-end gap-1">
                     <Button size="sm" variant="ghost" onClick={() => setOpenUserId(u.id)} className="h-8 gap-1"><Eye className="h-3.5 w-3.5" /> View</Button>
-                    <Button size="sm" variant="ghost" onClick={() => impersonate(u.id)} className="h-8 gap-1" title="Impersonate"><UserCog className="h-3.5 w-3.5" /></Button>
+                    <Button size="sm" variant="ghost" onClick={() => impersonate(u)} className="h-8 gap-1" title="Impersonate"><UserCog className="h-3.5 w-3.5" /></Button>
                     <Button size="sm" variant="outline" onClick={() => toggleActive(u.id, u.active)} className="h-8 gap-1">
                       {u.active ? <><UserX className="h-3.5 w-3.5" /> Suspend</> : <><UserCheck className="h-3.5 w-3.5" /> Reactivate</>}
                     </Button>

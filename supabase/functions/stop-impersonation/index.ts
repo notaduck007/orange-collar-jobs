@@ -20,15 +20,21 @@ serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const actorId: string | undefined = body.actor_id;
     const targetId: string | undefined = body.target_user_id;
+    const targetKind: string = body.target_kind ?? "user";
+    const targetLabel: string | undefined = body.target_label;
     if (!actorId || !targetId) return json({ error: "actor_id and target_user_id required" }, 400);
 
     await admin.from("audit_log").insert({
       actor_id: actorId,
       action: "impersonate_stop",
-      entity_type: "user",
+      entity_type: targetKind,
       entity_id: targetId,
       reason: body.reason ?? null,
-      metadata: { ended_at: new Date().toISOString() },
+      metadata: {
+        target_user_id: targetId,
+        target_label: targetLabel ?? null,
+        ended_at: new Date().toISOString(),
+      },
     });
 
     return json({ ok: true });
