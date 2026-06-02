@@ -34,15 +34,25 @@ export function SiteHeader() {
         <div className="flex items-center gap-2">
           {user ? (
             <>
-              {(role === "employer" || role === "admin") && (
-                <Link to="/employer">
-                  <Button variant="outline" size="sm">Employer Dashboard</Button>
+              {role === "admin" ? (
+                <Link to="/admin">
+                  <Button size="sm" className="bg-primary text-primary-foreground shadow-[var(--shadow-orange)] hover:bg-[color:var(--primary-dark)]">
+                    Admin Dashboard
+                  </Button>
                 </Link>
-              )}
-              {(role === "job_seeker" || role === "admin") && (
-                <Link to="/seeker">
-                  <Button variant="outline" size="sm">My Dashboard</Button>
-                </Link>
+              ) : (
+                <>
+                  {role === "employer" && (
+                    <Link to="/employer">
+                      <Button variant="outline" size="sm">Employer Dashboard</Button>
+                    </Link>
+                  )}
+                  {role === "job_seeker" && (
+                    <Link to="/seeker">
+                      <Button variant="outline" size="sm">My Dashboard</Button>
+                    </Link>
+                  )}
+                </>
               )}
               <span className="hidden text-xs text-muted-foreground sm:inline">
                 {role === "employer" ? "Employer" : role === "admin" ? "Admin" : "Job Seeker"}
