@@ -19,6 +19,18 @@ export const Route = createFileRoute("/contact")({
 
 function Contact() {
   const [sending, setSending] = useState(false);
+  const { data: page } = useQuery({
+    queryKey: ["site-page", "contact"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("site_pages")
+        .select("title, body")
+        .eq("slug", "contact")
+        .eq("published", true)
+        .maybeSingle();
+      return data;
+    },
+  });
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     setSending(true);
