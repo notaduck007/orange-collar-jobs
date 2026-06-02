@@ -17,15 +17,27 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+    const authHeader = req.headers.get("Authorization") ?? "";
+    if (!authHeader.toLowerCase().startsWith("bearer ")) {
+      return json({ error: "Unauthorized" }, 401);
+    }
+    const userClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: userData, error: userErr } = await userClient.auth.getUser();
+    if (userErr || !userData?.user) return json({ error: "Unauthorized" }, 401);
+    const actorId = userData.user.id;
+
     const admin = createClient(supabaseUrl, serviceKey);
 
     const body = await req.json().catch(() => ({}));
-    const actorId: string | undefined = body.actor_id;
     const targetId: string | undefined = body.target_user_id;
     const targetKind: string = body.target_kind ?? "user";
     const targetLabel: string | undefined = body.target_label;
-    if (!actorId || !targetId) return json({ error: "actor_id and target_user_id required" }, 400);
+    if (!targetId) return json({ error: "target_user_id required" }, 400);
 
     await admin.from("audit_log").insert({
       actor_id: actorId,
@@ -39,6 +51,7 @@ serve(async (req) => {
         ended_at: new Date().toISOString(),
       },
     });
+
 
     return json({ ok: true });
   } catch (e) {
