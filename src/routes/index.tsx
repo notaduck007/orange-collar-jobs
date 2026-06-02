@@ -67,7 +67,7 @@ function Home() {
         .select(
           "id, slug, title, location, shift, employment_type, pay_min, pay_max, featured, category, companies(name, slug)",
         )
-        .eq("status", "published")
+        .in("status", ["active", "published"])
         .eq("featured", true)
         .limit(4);
       if (error) throw error;
