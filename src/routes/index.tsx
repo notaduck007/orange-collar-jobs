@@ -238,8 +238,8 @@ function Home() {
             </div>
             <div className="p-8 sm:p-12">
               <p className="label-caps text-[color:var(--hazard)]">For Employers</p>
-              <h2 className="mt-2 text-3xl font-bold leading-tight sm:text-4xl">
-                Stop wasting weeks on the wrong applicants.
+              <h2 className="mt-2 text-3xl font-bold leading-tight text-white sm:text-4xl">
+                Stop wasting weeks on the <span className="text-[color:var(--hazard)]">wrong applicants</span>.
               </h2>
               <p className="mt-3 max-w-md text-white/70">
                 WarehouseJobs reaches qualified warehouse workers — forklift-certified, ready to start, in your ZIP. Post in 4 minutes.
