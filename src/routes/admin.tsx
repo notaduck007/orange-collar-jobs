@@ -34,15 +34,6 @@ const ROUTE_CAPS: { prefix: string; cap: AdminCapability }[] = [
   { prefix: "/admin/orders", cap: "billing" },
 ];
 
-// Route → required capability (for runtime guard)
-const ROUTE_CAPS: { prefix: string; cap: AdminCapability }[] = [
-  { prefix: "/admin/companies", cap: "moderation" },
-  { prefix: "/admin/jobs", cap: "moderation" },
-  { prefix: "/admin/ads", cap: "ads" },
-  { prefix: "/admin/packages", cap: "settings" },
-  { prefix: "/admin/users", cap: "users" },
-  { prefix: "/admin/orders", cap: "billing" },
-];
 
 function AdminLayout() {
   const { user, role, loading } = useAuth();
