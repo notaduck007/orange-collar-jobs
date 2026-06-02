@@ -239,13 +239,12 @@ function UserDrawer({
     enabled: !!userId,
     queryFn: async () => {
       const id = userId!;
-      const [profileR, rolesR, companiesR, jobsR, appsR, ordersR, auditR, metaR] = await Promise.all([
+      const [profileR, rolesR, companiesR, jobsR, appsR, auditR, metaR] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", id).maybeSingle(),
         supabase.from("user_roles").select("role").eq("user_id", id),
         supabase.from("companies").select("id, name, slug, verified, created_at").eq("owner_id", id),
         supabase.from("jobs").select("id, title, status, created_at").eq("posted_by", id).order("created_at", { ascending: false }).limit(20),
         supabase.from("applications").select("id, job_id, status, created_at").eq("applicant_id", id).order("created_at", { ascending: false }).limit(20),
-        supabase.from("orders").select("id, amount_cents, currency, status, created_at, receipt_url").or(`company_id.in.(${"00000000-0000-0000-0000-000000000000"})`).limit(0), // placeholder
         supabase.from("audit_log").select("id, action, reason, metadata, created_at, actor_id").eq("entity_type", "user").eq("entity_id", id).order("created_at", { ascending: false }).limit(50),
         supabase.functions.invoke("admin-user-actions", { body: { action: "get_meta", user_id: id } }),
       ]);
