@@ -6,6 +6,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { JobCard, type JobSummary } from "@/components/job-card";
 import { ReportButton } from "@/components/report-button";
+import { CompanyProfileSkeleton } from "@/components/ui/skeleton-list";
 
 export const Route = createFileRoute("/companies/$slug")({
   loader: async ({ params }) => {
