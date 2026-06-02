@@ -246,7 +246,7 @@ function AdminSupport() {
     }
   };
 
-  const openDsr = (dsrQ.data ?? []).filter((d) => d.status === "requested").length;
+  const openDsr = (dsrQ.data ?? []).filter((d) => d.status !== "completed").length;
 
   return (
     <div className="space-y-6">
