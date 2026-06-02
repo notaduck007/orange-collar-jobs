@@ -77,7 +77,7 @@ serve(async (req) => {
         });
         refundId = refund.id;
       } catch (e: unknown) {
-        return json(req, { error: `Stripe refund failed: ${e.message}` }, 400);
+        return json(req, { error: `Stripe refund failed: ${(e as Error)?.message ?? "Server error"}` }, 400);
       }
     }
 
