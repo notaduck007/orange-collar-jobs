@@ -72,7 +72,7 @@ function CompanyProfile() {
         .in("status", ["active", "published"])
         .order("featured", { ascending: false })
         .order("created_at", { ascending: false });
-      return (data ?? []).map((j) => ({ ...j, companies: { name: company!.name, slug } })) as JobSummary[];
+      return (data ?? []).map((j) => ({ ...j, companies: { name: company!.name, slug, verified: company!.verified } })) as JobSummary[];
     },
   });
 
