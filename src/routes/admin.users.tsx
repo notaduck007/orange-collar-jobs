@@ -320,14 +320,15 @@ function UserDrawer({
     enabled: !!userId,
     queryFn: async () => {
       const id = userId!;
-      const [profileR, rolesR, companiesR, jobsR, appsR, auditR, metaR] = await Promise.all([
+      const [profileR, rolesR, companiesR, jobsR, appsR, auditR, metaR, permsR] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", id).maybeSingle(),
-        supabase.from("user_roles").select("role").eq("user_id", id),
+        supabase.from("user_role_assignments").select("role_id").eq("user_id", id),
         supabase.from("companies").select("id, name, slug, verified, created_at").eq("owner_id", id),
         supabase.from("jobs").select("id, title, status, created_at").eq("posted_by", id).order("created_at", { ascending: false }).limit(20),
         supabase.from("applications").select("id, job_id, status, created_at").eq("applicant_id", id).order("created_at", { ascending: false }).limit(20),
         supabase.from("audit_log").select("id, action, reason, metadata, created_at, actor_id").eq("entity_type", "user").eq("entity_id", id).order("created_at", { ascending: false }).limit(50),
         supabase.functions.invoke("admin-user-actions", { body: { action: "get_meta", user_id: id } }),
+        supabase.rpc("get_user_permissions", { _user_id: id }),
       ]);
 
       // Fetch orders for any companies owned by user
@@ -342,16 +343,21 @@ function UserDrawer({
           .limit(50);
         orders = data ?? [];
       }
-      
 
       const meta = (metaR.data ?? {}) as {
         email?: string | null; email_confirmed_at?: string | null;
         last_sign_in_at?: string | null; banned_until?: string | null; created_at?: string | null;
       };
 
+      const roleIds = ((rolesR.data ?? []) as Array<{ role_id: string }>).map((r) => r.role_id);
+      const effectivePerms = ((permsR.data ?? []) as Array<string | { get_user_permissions: string }>).map(
+        (r) => (typeof r === "string" ? r : r.get_user_permissions),
+      );
+
       return {
         profile: profileR.data,
-        roles: ((rolesR.data ?? []) as Array<{ role: AppRole }>).map((r) => r.role),
+        roleIds,
+        effectivePerms,
         companies: companiesR.data ?? [],
         jobs: jobsR.data ?? [],
         applications: appsR.data ?? [],
