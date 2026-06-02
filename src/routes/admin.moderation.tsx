@@ -123,7 +123,7 @@ function ModerationHub() {
         subtitle: `${j.companies?.name ?? "Unknown company"} · ${j.location ?? ""}`,
         body: j.description,
         ownerUserId: j.posted_by,
-        href: `/jobs/${j.id}`,
+        href: `/jobs/${j.slug}`,
       }));
     }
     if (tab === "ads") {
