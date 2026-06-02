@@ -31,6 +31,7 @@ export type PermissionKey =
 export function usePermission(key: PermissionKey): boolean {
   const { role, permissions } = useAuth();
   if (role === "admin") return true;
+  if (permissions.includes("*")) return true;
   return permissions.includes(key);
 }
 
@@ -38,6 +39,7 @@ export function usePermission(key: PermissionKey): boolean {
 export function useAnyPermission(keys: PermissionKey[]): boolean {
   const { role, permissions } = useAuth();
   if (role === "admin") return true;
+  if (permissions.includes("*")) return true;
   return keys.some((k) => permissions.includes(k));
 }
 
