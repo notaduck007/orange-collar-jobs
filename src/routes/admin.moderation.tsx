@@ -70,7 +70,7 @@ function ModerationHub() {
     queryFn: async () => {
       const { data } = await supabase
         .from("jobs")
-        .select("id, title, description, location, status, posted_by, companies(name)")
+        .select("id, slug, title, description, location, status, posted_by, companies(name)")
         .eq("status", "pending_review")
         .order("created_at", { ascending: false })
         .limit(100);
@@ -123,7 +123,7 @@ function ModerationHub() {
         subtitle: `${j.companies?.name ?? "Unknown company"} · ${j.location ?? ""}`,
         body: j.description,
         ownerUserId: j.posted_by,
-        href: `/jobs/${j.id}`,
+        href: `/jobs/${j.slug}`,
       }));
     }
     if (tab === "ads") {
@@ -428,7 +428,7 @@ async function applyAction(item: Item, action: Action, reason: string, actorId?:
   let notifyLink: string | undefined;
 
   if (item.kind === "jobs") {
-    notifyLink = `/jobs/${item.id}`;
+    notifyLink = item.href;
     if (action === "approve") {
       const { error } = await supabase
         .from("jobs")
