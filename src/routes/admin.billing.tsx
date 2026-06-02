@@ -39,7 +39,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 export const Route = createFileRoute("/admin/billing")({
   head: () => ({ meta: [{ title: "Billing — WarehouseJobs Admin" }] }),
-  component: AdminBilling;
+  component: AdminBilling,
 });
 
 type OrderRow = {
