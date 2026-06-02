@@ -126,6 +126,14 @@ function EmployerDashboard() {
     refresh();
   };
 
+  const deleteDraft = async (job: JobRow) => {
+    if (!confirm(`Delete draft "${job.title}"? This cannot be undone.`)) return;
+    const { error } = await supabase.from("jobs").delete().eq("id", job.id).eq("status", "draft");
+    if (error) return toast.error(error.message);
+    toast.success("Draft deleted");
+    refresh();
+  };
+
   const duplicateJob = async (job: JobRow) => {
     if (!user || !company) return;
     if (postingCredits < 1) {
