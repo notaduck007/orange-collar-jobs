@@ -101,6 +101,7 @@ function BillingPage() {
             <thead className="bg-muted text-left text-xs uppercase text-muted-foreground">
               <tr>
                 <th className="px-4 py-2">Date</th>
+                <th className="px-4 py-2">Package</th>
                 <th className="px-4 py-2">Amount</th>
                 <th className="px-4 py-2">Status</th>
                 <th className="px-4 py-2">Receipt</th>
@@ -108,11 +109,12 @@ function BillingPage() {
             </thead>
             <tbody>
               {orders.length === 0 && (
-                <tr><td colSpan={4} className="px-4 py-6 text-center text-muted-foreground">No orders yet.</td></tr>
+                <tr><td colSpan={5} className="px-4 py-6 text-center text-muted-foreground">No orders yet.</td></tr>
               )}
               {orders.map((o) => (
                 <tr key={o.id} className="border-t border-border">
                   <td className="px-4 py-2">{new Date(o.created_at).toLocaleDateString()}</td>
+                  <td className="px-4 py-2">{o.packages?.name ?? "—"}</td>
                   <td className="px-4 py-2">${(o.amount_cents / 100).toFixed(2)}</td>
                   <td className="px-4 py-2">
                     <span className={`rounded px-2 py-0.5 text-xs font-semibold ${
