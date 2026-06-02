@@ -36,6 +36,7 @@ import { Route as EmployerAnalyticsRouteImport } from './routes/employer.analyti
 import { Route as EmployerAdsRouteImport } from './routes/employer.ads'
 import { Route as CompaniesSlugRouteImport } from './routes/companies.$slug'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
+import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminPackagesRouteImport } from './routes/admin.packages'
 import { Route as AdminOrdersRouteImport } from './routes/admin.orders'
 import { Route as AdminModerationRouteImport } from './routes/admin.moderation'
@@ -184,6 +185,11 @@ const AdminUsersRoute = AdminUsersRouteImport.update({
   path: '/users',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminSettingsRoute = AdminSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminPackagesRoute = AdminPackagesRouteImport.update({
   id: '/packages',
   path: '/packages',
@@ -267,6 +273,7 @@ export interface FileRoutesByFullPath {
   '/admin/moderation': typeof AdminModerationRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/packages': typeof AdminPackagesRoute
+  '/admin/settings': typeof AdminSettingsRoute
   '/admin/users': typeof AdminUsersRoute
   '/companies/$slug': typeof CompaniesSlugRoute
   '/employer/ads': typeof EmployerAdsRoute
@@ -305,6 +312,7 @@ export interface FileRoutesByTo {
   '/admin/moderation': typeof AdminModerationRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/packages': typeof AdminPackagesRoute
+  '/admin/settings': typeof AdminSettingsRoute
   '/admin/users': typeof AdminUsersRoute
   '/companies/$slug': typeof CompaniesSlugRoute
   '/employer/ads': typeof EmployerAdsRoute
@@ -347,6 +355,7 @@ export interface FileRoutesById {
   '/admin/moderation': typeof AdminModerationRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/packages': typeof AdminPackagesRoute
+  '/admin/settings': typeof AdminSettingsRoute
   '/admin/users': typeof AdminUsersRoute
   '/companies/$slug': typeof CompaniesSlugRoute
   '/employer/ads': typeof EmployerAdsRoute
@@ -390,6 +399,7 @@ export interface FileRouteTypes {
     | '/admin/moderation'
     | '/admin/orders'
     | '/admin/packages'
+    | '/admin/settings'
     | '/admin/users'
     | '/companies/$slug'
     | '/employer/ads'
@@ -428,6 +438,7 @@ export interface FileRouteTypes {
     | '/admin/moderation'
     | '/admin/orders'
     | '/admin/packages'
+    | '/admin/settings'
     | '/admin/users'
     | '/companies/$slug'
     | '/employer/ads'
@@ -469,6 +480,7 @@ export interface FileRouteTypes {
     | '/admin/moderation'
     | '/admin/orders'
     | '/admin/packages'
+    | '/admin/settings'
     | '/admin/users'
     | '/companies/$slug'
     | '/employer/ads'
@@ -696,6 +708,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminUsersRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/settings': {
+      id: '/admin/settings'
+      path: '/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AdminSettingsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/packages': {
       id: '/admin/packages'
       path: '/packages'
@@ -793,6 +812,7 @@ interface AdminRouteChildren {
   AdminModerationRoute: typeof AdminModerationRoute
   AdminOrdersRoute: typeof AdminOrdersRoute
   AdminPackagesRoute: typeof AdminPackagesRoute
+  AdminSettingsRoute: typeof AdminSettingsRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
@@ -807,6 +827,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminModerationRoute: AdminModerationRoute,
   AdminOrdersRoute: AdminOrdersRoute,
   AdminPackagesRoute: AdminPackagesRoute,
+  AdminSettingsRoute: AdminSettingsRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
