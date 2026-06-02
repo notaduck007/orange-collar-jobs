@@ -63,6 +63,15 @@ serve(async (req) => {
     if (tgtErr || !tgt.user?.email)
       return json(req, { error: "Target not found or has no email" }, 404);
 
+    // Prevent privilege escalation: only admins may impersonate admins
+    const { data: targetIsAdmin } = await admin.rpc("has_role", {
+      _user_id: targetId,
+      _role: "admin",
+    });
+    if (targetIsAdmin && !isAdmin) {
+      return json(req, { error: "Cannot impersonate an administrator" }, 403);
+    }
+
     const { data: link, error: linkErr } = await admin.auth.admin.generateLink({
       type: "magiclink",
       email: tgt.user.email,
