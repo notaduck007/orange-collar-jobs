@@ -261,8 +261,61 @@ function JobsPage() {
             ))}
           </FilterGroup>
 
-          {(search.q || search.loc || search.category || search.shift || search.type) && (
-            <button onClick={() => navigate({ to: "/jobs", search: {} as never })} className="text-xs font-semibold text-primary hover:underline">Clear all filters</button>
+          <FilterGroup label="Temperature">
+            {TEMP_ENVS.map((t) => (
+              <FilterChip
+                key={t.value}
+                active={search.temp === t.value}
+                onClick={() => updateSearch({ temp: search.temp === t.value ? undefined : t.value })}
+              >
+                {t.short}
+              </FilterChip>
+            ))}
+          </FilterGroup>
+
+          <FilterGroup label="Equipment certifications">
+            {CERTIFICATIONS.map((c) => {
+              const active = (search.certs ?? "").split(",").filter(Boolean).includes(c.value);
+              return (
+                <FilterChip
+                  key={c.value}
+                  active={active}
+                  onClick={() => {
+                    const cur = (search.certs ?? "").split(",").filter(Boolean);
+                    const next = active ? cur.filter((x) => x !== c.value) : [...cur, c.value];
+                    updateSearch({ certs: next.length ? next.join(",") : undefined });
+                  }}
+                >
+                  {c.label}
+                </FilterChip>
+              );
+            })}
+          </FilterGroup>
+
+          <FilterGroup label="Perks">
+            <FilterChip active={!!search.weekly_pay} onClick={() => updateSearch({ weekly_pay: search.weekly_pay ? undefined : true })}>Weekly pay</FilterChip>
+            <FilterChip active={!!search.quick_hire} onClick={() => updateSearch({ quick_hire: search.quick_hire ? undefined : true })}>Same-day hire</FilterChip>
+            <FilterChip active={!!search.overtime} onClick={() => updateSearch({ overtime: search.overtime ? undefined : true })}>OT available</FilterChip>
+          </FilterGroup>
+
+          <div>
+            <label htmlFor="filter-lift" className="mb-2 block text-sm font-semibold text-[color:var(--ink)]">Max lift (lbs)</label>
+            <select
+              id="filter-lift"
+              value={search.max_lift ?? ""}
+              onChange={(e) => updateSearch({ max_lift: e.target.value ? Number(e.target.value) : undefined })}
+              className="w-full rounded-md border border-border bg-card px-2 py-1.5 text-xs font-medium text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            >
+              <option value="">Any</option>
+              <option value="25">≤ 25 lbs</option>
+              <option value="50">≤ 50 lbs</option>
+              <option value="75">≤ 75 lbs</option>
+              <option value="100">≤ 100 lbs</option>
+            </select>
+          </div>
+
+          {hasActiveSearch && (
+            <button onClick={() => navigate({ to: "/jobs", search: {} as never })} className="text-xs font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded">Clear all filters</button>
           )}
         </aside>
 
