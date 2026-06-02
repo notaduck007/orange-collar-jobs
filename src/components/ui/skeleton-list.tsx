@@ -64,6 +64,67 @@ export function CardGridSkeleton({ count = 3 }: { count?: number }) {
   );
 }
 
+export function JobDetailSkeleton() {
+  return (
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6" aria-busy="true" aria-live="polite">
+      <span className="sr-only">Loading job details…</span>
+      <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
+        <div className="rounded-xl border border-border bg-card p-6 sm:p-8 space-y-4">
+          <Skeleton className="h-4 w-40" />
+          <Skeleton className="h-9 w-3/4" />
+          <Skeleton className="h-5 w-1/3" />
+          <div className="grid grid-cols-2 gap-4 border-y border-border py-4 sm:grid-cols-3">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+          <Skeleton className="h-5 w-1/4" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-11/12" />
+          <Skeleton className="h-4 w-10/12" />
+          <Skeleton className="h-4 w-9/12" />
+          <div className="flex gap-2 pt-4">
+            <Skeleton className="h-10 w-28" />
+            <Skeleton className="h-10 w-20" />
+          </div>
+        </div>
+        <div className="space-y-4">
+          <div className="rounded-xl border border-border bg-card p-5 space-y-3">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-5 w-2/3" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-5/6" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function CompanyProfileSkeleton() {
+  return (
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6" aria-busy="true" aria-live="polite">
+      <span className="sr-only">Loading company profile…</span>
+      <div className="flex flex-wrap items-start gap-5 rounded-xl border border-border bg-card p-6 sm:p-8">
+        <Skeleton className="h-20 w-20 shrink-0 rounded-lg" />
+        <div className="min-w-0 flex-1 space-y-3">
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-8 w-1/2" />
+          <Skeleton className="h-4 w-1/3" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-5/6" />
+        </div>
+      </div>
+      <div className="mt-8 grid gap-3 sm:grid-cols-2">
+        <JobCardSkeleton />
+        <JobCardSkeleton />
+        <JobCardSkeleton />
+        <JobCardSkeleton />
+      </div>
+    </div>
+  );
+}
+
 export function EmptyState({
   icon: Icon,
   title,
