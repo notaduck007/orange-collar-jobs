@@ -250,7 +250,7 @@ function JobDetail() {
       navigate({ to: "/auth", search: { mode: "login", next: `/jobs/${slug}` } as never });
       return;
     }
-    if (quickApply.ready && !hasScreening) {
+    if (quickApply.ready && screeningKnown && !hasScreening) {
       handleQuickApply();
       return;
     }
