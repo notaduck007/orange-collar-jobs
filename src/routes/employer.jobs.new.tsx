@@ -87,14 +87,28 @@ function NewJobPage() {
     queryKey: ["employer-company", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data } = await supabase
-        .from("companies")
-        .select("*")
-        .eq("owner_id", user!.id)
-        .maybeSingle();
+      const { data: owned } = await supabase
+        .from("companies").select("*").eq("owner_id", user!.id).maybeSingle();
+      if (owned) return owned;
+      const { data: mem } = await supabase
+        .from("company_members").select("company_id").eq("user_id", user!.id).eq("status", "active").limit(1).maybeSingle();
+      if (!mem?.company_id) return null;
+      const { data } = await supabase.from("companies").select("*").eq("id", mem.company_id).maybeSingle();
       return data;
     },
   });
+
+  const { data: credits = [] } = useQuery({
+    queryKey: ["company-credits", company?.id],
+    enabled: !!company?.id,
+    queryFn: async () => {
+      const { data } = await supabase.from("company_credits").select("*").eq("company_id", company!.id);
+      return data ?? [];
+    },
+  });
+  const postingCredits = credits.find((c) => c.credit_type === "post")?.balance ?? 0;
+  const featuredCredits = credits.find((c) => c.credit_type === "featured")?.balance ?? 0;
+  const canPost = postingCredits > 0;
 
   const { data: categories = [] } = useQuery({
     queryKey: ["job-categories"],
@@ -161,9 +175,6 @@ function NewJobPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [company?.id]);
 
-  const postingCredits = company?.posting_credits ?? 0;
-  const featuredCredits = company?.featured_credits ?? 0;
-  const canPost = postingCredits > 0;
 
   const applyTemplate = (slug: string) => {
     const tpl = JOB_TEMPLATES[slug];
@@ -217,8 +228,35 @@ function NewJobPage() {
 
     setSubmitting(true);
     try {
+      // Atomically consume the posting credit first; if it fails, do not insert the job.
+      const { data: postOk, error: postCreditErr } = await supabase.rpc("consume_credit", {
+        _company_id: company.id,
+        _credit_type: "post",
+      });
+      if (postCreditErr) throw postCreditErr;
+      if (!postOk) {
+        toast.error("Out of posting credits.");
+        navigate({ to: "/pricing" });
+        return;
+      }
+
+      let featuredConsumed = false;
+      if (wantsFeatured) {
+        const { data: featOk, error: featErr } = await supabase.rpc("consume_credit", {
+          _company_id: company.id,
+          _credit_type: "featured",
+        });
+        if (featErr) throw featErr;
+        if (!featOk) {
+          toast.error("Out of featured credits — posting as a standard job.");
+        } else {
+          featuredConsumed = true;
+        }
+      }
+
       const slug = uniqueSlug(form.title);
       const expiresAt = new Date(Date.now() + durationDays * 86400_000).toISOString();
+      const featuredUntil = featuredConsumed ? expiresAt : null;
       const { data: created, error } = await supabase.from("jobs").insert({
         company_id: company.id,
         posted_by: user.id,
@@ -237,7 +275,8 @@ function NewJobPage() {
         description: form.description,
         requirements: form.requirements || null,
         status: "active" as never,
-        featured: wantsFeatured,
+        featured: featuredConsumed,
+        featured_until: featuredUntil,
         posted_at: new Date().toISOString(),
         expires_at: expiresAt,
       }).select("id").single();
@@ -258,17 +297,8 @@ function NewJobPage() {
         if (qErr) toast.error(`Job posted, but screening questions failed: ${qErr.message}`);
       }
 
-      const { error: cErr } = await supabase
-        .from("companies")
-        .update({
-          posting_credits: postingCredits - 1,
-          featured_credits: featuredCredits - (wantsFeatured ? 1 : 0),
-        })
-        .eq("id", company.id);
-      if (cErr) throw cErr;
-
       toast.success("Job posted!");
-      qc.invalidateQueries({ queryKey: ["employer-company", user.id] });
+      qc.invalidateQueries({ queryKey: ["company-credits", company.id] });
       qc.invalidateQueries({ queryKey: ["employer-jobs", company.id] });
       navigate({ to: "/employer" });
     } catch (err) {
@@ -277,6 +307,7 @@ function NewJobPage() {
       setSubmitting(false);
     }
   };
+
 
   // Hard block: no credits → redirect-style banner with CTA.
   if (company && !canPost) {
