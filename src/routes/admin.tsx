@@ -36,6 +36,7 @@ const ROUTE_PERMS: { prefix: string; perm: PermissionKey }[] = [
   { prefix: "/admin/categories", perm: "settings.manage" },
   { prefix: "/admin/content", perm: "settings.manage" },
   { prefix: "/admin/users", perm: "users.view_all" },
+  { prefix: "/admin/roles", perm: "roles.manage" },
   { prefix: "/admin/support", perm: "moderation.manage" },
   { prefix: "/admin/orders", perm: "orders.view_all" },
   { prefix: "/admin/billing", perm: "orders.view_all" },
