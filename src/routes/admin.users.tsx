@@ -429,6 +429,24 @@ function UserDrawer({
               )}
             </div>
 
+            <div className="rounded-md border border-border bg-muted/30 p-3">
+              <p className="label-caps mb-1.5 text-[10px] text-muted-foreground">
+                Effective permissions ({data.effectivePerms.length})
+              </p>
+              {data.roleIds.some((id) => rolesCatalog.find((r) => r.id === id)?.key === "admin") ? (
+                <p className="text-xs text-[color:var(--ink)]">Administrator — implicitly holds all permissions.</p>
+              ) : data.effectivePerms.length === 0 ? (
+                <p className="text-xs text-muted-foreground">No permissions granted.</p>
+              ) : (
+                <div className="flex flex-wrap gap-1">
+                  {data.effectivePerms.sort().map((p) => (
+                    <span key={p} className="rounded-md border border-border bg-card px-1.5 py-0.5 font-mono text-[10px] text-[color:var(--ink)]">{p}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+
+
             <Tabs defaultValue="companies">
               <TabsList>
                 <TabsTrigger value="companies">Companies ({data.companies.length})</TabsTrigger>
