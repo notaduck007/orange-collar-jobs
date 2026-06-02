@@ -173,6 +173,6 @@ ${paidOrder?.receipt_url ? `Stripe receipt: ${paidOrder.receipt_url}\n` : ""}Vie
     });
   } catch (e: unknown) {
     console.error("webhook handler error", e);
-    return new Response(JSON.stringify({ error: e.message }), { status: 500 });
+    return new Response(JSON.stringify({ error: (e as Error)?.message ?? "Server error" }), { status: 500 });
   }
 });
