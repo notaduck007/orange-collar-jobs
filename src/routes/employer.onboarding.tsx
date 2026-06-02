@@ -130,7 +130,7 @@ function OnboardingPage() {
         toast.success("Company profile updated");
       } else {
         const slug = uniqueSlug(form.name);
-        const { error } = await supabase.from("companies").insert({
+        const { data: created, error } = await supabase.from("companies").insert({
           owner_id: user.id,
           name: form.name,
           slug,
@@ -141,9 +141,14 @@ function OnboardingPage() {
           location: `${form.hq_city}, ${form.hq_state}`,
           description: form.description || null,
           logo_url: logoUrl,
-        });
+        }).select("id").single();
         if (error) throw error;
-        toast.success("Company profile created");
+        // Free Starter package: 1 post, 30 days, $0 order — best-effort, idempotent
+        if (created?.id) {
+          const { error: grantErr } = await supabase.rpc("grant_starter_package", { _company_id: created.id });
+          if (grantErr) console.warn("starter grant failed", grantErr.message);
+        }
+        toast.success("Company created — your free Starter package is ready (1 post, 30 days)");
       }
       await qc.invalidateQueries({ queryKey: ["employer-company", user.id] });
       navigate({ to: "/employer" });

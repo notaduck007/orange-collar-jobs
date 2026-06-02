@@ -1594,6 +1594,7 @@ export type Database = {
         Args: { _order_id: string }
         Returns: undefined
       }
+      grant_starter_package: { Args: { _company_id: string }; Returns: string }
       has_admin_permission: {
         Args: { _capability: string; _user_id: string }
         Returns: boolean
