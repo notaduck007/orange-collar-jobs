@@ -45,9 +45,13 @@ serve(async (req) => {
       });
     }
     if (ad.start_date && ad.start_date > today)
-      return new Response(JSON.stringify({ ok: false }), { headers: cors });
+      return new Response(JSON.stringify({ ok: false }), {
+        headers: { ...cors, "Content-Type": "application/json" },
+      });
     if (ad.end_date && ad.end_date < today)
-      return new Response(JSON.stringify({ ok: false }), { headers: cors });
+      return new Response(JSON.stringify({ ok: false }), {
+        headers: { ...cors, "Content-Type": "application/json" },
+      });
 
     const ip =
       req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
