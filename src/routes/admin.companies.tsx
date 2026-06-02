@@ -32,6 +32,7 @@ type Company = {
   verified: boolean;
   verification_status: "unverified" | "pending" | "verified" | "rejected";
   verified_at: string | null;
+  verified_by: string | null;
   verification_evidence_url: string | null;
   verification_note: string | null;
   posting_credits: number;
