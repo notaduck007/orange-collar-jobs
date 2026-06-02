@@ -321,7 +321,12 @@ export type Database = {
           posting_credits: number
           slug: string
           status: string
+          verification_evidence_url: string | null
+          verification_note: string | null
+          verification_status: string
           verified: boolean
+          verified_at: string | null
+          verified_by: string | null
           website: string | null
         }
         Insert: {
@@ -339,7 +344,12 @@ export type Database = {
           posting_credits?: number
           slug: string
           status?: string
+          verification_evidence_url?: string | null
+          verification_note?: string | null
+          verification_status?: string
           verified?: boolean
+          verified_at?: string | null
+          verified_by?: string | null
           website?: string | null
         }
         Update: {
@@ -357,7 +367,12 @@ export type Database = {
           posting_credits?: number
           slug?: string
           status?: string
+          verification_evidence_url?: string | null
+          verification_note?: string | null
+          verification_status?: string
           verified?: boolean
+          verified_at?: string | null
+          verified_by?: string | null
           website?: string | null
         }
         Relationships: []
@@ -1156,6 +1171,7 @@ export type Database = {
           category: string
           company_name: string
           company_slug: string
+          company_verified: boolean
           created_at: string
           distance_miles: number
           employment_type: Database["public"]["Enums"]["employment_type"]
