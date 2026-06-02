@@ -96,27 +96,36 @@ function AdminUsers() {
     queryFn: async () => {
       let query = supabase
         .from("profiles")
-        .select(
-          "id, display_name, full_name, phone, location, active, created_at, user_role_assignments(role_id)",
-        )
+        .select("id, display_name, full_name, phone, location, active, created_at")
         .order("created_at", { ascending: false })
         .limit(500);
       if (q)
         query = query.or(`display_name.ilike.%${q}%,full_name.ilike.%${q}%,phone.ilike.%${q}%`);
       const { data, error } = await query;
       if (error) throw error;
+      const profiles = data ?? [];
+      const ids = profiles.map((p) => p.id);
+      const rolesByUser = new Map<string, string[]>();
+      if (ids.length > 0) {
+        const { data: assigns, error: aerr } = await supabase
+          .from("user_role_assignments")
+          .select("user_id, role_id")
+          .in("user_id", ids);
+        if (aerr) throw aerr;
+        for (const a of assigns ?? []) {
+          const list = rolesByUser.get(a.user_id) ?? [];
+          list.push(a.role_id);
+          rolesByUser.set(a.user_id, list);
+        }
+      }
       const byId = new Map(rolesCatalog.map((r) => [r.id, r]));
-      return (data ?? []).map((u): Row => {
-        const rf = u.user_role_assignments as unknown;
-        const arr = Array.isArray(rf)
-          ? (rf as Array<{ role_id: string }>)
-          : rf
-            ? [rf as { role_id: string }]
-            : [];
-        const roles = arr.map((r) => byId.get(r.role_id)).filter(Boolean) as RoleRef[];
+      return profiles.map((u): Row => {
+        const roleIds = rolesByUser.get(u.id) ?? [];
+        const roles = roleIds.map((rid) => byId.get(rid)).filter(Boolean) as RoleRef[];
         return { ...u, roles };
       });
     },
+
   });
 
   const filtered = useMemo(() => {
