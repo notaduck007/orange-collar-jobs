@@ -46,22 +46,34 @@ function AdminUsers() {
   const [signedFilter, setSignedFilter] = useState<"all" | "7d" | "30d" | "90d">("all");
   const [openUserId, setOpenUserId] = useState<string | null>(null);
 
+  const { data: rolesCatalog = [] } = useQuery({
+    queryKey: ["roles-catalog"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("roles").select("id, key, name, is_system").order("is_system", { ascending: false }).order("name");
+      if (error) throw error;
+      return data as RoleRef[];
+    },
+  });
+  const roleByKey = useMemo(() => Object.fromEntries(rolesCatalog.map((r) => [r.key, r])), [rolesCatalog]);
+
   const { data: users = [], isLoading } = useQuery({
-    queryKey: ["admin-users", q],
-    enabled: can("users"),
+    queryKey: ["admin-users", q, rolesCatalog.length],
+    enabled: can("users") && rolesCatalog.length > 0,
     queryFn: async () => {
       let query = supabase
         .from("profiles")
-        .select("id, display_name, full_name, phone, location, active, created_at, user_roles(role)")
+        .select("id, display_name, full_name, phone, location, active, created_at, user_role_assignments(role_id)")
         .order("created_at", { ascending: false })
         .limit(500);
       if (q) query = query.or(`display_name.ilike.%${q}%,full_name.ilike.%${q}%,phone.ilike.%${q}%`);
       const { data, error } = await query;
       if (error) throw error;
+      const byId = new Map(rolesCatalog.map((r) => [r.id, r]));
       return (data ?? []).map((u): Row => {
-        const rf = u.user_roles as unknown;
-        const arr = Array.isArray(rf) ? (rf as Array<{ role: AppRole }>) : rf ? [rf as { role: AppRole }] : [];
-        return { ...u, roles: arr.map((r) => r.role) };
+        const rf = u.user_role_assignments as unknown;
+        const arr = Array.isArray(rf) ? (rf as Array<{ role_id: string }>) : rf ? [rf as { role_id: string }] : [];
+        const roles = arr.map((r) => byId.get(r.role_id)).filter(Boolean) as RoleRef[];
+        return { ...u, roles };
       });
     },
   });
@@ -74,7 +86,7 @@ function AdminUsers() {
       return d;
     })();
     return users.filter((u) => {
-      if (roleFilter !== "all" && !u.roles.includes(roleFilter)) return false;
+      if (roleFilter !== "all" && !u.roles.some((r) => r.key === roleFilter)) return false;
       if (statusFilter === "active" && !u.active) return false;
       if (statusFilter === "suspended" && u.active) return false;
       if (cutoff && new Date(u.created_at) < cutoff) return false;
@@ -95,16 +107,30 @@ function AdminUsers() {
     return true;
   };
 
-  const grantRole = (userId: string, role: AppRole) =>
-    invokeAction({ action: "grant_role", user_id: userId, role }, `Granted ${role}`);
-  const revokeRole = async (userId: string, role: AppRole) => {
-    if (role === "admin" && userId === me?.id) {
+  const grantRoleById = async (userId: string, roleId: string) => {
+    const { error } = await supabase.from("user_role_assignments").insert({ user_id: userId, role_id: roleId });
+    if (error) { toast.error(error.message); return false; }
+    toast.success("Role granted");
+    qc.invalidateQueries({ queryKey: ["admin-users"] });
+    qc.invalidateQueries({ queryKey: ["admin-user-detail"] });
+    qc.invalidateQueries({ queryKey: ["admin-role-counts"] });
+    return true;
+  };
+  const revokeRoleById = async (userId: string, roleId: string) => {
+    const adminRole = roleByKey["admin"];
+    if (adminRole && roleId === adminRole.id && userId === me?.id) {
       if (!confirm("Revoke your OWN admin role? You will immediately lose admin access.")) return false;
     }
-    return invokeAction({ action: "revoke_role", user_id: userId, role }, `Revoked ${role}`);
+    const { error } = await supabase.from("user_role_assignments").delete().eq("user_id", userId).eq("role_id", roleId);
+    if (error) { toast.error(error.message); return false; }
+    toast.success("Role revoked");
+    qc.invalidateQueries({ queryKey: ["admin-users"] });
+    qc.invalidateQueries({ queryKey: ["admin-user-detail"] });
+    qc.invalidateQueries({ queryKey: ["admin-role-counts"] });
+    return true;
   };
-  const toggleRole = (userId: string, role: AppRole, has: boolean) =>
-    has ? revokeRole(userId, role) : grantRole(userId, role);
+  const toggleRoleById = (userId: string, roleId: string, has: boolean) =>
+    has ? revokeRoleById(userId, roleId) : grantRoleById(userId, roleId);
 
   const toggleActive = (userId: string, active: boolean) =>
     invokeAction(
