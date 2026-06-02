@@ -348,17 +348,32 @@ function UserDrawer({
             </div>
 
             <div className="flex flex-wrap gap-2">
-              <Select value={data.role} onValueChange={(v) => userId && onSetRole(userId, v as AppRole)}>
-                <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="job_seeker">Job seeker</SelectItem>
-                  <SelectItem value="employer">Employer</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex flex-wrap items-center gap-1.5 rounded-md border border-border bg-muted/30 px-2 py-1.5">
+                <span className="label-caps text-[10px] text-muted-foreground">Roles</span>
+                {ALL_ROLES.map((r) => {
+                  const has = data.roles.includes(r);
+                  return (
+                    <button
+                      key={r}
+                      type="button"
+                      onClick={() => userId && onToggleRole(userId, r, has)}
+                      className={`rounded-md border px-2 py-0.5 text-[11px] font-medium transition-colors ${
+                        has
+                          ? r === "admin"
+                            ? "border-primary bg-primary/15 text-primary"
+                            : "border-emerald-300 bg-emerald-100 text-emerald-900"
+                          : "border-border bg-transparent text-muted-foreground hover:bg-muted"
+                      }`}
+                    >
+                      {has ? "✓ " : "+ "}{r.replace("_", " ")}
+                    </button>
+                  );
+                })}
+              </div>
               <Button size="sm" variant="outline" onClick={() => userId && onSuspend(userId, !!data.profile?.active)} className="gap-1">
                 {data.profile?.active ? <><UserX className="h-3.5 w-3.5" /> Suspend</> : <><UserCheck className="h-3.5 w-3.5" /> Reactivate</>}
               </Button>
+
               <Button size="sm" variant="outline" onClick={() => userId && onReset(userId)} className="gap-1">
                 <KeyRound className="h-3.5 w-3.5" /> Force password reset
               </Button>
