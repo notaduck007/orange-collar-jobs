@@ -128,6 +128,17 @@ function EmployerDashboard() {
     if (!user || !company) return;
     if (postingCredits < 1) {
       toast.error("Out of posting credits — buy a package to re-post.");
+      navigate({ to: "/pricing" });
+      return;
+    }
+    const { data: ok, error: credErr } = await supabase.rpc("consume_credit", {
+      _company_id: company.id,
+      _credit_type: "post",
+    });
+    if (credErr) return toast.error(credErr.message);
+    if (!ok) {
+      toast.error("Out of posting credits.");
+      navigate({ to: "/pricing" });
       return;
     }
     const newSlug = uniqueSlug(job.title);
@@ -153,13 +164,8 @@ function EmployerDashboard() {
       expires_at: new Date(Date.now() + 30 * 86400_000).toISOString(),
     });
     if (jobErr) return toast.error(jobErr.message);
-    const { error: cErr } = await supabase
-      .from("companies")
-      .update({ posting_credits: postingCredits - 1 })
-      .eq("id", company.id);
-    if (cErr) return toast.error(cErr.message);
     toast.success("Job duplicated and re-posted");
-    qc.invalidateQueries({ queryKey: ["employer-company", user.id] });
+    qc.invalidateQueries({ queryKey: ["company-credits", company.id] });
     refresh();
   };
 
@@ -171,19 +177,30 @@ function EmployerDashboard() {
     }
     if (featuredCredits < 1) {
       toast.error("Out of featured credits — buy a package to upgrade.");
+      navigate({ to: "/pricing" });
       return;
     }
-    const { error } = await supabase.from("jobs").update({ featured: true }).eq("id", job.id);
+    const { data: ok, error: credErr } = await supabase.rpc("consume_credit", {
+      _company_id: company.id,
+      _credit_type: "featured",
+    });
+    if (credErr) return toast.error(credErr.message);
+    if (!ok) {
+      toast.error("Out of featured credits.");
+      navigate({ to: "/pricing" });
+      return;
+    }
+    const featuredUntil = job.expires_at ?? new Date(Date.now() + 30 * 86400_000).toISOString();
+    const { error } = await supabase
+      .from("jobs")
+      .update({ featured: true, featured_until: featuredUntil })
+      .eq("id", job.id);
     if (error) return toast.error(error.message);
-    const { error: cErr } = await supabase
-      .from("companies")
-      .update({ featured_credits: featuredCredits - 1 })
-      .eq("id", company.id);
-    if (cErr) return toast.error(cErr.message);
     toast.success("Job marked as featured");
-    qc.invalidateQueries({ queryKey: ["employer-company", user!.id] });
+    qc.invalidateQueries({ queryKey: ["company-credits", company.id] });
     refresh();
   };
+
 
   return (
     <TooltipProvider delayDuration={150}>
