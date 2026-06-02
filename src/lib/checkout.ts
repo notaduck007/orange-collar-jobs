@@ -36,7 +36,8 @@ export async function startCheckout(
   pendingJobId?: string | null,
 ): Promise<CheckoutResult> {
   const { data: userData, error: userError } = await supabase.auth.getUser();
-  if (userError || !userData.user) return { error: "Please sign in to start checkout", code: "unauthorized" };
+  if (userError || !userData.user)
+    return { error: "Please sign in to start checkout", code: "unauthorized" };
 
   const hasCompany = await userHasCheckoutCompany(userData.user.id);
   if (!hasCompany) return { error: "No company found for this user", code: "no_company" };

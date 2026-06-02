@@ -1,5 +1,17 @@
 import { Link } from "@tanstack/react-router";
-import { MapPin, Clock, DollarSign, Zap, CheckCircle2, BadgeCheck, Snowflake, Forklift, CalendarClock, Timer, Dumbbell } from "lucide-react";
+import {
+  MapPin,
+  Clock,
+  DollarSign,
+  Zap,
+  CheckCircle2,
+  BadgeCheck,
+  Snowflake,
+  Forklift,
+  CalendarClock,
+  Timer,
+  Dumbbell,
+} from "lucide-react";
 import { useAppliedJobs } from "@/hooks/use-applied-jobs";
 import { CERT_LABEL, TEMP_LABEL } from "@/lib/warehouse-attrs";
 
@@ -58,7 +70,9 @@ function Badge({
     fast: "bg-rose-50 text-rose-800 ring-rose-200",
   }[tone];
   return (
-    <span className={`relative z-10 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ring-1 ${toneClass}`}>
+    <span
+      className={`relative z-10 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ring-1 ${toneClass}`}
+    >
       <Icon className="h-3 w-3" aria-hidden />
       {children}
     </span>
@@ -86,7 +100,9 @@ export function JobCard({ job }: { job: JobSummary }) {
           <Zap className="h-3 w-3" fill="currentColor" aria-hidden /> Featured
         </div>
       )}
-      <p className="label-caps">{job.category} • {shiftLabel[job.shift]}</p>
+      <p className="label-caps">
+        {job.category} • {shiftLabel[job.shift]}
+      </p>
       <h3 className="mt-1.5 text-lg font-semibold leading-tight text-[color:var(--ink)] group-hover:text-primary">
         <Link
           to="/jobs/$slug"
@@ -110,29 +126,56 @@ export function JobCard({ job }: { job: JobSummary }) {
             <span className="text-sm font-medium text-foreground">{job.companies.name}</span>
           )}
           {job.companies.verified && (
-            <span title="Verified employer" className="relative z-10 inline-flex items-center text-blue-600">
+            <span
+              title="Verified employer"
+              className="relative z-10 inline-flex items-center text-blue-600"
+            >
               <BadgeCheck className="h-4 w-4" aria-hidden />
             </span>
           )}
         </div>
       )}
       <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-sm text-muted-foreground">
-        <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" aria-hidden /> {job.location}</span>
-        <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" aria-hidden /> {typeLabel[job.employment_type]}</span>
-        {pay && <span className="inline-flex items-center gap-1 font-medium text-[color:var(--ink)]"><DollarSign className="h-3.5 w-3.5" aria-hidden /> {pay}</span>}
+        <span className="inline-flex items-center gap-1">
+          <MapPin className="h-3.5 w-3.5" aria-hidden /> {job.location}
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <Clock className="h-3.5 w-3.5" aria-hidden /> {typeLabel[job.employment_type]}
+        </span>
+        {pay && (
+          <span className="inline-flex items-center gap-1 font-medium text-[color:var(--ink)]">
+            <DollarSign className="h-3.5 w-3.5" aria-hidden /> {pay}
+          </span>
+        )}
       </div>
 
       {hasAttrBadges && (
         <div className="mt-3 flex flex-wrap gap-1.5">
-          {job.quick_hire && <Badge icon={Timer} tone="fast">Same-day hire</Badge>}
-          {job.weekly_pay && <Badge icon={DollarSign} tone="money">Weekly pay</Badge>}
+          {job.quick_hire && (
+            <Badge icon={Timer} tone="fast">
+              Same-day hire
+            </Badge>
+          )}
+          {job.weekly_pay && (
+            <Badge icon={DollarSign} tone="money">
+              Weekly pay
+            </Badge>
+          )}
           {job.temperature_env && job.temperature_env !== "ambient" && (
-            <Badge icon={Snowflake} tone="cold">{TEMP_LABEL[job.temperature_env] ?? job.temperature_env}</Badge>
+            <Badge icon={Snowflake} tone="cold">
+              {TEMP_LABEL[job.temperature_env] ?? job.temperature_env}
+            </Badge>
           )}
           {certs.map((c) => (
-            <Badge key={c} icon={Forklift}>{CERT_LABEL[c] ?? c}</Badge>
+            <Badge key={c} icon={Forklift}>
+              {CERT_LABEL[c] ?? c}
+            </Badge>
           ))}
-          {job.overtime_available && <Badge icon={CalendarClock} tone="hot">OT available</Badge>}
+          {job.overtime_available && (
+            <Badge icon={CalendarClock} tone="hot">
+              OT available
+            </Badge>
+          )}
           {(job.lift_requirement_lbs ?? 0) > 0 && (
             <Badge icon={Dumbbell}>Lift {job.lift_requirement_lbs}+ lbs</Badge>
           )}

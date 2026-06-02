@@ -33,11 +33,7 @@ export function useQuickApplyReady() {
           .select("default_resume_url, full_name, display_name")
           .eq("id", user!.id)
           .maybeSingle(),
-        supabase
-          .from("seeker_profiles")
-          .select("headline")
-          .eq("user_id", user!.id)
-          .maybeSingle(),
+        supabase.from("seeker_profiles").select("headline").eq("user_id", user!.id).maybeSingle(),
       ]);
       const hasResume = !!prof?.default_resume_url;
       const hasName = !!(prof?.full_name || prof?.display_name);

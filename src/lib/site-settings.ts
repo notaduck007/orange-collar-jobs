@@ -30,7 +30,11 @@ export type PublicSettings = {
 const DEFAULTS: PublicSettings = {
   branding: { site_name: "WarehouseJobs", logo_url: "", support_email: "support@example.com" },
   defaults: { job_duration_days: 30, free_post_allowance: 1 },
-  toggles: { reviews_enabled: true, candidate_search_enabled: true, require_email_verification: false },
+  toggles: {
+    reviews_enabled: true,
+    candidate_search_enabled: true,
+    require_email_verification: false,
+  },
   flags: {},
 };
 
@@ -41,7 +45,10 @@ export function useSiteSettings() {
     queryFn: async (): Promise<PublicSettings> => {
       const { data, error } = await supabase.rpc("get_public_settings");
       if (error || !data) return DEFAULTS;
-      const raw = data as { settings?: Record<string, unknown>; flags?: Record<string, FeatureFlag> };
+      const raw = data as {
+        settings?: Record<string, unknown>;
+        flags?: Record<string, FeatureFlag>;
+      };
       const s = raw.settings ?? {};
       return {
         branding: { ...DEFAULTS.branding, ...((s.branding as Partial<BrandingSettings>) ?? {}) },

@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { StatusBadge } from "./seeker.index";
 import { Button } from "@/components/ui/button";
+import type { Row } from "@/lib/row-types";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,7 +36,9 @@ function ApplicationsPage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("applications")
-        .select("id, status, created_at, cover_letter, resume_url, jobs(slug, title, location, shift, companies(name, logo_url))")
+        .select(
+          "id, status, created_at, cover_letter, resume_url, jobs(slug, title, location, shift, companies(name, logo_url))",
+        )
         .eq("applicant_id", user!.id)
         .order("created_at", { ascending: false });
       return data ?? [];
@@ -67,7 +70,9 @@ function ApplicationsPage() {
     <div className="space-y-5">
       <div>
         <p className="label-caps text-primary">Applications</p>
-        <h1 className="mt-1 text-3xl font-bold tracking-tight text-[color:var(--ink)]">My applications</h1>
+        <h1 className="mt-1 text-3xl font-bold tracking-tight text-[color:var(--ink)]">
+          My applications
+        </h1>
         <p className="mt-1 text-sm text-muted-foreground">
           {apps.length} total · employer status updates appear here
         </p>
@@ -78,7 +83,9 @@ function ApplicationsPage() {
       ) : apps.length === 0 ? (
         <div className="rounded-xl border border-dashed border-border bg-card p-10 text-center">
           <p className="text-base font-semibold text-[color:var(--ink)]">No applications yet</p>
-          <p className="mt-1 text-sm text-muted-foreground">When you apply to a job, it shows up here.</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            When you apply to a job, it shows up here.
+          </p>
           <Button asChild className="btn-primary mt-4">
             <Link to="/jobs">Search warehouse jobs</Link>
           </Button>
@@ -96,7 +103,7 @@ function ApplicationsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {apps.map((app: any) => (
+              {apps.map((app: Row) => (
                 <tr key={app.id} className="hover:bg-muted/30">
                   <td className="px-4 py-3">
                     <Link
@@ -151,7 +158,8 @@ function ApplicationsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Withdraw this application?</AlertDialogTitle>
             <AlertDialogDescription>
-              This permanently removes your application. The employer will no longer see it. You can re-apply later if the job is still open.
+              This permanently removes your application. The employer will no longer see it. You can
+              re-apply later if the job is still open.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -172,4 +180,3 @@ function ApplicationsPage() {
     </div>
   );
 }
-

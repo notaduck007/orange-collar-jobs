@@ -19,7 +19,10 @@ export const Route = createFileRoute("/pricing")({
   head: () => ({
     meta: [
       { title: "Posting Packages & Pricing — WarehouseJobs for Employers" },
-      { name: "description", content: "Post warehouse jobs to qualified workers. Flat-rate packages, no contracts." },
+      {
+        name: "description",
+        content: "Post warehouse jobs to qualified workers. Flat-rate packages, no contracts.",
+      },
     ],
   }),
   component: Pricing,
@@ -40,7 +43,11 @@ function Pricing() {
     queryKey: ["packages"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("packages").select("*").eq("active", true).eq("kind", "posting").order("sort_order");
+        .from("packages")
+        .select("*")
+        .eq("active", true)
+        .eq("kind", "posting")
+        .order("sort_order");
       if (error) throw error;
       return data ?? [];
     },
@@ -48,7 +55,10 @@ function Pricing() {
 
   async function handleBuy(packageId: string) {
     if (!user) {
-      navigate({ to: "/auth", search: { mode: "signup", role: "employer", next: "/pricing" } as never });
+      navigate({
+        to: "/auth",
+        search: { mode: "signup", role: "employer", next: "/pricing" } as never,
+      });
       return;
     }
     setBuyingId(packageId);
@@ -81,9 +91,12 @@ function Pricing() {
         <div className="absolute inset-0 bg-gradient-to-b from-[color:var(--ink)]/80 via-[color:var(--ink)]/85 to-[color:var(--ink)]" />
         <div className="relative mx-auto max-w-4xl px-4 text-center sm:px-6">
           <p className="label-caps text-primary">For Employers</p>
-          <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">Hire the dock, not the cubicle.</h1>
+          <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
+            Hire the dock, not the cubicle.
+          </h1>
           <p className="mx-auto mt-4 max-w-2xl text-base text-white/70 sm:text-lg">
-            Reach forklift operators, pickers, order selectors, and dock workers actively looking for work. Flat-rate packages — no contracts, no surprise fees.
+            Reach forklift operators, pickers, order selectors, and dock workers actively looking
+            for work. Flat-rate packages — no contracts, no surprise fees.
           </p>
         </div>
       </section>
@@ -102,7 +115,9 @@ function Pricing() {
               <div
                 key={p.id}
                 className={`relative flex flex-col rounded-2xl border bg-card p-7 ${
-                  popular ? "border-primary shadow-[var(--shadow-orange)]" : "border-border shadow-[var(--shadow-card)]"
+                  popular
+                    ? "border-primary shadow-[var(--shadow-orange)]"
+                    : "border-border shadow-[var(--shadow-card)]"
                 }`}
               >
                 {popular && (
@@ -117,9 +132,15 @@ function Pricing() {
                   <span className="ml-1 text-sm font-medium text-muted-foreground">one-time</span>
                 </p>
                 <ul className="mt-6 space-y-2.5 text-sm">
-                  <Feature>{p.posting_count} job post{p.posting_count === 1 ? "" : "s"}</Feature>
+                  <Feature>
+                    {p.posting_count} job post{p.posting_count === 1 ? "" : "s"}
+                  </Feature>
                   <Feature>{p.duration_days}-day posting period</Feature>
-                  {p.featured_count > 0 && <Feature>{p.featured_count} featured upgrade{p.featured_count === 1 ? "" : "s"}</Feature>}
+                  {p.featured_count > 0 && (
+                    <Feature>
+                      {p.featured_count} featured upgrade{p.featured_count === 1 ? "" : "s"}
+                    </Feature>
+                  )}
                   <Feature>Applicant management dashboard</Feature>
                   <Feature>Weekly applicant report</Feature>
                 </ul>
@@ -128,7 +149,9 @@ function Pricing() {
                   disabled={loading || !!buyingId}
                   onClick={() => handleBuy(p.id)}
                   className={`mt-7 inline-flex items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-semibold disabled:opacity-60 ${
-                    popular ? "btn-primary" : "border border-[color:var(--ink)] text-[color:var(--ink)] hover:bg-[color:var(--ink)] hover:text-white"
+                    popular
+                      ? "btn-primary"
+                      : "border border-[color:var(--ink)] text-[color:var(--ink)] hover:bg-[color:var(--ink)] hover:text-white"
                   }`}
                 >
                   {loading && <Loader2 className="h-4 w-4 animate-spin" />}
@@ -141,9 +164,15 @@ function Pricing() {
 
         <div className="mx-auto mt-16 max-w-2xl text-center">
           <p className="label-caps">Volume hiring?</p>
-          <h2 className="mt-2 text-2xl font-bold text-[color:var(--ink)]">Talk to us about an annual plan.</h2>
-          <p className="mt-2 text-sm text-muted-foreground">Custom packages for staffing agencies and 3PLs running multi-site recruitment.</p>
-          <Link to="/contact" className="btn-primary mt-5 inline-flex">Contact sales</Link>
+          <h2 className="mt-2 text-2xl font-bold text-[color:var(--ink)]">
+            Talk to us about an annual plan.
+          </h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Custom packages for staffing agencies and 3PLs running multi-site recruitment.
+          </p>
+          <Link to="/contact" className="btn-primary mt-5 inline-flex">
+            Contact sales
+          </Link>
         </div>
       </section>
 

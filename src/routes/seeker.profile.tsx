@@ -26,13 +26,7 @@ export const Route = createFileRoute("/seeker/profile")({
 });
 
 type JobShift = "first" | "second" | "third" | "weekend" | "flexible";
-type EmploymentType =
-  | "full_time"
-  | "part_time"
-  | "temp"
-  | "temp_to_hire"
-  | "seasonal"
-  | "contract";
+type EmploymentType = "full_time" | "part_time" | "temp" | "temp_to_hire" | "seasonal" | "contract";
 
 const CERT_OPTIONS = [
   "Forklift",
@@ -114,11 +108,7 @@ function ProfilePage() {
     queryKey: ["seeker-profile", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user!.id)
-        .maybeSingle();
+      const { data } = await supabase.from("profiles").select("*").eq("id", user!.id).maybeSingle();
       return data;
     },
   });
@@ -165,11 +155,9 @@ function ProfilePage() {
       setSeeker({
         headline: seekerRow.headline ?? "",
         summary: seekerRow.summary ?? "",
-        desired_pay_min:
-          seekerRow.desired_pay_min != null ? String(seekerRow.desired_pay_min) : "",
+        desired_pay_min: seekerRow.desired_pay_min != null ? String(seekerRow.desired_pay_min) : "",
         desired_shift: (seekerRow.desired_shift as JobShift | null) ?? "",
-        desired_employment_type:
-          (seekerRow.desired_employment_type as EmploymentType | null) ?? "",
+        desired_employment_type: (seekerRow.desired_employment_type as EmploymentType | null) ?? "",
         willing_to_relocate: !!seekerRow.willing_to_relocate,
         discoverable: !!(seekerRow as { discoverable?: boolean }).discoverable,
         certifications: seekerRow.certifications ?? [],
@@ -292,9 +280,7 @@ function ProfilePage() {
   };
 
   const updateWork = (id: string, patch: Partial<WorkRow>) => {
-    setWork((w) =>
-      w.map((r) => (r.id === id ? { ...r, ...patch, _dirty: true } : r)),
-    );
+    setWork((w) => w.map((r) => (r.id === id ? { ...r, ...patch, _dirty: true } : r)));
   };
 
   const removeWork = async (row: WorkRow) => {
@@ -329,10 +315,7 @@ function ProfilePage() {
       const { error } = await supabase.from("work_history").insert(payload);
       if (error) return toast.error(error.message);
     } else {
-      const { error } = await supabase
-        .from("work_history")
-        .update(payload)
-        .eq("id", row.id);
+      const { error } = await supabase.from("work_history").update(payload).eq("id", row.id);
       if (error) return toast.error(error.message);
     }
     toast.success("Saved");
@@ -403,24 +386,18 @@ function ProfilePage() {
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             Profile completeness
           </h2>
-          <span className="text-2xl font-bold text-[color:var(--ink)]">
-            {completeness}%
-          </span>
+          <span className="text-2xl font-bold text-[color:var(--ink)]">{completeness}%</span>
         </div>
         <Progress value={completeness} className="mt-3" />
         <ul className="mt-3 grid gap-1 text-xs text-muted-foreground sm:grid-cols-2">
           <li className={profile?.default_resume_url ? "text-emerald-600" : ""}>
             • Default resume uploaded
           </li>
-          <li className={seeker.headline.trim() ? "text-emerald-600" : ""}>
-            • Headline written
-          </li>
+          <li className={seeker.headline.trim() ? "text-emerald-600" : ""}>• Headline written</li>
           <li className={(workRows?.length ?? 0) >= 1 ? "text-emerald-600" : ""}>
             • At least 1 work history entry
           </li>
-          <li className={seeker.skills.length >= 3 ? "text-emerald-600" : ""}>
-            • 3+ skills added
-          </li>
+          <li className={seeker.skills.length >= 3 ? "text-emerald-600" : ""}>• 3+ skills added</li>
           <li className={seeker.certifications.length >= 1 ? "text-emerald-600" : ""}>
             • 1+ certification selected
           </li>
@@ -496,9 +473,7 @@ function ProfilePage() {
       {/* Certifications */}
       <div className="rounded-xl border border-border bg-card p-6 sm:p-8">
         <h2 className="text-lg font-semibold text-[color:var(--ink)]">Certifications</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Tap any that apply.
-        </p>
+        <p className="mt-1 text-sm text-muted-foreground">Tap any that apply.</p>
         <div className="mt-4 flex flex-wrap gap-2">
           {CERT_OPTIONS.map((cert) => {
             const active = seeker.certifications.includes(cert);
@@ -575,18 +550,14 @@ function ProfilePage() {
               min={0}
               step="0.5"
               value={seeker.desired_pay_min}
-              onChange={(e) =>
-                setSeeker({ ...seeker, desired_pay_min: e.target.value })
-              }
+              onChange={(e) => setSeeker({ ...seeker, desired_pay_min: e.target.value })}
             />
           </div>
           <div className="space-y-1.5">
             <Label>Preferred shift</Label>
             <Select
               value={seeker.desired_shift || undefined}
-              onValueChange={(v) =>
-                setSeeker({ ...seeker, desired_shift: v as JobShift })
-              }
+              onValueChange={(v) => setSeeker({ ...seeker, desired_shift: v as JobShift })}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Any" />
@@ -625,18 +596,12 @@ function ProfilePage() {
           </div>
           <div className="flex items-center justify-between rounded-lg border border-border bg-background px-4 py-3">
             <div>
-              <p className="text-sm font-medium text-[color:var(--ink)]">
-                Willing to relocate
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Show me jobs outside my area too.
-              </p>
+              <p className="text-sm font-medium text-[color:var(--ink)]">Willing to relocate</p>
+              <p className="text-xs text-muted-foreground">Show me jobs outside my area too.</p>
             </div>
             <Switch
               checked={seeker.willing_to_relocate}
-              onCheckedChange={(v) =>
-                setSeeker({ ...seeker, willing_to_relocate: !!v })
-              }
+              onCheckedChange={(v) => setSeeker({ ...seeker, willing_to_relocate: !!v })}
             />
           </div>
         </div>
@@ -656,8 +621,8 @@ function ProfilePage() {
             </h2>
             <p className="mt-1 text-sm text-muted-foreground">
               When on, employers searching for candidates can see your profile, skills,
-              certifications, and work history, and invite you to apply. Your contact
-              details stay private.
+              certifications, and work history, and invite you to apply. Your contact details stay
+              private.
             </p>
           </div>
           <Switch
@@ -676,9 +641,7 @@ function ProfilePage() {
       <div className="rounded-xl border border-border bg-card p-6 sm:p-8">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-[color:var(--ink)]">
-              Work history
-            </h2>
+            <h2 className="text-lg font-semibold text-[color:var(--ink)]">Work history</h2>
             <p className="mt-1 text-sm text-muted-foreground">
               Add your past roles — most recent first.
             </p>
@@ -695,18 +658,13 @@ function ProfilePage() {
             </p>
           )}
           {work.map((row) => (
-            <div
-              key={row.id}
-              className="rounded-lg border border-border bg-background p-4 sm:p-5"
-            >
+            <div key={row.id} className="rounded-lg border border-border bg-background p-4 sm:p-5">
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="space-y-1.5">
                   <Label>Employer</Label>
                   <Input
                     value={row.employer_name}
-                    onChange={(e) =>
-                      updateWork(row.id, { employer_name: e.target.value })
-                    }
+                    onChange={(e) => updateWork(row.id, { employer_name: e.target.value })}
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -721,9 +679,7 @@ function ProfilePage() {
                   <Input
                     type="date"
                     value={row.start_date ?? ""}
-                    onChange={(e) =>
-                      updateWork(row.id, { start_date: e.target.value || null })
-                    }
+                    onChange={(e) => updateWork(row.id, { start_date: e.target.value || null })}
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -732,9 +688,7 @@ function ProfilePage() {
                     type="date"
                     disabled={row.current}
                     value={row.end_date ?? ""}
-                    onChange={(e) =>
-                      updateWork(row.id, { end_date: e.target.value || null })
-                    }
+                    onChange={(e) => updateWork(row.id, { end_date: e.target.value || null })}
                   />
                 </div>
                 <div className="sm:col-span-2 space-y-1.5">
@@ -742,9 +696,7 @@ function ProfilePage() {
                   <Textarea
                     rows={2}
                     value={row.description ?? ""}
-                    onChange={(e) =>
-                      updateWork(row.id, { description: e.target.value })
-                    }
+                    onChange={(e) => updateWork(row.id, { description: e.target.value })}
                   />
                 </div>
               </div>
@@ -802,9 +754,7 @@ function ProfilePage() {
             <div className="flex items-center gap-3">
               <FileText className="h-6 w-6 text-primary" />
               <div>
-                <p className="text-sm font-semibold text-[color:var(--ink)]">
-                  {resumeName}
-                </p>
+                <p className="text-sm font-semibold text-[color:var(--ink)]">{resumeName}</p>
                 <p className="text-xs text-muted-foreground">Default resume on file</p>
               </div>
             </div>
@@ -812,11 +762,7 @@ function ProfilePage() {
               <Button variant="outline" size="sm" onClick={downloadResume}>
                 <FileDown className="mr-1 h-4 w-4" /> View
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => fileInput.current?.click()}
-              >
+              <Button variant="outline" size="sm" onClick={() => fileInput.current?.click()}>
                 <Upload className="mr-1 h-4 w-4" /> Replace
               </Button>
               <Button

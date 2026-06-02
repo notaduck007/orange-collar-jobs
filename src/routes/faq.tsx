@@ -4,7 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Markdown } from "@/components/markdown";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 export const Route = createFileRoute("/faq")({
   head: () => ({ meta: [{ title: "FAQ — WarehouseJobs" }] }),
@@ -52,7 +57,9 @@ function FAQ() {
         <Accordion type="single" collapsible className="mt-8">
           {faqs.map((f) => (
             <AccordionItem key={f.id} value={f.id}>
-              <AccordionTrigger className="text-left text-base font-semibold text-[color:var(--ink)]">{f.question}</AccordionTrigger>
+              <AccordionTrigger className="text-left text-base font-semibold text-[color:var(--ink)]">
+                {f.question}
+              </AccordionTrigger>
               <AccordionContent className="text-[15px] leading-relaxed text-foreground">
                 <Markdown>{f.answer}</Markdown>
               </AccordionContent>

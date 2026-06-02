@@ -58,11 +58,20 @@ function AdminAds() {
       <h1 className="mt-1 text-2xl font-bold text-[color:var(--ink)]">Ad approval queue</h1>
 
       <section className="mt-6">
-        <h2 className="mb-3 text-sm font-semibold text-[color:var(--ink)]">Pending review ({pending.length})</h2>
+        <h2 className="mb-3 text-sm font-semibold text-[color:var(--ink)]">
+          Pending review ({pending.length})
+        </h2>
         <div className="grid gap-3">
-          {pending.length === 0 && <p className="text-sm text-muted-foreground">No ads waiting for review.</p>}
+          {pending.length === 0 && (
+            <p className="text-sm text-muted-foreground">No ads waiting for review.</p>
+          )}
           {pending.map((ad) => (
-            <AdRowItem key={ad.id} ad={ad} onApprove={() => setStatus(ad.id, "active")} onReject={() => setStatus(ad.id, "rejected")} />
+            <AdRowItem
+              key={ad.id}
+              ad={ad}
+              onApprove={() => setStatus(ad.id, "active")}
+              onReject={() => setStatus(ad.id, "rejected")}
+            />
           ))}
         </div>
       </section>
@@ -113,13 +122,26 @@ function AdRowItem({
         </div>
         <p className="mt-1 truncate text-xs text-muted-foreground">→ {ad.target_url}</p>
         <p className="mt-1 text-xs text-muted-foreground">
-          {ad.start_date ?? "Anytime"} → {ad.end_date ?? "No end"} · {ad.impressions} impressions · {ad.clicks} clicks
+          {ad.start_date ?? "Anytime"} → {ad.end_date ?? "No end"} · {ad.impressions} impressions ·{" "}
+          {ad.clicks} clicks
         </p>
       </div>
       <div className="flex gap-2">
-        {onApprove && <Button size="sm" onClick={onApprove} className="btn-primary gap-1"><Check className="h-4 w-4" /> Approve</Button>}
-        {onPause && <Button size="sm" variant="outline" onClick={onPause} className="gap-1"><Pause className="h-4 w-4" /> Pause</Button>}
-        {onReject && <Button size="sm" variant="outline" onClick={onReject} className="gap-1"><X className="h-4 w-4" /> Reject</Button>}
+        {onApprove && (
+          <Button size="sm" onClick={onApprove} className="btn-primary gap-1">
+            <Check className="h-4 w-4" /> Approve
+          </Button>
+        )}
+        {onPause && (
+          <Button size="sm" variant="outline" onClick={onPause} className="gap-1">
+            <Pause className="h-4 w-4" /> Pause
+          </Button>
+        )}
+        {onReject && (
+          <Button size="sm" variant="outline" onClick={onReject} className="gap-1">
+            <X className="h-4 w-4" /> Reject
+          </Button>
+        )}
       </div>
     </div>
   );

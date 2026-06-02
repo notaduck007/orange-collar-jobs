@@ -17,14 +17,16 @@ export async function checkRateLimit(
   windowSeconds: number,
   max: number,
 ): Promise<boolean> {
-  const { data, error } = await supabase.rpc("check_rate_limit" as never, {
-    _key: key,
-    _window_seconds: windowSeconds,
-    _max: max,
-  } as never);
+  const { data, error } = await supabase.rpc(
+    "check_rate_limit" as never,
+    {
+      _key: key,
+      _window_seconds: windowSeconds,
+      _max: max,
+    } as never,
+  );
   if (error) {
     // Fail-open on infra errors so legitimate users aren't blocked.
-    // eslint-disable-next-line no-console
     console.warn("rate-limit RPC failed", error);
     return true;
   }

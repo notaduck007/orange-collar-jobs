@@ -9,10 +9,19 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
+import type { Row } from "@/lib/row-types";
+import { errMsg } from "@/lib/row-types";
 
 export const Route = createFileRoute("/seeker/privacy")({
   head: () => ({ meta: [{ title: "Privacy & Data — WarehouseJobs" }] }),
@@ -70,8 +79,8 @@ function PrivacyPage() {
       a.click();
       URL.revokeObjectURL(url);
       toast.success("Your data has been downloaded.");
-    } catch (e: any) {
-      toast.error(e?.message ?? "Export failed");
+    } catch (e: unknown) {
+      toast.error(errMsg(e, "Export failed"));
     } finally {
       setExporting(false);
     }
@@ -85,13 +94,13 @@ function PrivacyPage() {
         body: { mode: "soft", reason: reason || null },
       });
       if (error) throw error;
-      if ((data as any)?.error) throw new Error((data as any).error);
+      if ((data as Row)?.error) throw new Error((data as Row).error);
       toast.success("Account deleted. Signing you out…");
       await qc.invalidateQueries();
       await supabase.auth.signOut();
       window.location.href = "/";
-    } catch (e: any) {
-      toast.error(e?.message ?? "Deletion failed");
+    } catch (e: unknown) {
+      toast.error(errMsg(e, "Deletion failed"));
       setDeleting(false);
     }
   }
@@ -99,7 +108,9 @@ function PrivacyPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-[color:var(--ink)]">Privacy & Data</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-[color:var(--ink)]">
+          Privacy & Data
+        </h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Export your personal data or permanently delete your account.
         </p>
@@ -111,10 +122,15 @@ function PrivacyPage() {
           <div className="flex-1">
             <h2 className="text-lg font-semibold">Export my data</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Download a JSON copy of your profile, applications, saved jobs, alerts, reviews, and work history.
+              Download a JSON copy of your profile, applications, saved jobs, alerts, reviews, and
+              work history.
             </p>
             <Button className="mt-4" onClick={handleExport} disabled={exporting}>
-              {exporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
+              {exporting ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Download className="mr-2 h-4 w-4" />
+              )}
               {exporting ? "Preparing…" : "Download my data"}
             </Button>
           </div>
@@ -127,12 +143,14 @@ function PrivacyPage() {
           <div className="flex-1">
             <h2 className="text-lg font-semibold">Delete my account</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              This anonymizes your personal information (name, contact, resume, profile narrative) and signs
-              you out. Your applications remain as anonymous records for our employer partners' history. This
-              cannot be undone.
+              This anonymizes your personal information (name, contact, resume, profile narrative)
+              and signs you out. Your applications remain as anonymous records for our employer
+              partners' history. This cannot be undone.
             </p>
             <div className="mt-4">
-              <Label htmlFor="reason" className="text-sm">Reason (optional)</Label>
+              <Label htmlFor="reason" className="text-sm">
+                Reason (optional)
+              </Label>
               <Textarea
                 id="reason"
                 value={reason}
@@ -153,13 +171,16 @@ function PrivacyPage() {
                 <AlertDialogHeader>
                   <AlertDialogTitle>Delete your account?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Your personal data will be anonymized immediately and you'll be signed out. This action
-                    cannot be reversed.
+                    Your personal data will be anonymized immediately and you'll be signed out. This
+                    action cannot be reversed.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  <AlertDialogAction
+                    onClick={handleDelete}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
                     Yes, delete my account
                   </AlertDialogAction>
                 </AlertDialogFooter>
@@ -173,11 +194,15 @@ function PrivacyPage() {
         <section className="rounded-xl border bg-card p-6 shadow-sm">
           <h2 className="text-lg font-semibold">Request history</h2>
           <ul className="mt-3 divide-y">
-            {requestsQ.data.map((r: any) => (
+            {requestsQ.data.map((r: Row) => (
               <li key={r.id} className="flex items-center justify-between py-2 text-sm">
                 <span className="capitalize">{r.type}</span>
-                <Badge variant="outline" className="capitalize">{r.status}</Badge>
-                <span className="text-muted-foreground">{new Date(r.created_at).toLocaleString()}</span>
+                <Badge variant="outline" className="capitalize">
+                  {r.status}
+                </Badge>
+                <span className="text-muted-foreground">
+                  {new Date(r.created_at).toLocaleString()}
+                </span>
               </li>
             ))}
           </ul>

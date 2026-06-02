@@ -73,14 +73,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (!active) return;
       const list = ((data ?? []) as Array<{ role: AppRole }>).map((r) => r.role);
-      const resolved = list.length > 0 ? pickEffective(list) ?? "job_seeker" : "job_seeker";
+      const resolved = list.length > 0 ? (pickEffective(list) ?? "job_seeker") : "job_seeker";
       setRoles(list);
       setRole(resolved);
       setPermissions(Array.isArray(perms) ? (perms as string[]) : []);
       setLoading(false);
     };
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, s) => {
       setLoading(true);
       setTimeout(() => void loadSessionRole(s), 0);
     });

@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { Printer } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import type { Row } from "@/lib/row-types";
 
 export const Route = createFileRoute("/billing/receipt/$orderId")({
   component: ReceiptPage,
@@ -58,7 +59,11 @@ function ReceiptPage() {
   if (!user) {
     return (
       <div className="p-10 text-center text-sm">
-        Please <Link to="/auth" className="underline">sign in</Link> to view your receipt.
+        Please{" "}
+        <Link to="/auth" className="underline">
+          sign in
+        </Link>{" "}
+        to view your receipt.
       </div>
     );
   }
@@ -66,7 +71,7 @@ function ReceiptPage() {
     return <div className="p-10 text-center text-sm">Receipt not found.</div>;
   }
 
-  const snap: any = data.package_snapshot ?? {};
+  const snap = (data.package_snapshot ?? {}) as Row;
   const posts = data.posting_count_granted ?? snap.posting_count ?? 0;
   const feats = data.featured_count_granted ?? snap.featured_count ?? 0;
 
@@ -107,13 +112,18 @@ function ReceiptPage() {
         <tbody>
           <tr className="border-b border-border">
             <td className="py-3">
-              <p className="font-semibold">{data.packages?.name ?? snap.name ?? "Posting package"}</p>
+              <p className="font-semibold">
+                {data.packages?.name ?? snap.name ?? "Posting package"}
+              </p>
               <p className="text-xs text-muted-foreground">
-                {posts} job post{posts === 1 ? "" : "s"} · {feats} featured upgrade{feats === 1 ? "" : "s"}
+                {posts} job post{posts === 1 ? "" : "s"} · {feats} featured upgrade
+                {feats === 1 ? "" : "s"}
                 {cpkg && ` · valid until ${new Date(cpkg.expires_at).toLocaleDateString()}`}
               </p>
             </td>
-            <td className="py-3 text-right font-semibold">{money(data.amount_cents, data.currency)}</td>
+            <td className="py-3 text-right font-semibold">
+              {money(data.amount_cents, data.currency)}
+            </td>
           </tr>
         </tbody>
         <tfoot>

@@ -3,7 +3,15 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
-import { Check, ChevronLeft, ChevronRight, FileText, Sparkles, Loader2, Package as PackageIcon } from "lucide-react";
+import {
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  FileText,
+  Sparkles,
+  Loader2,
+  Package as PackageIcon,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -28,11 +36,16 @@ import {
 } from "@/components/ui/dialog";
 import { uniqueSlug } from "@/lib/slug";
 import { JOB_TEMPLATES, TEMPLATE_LIST } from "@/lib/job-templates";
-import { ScreeningQuestionsBuilder, type ScreeningQuestionDraft } from "@/components/screening-questions-builder";
+import {
+  ScreeningQuestionsBuilder,
+  type ScreeningQuestionDraft,
+} from "@/components/screening-questions-builder";
 import { useSiteSettings } from "@/lib/site-settings";
 import { checkRateLimit, emailIsVerified, LIMITS } from "@/lib/abuse";
 import { JobCard } from "@/components/job-card";
 import { startCheckout } from "@/lib/checkout";
+import type { Row } from "@/lib/row-types";
+import { errMsg } from "@/lib/row-types";
 
 type CheckoutSearch = { checkout?: "success" | "cancelled"; draft?: string; session_id?: string };
 
@@ -86,7 +99,14 @@ const stepSchemas = [
   }),
 ];
 
-const STEPS = ["Basics", "Schedule & pay", "Location", "Description", "Screening", "Review & publish"] as const;
+const STEPS = [
+  "Basics",
+  "Schedule & pay",
+  "Location",
+  "Description",
+  "Screening",
+  "Review & publish",
+] as const;
 
 type ActivePackage = {
   id: string;
@@ -158,12 +178,24 @@ function NewJobPage() {
     enabled: !!user,
     queryFn: async () => {
       const { data: owned } = await supabase
-        .from("companies").select("*").eq("owner_id", user!.id).maybeSingle();
+        .from("companies")
+        .select("*")
+        .eq("owner_id", user!.id)
+        .maybeSingle();
       if (owned) return owned;
       const { data: mem } = await supabase
-        .from("company_members").select("company_id").eq("user_id", user!.id).eq("status", "active").limit(1).maybeSingle();
+        .from("company_members")
+        .select("company_id")
+        .eq("user_id", user!.id)
+        .eq("status", "active")
+        .limit(1)
+        .maybeSingle();
       if (!mem?.company_id) return null;
-      const { data } = await supabase.from("companies").select("*").eq("id", mem.company_id).maybeSingle();
+      const { data } = await supabase
+        .from("companies")
+        .select("*")
+        .eq("id", mem.company_id)
+        .maybeSingle();
       return data;
     },
   });
@@ -172,7 +204,9 @@ function NewJobPage() {
     queryKey: ["active-package", company?.id],
     enabled: !!company?.id,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_active_package", { p_company_id: company!.id });
+      const { data, error } = await supabase.rpc("get_active_package", {
+        p_company_id: company!.id,
+      });
       if (error) throw error;
       const row = Array.isArray(data) ? data[0] : data;
       return (row as ActivePackage | undefined) ?? null;
@@ -198,7 +232,12 @@ function NewJobPage() {
   const { data: categories = [] } = useQuery({
     queryKey: ["job-categories"],
     queryFn: async () => {
-      const { data } = await supabase.from("job_categories").select("*").eq("active", true).order("sort_order").order("name");
+      const { data } = await supabase
+        .from("job_categories")
+        .select("*")
+        .eq("active", true)
+        .order("sort_order")
+        .order("name");
       return data ?? [];
     },
   });
@@ -214,7 +253,12 @@ function NewJobPage() {
   const [draftId, setDraftId] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [resuming, setResuming] = useState(false);
-  const [success, setSuccess] = useState<{ slug: string; title: string; jobId: string; featured: boolean } | null>(null);
+  const [success, setSuccess] = useState<{
+    slug: string;
+    title: string;
+    jobId: string;
+    featured: boolean;
+  } | null>(null);
   const resumeHandledRef = useRef(false);
   const [resumeOffer, setResumeOffer] = useState<null | {
     form: FormState;
@@ -239,7 +283,8 @@ function NewJobPage() {
       toast.error("Add a job title first so the AI has something to work with.");
       return;
     }
-    const category = categories.find((c) => c.slug === form.category_slug)?.name ?? form.category_slug;
+    const category =
+      categories.find((c) => c.slug === form.category_slug)?.name ?? form.category_slug;
     const shiftLabel = SHIFTS.find((s) => s.value === form.shift)?.label ?? form.shift;
     const location = [form.city, form.state].filter(Boolean).join(", ");
 
@@ -250,7 +295,9 @@ function NewJobPage() {
     setForm((f) => ({ ...f, description: "", requirements: "" }));
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-job-description`;
       const res = await fetch(url, {
         method: "POST",
@@ -290,7 +337,10 @@ function NewJobPage() {
         let requirements = "";
         if (descIdx >= 0) {
           const start = descIdx + "===DESCRIPTION===".length;
-          description = (reqIdx >= 0 ? buf.slice(start, reqIdx) : buf.slice(start)).replace(/^\s+/, "");
+          description = (reqIdx >= 0 ? buf.slice(start, reqIdx) : buf.slice(start)).replace(
+            /^\s+/,
+            "",
+          );
         }
         if (reqIdx >= 0) {
           requirements = buf.slice(reqIdx + "===REQUIREMENTS===".length).replace(/^\s+/, "");
@@ -301,10 +351,14 @@ function NewJobPage() {
           requirements: requirements.slice(0, 3000),
         }));
       }
-      toast.success(mode === "write" ? "Draft written — edit anything you'd like." : "Tightened up — review the changes.");
-    } catch (e: any) {
-      if (e?.name !== "AbortError") {
-        toast.error(e?.message ?? "AI request failed");
+      toast.success(
+        mode === "write"
+          ? "Draft written — edit anything you'd like."
+          : "Tightened up — review the changes.",
+      );
+    } catch (e: unknown) {
+      if (!(e instanceof Error) || e.name !== "AbortError") {
+        toast.error(errMsg(e, "AI request failed"));
       }
     } finally {
       setAiStreaming(null);
@@ -312,12 +366,15 @@ function NewJobPage() {
     }
   }
 
-
   // On mount: if a local draft exists and we're not resuming a server draft, offer it.
   useEffect(() => {
     if (lsCheckedRef.current) return;
     if (!lsKey) return;
-    if (search.draft) { lsCheckedRef.current = true; autosaveReadyRef.current = true; return; }
+    if (search.draft) {
+      lsCheckedRef.current = true;
+      autosaveReadyRef.current = true;
+      return;
+    }
     lsCheckedRef.current = true;
     try {
       const raw = localStorage.getItem(lsKey);
@@ -325,7 +382,9 @@ function NewJobPage() {
         const parsed = JSON.parse(raw);
         if (parsed && parsed.form) setResumeOffer(parsed);
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
     // Allow autosave to begin after we've checked (avoid clobbering before offer is shown).
     autosaveReadyRef.current = true;
   }, [lsKey, search.draft]);
@@ -339,14 +398,20 @@ function NewJobPage() {
           lsKey,
           JSON.stringify({ form, questions, slots, step, savedAt: Date.now() }),
         );
-      } catch { /* ignore quota */ }
+      } catch {
+        /* ignore quota */
+      }
     }, 600);
     return () => clearTimeout(t);
   }, [lsKey, form, questions, slots, step, resumeOffer]);
 
   const clearLocalDraft = () => {
     if (lsKey) {
-      try { localStorage.removeItem(lsKey); } catch { /* ignore */ }
+      try {
+        localStorage.removeItem(lsKey);
+      } catch {
+        /* ignore */
+      }
     }
   };
 
@@ -493,7 +558,10 @@ function NewJobPage() {
   const saveDraft = async (): Promise<string | null> => {
     if (!user || !company) return null;
     if (draftId) {
-      const { error } = await supabase.from("jobs").update(buildJobPayload("draft")).eq("id", draftId);
+      const { error } = await supabase
+        .from("jobs")
+        .update(buildJobPayload("draft"))
+        .eq("id", draftId);
       if (error) {
         toast.error(`Couldn't save draft: ${error.message}`);
         return null;
@@ -522,7 +590,9 @@ function NewJobPage() {
         job_id: jobId,
         prompt: q.prompt.trim(),
         type: q.type,
-        options: q.options.filter(Boolean).length ? (q.options.filter(Boolean) as unknown as never) : null,
+        options: q.options.filter(Boolean).length
+          ? (q.options.filter(Boolean) as unknown as never)
+          : null,
         required: q.required,
         knockout_answer: (q.knockout_answer ?? null) as never,
         sort_order: idx,
@@ -556,15 +626,26 @@ function NewJobPage() {
     await persistChildren(jobId);
     qc.invalidateQueries({ queryKey: ["active-package", company!.id] });
     qc.invalidateQueries({ queryKey: ["employer-jobs", company!.id] });
-    const { data: row } = await supabase.from("jobs").select("slug, title").eq("id", jobId).maybeSingle();
-    setSuccess({ slug: row?.slug ?? "", title: row?.title ?? form.title, jobId, featured: wantsFeatured });
+    const { data: row } = await supabase
+      .from("jobs")
+      .select("slug, title")
+      .eq("id", jobId)
+      .maybeSingle();
+    setSuccess({
+      slug: row?.slug ?? "",
+      title: row?.title ?? form.title,
+      jobId,
+      featured: wantsFeatured,
+    });
     clearLocalDraft();
   };
 
   const submit = async () => {
     if (!user || !company) return;
     if (!emailIsVerified(user, settings.toggles.require_email_verification)) {
-      toast.error("Please verify your email before posting a job. Check your inbox for the confirmation link.");
+      toast.error(
+        "Please verify your email before posting a job. Check your inbox for the confirmation link.",
+      );
       return;
     }
     for (let i = 0; i < stepSchemas.length; i++) {
@@ -660,7 +741,9 @@ function NewJobPage() {
         await refetchPackage();
 
         if (!pkg) {
-          toast.error("Payment received but your package isn't ready yet. Try Publish again in a moment.");
+          toast.error(
+            "Payment received but your package isn't ready yet. Try Publish again in a moment.",
+          );
           setResuming(false);
           setStep(STEPS.length - 1);
           navigate({ to: "/employer/jobs/new", search: { draft: search.draft }, replace: true });
@@ -679,8 +762,17 @@ function NewJobPage() {
           await persistChildren(search.draft!);
           qc.invalidateQueries({ queryKey: ["active-package", company.id] });
           qc.invalidateQueries({ queryKey: ["employer-jobs", company.id] });
-          const { data: row } = await supabase.from("jobs").select("slug, title").eq("id", search.draft!).maybeSingle();
-          setSuccess({ slug: row?.slug ?? "", title: row?.title ?? form.title, jobId: search.draft!, featured: wantsFeatured });
+          const { data: row } = await supabase
+            .from("jobs")
+            .select("slug, title")
+            .eq("id", search.draft!)
+            .maybeSingle();
+          setSuccess({
+            slug: row?.slug ?? "",
+            title: row?.title ?? form.title,
+            jobId: search.draft!,
+            featured: wantsFeatured,
+          });
           clearLocalDraft();
           navigate({ to: "/employer/jobs/new", search: {}, replace: true });
         } catch (e) {
@@ -708,7 +800,9 @@ function NewJobPage() {
           <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
             {success.slug && (
               <Button asChild className="btn-primary">
-                <Link to="/jobs/$slug" params={{ slug: success.slug }}>View listing</Link>
+                <Link to="/jobs/$slug" params={{ slug: success.slug }}>
+                  View listing
+                </Link>
               </Button>
             )}
             <Button asChild variant="outline">
@@ -746,8 +840,10 @@ function NewJobPage() {
           {activePackage ? (
             <p className="mt-1 text-sm text-muted-foreground">
               {activePackage.posts_remaining} of {activePackage.posts_total} posts left on{" "}
-              <span className="font-semibold text-[color:var(--ink)]">{activePackage.package_name}</span>
-              {" "}· valid until {formatDate(activePackage.expires_at)}
+              <span className="font-semibold text-[color:var(--ink)]">
+                {activePackage.package_name}
+              </span>{" "}
+              · valid until {formatDate(activePackage.expires_at)}
             </p>
           ) : (
             <p className="mt-1 text-sm text-muted-foreground">
@@ -828,8 +924,8 @@ function NewJobPage() {
                   active
                     ? "border-primary bg-primary text-primary-foreground"
                     : done
-                    ? "border-primary bg-[color:var(--primary-tint)] text-primary"
-                    : "border-border bg-card text-muted-foreground"
+                      ? "border-primary bg-[color:var(--primary-tint)] text-primary"
+                      : "border-border bg-card text-muted-foreground"
                 }`}
               >
                 {done ? <Check className="h-4 w-4" /> : i + 1}
@@ -952,9 +1048,7 @@ function NewJobPage() {
                 />
                 <Select
                   value={form.pay_period}
-                  onValueChange={(v) =>
-                    setForm({ ...form, pay_period: v as "hour" | "year" })
-                  }
+                  onValueChange={(v) => setForm({ ...form, pay_period: v as "hour" | "year" })}
                 >
                   <SelectTrigger className="w-[100px]">
                     <SelectValue />
@@ -973,7 +1067,9 @@ function NewJobPage() {
             <div className="rounded-lg border border-border bg-background p-4 space-y-4 sm:col-span-2">
               <div>
                 <p className="text-sm font-semibold text-[color:var(--ink)]">Warehouse details</p>
-                <p className="text-xs text-muted-foreground">These power the niche filters seekers use to qualify themselves.</p>
+                <p className="text-xs text-muted-foreground">
+                  These power the niche filters seekers use to qualify themselves.
+                </p>
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
@@ -981,9 +1077,17 @@ function NewJobPage() {
                   <Label htmlFor="temp">Temperature environment</Label>
                   <Select
                     value={form.temperature_env || "unset"}
-                    onValueChange={(v) => setForm({ ...form, temperature_env: v === "unset" ? "" : (v as "ambient" | "cooler" | "freezer") })}
+                    onValueChange={(v) =>
+                      setForm({
+                        ...form,
+                        temperature_env:
+                          v === "unset" ? "" : (v as "ambient" | "cooler" | "freezer"),
+                      })
+                    }
                   >
-                    <SelectTrigger id="temp"><SelectValue placeholder="Not specified" /></SelectTrigger>
+                    <SelectTrigger id="temp">
+                      <SelectValue placeholder="Not specified" />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="unset">Not specified</SelectItem>
                       <SelectItem value="ambient">Ambient</SelectItem>
@@ -1018,12 +1122,16 @@ function NewJobPage() {
                   ].map((c) => {
                     const checked = form.certifications_required.includes(c.v);
                     return (
-                      <label key={c.v} className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-2.5 py-1 text-sm">
+                      <label
+                        key={c.v}
+                        className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-2.5 py-1 text-sm"
+                      >
                         <Checkbox
                           checked={checked}
                           onCheckedChange={(v) => {
                             const set = new Set(form.certifications_required);
-                            if (v) set.add(c.v); else set.delete(c.v);
+                            if (v) set.add(c.v);
+                            else set.delete(c.v);
                             setForm({ ...form, certifications_required: Array.from(set) });
                           }}
                         />
@@ -1036,15 +1144,24 @@ function NewJobPage() {
 
               <div className="grid gap-2 sm:grid-cols-3">
                 <label className="flex items-center gap-2 rounded-md border border-border bg-card p-2 text-sm">
-                  <Checkbox checked={form.weekly_pay} onCheckedChange={(v) => setForm({ ...form, weekly_pay: !!v })} />
+                  <Checkbox
+                    checked={form.weekly_pay}
+                    onCheckedChange={(v) => setForm({ ...form, weekly_pay: !!v })}
+                  />
                   Weekly pay
                 </label>
                 <label className="flex items-center gap-2 rounded-md border border-border bg-card p-2 text-sm">
-                  <Checkbox checked={form.overtime_available} onCheckedChange={(v) => setForm({ ...form, overtime_available: !!v })} />
+                  <Checkbox
+                    checked={form.overtime_available}
+                    onCheckedChange={(v) => setForm({ ...form, overtime_available: !!v })}
+                  />
                   OT available
                 </label>
                 <label className="flex items-center gap-2 rounded-md border border-border bg-card p-2 text-sm">
-                  <Checkbox checked={form.quick_hire} onCheckedChange={(v) => setForm({ ...form, quick_hire: !!v })} />
+                  <Checkbox
+                    checked={form.quick_hire}
+                    onCheckedChange={(v) => setForm({ ...form, quick_hire: !!v })}
+                  />
                   Same-day / quick hire
                 </label>
               </div>
@@ -1083,7 +1200,9 @@ function NewJobPage() {
                           type="number"
                           min={1}
                           value={s.capacity}
-                          onChange={(e) => updateSlot(i, { capacity: Math.max(1, Number(e.target.value) || 1) })}
+                          onChange={(e) =>
+                            updateSlot(i, { capacity: Math.max(1, Number(e.target.value) || 1) })
+                          }
                         />
                       </div>
                       <Button type="button" variant="ghost" size="sm" onClick={() => removeSlot(i)}>
@@ -1137,7 +1256,8 @@ function NewJobPage() {
                 <div className="text-xs">
                   <p className="font-semibold text-[color:var(--ink)]">Write with AI</p>
                   <p className="text-muted-foreground">
-                    Generate a clean draft from your title, shift, pay, and location — or tighten what you already have.
+                    Generate a clean draft from your title, shift, pay, and location — or tighten
+                    what you already have.
                   </p>
                 </div>
                 <div className="flex gap-2">
@@ -1149,9 +1269,13 @@ function NewJobPage() {
                     disabled={aiStreaming === "improve"}
                   >
                     {aiStreaming === "write" ? (
-                      <><Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> Stop</>
+                      <>
+                        <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> Stop
+                      </>
                     ) : (
-                      <><Sparkles className="mr-1.5 h-3.5 w-3.5" /> Write with AI</>
+                      <>
+                        <Sparkles className="mr-1.5 h-3.5 w-3.5" /> Write with AI
+                      </>
                     )}
                   </Button>
                   <Button
@@ -1159,10 +1283,15 @@ function NewJobPage() {
                     size="sm"
                     variant={aiStreaming === "improve" ? "secondary" : "outline"}
                     onClick={() => runAi("improve")}
-                    disabled={aiStreaming === "write" || (!form.description.trim() && aiStreaming !== "improve")}
+                    disabled={
+                      aiStreaming === "write" ||
+                      (!form.description.trim() && aiStreaming !== "improve")
+                    }
                   >
                     {aiStreaming === "improve" ? (
-                      <><Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> Stop</>
+                      <>
+                        <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> Stop
+                      </>
                     ) : (
                       <>Improve draft</>
                     )}
@@ -1202,7 +1331,6 @@ function NewJobPage() {
               />
             </div>
 
-
             <p className="rounded-md border border-dashed border-border bg-background p-3 text-xs text-muted-foreground">
               You'll choose reach (Standard vs Featured) on the final Review step.
             </p>
@@ -1212,7 +1340,9 @@ function NewJobPage() {
         {step === 4 && (
           <div className="space-y-3">
             <div>
-              <h2 className="text-base font-semibold text-[color:var(--ink)]">Screening questions (optional)</h2>
+              <h2 className="text-base font-semibold text-[color:var(--ink)]">
+                Screening questions (optional)
+              </h2>
               <p className="text-xs text-muted-foreground">
                 Ask qualifying questions to filter applicants. Use the knockout setting to auto-flag
                 disqualifying answers on the applicants board.
@@ -1287,7 +1417,9 @@ function ReviewStep({
     pay_max: form.pay_max ? Number(form.pay_max) : null,
     featured: form.feature_it,
     category: form.category,
-    companies: company ? { name: company.name, slug: company.slug, verified: company.verified } : null,
+    companies: company
+      ? { name: company.name, slug: company.slug, verified: company.verified }
+      : null,
     temperature_env: form.temperature_env || null,
     certifications_required: form.certifications_required,
     weekly_pay: form.weekly_pay,
@@ -1324,7 +1456,9 @@ function ReviewStep({
     <div className="space-y-5">
       <div>
         <h2 className="text-base font-semibold text-[color:var(--ink)]">Review & publish</h2>
-        <p className="text-xs text-muted-foreground">This is exactly how your listing will appear to job seekers.</p>
+        <p className="text-xs text-muted-foreground">
+          This is exactly how your listing will appear to job seekers.
+        </p>
       </div>
 
       <div className="pointer-events-none">
@@ -1337,7 +1471,9 @@ function ReviewStep({
         {form.requirements && (
           <>
             <h4 className="pt-2 text-sm font-semibold text-[color:var(--ink)]">Requirements</h4>
-            <div className="whitespace-pre-wrap text-sm text-muted-foreground">{form.requirements}</div>
+            <div className="whitespace-pre-wrap text-sm text-muted-foreground">
+              {form.requirements}
+            </div>
           </>
         )}
       </div>
@@ -1350,7 +1486,9 @@ function ReviewStep({
               {postsLeft} posts · {featuredLeft} featured left on {activePackage.package_name}
             </p>
           ) : (
-            <p className="text-xs text-muted-foreground">No active package — you'll pick one next.</p>
+            <p className="text-xs text-muted-foreground">
+              No active package — you'll pick one next.
+            </p>
           )}
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
@@ -1400,7 +1538,12 @@ function ReviewStep({
             <PackageIcon className="mt-0.5 h-5 w-5 text-primary" />
             <p>
               Publishing uses <span className="font-semibold">1 post</span>
-              {form.feature_it ? <> + <span className="font-semibold">1 featured upgrade</span></> : null}{" "}
+              {form.feature_it ? (
+                <>
+                  {" "}
+                  + <span className="font-semibold">1 featured upgrade</span>
+                </>
+              ) : null}{" "}
               from <span className="font-semibold">{activePackage.package_name}</span> (valid until{" "}
               {formatDate(activePackage.expires_at)}).
             </p>
@@ -1454,13 +1597,14 @@ function RenewUpgradeDialog({
   );
   const popular = upgrades[Math.floor(upgrades.length / 2)] ?? null;
 
-  const reason = requireFeatured && activePackage && activePackage.posts_remaining >= 1
-    ? "You picked Featured but have no featured upgrades left — buy a package that includes one."
-    : !activePackage
-    ? "You don't have an active package — pick one to publish your draft."
-    : activePackage.posts_remaining < 1
-    ? `Your ${activePackage.package_name} is used up — renew it or move up to publish.`
-    : `Your ${activePackage.package_name} expired on ${formatDate(activePackage.expires_at)} — renew it or move up to publish.`;
+  const reason =
+    requireFeatured && activePackage && activePackage.posts_remaining >= 1
+      ? "You picked Featured but have no featured upgrades left — buy a package that includes one."
+      : !activePackage
+        ? "You don't have an active package — pick one to publish your draft."
+        : activePackage.posts_remaining < 1
+          ? `Your ${activePackage.package_name} is used up — renew it or move up to publish.`
+          : `Your ${activePackage.package_name} expired on ${formatDate(activePackage.expires_at)} — renew it or move up to publish.`;
 
   const handleBuy = async (pkgId: string, intent: "renew" | "upgrade") => {
     setBusy(pkgId);
@@ -1496,15 +1640,20 @@ function RenewUpgradeDialog({
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="label-caps text-primary">Renew</p>
-                  <h3 className="mt-1 text-lg font-bold text-[color:var(--ink)]">{renewPkg.name}</h3>
+                  <h3 className="mt-1 text-lg font-bold text-[color:var(--ink)]">
+                    {renewPkg.name}
+                  </h3>
                   <p className="mt-1 text-sm text-muted-foreground">
                     {renewPkg.posting_count} {renewPkg.posting_count === 1 ? "post" : "posts"}
-                    {renewPkg.featured_count > 0 ? ` + ${renewPkg.featured_count} featured` : ""}{" "}
-                    · {renewPkg.duration_days}-day validity
+                    {renewPkg.featured_count > 0
+                      ? ` + ${renewPkg.featured_count} featured`
+                      : ""} · {renewPkg.duration_days}-day validity
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-2xl font-bold text-[color:var(--ink)]">${(renewPkg.price_cents / 100).toFixed(0)}</p>
+                  <p className="text-2xl font-bold text-[color:var(--ink)]">
+                    ${(renewPkg.price_cents / 100).toFixed(0)}
+                  </p>
                   <Button
                     className="btn-primary mt-2"
                     disabled={!draftId || busy === renewPkg.id}
@@ -1527,7 +1676,9 @@ function RenewUpgradeDialog({
                     <div
                       key={p.id}
                       className={`rounded-lg border p-4 ${
-                        isPopular ? "border-primary bg-card shadow-[var(--shadow-card)]" : "border-border bg-card"
+                        isPopular
+                          ? "border-primary bg-card shadow-[var(--shadow-card)]"
+                          : "border-border bg-card"
                       }`}
                     >
                       <div className="flex items-start justify-between">
@@ -1540,9 +1691,12 @@ function RenewUpgradeDialog({
                       </div>
                       <p className="mt-1 text-xs text-muted-foreground">
                         {p.posting_count} {p.posting_count === 1 ? "post" : "posts"}
-                        {p.featured_count > 0 ? ` + ${p.featured_count} featured` : ""} · {p.duration_days}-day
+                        {p.featured_count > 0 ? ` + ${p.featured_count} featured` : ""} ·{" "}
+                        {p.duration_days}-day
                       </p>
-                      <p className="mt-3 text-2xl font-bold text-[color:var(--ink)]">${(p.price_cents / 100).toFixed(0)}</p>
+                      <p className="mt-3 text-2xl font-bold text-[color:var(--ink)]">
+                        ${(p.price_cents / 100).toFixed(0)}
+                      </p>
                       <Button
                         size="sm"
                         variant={isPopular ? "default" : "outline"}
@@ -1565,7 +1719,11 @@ function RenewUpgradeDialog({
 }
 
 function formatDate(s: string) {
-  return new Date(s).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  return new Date(s).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
 function FeatureUpsell({
@@ -1615,7 +1773,10 @@ function FeatureUpsell({
         if (res?.error) {
           if (res.code === "no_company") {
             toast.info("Set up your company first to purchase a package.");
-            navigate({ to: "/employer/onboarding", search: { next: "/employer/jobs/new" } as never });
+            navigate({
+              to: "/employer/onboarding",
+              search: { next: "/employer/jobs/new" } as never,
+            });
           } else {
             toast.error(res.error);
           }
@@ -1636,7 +1797,9 @@ function FeatureUpsell({
             <Sparkles className="h-5 w-5" />
           </span>
           <div>
-            <p className="font-bold text-[color:var(--ink)]">Get ~3× more applicants — feature this job</p>
+            <p className="font-bold text-[color:var(--ink)]">
+              Get ~3× more applicants — feature this job
+            </p>
             <p className="mt-0.5 text-sm text-muted-foreground">
               Pin it to the top of search and category pages.{" "}
               {hasCredit

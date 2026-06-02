@@ -8,7 +8,10 @@ const cors = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 const json = (b: unknown, status = 200) =>
-  new Response(JSON.stringify(b), { status, headers: { ...cors, "Content-Type": "application/json" } });
+  new Response(JSON.stringify(b), {
+    status,
+    headers: { ...cors, "Content-Type": "application/json" },
+  });
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
@@ -36,7 +39,8 @@ serve(async (req) => {
 
     if (body.user_id && body.user_id !== actorId) {
       const { data: hasCap } = await admin.rpc("has_permission", {
-        _user_id: actorId, _permission_key: "users.delete",
+        _user_id: actorId,
+        _permission_key: "users.delete",
       });
       if (!hasCap) return json({ error: "Forbidden" }, 403);
       targetId = body.user_id;
@@ -65,8 +69,10 @@ serve(async (req) => {
     } else {
       // Soft: ban the auth user so they can't sign in
       try {
-        await admin.auth.admin.updateUserById(targetId, { ban_duration: "876000h" } as any);
-      } catch (_) { /* ignore */ }
+        await admin.auth.admin.updateUserById(targetId, { ban_duration: "876000h" });
+      } catch (_) {
+        /* ignore */
+      }
     }
 
     // Notify user (best-effort)
@@ -90,7 +96,7 @@ serve(async (req) => {
     });
 
     return json({ ok: true, mode, user_id: targetId });
-  } catch (e: any) {
+  } catch (e: unknown) {
     return json({ error: e?.message ?? "Internal error" }, 500);
   }
 });

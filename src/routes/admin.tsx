@@ -1,6 +1,19 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { LayoutDashboard, Building2, Briefcase, Package, Megaphone, Users, Receipt, ShieldCheck, Flag, FileText, Settings, KeyRound } from "lucide-react";
+import {
+  LayoutDashboard,
+  Building2,
+  Briefcase,
+  Package,
+  Megaphone,
+  Users,
+  Receipt,
+  ShieldCheck,
+  Flag,
+  FileText,
+  Settings,
+  KeyRound,
+} from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { useAuth } from "@/lib/auth";
@@ -10,7 +23,13 @@ export const Route = createFileRoute("/admin")({
   component: AdminLayout,
 });
 
-type NavItem = { to: string; icon: typeof LayoutDashboard; label: string; exact?: boolean; perm?: PermissionKey };
+type NavItem = {
+  to: string;
+  icon: typeof LayoutDashboard;
+  label: string;
+  exact?: boolean;
+  perm?: PermissionKey;
+};
 
 const NAV: NavItem[] = [
   { to: "/admin", icon: LayoutDashboard, label: "Dashboard", exact: true },
@@ -79,7 +98,15 @@ function AdminLayout() {
             <ShieldCheck className="h-3.5 w-3.5 text-primary" /> Admin
           </p>
           <p className="mb-3 text-[10px] uppercase tracking-wider text-muted-foreground">
-            {isAdmin ? <>Role: <span className="font-semibold text-foreground">Administrator</span></> : <>{permissions.length} permission{permissions.length === 1 ? "" : "s"}</>}
+            {isAdmin ? (
+              <>
+                Role: <span className="font-semibold text-foreground">Administrator</span>
+              </>
+            ) : (
+              <>
+                {permissions.length} permission{permissions.length === 1 ? "" : "s"}
+              </>
+            )}
           </p>
           {NAV.filter((n) => can(n.perm)).map((n) => (
             <SideLink key={n.to} to={n.to} icon={n.icon} label={n.label} exact={n.exact} />
@@ -93,8 +120,8 @@ function AdminLayout() {
                 You don't have access to this section
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Requires the <span className="font-semibold">{requiredPerm}</span> permission.
-                Ask an administrator to grant it.
+                Requires the <span className="font-semibold">{requiredPerm}</span> permission. Ask
+                an administrator to grant it.
               </p>
             </div>
           ) : (
@@ -107,14 +134,26 @@ function AdminLayout() {
   );
 }
 
-function SideLink({ to, icon: Icon, label, exact }: { to: string; icon: typeof LayoutDashboard; label: string; exact?: boolean }) {
+function SideLink({
+  to,
+  icon: Icon,
+  label,
+  exact,
+}: {
+  to: string;
+  icon: typeof LayoutDashboard;
+  label: string;
+  exact?: boolean;
+}) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const active = exact ? pathname === to : pathname.startsWith(to);
   return (
     <Link
       to={to}
       className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors ${
-        active ? "bg-[color:var(--primary-tint)] font-semibold text-[color:var(--ink)]" : "text-foreground hover:bg-muted"
+        active
+          ? "bg-[color:var(--primary-tint)] font-semibold text-[color:var(--ink)]"
+          : "text-foreground hover:bg-muted"
       }`}
     >
       <Icon className="h-4 w-4" /> {label}

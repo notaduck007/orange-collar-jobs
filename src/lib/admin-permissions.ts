@@ -1,13 +1,7 @@
 import { useAuth } from "@/lib/auth";
 
 export type AdminLevel = "super_admin" | "moderator" | "finance" | "support";
-export type AdminCapability =
-  | "moderation"
-  | "billing"
-  | "users"
-  | "settings"
-  | "ads"
-  | "support";
+export type AdminCapability = "moderation" | "billing" | "users" | "settings" | "ads" | "support";
 
 /** Capability → required RBAC permission keys. Holding ANY of the listed
  * permission keys grants the capability. */
@@ -20,7 +14,14 @@ const CAPABILITY_KEYS: Record<AdminCapability, string[]> = {
   support: ["users.view_all", "users.suspend", "users.delete"],
 };
 
-const ALL_CAPS: AdminCapability[] = ["moderation", "billing", "users", "settings", "ads", "support"];
+const ALL_CAPS: AdminCapability[] = [
+  "moderation",
+  "billing",
+  "users",
+  "settings",
+  "ads",
+  "support",
+];
 
 export function levelCapabilities(level: AdminLevel | null | undefined): AdminCapability[] {
   if (!level) return [];
@@ -37,7 +38,12 @@ export function useAdminPermissions() {
   const hasWildcard = permissions.includes("*");
 
   if (!user) {
-    return { loading: false, level: null as AdminLevel | null, capabilities: [] as AdminCapability[], can: (_c: AdminCapability) => false };
+    return {
+      loading: false,
+      level: null as AdminLevel | null,
+      capabilities: [] as AdminCapability[],
+      can: (_c: AdminCapability) => false,
+    };
   }
 
   if (isAdmin || hasWildcard) {

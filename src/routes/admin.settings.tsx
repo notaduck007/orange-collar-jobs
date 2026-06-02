@@ -11,11 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import type {
-  BrandingSettings,
-  DefaultsSettings,
-  ToggleSettings,
-} from "@/lib/site-settings";
+import type { BrandingSettings, DefaultsSettings, ToggleSettings } from "@/lib/site-settings";
 
 export const Route = createFileRoute("/admin/settings")({
   component: AdminSettingsPage,
@@ -45,10 +41,7 @@ function AdminSettingsPage() {
   const { data: flagRows, isLoading: fLoading } = useQuery({
     queryKey: ["admin-feature-flags"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("feature_flags")
-        .select("*")
-        .order("key");
+      const { data, error } = await supabase.from("feature_flags").select("*").order("key");
       if (error) throw error;
       return (data ?? []) as FlagRow[];
     },
@@ -126,7 +119,10 @@ function AdminSettingsPage() {
   }
 
   async function handleAddFlag() {
-    const k = newFlagKey.trim().toLowerCase().replace(/[^a-z0-9_]/g, "_");
+    const k = newFlagKey
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9_]/g, "_");
     if (!k) return;
     const { error } = await supabase
       .from("feature_flags")
@@ -275,9 +271,7 @@ function AdminSettingsPage() {
                 label="Require email verification"
                 description="New accounts must verify email before signing in."
                 checked={toggles.require_email_verification}
-                onChange={(v) =>
-                  setToggles({ ...toggles, require_email_verification: v })
-                }
+                onChange={(v) => setToggles({ ...toggles, require_email_verification: v })}
               />
               <Button onClick={handleSaveAll}>
                 <Save className="mr-2 h-4 w-4" /> Save
@@ -319,11 +313,7 @@ function AdminSettingsPage() {
                             setFlags(next);
                           }}
                         />
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleDeleteFlag(f.key)}
-                        >
+                        <Button size="sm" variant="ghost" onClick={() => handleDeleteFlag(f.key)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>

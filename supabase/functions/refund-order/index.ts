@@ -5,19 +5,24 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 function corsHeaders(req: Request) {
   const allowed = (Deno.env.get("ALLOWED_ORIGINS") ?? "")
-    .split(",").map((s) => s.trim()).filter(Boolean);
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
   const origin = req.headers.get("origin") ?? "";
   const allowOrigin = allowed.includes(origin) ? origin : (allowed[0] ?? "null");
   return {
     "Access-Control-Allow-Origin": allowOrigin,
-    "Vary": "Origin",
+    Vary: "Origin",
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
   };
 }
 
 const json = (req: Request, b: unknown, status = 200) =>
-  new Response(JSON.stringify(b), { status, headers: { ...corsHeaders(req), "Content-Type": "application/json" } });
+  new Response(JSON.stringify(b), {
+    status,
+    headers: { ...corsHeaders(req), "Content-Type": "application/json" },
+  });
 
 serve(async (req) => {
   const cors = corsHeaders(req);
@@ -56,7 +61,8 @@ serve(async (req) => {
       .maybeSingle();
     if (oErr || !order) return json(req, { error: "Order not found" }, 404);
     if (order.status === "refunded") return json(req, { error: "Order already refunded" }, 400);
-    if (order.status !== "paid") return json(req, { error: `Cannot refund order in status '${order.status}'` }, 400);
+    if (order.status !== "paid")
+      return json(req, { error: `Cannot refund order in status '${order.status}'` }, 400);
 
     // Stripe refund
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
@@ -70,7 +76,7 @@ serve(async (req) => {
           metadata: { order_id: order.id, actor_id: actorId, note: reason },
         });
         refundId = refund.id;
-      } catch (e: any) {
+      } catch (e: unknown) {
         return json(req, { error: `Stripe refund failed: ${e.message}` }, 400);
       }
     }
@@ -80,7 +86,10 @@ serve(async (req) => {
     const postGranted = order.posting_count_granted ?? 0;
     const featGranted = order.featured_count_granted ?? 0;
     if (order.company_id) {
-      for (const [type, qty] of [["post", postGranted], ["featured", featGranted]] as const) {
+      for (const [type, qty] of [
+        ["post", postGranted],
+        ["featured", featGranted],
+      ] as const) {
         if (!qty || qty <= 0) continue;
         const { data: cc } = await admin
           .from("company_credits")
@@ -110,10 +119,7 @@ serve(async (req) => {
     }
 
     // Update order
-    await admin
-      .from("orders")
-      .update({ status: "refunded" })
-      .eq("id", orderId);
+    await admin.from("orders").update({ status: "refunded" }).eq("id", orderId);
 
     // Audit
     await admin.from("audit_log").insert({
@@ -132,20 +138,24 @@ serve(async (req) => {
     });
 
     // Notify company owner
-    const ownerId = (order as any).companies?.owner_id;
+    const orderWithRels = order as typeof order & {
+      companies?: { owner_id?: string } | null;
+      packages?: { name?: string } | null;
+    };
+    const ownerId = orderWithRels.companies?.owner_id;
     if (ownerId) {
       await admin.from("notifications").insert({
         user_id: ownerId,
         sender_id: actorId,
         type: "billing",
         title: "Refund issued",
-        body: `Your order for ${(order as any).packages?.name ?? "a package"} ($${((order.amount_cents ?? 0) / 100).toFixed(2)}) has been refunded. ${reason}`,
+        body: `Your order for ${orderWithRels.packages?.name ?? "a package"} ($${((order.amount_cents ?? 0) / 100).toFixed(2)}) has been refunded. ${reason}`,
         link: "/employer/billing",
       });
     }
 
     return json(req, { ok: true, refund_id: refundId, reversals });
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("refund-order error", e);
     return json(req, { error: e?.message ?? "Internal error" }, 500);
   }

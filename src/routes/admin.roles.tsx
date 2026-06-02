@@ -9,7 +9,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 
 export const Route = createFileRoute("/admin/roles")({
@@ -17,7 +23,13 @@ export const Route = createFileRoute("/admin/roles")({
   component: AdminRoles,
 });
 
-type Role = { id: string; key: string; name: string; description: string | null; is_system: boolean };
+type Role = {
+  id: string;
+  key: string;
+  name: string;
+  description: string | null;
+  is_system: boolean;
+};
 type Permission = { key: string; name: string; description: string | null; category: string };
 
 function AdminRoles() {
@@ -30,7 +42,11 @@ function AdminRoles() {
   const { data: roles = [] } = useQuery({
     queryKey: ["admin-roles"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("roles").select("*").order("is_system", { ascending: false }).order("name");
+      const { data, error } = await supabase
+        .from("roles")
+        .select("*")
+        .order("is_system", { ascending: false })
+        .order("name");
       if (error) throw error;
       return data as Role[];
     },
@@ -39,7 +55,11 @@ function AdminRoles() {
   const { data: permissions = [] } = useQuery({
     queryKey: ["admin-permissions"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("permissions").select("*").order("category").order("name");
+      const { data, error } = await supabase
+        .from("permissions")
+        .select("*")
+        .order("category")
+        .order("name");
       if (error) throw error;
       return data as Permission[];
     },
@@ -48,7 +68,9 @@ function AdminRoles() {
   const { data: rolePerms = [] } = useQuery({
     queryKey: ["admin-role-permissions"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("role_permissions").select("role_id, permission_key");
+      const { data, error } = await supabase
+        .from("role_permissions")
+        .select("role_id, permission_key");
       if (error) throw error;
       return data as Array<{ role_id: string; permission_key: string }>;
     },
@@ -63,7 +85,10 @@ function AdminRoles() {
     },
   });
 
-  const countByRole = useMemo(() => Object.fromEntries(counts.map((c) => [c.role_id, c.member_count])), [counts]);
+  const countByRole = useMemo(
+    () => Object.fromEntries(counts.map((c) => [c.role_id, c.member_count])),
+    [counts],
+  );
   const permsByRole = useMemo(() => {
     const m = new Map<string, Set<string>>();
     for (const rp of rolePerms) {
@@ -83,7 +108,9 @@ function AdminRoles() {
 
   const selectedRole = roles.find((r) => r.id === selectedRoleId) ?? roles[0] ?? null;
   const selectedRoleKey = selectedRole?.key;
-  const selectedPerms = selectedRole ? permsByRole.get(selectedRole.id) ?? new Set<string>() : new Set<string>();
+  const selectedPerms = selectedRole
+    ? (permsByRole.get(selectedRole.id) ?? new Set<string>())
+    : new Set<string>();
 
   const togglePermission = async (permissionKey: string, has: boolean) => {
     if (!selectedRole || !canManage) return;
@@ -92,12 +119,16 @@ function AdminRoles() {
       return;
     }
     if (has) {
-      const { error } = await supabase.from("role_permissions").delete()
-        .eq("role_id", selectedRole.id).eq("permission_key", permissionKey);
+      const { error } = await supabase
+        .from("role_permissions")
+        .delete()
+        .eq("role_id", selectedRole.id)
+        .eq("permission_key", permissionKey);
       if (error) return toast.error(error.message);
     } else {
       const { error } = await supabase.from("role_permissions").insert({
-        role_id: selectedRole.id, permission_key: permissionKey,
+        role_id: selectedRole.id,
+        permission_key: permissionKey,
       });
       if (error) return toast.error(error.message);
     }
@@ -106,29 +137,42 @@ function AdminRoles() {
 
   const saveRole = async () => {
     if (!editing) return;
-    const key = (editing.key ?? "").trim().toLowerCase().replace(/[^a-z0-9_-]/g, "_");
+    const key = (editing.key ?? "")
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9_-]/g, "_");
     const name = (editing.name ?? "").trim();
     if (!name) return toast.error("Name is required");
     if (editing.id) {
-      const { error } = await supabase.from("roles").update({
-        name, description: editing.description ?? null,
-        ...(roles.find((r) => r.id === editing.id)?.is_system ? {} : { key }),
-      }).eq("id", editing.id);
+      const { error } = await supabase
+        .from("roles")
+        .update({
+          name,
+          description: editing.description ?? null,
+          ...(roles.find((r) => r.id === editing.id)?.is_system ? {} : { key }),
+        })
+        .eq("id", editing.id);
       if (error) return toast.error(error.message);
       toast.success("Role updated");
     } else {
       if (!key) return toast.error("Key is required");
-      const { error } = await supabase.from("roles").insert({ key, name, description: editing.description ?? null, is_system: false });
+      const { error } = await supabase
+        .from("roles")
+        .insert({ key, name, description: editing.description ?? null, is_system: false });
       if (error) return toast.error(error.message);
       toast.success("Role created");
     }
-    setEditorOpen(false); setEditing(null);
+    setEditorOpen(false);
+    setEditing(null);
     qc.invalidateQueries({ queryKey: ["admin-roles"] });
   };
 
   const deleteRole = async (role: Role) => {
     if (role.is_system) return toast.error("System roles cannot be deleted");
-    if (!confirm(`Delete role "${role.name}"? Users with only this role will lose its permissions.`)) return;
+    if (
+      !confirm(`Delete role "${role.name}"? Users with only this role will lose its permissions.`)
+    )
+      return;
     const { error } = await supabase.from("roles").delete().eq("id", role.id);
     if (error) return toast.error(error.message);
     toast.success("Role deleted");
@@ -141,8 +185,12 @@ function AdminRoles() {
     return (
       <div className="rounded-lg border border-border bg-card p-10 text-center">
         <ShieldCheck className="mx-auto h-10 w-10 text-muted-foreground" />
-        <h2 className="mt-3 text-lg font-semibold text-[color:var(--ink)]">Insufficient permissions</h2>
-        <p className="mt-1 text-sm text-muted-foreground">Requires the <b>roles.manage</b> permission.</p>
+        <h2 className="mt-3 text-lg font-semibold text-[color:var(--ink)]">
+          Insufficient permissions
+        </h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Requires the <b>roles.manage</b> permission.
+        </p>
       </div>
     );
   }
@@ -153,9 +201,17 @@ function AdminRoles() {
         <div>
           <p className="label-caps">Access control</p>
           <h1 className="mt-1 text-2xl font-bold text-[color:var(--ink)]">Roles & Permissions</h1>
-          <p className="text-xs text-muted-foreground">{roles.length} roles · {permissions.length} permissions</p>
+          <p className="text-xs text-muted-foreground">
+            {roles.length} roles · {permissions.length} permissions
+          </p>
         </div>
-        <Button onClick={() => { setEditing({ key: "", name: "", description: "" }); setEditorOpen(true); }} className="gap-1">
+        <Button
+          onClick={() => {
+            setEditing({ key: "", name: "", description: "" });
+            setEditorOpen(true);
+          }}
+          className="gap-1"
+        >
           <Plus className="h-4 w-4" /> New role
         </Button>
       </div>
@@ -170,24 +226,51 @@ function AdminRoles() {
                 key={r.id}
                 className={`rounded-md border p-3 transition-colors ${active ? "border-primary bg-[color:var(--primary-tint)]" : "border-border bg-card hover:bg-muted"}`}
               >
-                <button onClick={() => setSelectedRoleId(r.id)} className="flex w-full items-start justify-between gap-2 text-left">
+                <button
+                  onClick={() => setSelectedRoleId(r.id)}
+                  className="flex w-full items-start justify-between gap-2 text-left"
+                >
                   <div className="min-w-0">
                     <p className="flex items-center gap-1.5 text-sm font-semibold text-[color:var(--ink)]">
                       {r.name}
-                      {r.is_system && <Lock className="h-3 w-3 text-muted-foreground" aria-label="System role" />}
+                      {r.is_system && (
+                        <Lock className="h-3 w-3 text-muted-foreground" aria-label="System role" />
+                      )}
                     </p>
-                    <p className="truncate text-[11px] text-muted-foreground">{r.key} · {countByRole[r.id] ?? 0} member{(countByRole[r.id] ?? 0) === 1 ? "" : "s"}</p>
+                    <p className="truncate text-[11px] text-muted-foreground">
+                      {r.key} · {countByRole[r.id] ?? 0} member
+                      {(countByRole[r.id] ?? 0) === 1 ? "" : "s"}
+                    </p>
                   </div>
-                  {r.is_system && <Badge variant="secondary" className="shrink-0 text-[10px]">System</Badge>}
+                  {r.is_system && (
+                    <Badge variant="secondary" className="shrink-0 text-[10px]">
+                      System
+                    </Badge>
+                  )}
                 </button>
                 <div className="mt-2 flex gap-1">
-                  <Button size="sm" variant="ghost" className="h-7 gap-1 text-xs"
-                    onClick={(e) => { e.stopPropagation(); setEditing(r); setEditorOpen(true); }}>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 gap-1 text-xs"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditing(r);
+                      setEditorOpen(true);
+                    }}
+                  >
                     <Pencil className="h-3 w-3" /> Edit
                   </Button>
                   {!r.is_system && (
-                    <Button size="sm" variant="ghost" className="h-7 gap-1 text-xs text-destructive hover:text-destructive"
-                      onClick={(e) => { e.stopPropagation(); deleteRole(r); }}>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 gap-1 text-xs text-destructive hover:text-destructive"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteRole(r);
+                      }}
+                    >
                       <Trash2 className="h-3 w-3" /> Delete
                     </Button>
                   )}
@@ -200,12 +283,16 @@ function AdminRoles() {
         {/* Permission editor for selected role */}
         <main className="rounded-lg border border-border bg-card">
           {!selectedRole ? (
-            <div className="p-10 text-center text-sm text-muted-foreground">Select a role to edit permissions.</div>
+            <div className="p-10 text-center text-sm text-muted-foreground">
+              Select a role to edit permissions.
+            </div>
           ) : (
             <>
               <div className="border-b border-border p-4">
                 <p className="text-sm font-semibold text-[color:var(--ink)]">{selectedRole.name}</p>
-                <p className="text-xs text-muted-foreground">{selectedRole.description || "No description."}</p>
+                <p className="text-xs text-muted-foreground">
+                  {selectedRole.description || "No description."}
+                </p>
                 {selectedRoleKey === "admin" && (
                   <p className="mt-2 rounded-md bg-amber-50 px-2 py-1 text-[11px] text-amber-900">
                     The admin role implicitly holds every permission and cannot be reduced.
@@ -220,7 +307,10 @@ function AdminRoles() {
                       {perms.map((p) => {
                         const has = selectedRoleKey === "admin" || selectedPerms.has(p.key);
                         return (
-                          <label key={p.key} className={`flex items-start gap-2 rounded-md border border-border p-2 ${selectedRoleKey === "admin" ? "opacity-70" : "cursor-pointer hover:bg-muted"}`}>
+                          <label
+                            key={p.key}
+                            className={`flex items-start gap-2 rounded-md border border-border p-2 ${selectedRoleKey === "admin" ? "opacity-70" : "cursor-pointer hover:bg-muted"}`}
+                          >
                             <Checkbox
                               checked={has}
                               disabled={selectedRoleKey === "admin"}
@@ -228,9 +318,15 @@ function AdminRoles() {
                               className="mt-0.5"
                             />
                             <div className="min-w-0">
-                              <p className="text-xs font-medium text-[color:var(--ink)]">{p.name}</p>
+                              <p className="text-xs font-medium text-[color:var(--ink)]">
+                                {p.name}
+                              </p>
                               <p className="font-mono text-[10px] text-muted-foreground">{p.key}</p>
-                              {p.description && <p className="mt-0.5 text-[11px] text-muted-foreground">{p.description}</p>}
+                              {p.description && (
+                                <p className="mt-0.5 text-[11px] text-muted-foreground">
+                                  {p.description}
+                                </p>
+                              )}
                             </div>
                           </label>
                         );
@@ -244,7 +340,13 @@ function AdminRoles() {
         </main>
       </div>
 
-      <Dialog open={editorOpen} onOpenChange={(o) => { setEditorOpen(o); if (!o) setEditing(null); }}>
+      <Dialog
+        open={editorOpen}
+        onOpenChange={(o) => {
+          setEditorOpen(o);
+          if (!o) setEditing(null);
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{editing?.id ? "Edit role" : "New role"}</DialogTitle>
@@ -259,21 +361,42 @@ function AdminRoles() {
                   onChange={(e) => setEditing({ ...editing, key: e.target.value })}
                   placeholder="e.g. moderator"
                 />
-                <p className="mt-1 text-[10px] text-muted-foreground">Lowercase, used in code. Cannot be changed for system roles.</p>
+                <p className="mt-1 text-[10px] text-muted-foreground">
+                  Lowercase, used in code. Cannot be changed for system roles.
+                </p>
               </div>
               <div>
                 <label className="label-caps text-[10px] text-muted-foreground">Name</label>
-                <Input value={editing.name ?? ""} onChange={(e) => setEditing({ ...editing, name: e.target.value })} placeholder="Moderator" />
+                <Input
+                  value={editing.name ?? ""}
+                  onChange={(e) => setEditing({ ...editing, name: e.target.value })}
+                  placeholder="Moderator"
+                />
               </div>
               <div>
                 <label className="label-caps text-[10px] text-muted-foreground">Description</label>
-                <Textarea value={editing.description ?? ""} onChange={(e) => setEditing({ ...editing, description: e.target.value })} rows={3} />
+                <Textarea
+                  value={editing.description ?? ""}
+                  onChange={(e) => setEditing({ ...editing, description: e.target.value })}
+                  rows={3}
+                />
               </div>
             </div>
           )}
           <DialogFooter>
-            <Button variant="ghost" onClick={() => { setEditorOpen(false); setEditing(null); }} className="gap-1"><X className="h-4 w-4" /> Cancel</Button>
-            <Button onClick={saveRole} className="gap-1"><Save className="h-4 w-4" /> Save</Button>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setEditorOpen(false);
+                setEditing(null);
+              }}
+              className="gap-1"
+            >
+              <X className="h-4 w-4" /> Cancel
+            </Button>
+            <Button onClick={saveRole} className="gap-1">
+              <Save className="h-4 w-4" /> Save
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

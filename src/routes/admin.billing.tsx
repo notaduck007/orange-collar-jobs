@@ -36,6 +36,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import type { Row } from "@/lib/row-types";
+import { errMsg } from "@/lib/row-types";
 
 export const Route = createFileRoute("/admin/billing")({
   head: () => ({ meta: [{ title: "Billing — WarehouseJobs Admin" }] }),
@@ -100,7 +102,7 @@ function AdminBilling() {
       const { data, error } = await supabase
         .from("orders")
         .select(
-          "id, created_at, status, amount_cents, currency, company_id, package_id, stripe_payment_intent, stripe_session_id, receipt_url, posting_count_granted, featured_count_granted, companies(name), packages(name)"
+          "id, created_at, status, amount_cents, currency, company_id, package_id, stripe_payment_intent, stripe_session_id, receipt_url, posting_count_granted, featured_count_granted, companies(name), packages(name)",
         )
         .gte("created_at", from.toISOString())
         .order("created_at", { ascending: false })
@@ -136,7 +138,10 @@ function AdminBilling() {
   }, [filtered]);
 
   const trend = useMemo(() => {
-    const buckets = new Map<string, { date: string; revenue: number; orders: number; refunds: number }>();
+    const buckets = new Map<
+      string,
+      { date: string; revenue: number; orders: number; refunds: number }
+    >();
     eachDayOfInterval({ start: from, end: to }).forEach((d) => {
       const k = format(d, "yyyy-MM-dd");
       buckets.set(k, { date: format(d, "MMM d"), revenue: 0, orders: 0, refunds: 0 });
@@ -197,7 +202,7 @@ function AdminBilling() {
         o.featured_count_granted ?? 0,
       ]
         .map((v) => `"${String(v)}"`)
-        .join(",")
+        .join(","),
     );
     const csv = [headers.join(","), ...rows].join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
@@ -221,15 +226,15 @@ function AdminBilling() {
       const { data, error } = await supabase.functions.invoke("refund-order", {
         body: { order_id: refundTarget.id, reason: refundReason.trim() },
       });
-      if (error || (data as any)?.error) {
-        throw new Error((data as any)?.error ?? error?.message ?? "Refund failed");
+      if (error || (data as Row)?.error) {
+        throw new Error((data as Row)?.error ?? error?.message ?? "Refund failed");
       }
       toast.success("Refund issued, credits reversed");
       setRefundTarget(null);
       setRefundReason("");
       qc.invalidateQueries({ queryKey: ["admin-billing-orders"] });
-    } catch (e: any) {
-      toast.error(e.message ?? "Refund failed");
+    } catch (e: unknown) {
+      toast.error(errMsg(e, "Refund failed"));
     } finally {
       setRefunding(false);
     }
@@ -241,7 +246,9 @@ function AdminBilling() {
         <div>
           <p className="label-caps">Finance</p>
           <h1 className="mt-1 text-2xl font-bold text-[color:var(--ink)]">Billing console</h1>
-          <p className="text-sm text-muted-foreground">Orders, revenue, refunds across all companies.</p>
+          <p className="text-sm text-muted-foreground">
+            Orders, revenue, refunds across all companies.
+          </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {PRESETS.map((p) => (
@@ -283,8 +290,19 @@ function AdminBilling() {
               <XAxis dataKey="date" tick={{ fontSize: 11 }} />
               <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `$${v}`} />
               <Tooltip formatter={(v: number) => `$${v.toFixed(2)}`} />
-              <Area type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" fill="url(#rev)" />
-              <Area type="monotone" dataKey="refunds" stroke="hsl(var(--destructive))" fill="hsl(var(--destructive))" fillOpacity={0.15} />
+              <Area
+                type="monotone"
+                dataKey="revenue"
+                stroke="hsl(var(--primary))"
+                fill="url(#rev)"
+              />
+              <Area
+                type="monotone"
+                dataKey="refunds"
+                stroke="hsl(var(--destructive))"
+                fill="hsl(var(--destructive))"
+                fillOpacity={0.15}
+              />
             </AreaChart>
           </ResponsiveContainer>
         </ChartCard>
@@ -311,7 +329,9 @@ function AdminBilling() {
           className="h-9 w-56"
         />
         <Select value={status} onValueChange={setStatus}>
-          <SelectTrigger className="h-9 w-36"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="h-9 w-36">
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All statuses</SelectItem>
             <SelectItem value="paid">Paid</SelectItem>
@@ -321,11 +341,15 @@ function AdminBilling() {
           </SelectContent>
         </Select>
         <Select value={packageId} onValueChange={setPackageId}>
-          <SelectTrigger className="h-9 w-48"><SelectValue placeholder="Package" /></SelectTrigger>
+          <SelectTrigger className="h-9 w-48">
+            <SelectValue placeholder="Package" />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All packages</SelectItem>
-            {packages.map((p: any) => (
-              <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+            {packages.map((p: Row) => (
+              <SelectItem key={p.id} value={p.id}>
+                {p.name}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -354,26 +378,35 @@ function AdminBilling() {
               const stripeUrl = intent
                 ? `https://dashboard.stripe.com/test/payments/${intent}`
                 : o.stripe_session_id
-                ? `https://dashboard.stripe.com/test/checkout/sessions/${o.stripe_session_id}`
-                : null;
+                  ? `https://dashboard.stripe.com/test/checkout/sessions/${o.stripe_session_id}`
+                  : null;
               return (
                 <tr key={o.id} className="border-t border-border">
                   <td className="px-3 py-2 text-xs text-muted-foreground whitespace-nowrap">
                     {format(new Date(o.created_at), "MMM d, yyyy HH:mm")}
                   </td>
-                  <td className="px-3 py-2 font-medium text-[color:var(--ink)]">{o.companies?.name ?? "—"}</td>
+                  <td className="px-3 py-2 font-medium text-[color:var(--ink)]">
+                    {o.companies?.name ?? "—"}
+                  </td>
                   <td className="px-3 py-2">{o.packages?.name ?? "—"}</td>
                   <td className="px-3 py-2 text-right font-semibold">
                     ${((o.amount_cents ?? 0) / 100).toFixed(2)}
                   </td>
                   <td className="px-3 py-2">
-                    <Badge className={`${STATUS_COLORS[o.status] ?? "bg-gray-100"} border-0 capitalize`}>
+                    <Badge
+                      className={`${STATUS_COLORS[o.status] ?? "bg-gray-100"} border-0 capitalize`}
+                    >
                       {o.status}
                     </Badge>
                   </td>
                   <td className="px-3 py-2">
                     {stripeUrl ? (
-                      <a href={stripeUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                      <a
+                        href={stripeUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                      >
                         View <ExternalLink className="h-3 w-3" />
                       </a>
                     ) : (
@@ -393,7 +426,11 @@ function AdminBilling() {
               );
             })}
             {!isLoading && filtered.length === 0 && (
-              <tr><td colSpan={7} className="px-3 py-8 text-center text-sm text-muted-foreground">No orders match the current filters.</td></tr>
+              <tr>
+                <td colSpan={7} className="px-3 py-8 text-center text-sm text-muted-foreground">
+                  No orders match the current filters.
+                </td>
+              </tr>
             )}
           </tbody>
         </table>
@@ -405,21 +442,36 @@ function AdminBilling() {
           <DialogHeader>
             <DialogTitle>Refund order</DialogTitle>
             <DialogDescription>
-              This will refund the Stripe charge, reverse granted credits, mark the order as refunded, audit the action, and notify the company.
+              This will refund the Stripe charge, reverse granted credits, mark the order as
+              refunded, audit the action, and notify the company.
             </DialogDescription>
           </DialogHeader>
           {refundTarget && (
             <div className="space-y-3 text-sm">
               <div className="rounded-md border border-border bg-muted/30 p-3">
-                <div><span className="text-muted-foreground">Company:</span> <span className="font-medium">{refundTarget.companies?.name ?? "—"}</span></div>
-                <div><span className="text-muted-foreground">Package:</span> {refundTarget.packages?.name ?? "—"}</div>
-                <div><span className="text-muted-foreground">Amount:</span> <span className="font-semibold">${((refundTarget.amount_cents ?? 0) / 100).toFixed(2)}</span></div>
+                <div>
+                  <span className="text-muted-foreground">Company:</span>{" "}
+                  <span className="font-medium">{refundTarget.companies?.name ?? "—"}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Package:</span>{" "}
+                  {refundTarget.packages?.name ?? "—"}
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Amount:</span>{" "}
+                  <span className="font-semibold">
+                    ${((refundTarget.amount_cents ?? 0) / 100).toFixed(2)}
+                  </span>
+                </div>
                 <div className="text-xs text-muted-foreground mt-1">
-                  Credits to reverse: {refundTarget.posting_count_granted ?? 0} post, {refundTarget.featured_count_granted ?? 0} featured
+                  Credits to reverse: {refundTarget.posting_count_granted ?? 0} post,{" "}
+                  {refundTarget.featured_count_granted ?? 0} featured
                 </div>
               </div>
               <div>
-                <label className="text-xs font-medium text-muted-foreground">Reason (required)</label>
+                <label className="text-xs font-medium text-muted-foreground">
+                  Reason (required)
+                </label>
                 <Textarea
                   rows={3}
                   value={refundReason}
@@ -431,9 +483,15 @@ function AdminBilling() {
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setRefundTarget(null)} disabled={refunding}>Cancel</Button>
+            <Button variant="outline" onClick={() => setRefundTarget(null)} disabled={refunding}>
+              Cancel
+            </Button>
             <Button onClick={submitRefund} disabled={refunding}>
-              {refunding ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <DollarSign className="mr-1.5 h-4 w-4" />}
+              {refunding ? (
+                <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+              ) : (
+                <DollarSign className="mr-1.5 h-4 w-4" />
+              )}
               Issue refund
             </Button>
           </DialogFooter>
@@ -447,11 +505,27 @@ function fmt(cents: number) {
   return `$${(cents / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
-function Kpi({ label, value, sub, accent }: { label: string; value: string; sub?: string; accent?: boolean }) {
+function Kpi({
+  label,
+  value,
+  sub,
+  accent,
+}: {
+  label: string;
+  value: string;
+  sub?: string;
+  accent?: boolean;
+}) {
   return (
-    <div className={`rounded-lg border p-4 ${accent ? "border-primary/30 bg-[color:var(--primary-tint)]" : "border-border bg-card"}`}>
+    <div
+      className={`rounded-lg border p-4 ${accent ? "border-primary/30 bg-[color:var(--primary-tint)]" : "border-border bg-card"}`}
+    >
       <p className="label-caps">{label}</p>
-      <p className={`mt-2 text-2xl font-bold ${accent ? "text-primary" : "text-[color:var(--ink)]"}`}>{value}</p>
+      <p
+        className={`mt-2 text-2xl font-bold ${accent ? "text-primary" : "text-[color:var(--ink)]"}`}
+      >
+        {value}
+      </p>
       {sub && <p className="mt-0.5 text-xs text-muted-foreground">{sub}</p>}
     </div>
   );

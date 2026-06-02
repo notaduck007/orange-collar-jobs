@@ -15,14 +15,21 @@ serve(async (req) => {
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...cors, "Content-Type": "application/json" } });
+    if (!authHeader)
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...cors, "Content-Type": "application/json" },
+      });
 
     const userClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
     const { data: userData, error: userErr } = await userClient.auth.getUser();
     if (userErr || !userData.user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...cors, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...cors, "Content-Type": "application/json" },
+      });
     }
     const actorId = userData.user.id;
     const actorEmail = userData.user.email;
@@ -33,16 +40,28 @@ serve(async (req) => {
     let targetId: string = actorId;
     if (body.user_id && body.user_id !== actorId) {
       const { data: hasCap } = await admin.rpc("has_permission", {
-        _user_id: actorId, _permission_key: "users.view_all",
+        _user_id: actorId,
+        _permission_key: "users.view_all",
       });
       if (!hasCap) {
-        return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: { ...cors, "Content-Type": "application/json" } });
+        return new Response(JSON.stringify({ error: "Forbidden" }), {
+          status: 403,
+          headers: { ...cors, "Content-Type": "application/json" },
+        });
       }
       targetId = body.user_id;
     }
 
     const [
-      profile, seeker, applications, savedJobs, alerts, reviews, workHistory, notifications, companies,
+      profile,
+      seeker,
+      applications,
+      savedJobs,
+      alerts,
+      reviews,
+      workHistory,
+      notifications,
+      companies,
     ] = await Promise.all([
       admin.from("profiles").select("*").eq("id", targetId).maybeSingle(),
       admin.from("seeker_profiles").select("*").eq("user_id", targetId).maybeSingle(),
@@ -95,9 +114,10 @@ serve(async (req) => {
         "Content-Disposition": `attachment; filename="${filename}"`,
       },
     });
-  } catch (e: any) {
+  } catch (e: unknown) {
     return new Response(JSON.stringify({ error: e?.message ?? "Internal error" }), {
-      status: 500, headers: { ...cors, "Content-Type": "application/json" },
+      status: 500,
+      headers: { ...cors, "Content-Type": "application/json" },
     });
   }
 });

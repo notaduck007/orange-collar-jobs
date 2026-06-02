@@ -25,7 +25,9 @@ function NotFoundComponent() {
           That page doesn't exist. Let's get you back to work.
         </p>
         <div className="mt-6">
-          <Link to="/" className="btn-primary inline-flex">Back home</Link>
+          <Link to="/" className="btn-primary inline-flex">
+            Back home
+          </Link>
         </div>
       </div>
     </div>
@@ -43,16 +45,24 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <p className="label-caps text-destructive">System fault</p>
-        <h1 className="mt-2 text-2xl font-semibold text-[color:var(--ink)]">This page didn't load</h1>
+        <h1 className="mt-2 text-2xl font-semibold text-[color:var(--ink)]">
+          This page didn't load
+        </h1>
         <p className="mt-2 text-sm text-muted-foreground">Try refreshing or head back home.</p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
-            onClick={() => { router.invalidate(); reset(); }}
+            onClick={() => {
+              router.invalidate();
+              reset();
+            }}
             className="btn-primary"
           >
             Try again
           </button>
-          <a href="/" className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium">
+          <a
+            href="/"
+            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium"
+          >
             Go home
           </a>
         </div>
@@ -68,17 +78,27 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { name: "theme-color", content: "#FF6A00" },
       { title: "WarehouseJobs — Warehouse & Logistics Hiring" },
-      { name: "description", content: "Forklift, picker/packer, shipping & receiving, and warehouse associate jobs near you. Free for job seekers — apply in minutes on WarehouseJobs." },
+      {
+        name: "description",
+        content:
+          "Forklift, picker/packer, shipping & receiving, and warehouse associate jobs near you. Free for job seekers — apply in minutes on WarehouseJobs.",
+      },
       { name: "application-name", content: "WarehouseJobs" },
       { name: "apple-mobile-web-app-title", content: "WarehouseJobs" },
       { property: "og:site_name", content: "WarehouseJobs" },
       { property: "og:title", content: "WarehouseJobs — Warehouse & Logistics Hiring" },
-      { property: "og:description", content: "The job board built for warehouse workers and the companies that hire them." },
+      {
+        property: "og:description",
+        content: "The job board built for warehouse workers and the companies that hire them.",
+      },
       { property: "og:type", content: "website" },
       { property: "og:image", content: "/icon-512.png" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:title", content: "WarehouseJobs — Warehouse & Logistics Hiring" },
-      { name: "twitter:description", content: "The job board built for warehouse workers and the companies that hire them." },
+      {
+        name: "twitter:description",
+        content: "The job board built for warehouse workers and the companies that hire them.",
+      },
       { name: "twitter:image", content: "/icon-512.png" },
     ],
     links: [
@@ -89,7 +109,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "manifest", href: "/site.webmanifest" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap",
+      },
     ],
     scripts: [
       {

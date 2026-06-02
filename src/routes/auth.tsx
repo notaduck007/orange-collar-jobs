@@ -73,20 +73,30 @@ function AuthPage() {
         <div className="max-w-md">
           <p className="label-caps text-primary">Built for the floor</p>
           <h2 className="mt-3 text-4xl font-bold leading-tight">Hire the dock, not the cubicle.</h2>
-          <p className="mt-4 text-white/70">Forklift operators, pickers, packers, dock workers — qualified, in your ZIP, ready to start this week.</p>
+          <p className="mt-4 text-white/70">
+            Forklift operators, pickers, packers, dock workers — qualified, in your ZIP, ready to
+            start this week.
+          </p>
         </div>
         <p className="text-xs text-white/40">© {new Date().getFullYear()} WarehouseJobs</p>
       </div>
 
       <div className="flex items-center justify-center p-6 sm:p-12">
         <div className="w-full max-w-sm">
-          <Link to="/" className="mb-8 flex items-center gap-2 text-sm text-muted-foreground hover:text-primary lg:hidden">← Back home</Link>
+          <Link
+            to="/"
+            className="mb-8 flex items-center gap-2 text-sm text-muted-foreground hover:text-primary lg:hidden"
+          >
+            ← Back home
+          </Link>
           <p className="label-caps text-primary">{isSignup ? "Get started" : "Welcome back"}</p>
           <h1 className="mt-2 text-3xl font-bold text-[color:var(--ink)]">
             {isSignup ? "Create your account" : "Sign in to WarehouseJobs"}
           </h1>
           <p className="mt-1.5 text-sm text-muted-foreground">
-            {isSignup ? "Free for job seekers. Always." : "Apply faster, save jobs, and get alerts."}
+            {isSignup
+              ? "Free for job seekers. Always."
+              : "Apply faster, save jobs, and get alerts."}
           </p>
 
           <form onSubmit={submit} className="mt-7 space-y-4">
@@ -112,18 +122,38 @@ function AuthPage() {
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="name">{selectedRole === "employer" ? "Your name" : "Full name"}</Label>
-                  <Input id="name" required value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
+                  <Label htmlFor="name">
+                    {selectedRole === "employer" ? "Your name" : "Full name"}
+                  </Label>
+                  <Input
+                    id="name"
+                    required
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                  />
                 </div>
               </>
             )}
             <div className="space-y-1.5">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+              <Input
+                id="email"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
+              <Input
+                id="password"
+                type="password"
+                required
+                minLength={6}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
             </div>
 
             <Button type="submit" disabled={loading} className="btn-primary w-full">

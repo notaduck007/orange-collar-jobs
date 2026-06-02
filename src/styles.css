@@ -53,19 +53,19 @@
 
 :root {
   /* Brand */
-  --primary: oklch(0.682 0.214 41.5);        /* #FF6A00 */
+  --primary: oklch(0.682 0.214 41.5); /* #FF6A00 */
   --primary-foreground: oklch(1 0 0);
-  --primary-dark: oklch(0.620 0.205 41.5);   /* #E35F00 */
-  --primary-tint: oklch(0.967 0.025 60);     /* #FFF1E6 */
+  --primary-dark: oklch(0.62 0.205 41.5); /* #E35F00 */
+  --primary-tint: oklch(0.967 0.025 60); /* #FFF1E6 */
 
-  --hazard: oklch(0.815 0.165 80);           /* #FFB300 */
+  --hazard: oklch(0.815 0.165 80); /* #FFB300 */
   --hazard-foreground: oklch(0.16 0.012 264);
 
   /* Neutrals */
-  --background: oklch(0.985 0 0);            /* #FAFAFA */
-  --foreground: oklch(0.265 0.012 264);      /* #2A2E35 body */
-  --ink: oklch(0.165 0.012 264);             /* #14161A */
-  --charcoal: oklch(0.235 0.014 260);        /* #1F232B */
+  --background: oklch(0.985 0 0); /* #FAFAFA */
+  --foreground: oklch(0.265 0.012 264); /* #2A2E35 body */
+  --ink: oklch(0.165 0.012 264); /* #14161A */
+  --charcoal: oklch(0.235 0.014 260); /* #1F232B */
 
   --card: oklch(1 0 0);
   --card-foreground: var(--foreground);
@@ -79,12 +79,12 @@
   --accent: var(--primary-tint);
   --accent-foreground: var(--ink);
 
-  --success: oklch(0.508 0.108 156);         /* #18794E */
+  --success: oklch(0.508 0.108 156); /* #18794E */
   --success-foreground: oklch(1 0 0);
-  --destructive: oklch(0.555 0.193 38);      /* #C2410C error */
+  --destructive: oklch(0.555 0.193 38); /* #C2410C error */
   --destructive-foreground: oklch(1 0 0);
 
-  --border: oklch(0.917 0.005 255);          /* #E5E7EB */
+  --border: oklch(0.917 0.005 255); /* #E5E7EB */
   --input: oklch(0.917 0.005 255);
   --ring: oklch(0.682 0.214 41.5);
 
@@ -102,7 +102,7 @@
   --secondary-foreground: oklch(0.97 0 0);
   --muted: oklch(0.28 0.013 260);
   --muted-foreground: oklch(0.72 0.012 260);
-  --accent: oklch(0.30 0.05 41);
+  --accent: oklch(0.3 0.05 41);
   --accent-foreground: oklch(0.97 0 0);
   --border: oklch(1 0 0 / 0.08);
   --input: oklch(1 0 0 / 0.12);
@@ -112,7 +112,8 @@
   * {
     border-color: var(--color-border);
   }
-  html, body {
+  html,
+  body {
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
   }
@@ -120,7 +121,10 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
   }
-  h1, h2, h3, h4 {
+  h1,
+  h2,
+  h3,
+  h4 {
     color: var(--ink);
     font-weight: 600;
     letter-spacing: -0.02em;
@@ -136,11 +140,7 @@
     color: var(--muted-foreground);
   }
   .hazard-stripes {
-    background-image: repeating-linear-gradient(
-      135deg,
-      var(--hazard) 0 12px,
-      var(--ink) 12px 24px
-    );
+    background-image: repeating-linear-gradient(135deg, var(--hazard) 0 12px, var(--ink) 12px 24px);
   }
   .btn-primary {
     background-color: var(--primary);

@@ -19,14 +19,16 @@ serve(async (req) => {
 
     if (!package_id) {
       return new Response(JSON.stringify({ error: "package_id required" }), {
-        status: 400, headers: { ...cors, "Content-Type": "application/json" },
+        status: 400,
+        headers: { ...cors, "Content-Type": "application/json" },
       });
     }
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401, headers: { ...cors, "Content-Type": "application/json" },
+        status: 401,
+        headers: { ...cors, "Content-Type": "application/json" },
       });
     }
 
@@ -40,7 +42,8 @@ serve(async (req) => {
     const { data: userData, error: userErr } = await userClient.auth.getUser();
     if (userErr || !userData.user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401, headers: { ...cors, "Content-Type": "application/json" },
+        status: 401,
+        headers: { ...cors, "Content-Type": "application/json" },
       });
     }
     const userId = userData.user.id;
@@ -51,7 +54,11 @@ serve(async (req) => {
     // Resolve the company owned by (or actively administered by) this user
     let companyId: string | null = null;
     const { data: owned } = await admin
-      .from("companies").select("id").eq("owner_id", userId).limit(1).maybeSingle();
+      .from("companies")
+      .select("id")
+      .eq("owner_id", userId)
+      .limit(1)
+      .maybeSingle();
     if (owned?.id) {
       companyId = owned.id;
     } else {
@@ -67,16 +74,22 @@ serve(async (req) => {
     }
     if (!companyId) {
       return new Response(JSON.stringify({ error: "No company found for this user" }), {
-        status: 400, headers: { ...cors, "Content-Type": "application/json" },
+        status: 400,
+        headers: { ...cors, "Content-Type": "application/json" },
       });
     }
 
     // Look up the package server-side — never trust client price
     const { data: pkg, error: pkgErr } = await admin
-      .from("packages").select("*").eq("id", package_id).eq("active", true).maybeSingle();
+      .from("packages")
+      .select("*")
+      .eq("id", package_id)
+      .eq("active", true)
+      .maybeSingle();
     if (pkgErr || !pkg) {
       return new Response(JSON.stringify({ error: "Package not found" }), {
-        status: 404, headers: { ...cors, "Content-Type": "application/json" },
+        status: 404,
+        headers: { ...cors, "Content-Type": "application/json" },
       });
     }
 
@@ -94,14 +107,16 @@ serve(async (req) => {
       mode: "payment",
       payment_method_types: ["card"],
       customer_email: userEmail,
-      line_items: [{
-        price_data: {
-          currency: "usd",
-          product_data: { name: pkg.name, description: pkg.description ?? undefined },
-          unit_amount: pkg.price_cents,
+      line_items: [
+        {
+          price_data: {
+            currency: "usd",
+            product_data: { name: pkg.name, description: pkg.description ?? undefined },
+            unit_amount: pkg.price_cents,
+          },
+          quantity: 1,
         },
-        quantity: 1,
-      }],
+      ],
       success_url: successBase,
       cancel_url: cancelBase,
       metadata: {
@@ -132,10 +147,11 @@ serve(async (req) => {
     return new Response(JSON.stringify({ url: session.url, session_id: session.id }), {
       headers: { ...cors, "Content-Type": "application/json" },
     });
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("create-checkout error", e);
     return new Response(JSON.stringify({ error: e.message ?? "Server error" }), {
-      status: 500, headers: { ...cors, "Content-Type": "application/json" },
+      status: 500,
+      headers: { ...cors, "Content-Type": "application/json" },
     });
   }
 });
