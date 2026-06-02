@@ -104,7 +104,7 @@ function ApplicantsPage() {
       return { knockedOut };
     },
   });
-  const knockedOut = screening?.knockedOut ?? new Set<string>();
+  const knockedOut = useMemo(() => screening?.knockedOut ?? new Set<string>(), [screening]);
 
   const { data: job } = useQuery({
     queryKey: ["employer-job", id],
