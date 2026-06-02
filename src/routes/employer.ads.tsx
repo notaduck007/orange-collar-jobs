@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 export const Route = createFileRoute("/employer/ads")({
   head: () => ({ meta: [{ title: "Advertising — WarehouseJobs Employer" }] }),
+  validateSearch: (s: Record<string, unknown>) => ({ checkout: typeof s.checkout === "string" ? s.checkout : undefined }),
   component: EmployerAds,
 });
 
@@ -27,6 +28,7 @@ function EmployerAds() {
   const { user } = useAuth();
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
+  const { checkout } = Route.useSearch();
 
   const { data: company } = useQuery({
     queryKey: ["employer-company", user?.id],
@@ -63,6 +65,16 @@ function EmployerAds() {
 
   return (
     <div>
+      {checkout === "success" && (
+        <div className="mb-4 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-900">
+          Payment received — your ad is queued for admin approval.
+        </div>
+      )}
+      {checkout === "cancelled" && (
+        <div className="mb-4 rounded-md border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-900">
+          Checkout cancelled. Your ad is saved as pending; complete payment to activate.
+        </div>
+      )}
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="label-caps">Advertising</p>
@@ -149,6 +161,22 @@ function NewAdForm({ companyId, ownerId, onCreated }: { companyId: string; owner
     if (!targetUrl) return toast.error("Add a target URL.");
     setSubmitting(true);
     try {
+      // Find a matching ad package for this slot to charge for
+      const { data: pkg } = await supabase
+        .from("packages")
+        .select("id, name, price_cents")
+        .eq("kind", "ad")
+        .eq("active", true)
+        .eq("ad_slot", slot)
+        .order("price_cents", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      if (!pkg) {
+        toast.error("No ad package available for this slot. Visit Pricing.");
+        setSubmitting(false);
+        return;
+      }
+
       const ext = file.name.split(".").pop();
       const path = `${ownerId}/${Date.now()}.${ext}`;
       const { error: upErr } = await supabase.storage.from("ad-creatives").upload(path, file, { upsert: false });
@@ -165,6 +193,22 @@ function NewAdForm({ companyId, ownerId, onCreated }: { companyId: string; owner
         status: "pending",
       });
       if (error) throw error;
+
+      // Kick off Stripe checkout for the ad package
+      const origin = window.location.origin;
+      const { data: checkout, error: ckErr } = await supabase.functions.invoke("create-checkout", {
+        body: {
+          package_id: pkg.id,
+          company_id: companyId,
+          success_url: `${origin}/employer/ads?checkout=success`,
+          cancel_url: `${origin}/employer/ads?checkout=cancelled`,
+        },
+      });
+      if (ckErr) throw ckErr;
+      if (checkout?.url) {
+        window.location.href = checkout.url;
+        return;
+      }
 
       toast.success("Submitted for review.");
       onCreated();

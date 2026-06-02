@@ -77,20 +77,24 @@ export function AdSlot({ slot, className }: { slot: AdSlotName; className?: stri
     return ads[Math.floor(Math.random() * ads.length)];
   }, [ads]);
 
-  // Count impression once per mounted ad
+  // Count impression once per mounted ad (via edge function with debounce)
   const impressionFiredFor = useRef<string | null>(null);
   useEffect(() => {
     if (!ad || impressionFiredFor.current === ad.id) return;
     impressionFiredFor.current = ad.id;
-    void supabase.rpc("ad_increment_impression", { _ad_id: ad.id });
-  }, [ad]);
+    void supabase.functions.invoke("ad-event", {
+      body: { advertisement_id: ad.id, type: "impression", ad_slot: slot },
+    });
+  }, [ad, slot]);
 
   if (!ad) {
     return <div className={className}>{FALLBACKS[slot]}</div>;
   }
 
   const handleClick = () => {
-    void supabase.rpc("ad_increment_click", { _ad_id: ad.id });
+    void supabase.functions.invoke("ad-event", {
+      body: { advertisement_id: ad.id, type: "click", ad_slot: slot },
+    });
   };
 
   const sizeClass =
