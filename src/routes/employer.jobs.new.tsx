@@ -216,6 +216,10 @@ function NewJobPage() {
 
   const submit = async () => {
     if (!user || !company) return;
+    if (!emailIsVerified(user, settings.toggles.require_email_verification)) {
+      toast.error("Please verify your email before posting a job. Check your inbox for the confirmation link.");
+      return;
+    }
     if (!canPost) {
       toast.error("Out of posting credits.");
       navigate({ to: "/pricing" });
@@ -230,6 +234,35 @@ function NewJobPage() {
     const wantsFeatured = form.feature_it;
     if (wantsFeatured && featuredCredits < 1) {
       toast.error("Out of featured credits. Uncheck the featured option or buy a package.");
+      return;
+    }
+
+    // Duplicate-job warning: same company + title + location within 14 days.
+    const locationStr = `${form.city}, ${form.state.toUpperCase()}`;
+    const since = new Date(Date.now() - 14 * 86_400_000).toISOString();
+    const { data: dupes } = await supabase
+      .from("jobs")
+      .select("id, title, location, created_at")
+      .eq("company_id", company.id)
+      .ilike("title", form.title.trim())
+      .ilike("location", `${locationStr}%`)
+      .gte("created_at", since)
+      .limit(1);
+    if (dupes && dupes.length > 0) {
+      const ok = window.confirm(
+        `You posted a very similar job ("${dupes[0].title}" in ${dupes[0].location}) in the last 14 days. Post another copy anyway?`,
+      );
+      if (!ok) return;
+    }
+
+    // Per-company rate limit: max posts/day.
+    const allowed = await checkRateLimit(
+      `jobpost:${company.id}`,
+      LIMITS.jobPostPerDay.windowSeconds,
+      LIMITS.jobPostPerDay.max,
+    );
+    if (!allowed) {
+      toast.error("This company has reached its daily posting limit. Try again tomorrow.");
       return;
     }
 
