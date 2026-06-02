@@ -19,6 +19,8 @@ const NAV: NavItem[] = [
   { to: "/admin/jobs", icon: Briefcase, label: "Jobs", cap: "moderation" },
   { to: "/admin/ads", icon: Megaphone, label: "Advertisements", cap: "ads" },
   { to: "/admin/packages", icon: Package, label: "Packages", cap: "settings" },
+  { to: "/admin/categories", icon: Tags, label: "Categories", cap: "settings" },
+  { to: "/admin/content", icon: FileText, label: "Content", cap: "settings" },
   { to: "/admin/users", icon: Users, label: "Users", cap: "users" },
   { to: "/admin/orders", icon: Receipt, label: "Orders", cap: "billing" },
   { to: "/admin/billing", icon: DollarSign, label: "Billing", cap: "billing" },
