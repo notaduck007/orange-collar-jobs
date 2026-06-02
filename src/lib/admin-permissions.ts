@@ -14,7 +14,6 @@ const CAPABILITY_KEYS: Record<AdminCapability, string[]> = {
   support: ["moderation.manage"],
 };
 
-
 const ALL_CAPS: AdminCapability[] = [
   "moderation",
   "billing",
@@ -65,5 +64,4 @@ export function useAdminPermissions() {
     capabilities: caps,
     can: has,
   };
-
 }

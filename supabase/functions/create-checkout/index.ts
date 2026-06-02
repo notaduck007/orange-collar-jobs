@@ -109,9 +109,7 @@ serve(async (req) => {
       let pathname: string;
       try {
         // Accept either a full URL (same origin) or a bare path.
-        const url = raw.startsWith("/")
-          ? new URL(raw, origin || "http://x")
-          : new URL(raw);
+        const url = raw.startsWith("/") ? new URL(raw, origin || "http://x") : new URL(raw);
         pathname = url.pathname;
       } catch {
         return null;
@@ -123,13 +121,13 @@ serve(async (req) => {
     const requestedCancelPath = toInternalPath(body.cancel_url);
 
     const successPath =
-      requestedSuccessPath ??
-      (pending_job_id ? "/employer/jobs/new" : "/employer/billing");
-    const cancelPath =
-      requestedCancelPath ??
-      (pending_job_id ? "/employer/jobs/new" : "/pricing");
+      requestedSuccessPath ?? (pending_job_id ? "/employer/jobs/new" : "/employer/billing");
+    const cancelPath = requestedCancelPath ?? (pending_job_id ? "/employer/jobs/new" : "/pricing");
 
-    const successQuery = new URLSearchParams({ checkout: "success", session_id: "{CHECKOUT_SESSION_ID}" });
+    const successQuery = new URLSearchParams({
+      checkout: "success",
+      session_id: "{CHECKOUT_SESSION_ID}",
+    });
     const cancelQuery = new URLSearchParams({ checkout: "cancelled" });
     if (pending_job_id && successPath === "/employer/jobs/new") {
       successQuery.set("draft", pending_job_id);

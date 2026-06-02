@@ -52,7 +52,6 @@ serve(async (req) => {
       },
     });
 
-
     return json({ ok: true });
   } catch (e) {
     return json({ error: (e as Error)?.message ?? "Server error" }, 500);

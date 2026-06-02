@@ -90,10 +90,10 @@ serve(async (req) => {
 
     const recipient = await resolveRecipientEmail(String(to));
     if (!recipient) {
-      return new Response(
-        JSON.stringify({ error: "could not resolve recipient email" }),
-        { status: 400, headers: { ...cors, "Content-Type": "application/json" } },
-      );
+      return new Response(JSON.stringify({ error: "could not resolve recipient email" }), {
+        status: 400,
+        headers: { ...cors, "Content-Type": "application/json" },
+      });
     }
 
     const sender = from ?? "WarehouseJobs <no-reply@warehousejobs.app>";
@@ -101,7 +101,9 @@ serve(async (req) => {
 
     if (!resendKey) {
       console.log("[send-email] RESEND_API_KEY not set; skipping send", {
-        from: sender, to: recipient, subject,
+        from: sender,
+        to: recipient,
+        subject,
       });
       return new Response(
         JSON.stringify({ ok: false, skipped: true, reason: "email_provider_not_configured" }),
@@ -109,14 +111,12 @@ serve(async (req) => {
       );
     }
 
-    const html = typeof body === "string" && body.length > 0
-      ? body
-      : `<p>${subject}</p>`;
+    const html = typeof body === "string" && body.length > 0 ? body : `<p>${subject}</p>`;
 
     const resp = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${resendKey}`,
+        Authorization: `Bearer ${resendKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({

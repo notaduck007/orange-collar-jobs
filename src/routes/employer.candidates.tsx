@@ -119,8 +119,7 @@ function CandidatesPage() {
   const entitled = useMemo(
     () =>
       !!activePackage &&
-      (((activePackage.posts_remaining ?? 0) > 0) ||
-        ((activePackage.featured_remaining ?? 0) > 0)),
+      ((activePackage.posts_remaining ?? 0) > 0 || (activePackage.featured_remaining ?? 0) > 0),
     [activePackage],
   );
 
