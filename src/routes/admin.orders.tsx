@@ -65,12 +65,10 @@ function AdminOrders() {
           </thead>
           <tbody>
             {orders.map((o) => {
-              const intent = o.stripe_payment_intent;
-              const refundUrl = intent
-                ? `https://dashboard.stripe.com/payments/${intent}`
-                : o.stripe_session_id
-                  ? `https://dashboard.stripe.com/checkout/sessions/${o.stripe_session_id}`
-                  : null;
+              const refundUrl = stripeDashboardUrlFor({
+                paymentIntent: o.stripe_payment_intent,
+                sessionId: o.stripe_session_id,
+              });
               return (
                 <tr key={o.id} className="border-t border-border">
                   <td className="px-3 py-2 text-xs text-muted-foreground">
