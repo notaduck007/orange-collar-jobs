@@ -52,7 +52,8 @@ type Ticket = {
 type Report = {
   id: string; reporter_id: string | null; entity_type: string; entity_id: string;
   reason: string; details: string | null; status: string;
-  assigned_to: string | null; resolution_note: string | null; created_at: string;
+  assigned_to: string | null; resolution_note: string | null;
+  resolved_at: string | null; resolved_by: string | null; created_at: string;
 };
 
 function AdminSupport() {
@@ -102,9 +103,9 @@ function AdminSupport() {
   const [openTicket, setOpenTicket] = useState<Ticket | null>(null);
   const [openReport, setOpenReport] = useState<Report | null>(null);
 
-  const updateTicket = async (id: string, patch: Partial<Ticket>) => {
+  const updateTicket = async (id: string, patch: Partial<Ticket>): Promise<void> => {
     const { error } = await supabase.from("support_tickets").update(patch).eq("id", id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     await supabase.from("audit_log").insert({
       actor_id: user!.id, action: "ticket_update",
       entity_type: "support_ticket", entity_id: id,
@@ -114,9 +115,9 @@ function AdminSupport() {
     toast.success("Ticket updated");
   };
 
-  const updateReport = async (id: string, patch: Partial<Report>) => {
+  const updateReport = async (id: string, patch: Partial<Report>): Promise<void> => {
     const { error } = await supabase.from("reports").update(patch).eq("id", id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     await supabase.from("audit_log").insert({
       actor_id: user!.id, action: "report_update",
       entity_type: "report", entity_id: id,
@@ -274,7 +275,7 @@ function TicketSheet({
       body: { to: ticket.email, subject: replySubject, body: replyBody },
     });
     setSending(false);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     await supabase.from("audit_log").insert({
       actor_id: currentUserId!, action: "ticket_reply",
       entity_type: "support_ticket", entity_id: ticket.id,
