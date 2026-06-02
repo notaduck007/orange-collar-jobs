@@ -14,8 +14,10 @@ import { JobCardSkeletonList } from "@/components/ui/skeleton-list";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "WarehouseJobs — Warehouse Jobs Hiring Now Near You" },
-      { name: "description", content: "Forklift, picker/packer, shipping & receiving, and warehouse associate jobs across the U.S. Free for job seekers — apply in minutes." },
+      { title: "WarehouseJobs — Warehouse & Logistics Hiring" },
+      { name: "description", content: "Forklift, picker/packer, shipping & receiving, and warehouse associate jobs across the U.S. Free for job seekers — apply in minutes on WarehouseJobs." },
+      { property: "og:title", content: "WarehouseJobs — Warehouse & Logistics Hiring" },
+      { property: "og:description", content: "Forklift, picker/packer, shipping & receiving, and warehouse associate jobs across the U.S." },
     ],
   }),
   component: Home,

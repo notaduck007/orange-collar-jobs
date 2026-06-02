@@ -10,16 +10,18 @@ const cors = {
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   try {
-    const { to, subject, body } = await req.json();
+    const { to, subject, body, from } = await req.json();
     if (!to || !subject) {
       return new Response(JSON.stringify({ error: "missing to/subject" }), {
         status: 400,
         headers: { ...cors, "Content-Type": "application/json" },
       });
     }
+    // Default sender display name — keep WarehouseJobs brand consistent.
+    const sender = from ?? "WarehouseJobs <no-reply@warehousejobs.app>";
     // Stub: integrate a transactional provider here later. For now, log so the
     // moderation flow has a working send-email endpoint to invoke.
-    console.log("[send-email]", { to, subject, body });
+    console.log("[send-email]", { from: sender, to, subject, body });
     return new Response(JSON.stringify({ ok: true }), {
       headers: { ...cors, "Content-Type": "application/json" },
     });
