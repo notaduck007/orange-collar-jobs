@@ -29,10 +29,9 @@ serve(async (req) => {
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
 
-      // Idempotency: only update if not already paid/fulfilled
       const { data: existing } = await admin
         .from("orders")
-        .select("id, status, fulfilled_at")
+        .select("id, status, company_id, package_id, posting_count_granted, featured_count_granted, fulfilled_at")
         .eq("stripe_session_id", session.id)
         .maybeSingle();
 
@@ -41,10 +40,11 @@ serve(async (req) => {
         return new Response(JSON.stringify({ received: true, note: "no order" }), { status: 200 });
       }
 
-      if (existing.fulfilled_at) {
+      if (existing.status === "paid" || existing.fulfilled_at) {
         return new Response(JSON.stringify({ received: true, idempotent: true }), { status: 200 });
       }
 
+      // Receipt URL
       let receiptUrl: string | null = null;
       const paymentIntentId = typeof session.payment_intent === "string"
         ? session.payment_intent
@@ -63,14 +63,55 @@ serve(async (req) => {
           status: "paid",
           stripe_payment_intent: paymentIntentId,
           receipt_url: receiptUrl,
+          fulfilled_at: new Date().toISOString(),
         })
         .eq("id", existing.id)
         .neq("status", "paid");
       if (updErr) console.error("order update error", updErr);
 
-      // Grant credits (function is itself idempotent via fulfilled_at check)
-      const { error: grantErr } = await admin.rpc("grant_credits_for_order", { _order_id: existing.id });
-      if (grantErr) console.error("grant_credits_for_order error", grantErr);
+      // Look up duration from package (fallback to metadata)
+      const md = (session.metadata ?? {}) as Record<string, string>;
+      let durationDays = parseInt(md.duration_days ?? "0", 10);
+      if (!durationDays && existing.package_id) {
+        const { data: pkg } = await admin
+          .from("packages").select("duration_days").eq("id", existing.package_id).maybeSingle();
+        durationDays = pkg?.duration_days ?? 30;
+      }
+      if (!durationDays) durationDays = 30;
+
+      const expiresAt = new Date(Date.now() + durationDays * 86400_000).toISOString();
+
+      const { error: cpErr } = await admin.from("company_packages").insert({
+        company_id: existing.company_id,
+        package_id: existing.package_id,
+        order_id: existing.id,
+        posts_total: existing.posting_count_granted ?? 0,
+        posts_used: 0,
+        featured_total: existing.featured_count_granted ?? 0,
+        featured_used: 0,
+        expires_at: expiresAt,
+        status: "active",
+      });
+      if (cpErr) console.error("company_packages insert error", cpErr);
+    } else if (
+      event.type === "checkout.session.expired" ||
+      event.type === "checkout.session.async_payment_failed" ||
+      event.type === "payment_intent.payment_failed"
+    ) {
+      let sessionId: string | null = null;
+      let paymentIntentId: string | null = null;
+      const obj: any = event.data.object;
+      if (event.type.startsWith("checkout.session")) {
+        sessionId = obj.id;
+      } else {
+        paymentIntentId = obj.id;
+      }
+      const query = admin.from("orders").update({ status: "failed" });
+      const filtered = sessionId
+        ? query.eq("stripe_session_id", sessionId)
+        : query.eq("stripe_payment_intent", paymentIntentId!);
+      const { error: failErr } = await filtered.neq("status", "paid");
+      if (failErr) console.error("order fail update error", failErr);
     }
 
     return new Response(JSON.stringify({ received: true }), {

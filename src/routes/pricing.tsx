@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { useAuth } from "@/lib/auth";
+import { startCheckout } from "@/lib/checkout";
 
 type Search = { checkout?: "success" | "cancelled" };
 
@@ -50,29 +51,9 @@ function Pricing() {
       return;
     }
     setBuyingId(packageId);
-    try {
-      // Resolve company (owned or active membership)
-      const { data: owned } = await supabase.from("companies").select("id").eq("owner_id", user.id).maybeSingle();
-      let companyId = owned?.id;
-      if (!companyId) {
-        const { data: mem } = await supabase
-          .from("company_members").select("company_id").eq("user_id", user.id).eq("status", "active").limit(1).maybeSingle();
-        companyId = mem?.company_id;
-      }
-      if (!companyId) {
-        toast.error("Set up your company profile first.");
-        navigate({ to: "/employer/onboarding" });
-        return;
-      }
-
-      const { data, error } = await supabase.functions.invoke("create-checkout", {
-        body: { package_id: packageId, company_id: companyId },
-      });
-      if (error) throw error;
-      if (!data?.url) throw new Error("No checkout URL returned");
-      window.location.href = data.url;
-    } catch (e: any) {
-      toast.error(e.message ?? "Could not start checkout");
+    const result = await startCheckout(packageId, "purchase");
+    if (result?.error) {
+      toast.error(result.error);
       setBuyingId(null);
     }
   }
