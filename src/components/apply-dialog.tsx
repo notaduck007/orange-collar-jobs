@@ -120,6 +120,10 @@ export function ApplyDialog({ jobId, jobTitle, quickHire, open, onOpenChange, on
     }
     const qErr = validateAnswers();
     if (qErr) { toast.error(qErr); return; }
+    if (quickHire && slots.length > 0 && !slotId) {
+      toast.error("Pick an interview slot to continue.");
+      return;
+    }
     setSubmitting(true);
     try {
       const allowed = await checkRateLimit(
