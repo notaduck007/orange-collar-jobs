@@ -49,24 +49,6 @@ export type Database = {
           },
         ]
       }
-      admin_permissions: {
-        Row: {
-          created_at: string
-          level: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          level: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          level?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       advertisements: {
         Row: {
           clicks: number
@@ -1668,10 +1650,6 @@ export type Database = {
         Returns: undefined
       }
       grant_starter_package: { Args: { _company_id: string }; Returns: string }
-      has_admin_permission: {
-        Args: { _capability: string; _user_id: string }
-        Returns: boolean
-      }
       has_permission: {
         Args: { _permission_key: string; _user_id: string }
         Returns: boolean
