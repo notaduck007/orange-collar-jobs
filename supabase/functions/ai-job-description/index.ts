@@ -139,7 +139,7 @@ serve(async (req) => {
         "X-Accel-Buffering": "no",
       },
     });
-  } catch (e: any) {
+  } catch (e: unknown) {
     return new Response(JSON.stringify({ error: e?.message ?? String(e) }), {
       status: 500,
       headers: { ...cors, "Content-Type": "application/json" },

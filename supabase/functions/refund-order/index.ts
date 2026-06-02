@@ -76,7 +76,7 @@ serve(async (req) => {
           metadata: { order_id: order.id, actor_id: actorId, note: reason },
         });
         refundId = refund.id;
-      } catch (e: any) {
+      } catch (e: unknown) {
         return json(req, { error: `Stripe refund failed: ${e.message}` }, 400);
       }
     }
@@ -151,7 +151,7 @@ serve(async (req) => {
     }
 
     return json(req, { ok: true, refund_id: refundId, reversals });
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("refund-order error", e);
     return json(req, { error: e?.message ?? "Internal error" }, 500);
   }

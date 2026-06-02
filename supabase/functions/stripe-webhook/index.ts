@@ -15,7 +15,7 @@ serve(async (req) => {
   let event: Stripe.Event;
   try {
     event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret);
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Signature verification failed", err.message);
     return new Response(`Webhook Error: ${err.message}`, { status: 400 });
   }
@@ -166,7 +166,7 @@ ${paidOrder?.receipt_url ? `Stripe receipt: ${paidOrder.receipt_url}\n` : ""}Vie
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("webhook handler error", e);
     return new Response(JSON.stringify({ error: e.message }), { status: 500 });
   }

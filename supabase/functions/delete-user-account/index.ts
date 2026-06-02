@@ -96,7 +96,7 @@ serve(async (req) => {
     });
 
     return json({ ok: true, mode, user_id: targetId });
-  } catch (e: any) {
+  } catch (e: unknown) {
     return json({ error: e?.message ?? "Internal error" }, 500);
   }
 });

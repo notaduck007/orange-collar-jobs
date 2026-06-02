@@ -147,7 +147,7 @@ serve(async (req) => {
     return new Response(JSON.stringify({ url: session.url, session_id: session.id }), {
       headers: { ...cors, "Content-Type": "application/json" },
     });
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("create-checkout error", e);
     return new Response(JSON.stringify({ error: e.message ?? "Server error" }), {
       status: 500,

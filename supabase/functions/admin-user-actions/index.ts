@@ -192,7 +192,7 @@ serve(async (req) => {
     });
 
     return json(req, { ok: true });
-  } catch (e: any) {
+  } catch (e: unknown) {
     return json(req, { error: e?.message ?? "error" }, 500);
   }
 });
