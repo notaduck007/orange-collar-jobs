@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Search, UserCheck, UserX, KeyRound, MailCheck, ShieldCheck, Eye } from "lucide-react";
+import { Search, UserCheck, UserX, KeyRound, MailCheck, ShieldCheck, Eye, UserCog } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { startImpersonation } from "@/lib/impersonation";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -100,6 +101,16 @@ function AdminUsers() {
     invokeAction({ action: "password_reset", user_id: userId }, "Password reset email sent");
   const resendVerify = (userId: string) =>
     invokeAction({ action: "resend_verification", user_id: userId }, "Verification email resent");
+  const impersonate = async (userId: string) => {
+    if (!confirm("Sign in as this user? Your session will be paused and all actions are audited.")) return;
+    try {
+      await startImpersonation(userId);
+      toast.success("Now viewing as user");
+      window.location.assign("/");
+    } catch (e) {
+      toast.error((e as Error).message || "Impersonation failed");
+    }
+  };
 
   if (permsLoading) return <p className="text-sm text-muted-foreground">Loading…</p>;
   if (!can("users")) {
@@ -198,6 +209,7 @@ function AdminUsers() {
                 <TableCell>
                   <div className="flex justify-end gap-1">
                     <Button size="sm" variant="ghost" onClick={() => setOpenUserId(u.id)} className="h-8 gap-1"><Eye className="h-3.5 w-3.5" /> View</Button>
+                    <Button size="sm" variant="ghost" onClick={() => impersonate(u.id)} className="h-8 gap-1" title="Impersonate"><UserCog className="h-3.5 w-3.5" /></Button>
                     <Button size="sm" variant="outline" onClick={() => toggleActive(u.id, u.active)} className="h-8 gap-1">
                       {u.active ? <><UserX className="h-3.5 w-3.5" /> Suspend</> : <><UserCheck className="h-3.5 w-3.5" /> Reactivate</>}
                     </Button>

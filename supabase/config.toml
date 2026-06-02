@@ -14,3 +14,9 @@ verify_jwt = true
 
 [functions.admin-user-actions]
 verify_jwt = true
+
+[functions.impersonate-user]
+verify_jwt = true
+
+[functions.stop-impersonation]
+verify_jwt = true
