@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import crewImage from "@/assets/crew-productive.webp";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Briefcase, Users, Package as PackageIcon, Star, Plus, Eye, Pause, Play, Copy, X, Pencil, Sparkles, Rocket, Trash2, AlertTriangle, CalendarClock } from "lucide-react";
 import { toast } from "sonner";
@@ -306,7 +307,7 @@ function EmployerDashboard() {
             <div className="p-8 sm:p-12">
               <div className="mx-auto grid max-w-3xl items-center gap-6 sm:grid-cols-[200px_1fr] sm:gap-8">
                 <img
-                  src={new URL("../assets/crew-productive.webp", import.meta.url).href}
+                  src={crewImage}
                   alt="A productive warehouse crew collaborating at a pick station — the team you can hire by posting your first job."
                   width={400}
                   height={500}
