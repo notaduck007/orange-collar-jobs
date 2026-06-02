@@ -226,6 +226,92 @@ function NewJobPage() {
   const lsKey = user ? `wj:job-draft:${user.id}` : null;
   const autosaveReadyRef = useRef(false);
   const lsCheckedRef = useRef(false);
+  const [aiStreaming, setAiStreaming] = useState<null | "write" | "improve">(null);
+  const aiAbortRef = useRef<AbortController | null>(null);
+
+  async function runAi(mode: "write" | "improve") {
+    if (aiStreaming) {
+      aiAbortRef.current?.abort();
+      setAiStreaming(null);
+      return;
+    }
+    if (!form.title.trim()) {
+      toast.error("Add a job title first so the AI has something to work with.");
+      return;
+    }
+    const category = categories.find((c) => c.slug === form.category_slug)?.name ?? form.category_slug;
+    const shiftLabel = SHIFTS.find((s) => s.value === form.shift)?.label ?? form.shift;
+    const location = [form.city, form.state].filter(Boolean).join(", ");
+
+    const controller = new AbortController();
+    aiAbortRef.current = controller;
+    setAiStreaming(mode);
+    // Clear target fields so streamed output replaces them visibly.
+    setForm((f) => ({ ...f, description: "", requirements: "" }));
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-job-description`;
+      const res = await fetch(url, {
+        method: "POST",
+        signal: controller.signal,
+        headers: {
+          "Content-Type": "application/json",
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string,
+          Authorization: `Bearer ${session?.access_token ?? ""}`,
+        },
+        body: JSON.stringify({
+          mode,
+          title: form.title,
+          category,
+          shift: shiftLabel,
+          pay_min: form.pay_min,
+          pay_max: form.pay_max,
+          pay_unit: "hour",
+          location,
+          draft_description: mode === "improve" ? form.description : undefined,
+          draft_requirements: mode === "improve" ? form.requirements : undefined,
+        }),
+      });
+      if (!res.ok || !res.body) {
+        const txt = await res.text().catch(() => "");
+        throw new Error(txt || `AI request failed (${res.status})`);
+      }
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        const descIdx = buf.indexOf("===DESCRIPTION===");
+        const reqIdx = buf.indexOf("===REQUIREMENTS===");
+        let description = "";
+        let requirements = "";
+        if (descIdx >= 0) {
+          const start = descIdx + "===DESCRIPTION===".length;
+          description = (reqIdx >= 0 ? buf.slice(start, reqIdx) : buf.slice(start)).replace(/^\s+/, "");
+        }
+        if (reqIdx >= 0) {
+          requirements = buf.slice(reqIdx + "===REQUIREMENTS===".length).replace(/^\s+/, "");
+        }
+        setForm((f) => ({
+          ...f,
+          description: description.slice(0, 5000),
+          requirements: requirements.slice(0, 3000),
+        }));
+      }
+      toast.success(mode === "write" ? "Draft written — edit anything you'd like." : "Tightened up — review the changes.");
+    } catch (e: any) {
+      if (e?.name !== "AbortError") {
+        toast.error(e?.message ?? "AI request failed");
+      }
+    } finally {
+      setAiStreaming(null);
+      aiAbortRef.current = null;
+    }
+  }
+
 
   // On mount: if a local draft exists and we're not resuming a server draft, offer it.
   useEffect(() => {
