@@ -63,16 +63,18 @@ function EmployerDashboard() {
     },
   });
 
-  const { data: credits = [] } = useQuery({
-    queryKey: ["company-credits", company?.id],
+  const { data: activePackage } = useQuery({
+    queryKey: ["active-package", company?.id],
     enabled: !!company?.id,
     queryFn: async () => {
-      const { data } = await supabase.from("company_credits").select("*").eq("company_id", company!.id);
-      return data ?? [];
+      const { data } = await supabase.rpc("get_active_package", { p_company_id: company!.id });
+      const row = Array.isArray(data) ? data[0] : data;
+      return (row as { posts_remaining: number; featured_remaining: number; package_name: string | null; expires_at: string } | undefined) ?? null;
     },
   });
-  const postingCredits = credits.find((c) => c.credit_type === "post")?.balance ?? 0;
-  const featuredCredits = credits.find((c) => c.credit_type === "featured")?.balance ?? 0;
+  const postingCredits = activePackage?.posts_remaining ?? 0;
+  const featuredCredits = activePackage?.featured_remaining ?? 0;
+
 
   const { data: jobs = [], isLoading } = useQuery({
     queryKey: ["employer-jobs", company?.id],
