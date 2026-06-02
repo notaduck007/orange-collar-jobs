@@ -145,15 +145,20 @@ function EditJobPage() {
         .eq("id", id);
       if (error) throw error;
 
-      // Replace screening questions: simplest approach — wipe and re-insert.
-      const { error: delErr } = await supabase
-        .from("screening_questions")
-        .delete()
-        .eq("job_id", id);
-      if (delErr) throw delErr;
+      // Reconcile screening questions without destroying existing rows
+      // (application_answers.question_id FKs cascade on delete).
+      const existingIds = new Set((dbQuestions ?? []).map((q: Row) => q.id as string));
       const validQs = questions.filter((q) => q.prompt.trim().length > 0);
-      if (validQs.length) {
-        const rows = validQs.map((q, idx) => ({
+      const keptIds = new Set(
+        validQs.map((q) => q.id).filter((id): id is string => !!id && existingIds.has(id)),
+      );
+      const toDelete = [...existingIds].filter((id) => !keptIds.has(id));
+
+      const toUpsertExisting = validQs
+        .map((q, idx) => ({ q, idx }))
+        .filter(({ q }) => q.id && existingIds.has(q.id))
+        .map(({ q, idx }) => ({
+          id: q.id!,
           job_id: id,
           prompt: q.prompt.trim(),
           type: q.type,
@@ -164,9 +169,42 @@ function EditJobPage() {
           knockout_answer: (q.knockout_answer ?? null) as never,
           sort_order: idx,
         }));
-        const { error: insErr } = await supabase.from("screening_questions").insert(rows);
+
+      const toInsertNew = validQs
+        .map((q, idx) => ({ q, idx }))
+        .filter(({ q }) => !q.id || !existingIds.has(q.id))
+        .map(({ q, idx }) => ({
+          job_id: id,
+          prompt: q.prompt.trim(),
+          type: q.type,
+          options: q.options.filter(Boolean).length
+            ? (q.options.filter(Boolean) as unknown as never)
+            : null,
+          required: q.required,
+          knockout_answer: (q.knockout_answer ?? null) as never,
+          sort_order: idx,
+        }));
+
+      if (toDelete.length) {
+        const { error: delErr } = await supabase
+          .from("screening_questions")
+          .delete()
+          .in("id", toDelete);
+        if (delErr) throw delErr;
+      }
+      if (toUpsertExisting.length) {
+        const { error: upErr } = await supabase
+          .from("screening_questions")
+          .upsert(toUpsertExisting, { onConflict: "id" });
+        if (upErr) throw upErr;
+      }
+      if (toInsertNew.length) {
+        const { error: insErr } = await supabase
+          .from("screening_questions")
+          .insert(toInsertNew);
         if (insErr) throw insErr;
       }
+
 
       toast.success("Job updated");
       qc.invalidateQueries({ queryKey: ["employer-job", id] });
