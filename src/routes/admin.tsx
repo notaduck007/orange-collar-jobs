@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { LayoutDashboard, Building2, Briefcase, Package, Megaphone, Users, Receipt, ShieldCheck, Gavel, DollarSign, Tags, FileText } from "lucide-react";
+import { LayoutDashboard, Building2, Briefcase, Package, Megaphone, Users, Receipt, ShieldCheck, Gavel, DollarSign, Tags, FileText, Settings as SettingsIcon } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { useAuth } from "@/lib/auth";
@@ -24,6 +24,7 @@ const NAV: NavItem[] = [
   { to: "/admin/users", icon: Users, label: "Users", cap: "users" },
   { to: "/admin/orders", icon: Receipt, label: "Orders", cap: "billing" },
   { to: "/admin/billing", icon: DollarSign, label: "Billing", cap: "billing" },
+  { to: "/admin/settings", icon: SettingsIcon, label: "Settings", cap: "settings" },
 ];
 
 // Route → required capability (for runtime guard)
@@ -38,6 +39,7 @@ const ROUTE_CAPS: { prefix: string; cap: AdminCapability }[] = [
   { prefix: "/admin/users", cap: "users" },
   { prefix: "/admin/orders", cap: "billing" },
   { prefix: "/admin/billing", cap: "billing" },
+  { prefix: "/admin/settings", cap: "settings" },
 ];
 
 
