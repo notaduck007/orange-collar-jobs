@@ -9,7 +9,7 @@ const cors = {
 };
 
 async function hashIp(ip: string) {
-  const data = new TextEncoder().encode(ip + (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""));
+  const data = new TextEncoder().encode(ip + (Deno.env.get("IP_HASH_SALT") ?? ""));
   const buf = await crypto.subtle.digest("SHA-256", data);
   return Array.from(new Uint8Array(buf))
     .map((b) => b.toString(16).padStart(2, "0"))
@@ -45,9 +45,13 @@ serve(async (req) => {
       });
     }
     if (ad.start_date && ad.start_date > today)
-      return new Response(JSON.stringify({ ok: false }), { headers: cors });
+      return new Response(JSON.stringify({ ok: false }), {
+        headers: { ...cors, "Content-Type": "application/json" },
+      });
     if (ad.end_date && ad.end_date < today)
-      return new Response(JSON.stringify({ ok: false }), { headers: cors });
+      return new Response(JSON.stringify({ ok: false }), {
+        headers: { ...cors, "Content-Type": "application/json" },
+      });
 
     const ip =
       req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
