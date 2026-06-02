@@ -249,11 +249,11 @@ function EmployerDashboard() {
               <p className="mt-3 text-base font-semibold text-[color:var(--ink)]">No jobs yet</p>
               <p className="mt-1 text-sm text-muted-foreground">Post your first warehouse role to start receiving applicants.</p>
               <div className="mt-5">
-                <PostJobButton
-                  disabled={postingCredits < 1}
-                  onClick={() => navigate({ to: "/employer/jobs/new" })}
-                />
+                <Button onClick={() => navigate({ to: "/employer/jobs/new" })} className="btn-primary gap-1.5">
+                  <Plus className="h-4 w-4" /> Post a Job
+                </Button>
               </div>
+
             </div>
           ) : (
             <div className="overflow-x-auto">
