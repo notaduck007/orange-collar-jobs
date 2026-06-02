@@ -14,6 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      ad_events: {
+        Row: {
+          ad_slot: string | null
+          advertisement_id: string
+          id: string
+          ip_hash: string | null
+          occurred_at: string
+          type: string
+        }
+        Insert: {
+          ad_slot?: string | null
+          advertisement_id: string
+          id?: string
+          ip_hash?: string | null
+          occurred_at?: string
+          type: string
+        }
+        Update: {
+          ad_slot?: string | null
+          advertisement_id?: string
+          id?: string
+          ip_hash?: string | null
+          occurred_at?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_events_advertisement_id_fkey"
+            columns: ["advertisement_id"]
+            isOneToOne: false
+            referencedRelation: "advertisements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       advertisements: {
         Row: {
           clicks: number
