@@ -205,15 +205,30 @@ function AdminUsers() {
                   {u.phone && <p className="text-xs text-muted-foreground">{u.phone}</p>}
                 </TableCell>
                 <TableCell>
-                  <Select value={u.role} onValueChange={(v) => setRole(u.id, v as AppRole)}>
-                    <SelectTrigger className="h-8 w-32"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="job_seeker">Job seeker</SelectItem>
-                      <SelectItem value="employer">Employer</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="flex flex-wrap gap-1">
+                    {ALL_ROLES.map((r) => {
+                      const has = u.roles.includes(r);
+                      return (
+                        <button
+                          key={r}
+                          type="button"
+                          onClick={() => toggleRole(u.id, r, has)}
+                          className={`rounded-md border px-2 py-0.5 text-[11px] font-medium transition-colors ${
+                            has
+                              ? r === "admin"
+                                ? "border-primary bg-primary/15 text-primary"
+                                : "border-emerald-300 bg-emerald-100 text-emerald-900"
+                              : "border-border bg-transparent text-muted-foreground hover:bg-muted"
+                          }`}
+                          title={has ? `Revoke ${r}` : `Grant ${r}`}
+                        >
+                          {r.replace("_", " ")}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </TableCell>
+
                 <TableCell>
                   {u.active
                     ? <Badge className="border-0 bg-emerald-100 text-emerald-900">Active</Badge>
