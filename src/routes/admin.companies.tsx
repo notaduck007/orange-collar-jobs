@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Search, ShieldCheck, ShieldOff, Eye, Ban, Play, BadgeCheck, FileText, X, Check } from "lucide-react";
+import { Search, ShieldCheck, ShieldOff, Eye, Ban, Play, BadgeCheck, FileText, X, Check, UserCog } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { startImpersonation } from "@/lib/impersonation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
