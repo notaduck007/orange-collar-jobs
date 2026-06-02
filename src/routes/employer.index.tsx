@@ -296,30 +296,43 @@ function EmployerDashboard() {
                       <TableCell className="text-xs text-muted-foreground">{job.expires_at ? formatDate(job.expires_at) : "—"}</TableCell>
                       <TableCell>
                         <div className="flex items-center justify-end gap-0.5">
-                          <ActionIcon label="View" onClick={() => navigate({ to: "/jobs/$slug", params: { slug: job.slug } })}>
-                            <Eye className="h-3.5 w-3.5" />
-                          </ActionIcon>
-                          <ActionIcon label="Edit" onClick={() => navigate({ to: "/employer/jobs/$id/edit", params: { id: job.id } })}>
-                            <Pencil className="h-3.5 w-3.5" />
-                          </ActionIcon>
-                          <ActionIcon
-                            label={job.featured ? "Already featured" : `Mark featured (uses 1 credit, ${featuredCredits} left)`}
-                            onClick={() => markFeatured(job)}
-                            disabled={job.featured || featuredCredits < 1}
-                          >
-                            <Star className={`h-3.5 w-3.5 ${job.featured ? "fill-[color:var(--hazard)] text-[color:var(--hazard)]" : ""}`} />
-                          </ActionIcon>
-                          <ActionIcon label={job.status === "paused" ? "Resume" : "Pause"} onClick={() => togglePause(job)}>
-                            {job.status === "paused" ? <Play className="h-3.5 w-3.5" /> : <Pause className="h-3.5 w-3.5" />}
-                          </ActionIcon>
-                          <ActionIcon label={`Duplicate (uses 1 credit, ${postingCredits} left)`} onClick={() => duplicateJob(job)} disabled={postingCredits < 1}>
-                            <Copy className="h-3.5 w-3.5" />
-                          </ActionIcon>
-                          <ActionIcon label="Close" onClick={() => closeJob(job)}>
-                            <X className="h-3.5 w-3.5" />
-                          </ActionIcon>
+                          {job.status === "draft" ? (
+                            <Button
+                              size="sm"
+                              className="btn-primary h-7 gap-1 text-xs"
+                              onClick={() => navigate({ to: "/employer/jobs/new", search: { draft: job.id } })}
+                            >
+                              <Rocket className="h-3 w-3" /> Finish & publish
+                            </Button>
+                          ) : (
+                            <>
+                              <ActionIcon label="View" onClick={() => navigate({ to: "/jobs/$slug", params: { slug: job.slug } })}>
+                                <Eye className="h-3.5 w-3.5" />
+                              </ActionIcon>
+                              <ActionIcon label="Edit" onClick={() => navigate({ to: "/employer/jobs/$id/edit", params: { id: job.id } })}>
+                                <Pencil className="h-3.5 w-3.5" />
+                              </ActionIcon>
+                              <ActionIcon
+                                label={job.featured ? "Already featured" : `Mark featured (${featuredCredits} upgrades left)`}
+                                onClick={() => markFeatured(job)}
+                                disabled={job.featured || featuredCredits < 1}
+                              >
+                                <Star className={`h-3.5 w-3.5 ${job.featured ? "fill-[color:var(--hazard)] text-[color:var(--hazard)]" : ""}`} />
+                              </ActionIcon>
+                              <ActionIcon label={job.status === "paused" ? "Resume" : "Pause"} onClick={() => togglePause(job)}>
+                                {job.status === "paused" ? <Play className="h-3.5 w-3.5" /> : <Pause className="h-3.5 w-3.5" />}
+                              </ActionIcon>
+                              <ActionIcon label={`Duplicate (${postingCredits} posts left)`} onClick={() => duplicateJob(job)} disabled={postingCredits < 1}>
+                                <Copy className="h-3.5 w-3.5" />
+                              </ActionIcon>
+                              <ActionIcon label="Close" onClick={() => closeJob(job)}>
+                                <X className="h-3.5 w-3.5" />
+                              </ActionIcon>
+                            </>
+                          )}
                         </div>
                       </TableCell>
+
                     </TableRow>
                   ))}
                 </TableBody>
