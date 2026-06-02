@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      abuse_reports: {
+        Row: {
+          created_at: string
+          details: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          reason: string
+          reporter_id: string | null
+          resolution_note: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          details?: string | null
+          entity_id: string
+          entity_type: string
+          id?: string
+          reason: string
+          reporter_id?: string | null
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          details?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          reason?: string
+          reporter_id?: string | null
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
       ad_events: {
         Row: {
           ad_slot: string | null
@@ -229,6 +271,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      audit_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          created_at: string
+          entity_id: string | null
+          entity_type: string
+          id: string
+          metadata: Json | null
+          reason: string | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          metadata?: Json | null
+          reason?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          metadata?: Json | null
+          reason?: string | null
+        }
+        Relationships: []
       }
       companies: {
         Row: {
@@ -738,6 +813,48 @@ export type Database = {
           id?: string
           location?: string | null
           phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      reviews: {
+        Row: {
+          author_id: string
+          body: string
+          company_id: string
+          created_at: string
+          flag_count: number
+          flag_reason: string | null
+          id: string
+          rating: number
+          status: string
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          body: string
+          company_id: string
+          created_at?: string
+          flag_count?: number
+          flag_reason?: string | null
+          id?: string
+          rating: number
+          status?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          company_id?: string
+          created_at?: string
+          flag_count?: number
+          flag_reason?: string | null
+          id?: string
+          rating?: number
+          status?: string
+          title?: string | null
           updated_at?: string
         }
         Relationships: []
