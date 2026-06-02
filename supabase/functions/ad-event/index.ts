@@ -88,7 +88,7 @@ serve(async (req) => {
     });
   } catch (e: unknown) {
     console.error("ad-event error", e);
-    return new Response(JSON.stringify({ error: e.message ?? "Server error" }), {
+    return new Response(JSON.stringify({ error: (e as Error)?.message ?? "Server error" }), {
       status: 500,
       headers: { ...cors, "Content-Type": "application/json" },
     });
