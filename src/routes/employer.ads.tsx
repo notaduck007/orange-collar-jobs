@@ -48,10 +48,24 @@ function EmployerAds() {
     queryKey: ["employer-company", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data } = await supabase
+      const { data: owned } = await supabase
         .from("companies")
         .select("*")
         .eq("owner_id", user!.id)
+        .maybeSingle();
+      if (owned) return owned;
+      const { data: mem } = await supabase
+        .from("company_members")
+        .select("company_id")
+        .eq("user_id", user!.id)
+        .eq("status", "active")
+        .limit(1)
+        .maybeSingle();
+      if (!mem?.company_id) return null;
+      const { data } = await supabase
+        .from("companies")
+        .select("*")
+        .eq("id", mem.company_id)
         .maybeSingle();
       return data;
     },
