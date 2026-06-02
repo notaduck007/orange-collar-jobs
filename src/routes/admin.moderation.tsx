@@ -70,7 +70,7 @@ function ModerationHub() {
     queryFn: async () => {
       const { data } = await supabase
         .from("jobs")
-        .select("id, title, description, location, status, posted_by, companies(name)")
+        .select("id, slug, title, description, location, status, posted_by, companies(name)")
         .eq("status", "pending_review")
         .order("created_at", { ascending: false })
         .limit(100);
