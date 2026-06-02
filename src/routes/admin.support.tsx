@@ -214,6 +214,13 @@ function AdminSupport() {
       a.download = `dsr-export-${userId}.json`;
       a.click();
       URL.revokeObjectURL(url);
+      await supabase
+        .from("deletion_requests")
+        .update({ status: "completed", processed_at: new Date().toISOString() })
+        .eq("user_id", userId)
+        .eq("type", "export")
+        .neq("status", "completed");
+      qc.invalidateQueries({ queryKey: ["admin-dsr"] });
       toast.success("Export downloaded");
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Export failed";
@@ -236,6 +243,12 @@ function AdminSupport() {
       if (error) throw error;
       const payload = data as { error?: string } | null;
       if (payload?.error) throw new Error(payload.error);
+      await supabase
+        .from("deletion_requests")
+        .update({ status: "completed", processed_at: new Date().toISOString() })
+        .eq("user_id", userId)
+        .eq("type", "delete")
+        .neq("status", "completed");
       toast.success(`User ${mode}-deleted`);
       qc.invalidateQueries({ queryKey: ["admin-dsr"] });
     } catch (e) {
@@ -246,7 +259,7 @@ function AdminSupport() {
     }
   };
 
-  const openDsr = (dsrQ.data ?? []).filter((d) => d.status === "requested").length;
+  const openDsr = (dsrQ.data ?? []).filter((d) => d.status !== "completed").length;
 
   return (
     <div className="space-y-6">
