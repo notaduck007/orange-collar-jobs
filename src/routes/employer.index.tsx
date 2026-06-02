@@ -245,19 +245,49 @@ function EmployerDashboard() {
           </div>
           <Button onClick={() => navigate({ to: "/employer/jobs/new" })} className="btn-primary gap-1.5">
             <Plus className="h-4 w-4" /> Post a Job
+            {postingCredits === 0 && (
+              <span className="ml-1 rounded bg-[color:var(--hazard)] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[color:var(--ink)]">
+                0 posts left
+              </span>
+            )}
           </Button>
         </header>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {(showRenewBanner || noPackage) && (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[color:var(--hazard)]/40 bg-[color:var(--hazard)]/10 px-4 py-3">
+            <div className="flex items-start gap-2.5">
+              <AlertTriangle className="mt-0.5 h-4 w-4 text-[color:var(--ink)]" />
+              <div className="text-sm">
+                <p className="font-semibold text-[color:var(--ink)]">
+                  {noPackage
+                    ? "No active package"
+                    : postingCredits <= 1 && (daysToExpiry !== null && daysToExpiry <= 5)
+                    ? `${postingCredits} post${postingCredits === 1 ? "" : "s"} left · expires in ${daysToExpiry} day${daysToExpiry === 1 ? "" : "s"}`
+                    : postingCredits <= 1
+                    ? `${postingCredits} post${postingCredits === 1 ? "" : "s"} remaining on your package`
+                    : `Your package expires in ${daysToExpiry} day${daysToExpiry === 1 ? "" : "s"}`}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Renew now to keep posting without interruption.
+                </p>
+              </div>
+            </div>
+            <Button size="sm" className="btn-primary" onClick={() => navigate({ to: "/pricing" })}>
+              Renew
+            </Button>
+          </div>
+        )}
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <StatCard icon={Briefcase} label="Active jobs" value={activeJobs} accent />
           <StatCard icon={Users} label="Total applicants" value={totalApplicants} />
-          <StatCard
-            icon={PackageIcon}
-            label="Posts remaining"
-            value={postingCredits}
-            sub={activePackage?.package_name ?? "No active package"}
+          <PackageCard
+            packageName={activePackage?.package_name ?? null}
+            postsRemaining={postingCredits}
+            featuredRemaining={featuredCredits}
+            expiresAt={activePackage?.expires_at ?? null}
+            extraCount={extraPackages}
           />
-          <StatCard icon={Star} label="Featured upgrades" value={featuredCredits} sub="on active package" />
         </div>
 
 
