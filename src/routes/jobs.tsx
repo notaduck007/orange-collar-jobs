@@ -402,7 +402,8 @@ function FilterChip({ active, onClick, children }: { active: boolean; onClick: (
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-md border px-2.5 py-1 text-xs font-medium transition-colors ${
+      aria-pressed={active}
+      className={`rounded-md border px-2.5 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
         active
           ? "border-primary bg-primary text-primary-foreground"
           : "border-border bg-card text-[color:var(--ink)] hover:border-primary/50"
