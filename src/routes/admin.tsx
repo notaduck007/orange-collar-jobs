@@ -4,15 +4,39 @@ import { LayoutDashboard, Building2, Briefcase, Package, Megaphone, Users, Recei
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { useAuth } from "@/lib/auth";
+import { useAdminPermissions, type AdminCapability } from "@/lib/admin-permissions";
 
 export const Route = createFileRoute("/admin")({
   component: AdminLayout,
 });
 
+type NavItem = { to: string; icon: typeof LayoutDashboard; label: string; exact?: boolean; cap?: AdminCapability };
+
+const NAV: NavItem[] = [
+  { to: "/admin", icon: LayoutDashboard, label: "Dashboard", exact: true },
+  { to: "/admin/companies", icon: Building2, label: "Companies", cap: "moderation" },
+  { to: "/admin/jobs", icon: Briefcase, label: "Jobs", cap: "moderation" },
+  { to: "/admin/ads", icon: Megaphone, label: "Advertisements", cap: "ads" },
+  { to: "/admin/packages", icon: Package, label: "Packages", cap: "settings" },
+  { to: "/admin/users", icon: Users, label: "Users", cap: "users" },
+  { to: "/admin/orders", icon: Receipt, label: "Orders", cap: "billing" },
+];
+
+// Route → required capability (for runtime guard)
+const ROUTE_CAPS: { prefix: string; cap: AdminCapability }[] = [
+  { prefix: "/admin/companies", cap: "moderation" },
+  { prefix: "/admin/jobs", cap: "moderation" },
+  { prefix: "/admin/ads", cap: "ads" },
+  { prefix: "/admin/packages", cap: "settings" },
+  { prefix: "/admin/users", cap: "users" },
+  { prefix: "/admin/orders", cap: "billing" },
+];
+
 function AdminLayout() {
   const { user, role, loading } = useAuth();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { loading: permsLoading, level, can } = useAdminPermissions();
 
   useEffect(() => {
     if (loading) return;
@@ -20,7 +44,7 @@ function AdminLayout() {
     else if (role && role !== "admin") navigate({ to: "/" });
   }, [user, role, loading, navigate, pathname]);
 
-  if (loading || !user || role !== "admin") {
+  if (loading || permsLoading || !user || role !== "admin") {
     return (
       <div className="min-h-screen bg-background">
         <SiteHeader />
@@ -29,22 +53,41 @@ function AdminLayout() {
     );
   }
 
+  const requiredCap = ROUTE_CAPS.find((r) => pathname.startsWith(r.prefix))?.cap;
+  const blocked = requiredCap && !can(requiredCap);
+
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
       <div className="mx-auto grid max-w-7xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[220px_1fr]">
         <aside className="space-y-1">
-          <p className="label-caps mb-2 inline-flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5 text-primary" /> Admin</p>
-          <SideLink to="/admin" icon={LayoutDashboard} label="Dashboard" exact />
-          <SideLink to="/admin/companies" icon={Building2} label="Companies" />
-          <SideLink to="/admin/jobs" icon={Briefcase} label="Jobs" />
-          <SideLink to="/admin/ads" icon={Megaphone} label="Advertisements" />
-          <SideLink to="/admin/packages" icon={Package} label="Packages" />
-          <SideLink to="/admin/users" icon={Users} label="Users" />
-          <SideLink to="/admin/orders" icon={Receipt} label="Orders" />
+          <p className="label-caps mb-2 inline-flex items-center gap-1.5">
+            <ShieldCheck className="h-3.5 w-3.5 text-primary" /> Admin
+          </p>
+          {level && (
+            <p className="mb-3 text-[10px] uppercase tracking-wider text-muted-foreground">
+              Level: <span className="font-semibold text-foreground">{level.replace("_", " ")}</span>
+            </p>
+          )}
+          {NAV.filter((n) => !n.cap || can(n.cap)).map((n) => (
+            <SideLink key={n.to} to={n.to} icon={n.icon} label={n.label} exact={n.exact} />
+          ))}
         </aside>
         <main className="min-w-0">
-          <Outlet />
+          {blocked ? (
+            <div className="rounded-lg border border-border bg-card p-10 text-center">
+              <ShieldCheck className="mx-auto h-10 w-10 text-muted-foreground" />
+              <h2 className="mt-3 text-lg font-semibold text-[color:var(--ink)]">
+                You don't have access to this section
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Requires the <span className="font-semibold">{requiredCap}</span> capability.
+                Ask a super admin to update your permissions.
+              </p>
+            </div>
+          ) : (
+            <Outlet />
+          )}
         </main>
       </div>
       <SiteFooter />
