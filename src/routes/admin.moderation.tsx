@@ -207,7 +207,8 @@ function ModerationHub() {
       else if (e.key === "r") openAction("reject");
       else if (e.key === "e") openAction("escalate");
       else if (e.key >= "1" && e.key <= "4") {
-        setTab(TABS[Number(e.key) - 1].key);
+        const t = TABS[Number(e.key) - 1];
+        if (t) setTab(t.key);
       }
     };
     window.addEventListener("keydown", handler);
