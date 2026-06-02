@@ -50,6 +50,7 @@ import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
 import { Route as AdminBillingRouteImport } from './routes/admin.billing'
 import { Route as AdminAdsRouteImport } from './routes/admin.ads'
 import { Route as EmployerJobsNewRouteImport } from './routes/employer.jobs.new'
+import { Route as BillingReceiptOrderIdRouteImport } from './routes/billing.receipt.$orderId'
 import { Route as EmployerJobsIdEditRouteImport } from './routes/employer.jobs.$id.edit'
 import { Route as EmployerJobsIdApplicantsRouteImport } from './routes/employer.jobs.$id.applicants'
 
@@ -258,6 +259,11 @@ const EmployerJobsNewRoute = EmployerJobsNewRouteImport.update({
   path: '/jobs/new',
   getParentRoute: () => EmployerRoute,
 } as any)
+const BillingReceiptOrderIdRoute = BillingReceiptOrderIdRouteImport.update({
+  id: '/billing/receipt/$orderId',
+  path: '/billing/receipt/$orderId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EmployerJobsIdEditRoute = EmployerJobsIdEditRouteImport.update({
   id: '/jobs/$id/edit',
   path: '/jobs/$id/edit',
@@ -311,6 +317,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/employer/': typeof EmployerIndexRoute
   '/seeker/': typeof SeekerIndexRoute
+  '/billing/receipt/$orderId': typeof BillingReceiptOrderIdRoute
   '/employer/jobs/new': typeof EmployerJobsNewRoute
   '/employer/jobs/$id/applicants': typeof EmployerJobsIdApplicantsRoute
   '/employer/jobs/$id/edit': typeof EmployerJobsIdEditRoute
@@ -353,6 +360,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/employer': typeof EmployerIndexRoute
   '/seeker': typeof SeekerIndexRoute
+  '/billing/receipt/$orderId': typeof BillingReceiptOrderIdRoute
   '/employer/jobs/new': typeof EmployerJobsNewRoute
   '/employer/jobs/$id/applicants': typeof EmployerJobsIdApplicantsRoute
   '/employer/jobs/$id/edit': typeof EmployerJobsIdEditRoute
@@ -399,6 +407,7 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/employer/': typeof EmployerIndexRoute
   '/seeker/': typeof SeekerIndexRoute
+  '/billing/receipt/$orderId': typeof BillingReceiptOrderIdRoute
   '/employer/jobs/new': typeof EmployerJobsNewRoute
   '/employer/jobs/$id/applicants': typeof EmployerJobsIdApplicantsRoute
   '/employer/jobs/$id/edit': typeof EmployerJobsIdEditRoute
@@ -446,6 +455,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/employer/'
     | '/seeker/'
+    | '/billing/receipt/$orderId'
     | '/employer/jobs/new'
     | '/employer/jobs/$id/applicants'
     | '/employer/jobs/$id/edit'
@@ -488,6 +498,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/employer'
     | '/seeker'
+    | '/billing/receipt/$orderId'
     | '/employer/jobs/new'
     | '/employer/jobs/$id/applicants'
     | '/employer/jobs/$id/edit'
@@ -533,6 +544,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/employer/'
     | '/seeker/'
+    | '/billing/receipt/$orderId'
     | '/employer/jobs/new'
     | '/employer/jobs/$id/applicants'
     | '/employer/jobs/$id/edit'
@@ -552,6 +564,7 @@ export interface RootRouteChildren {
   SeekerRoute: typeof SeekerRouteWithChildren
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   CompaniesSlugRoute: typeof CompaniesSlugRoute
+  BillingReceiptOrderIdRoute: typeof BillingReceiptOrderIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -843,6 +856,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EmployerJobsNewRouteImport
       parentRoute: typeof EmployerRoute
     }
+    '/billing/receipt/$orderId': {
+      id: '/billing/receipt/$orderId'
+      path: '/billing/receipt/$orderId'
+      fullPath: '/billing/receipt/$orderId'
+      preLoaderRoute: typeof BillingReceiptOrderIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/employer/jobs/$id/edit': {
       id: '/employer/jobs/$id/edit'
       path: '/jobs/$id/edit'
@@ -969,6 +989,7 @@ const rootRouteChildren: RootRouteChildren = {
   SeekerRoute: SeekerRouteWithChildren,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   CompaniesSlugRoute: CompaniesSlugRoute,
+  BillingReceiptOrderIdRoute: BillingReceiptOrderIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

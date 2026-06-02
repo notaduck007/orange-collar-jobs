@@ -54,6 +54,7 @@ function AdminOrders() {
           <thead className="bg-muted/40 text-xs uppercase tracking-wider text-muted-foreground">
             <tr>
               <th className="px-3 py-2 text-left">Date</th>
+              <th className="px-3 py-2 text-left">Invoice</th>
               <th className="px-3 py-2 text-left">Company</th>
               <th className="px-3 py-2 text-left">Package</th>
               <th className="px-3 py-2 text-right">Amount</th>
@@ -75,6 +76,7 @@ function AdminOrders() {
                   <td className="px-3 py-2 text-xs text-muted-foreground">
                     {new Date(o.created_at).toLocaleString()}
                   </td>
+                  <td className="px-3 py-2 font-mono text-xs">{o.invoice_number ?? "—"}</td>
                   <td className="px-3 py-2 font-medium text-[color:var(--ink)]">
                     {o.companies?.name ?? "—"}
                   </td>
@@ -88,13 +90,20 @@ function AdminOrders() {
                     </Badge>
                   </td>
                   <td className="px-3 py-2">
-                    {o.receipt_url ? (
-                      <a href={o.receipt_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
-                        View <ExternalLink className="h-3 w-3" />
-                      </a>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">—</span>
-                    )}
+                    <div className="flex items-center gap-2 text-xs">
+                      {o.status === "paid" && (
+                        <a href={`/billing/receipt/${o.id}`} target="_blank" rel="noreferrer" className="text-primary hover:underline">
+                          Invoice
+                        </a>
+                      )}
+                      {o.receipt_url ? (
+                        <a href={o.receipt_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-muted-foreground hover:underline">
+                          Stripe <ExternalLink className="h-3 w-3" />
+                        </a>
+                      ) : (
+                        o.status !== "paid" && <span className="text-muted-foreground">—</span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-3 py-2">
                     {refundUrl ? (
@@ -114,7 +123,7 @@ function AdminOrders() {
               );
             })}
             {orders.length === 0 && (
-              <tr><td colSpan={7} className="px-3 py-8 text-center text-sm text-muted-foreground">No orders yet.</td></tr>
+              <tr><td colSpan={8} className="px-3 py-8 text-center text-sm text-muted-foreground">No orders yet.</td></tr>
             )}
           </tbody>
         </table>

@@ -93,6 +93,44 @@ serve(async (req) => {
         status: "active",
       });
       if (cpErr) console.error("company_packages insert error", cpErr);
+
+      // Send receipt email (best-effort, non-blocking on failure)
+      try {
+        const { data: paidOrder } = await admin
+          .from("orders")
+          .select("id, invoice_number, amount_cents, currency, package_snapshot, receipt_url")
+          .eq("id", existing.id)
+          .maybeSingle();
+        const email = session.customer_details?.email || session.customer_email;
+        const snap: any = paidOrder?.package_snapshot ?? {};
+        const pkgName = snap?.name ?? "Posting package";
+        const inv = paidOrder?.invoice_number ?? "—";
+        const amount = ((paidOrder?.amount_cents ?? 0) / 100).toFixed(2);
+        const validUntil = new Date(expiresAt).toLocaleDateString();
+        if (email) {
+          const body = `
+Thanks for your purchase.
+
+Invoice: ${inv}
+Package: ${pkgName}
+Posts included: ${snap?.posting_count ?? existing.posting_count_granted ?? 0}
+Featured upgrades: ${snap?.featured_count ?? existing.featured_count_granted ?? 0}
+Valid until: ${validUntil}
+Amount charged: $${amount} ${(paidOrder?.currency ?? "usd").toUpperCase()}
+
+${paidOrder?.receipt_url ? `Stripe receipt: ${paidOrder.receipt_url}\n` : ""}View your billing history any time at /employer/billing.
+          `.trim();
+          await admin.functions.invoke("send-email", {
+            body: {
+              to: email,
+              subject: `Receipt ${inv} — ${pkgName}`,
+              body,
+            },
+          });
+        }
+      } catch (e) {
+        console.error("receipt email failed", e);
+      }
     } else if (
       event.type === "checkout.session.expired" ||
       event.type === "checkout.session.async_payment_failed" ||

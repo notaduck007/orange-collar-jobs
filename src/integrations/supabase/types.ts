@@ -956,6 +956,7 @@ export type Database = {
           featured_count_granted: number
           fulfilled_at: string | null
           id: string
+          invoice_number: string | null
           package_id: string | null
           package_snapshot: Json | null
           posting_count_granted: number
@@ -972,6 +973,7 @@ export type Database = {
           featured_count_granted?: number
           fulfilled_at?: string | null
           id?: string
+          invoice_number?: string | null
           package_id?: string | null
           package_snapshot?: Json | null
           posting_count_granted?: number
@@ -988,6 +990,7 @@ export type Database = {
           featured_count_granted?: number
           fulfilled_at?: string | null
           id?: string
+          invoice_number?: string | null
           package_id?: string | null
           package_snapshot?: Json | null
           posting_count_granted?: number
@@ -1570,6 +1573,7 @@ export type Database = {
           job_id: string
         }[]
       }
+      generate_invoice_number: { Args: never; Returns: string }
       get_active_package: {
         Args: { p_company_id: string }
         Returns: {
