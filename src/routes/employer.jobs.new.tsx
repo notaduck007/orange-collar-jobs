@@ -216,6 +216,67 @@ function NewJobPage() {
   const [resuming, setResuming] = useState(false);
   const [success, setSuccess] = useState<{ slug: string; title: string } | null>(null);
   const resumeHandledRef = useRef(false);
+  const [resumeOffer, setResumeOffer] = useState<null | {
+    form: FormState;
+    questions: ScreeningQuestionDraft[];
+    slots: Array<{ starts_at: string; capacity: number }>;
+    step: number;
+    savedAt: number;
+  }>(null);
+  const lsKey = user ? `wj:job-draft:${user.id}` : null;
+  const autosaveReadyRef = useRef(false);
+  const lsCheckedRef = useRef(false);
+
+  // On mount: if a local draft exists and we're not resuming a server draft, offer it.
+  useEffect(() => {
+    if (lsCheckedRef.current) return;
+    if (!lsKey) return;
+    if (search.draft) { lsCheckedRef.current = true; autosaveReadyRef.current = true; return; }
+    lsCheckedRef.current = true;
+    try {
+      const raw = localStorage.getItem(lsKey);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.form) setResumeOffer(parsed);
+      }
+    } catch { /* ignore */ }
+    // Allow autosave to begin after we've checked (avoid clobbering before offer is shown).
+    autosaveReadyRef.current = true;
+  }, [lsKey, search.draft]);
+
+  // Debounced autosave of wizard state to localStorage.
+  useEffect(() => {
+    if (!lsKey || !autosaveReadyRef.current || resumeOffer) return;
+    const t = setTimeout(() => {
+      try {
+        localStorage.setItem(
+          lsKey,
+          JSON.stringify({ form, questions, slots, step, savedAt: Date.now() }),
+        );
+      } catch { /* ignore quota */ }
+    }, 600);
+    return () => clearTimeout(t);
+  }, [lsKey, form, questions, slots, step, resumeOffer]);
+
+  const clearLocalDraft = () => {
+    if (lsKey) {
+      try { localStorage.removeItem(lsKey); } catch { /* ignore */ }
+    }
+  };
+
+  const acceptResume = () => {
+    if (!resumeOffer) return;
+    setForm(resumeOffer.form);
+    setQuestions(resumeOffer.questions ?? []);
+    setSlots(resumeOffer.slots ?? []);
+    setStep(resumeOffer.step ?? 0);
+    setResumeOffer(null);
+    toast.success("Draft restored");
+  };
+  const discardResume = () => {
+    clearLocalDraft();
+    setResumeOffer(null);
+  };
 
   const addSlot = () => setSlots((s) => [...s, { starts_at: "", capacity: 1 }]);
   const updateSlot = (i: number, patch: Partial<{ starts_at: string; capacity: number }>) =>
