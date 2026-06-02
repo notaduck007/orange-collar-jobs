@@ -23,6 +23,7 @@ import {
 interface ApplyDialogProps {
   jobId: string;
   jobTitle: string;
+  quickHire?: boolean;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onApplied?: () => void;
@@ -37,7 +38,7 @@ type QuestionRow = {
   sort_order: number;
 };
 
-export function ApplyDialog({ jobId, jobTitle, open, onOpenChange, onApplied }: ApplyDialogProps) {
+export function ApplyDialog({ jobId, jobTitle, quickHire, open, onOpenChange, onApplied }: ApplyDialogProps) {
   const { user } = useAuth();
   const { settings } = useSiteSettings();
   const qc = useQueryClient();
@@ -47,6 +48,7 @@ export function ApplyDialog({ jobId, jobTitle, open, onOpenChange, onApplied }: 
   const [useDefault, setUseDefault] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [answers, setAnswers] = useState<Record<string, unknown>>({});
+  const [slotId, setSlotId] = useState<string>("");
 
   const { data: profile } = useQuery({
     queryKey: ["seeker-profile", user?.id],
@@ -75,12 +77,28 @@ export function ApplyDialog({ jobId, jobTitle, open, onOpenChange, onApplied }: 
     },
   });
 
+  const { data: slots = [] } = useQuery({
+    queryKey: ["interview-slots", jobId],
+    enabled: open && !!quickHire,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("interview_slots")
+        .select("id, starts_at, capacity, booked_count")
+        .eq("job_id", jobId)
+        .gt("starts_at", new Date().toISOString())
+        .order("starts_at");
+      if (error) throw error;
+      return (data ?? []).filter((s) => (s.booked_count ?? 0) < s.capacity);
+    },
+  });
+
   useEffect(() => {
     if (!open) {
       setCoverNote("");
       setFile(null);
       setUseDefault(true);
       setAnswers({});
+      setSlotId("");
     }
   }, [open]);
 
@@ -102,6 +120,10 @@ export function ApplyDialog({ jobId, jobTitle, open, onOpenChange, onApplied }: 
     }
     const qErr = validateAnswers();
     if (qErr) { toast.error(qErr); return; }
+    if (quickHire && slots.length > 0 && !slotId) {
+      toast.error("Pick an interview slot to continue.");
+      return;
+    }
     setSubmitting(true);
     try {
       const allowed = await checkRateLimit(
@@ -156,6 +178,25 @@ export function ApplyDialog({ jobId, jobTitle, open, onOpenChange, onApplied }: 
           if (rows.length) {
             const { error: aErr } = await supabase.from("application_answers").insert(rows);
             if (aErr) toast.error(`Application sent, but answers failed: ${aErr.message}`);
+          }
+        }
+        if (created && quickHire && slotId) {
+          const { error: bErr } = await supabase.from("interview_bookings").insert({
+            slot_id: slotId,
+            application_id: created.id,
+            applicant_id: user.id,
+          });
+          if (bErr) {
+            toast.error(`Application sent, but interview booking failed: ${bErr.message}`);
+          } else {
+            toast.success("Application sent and interview booked! Check your notifications.");
+            qc.invalidateQueries({ queryKey: ["interview-slots", jobId] });
+            qc.invalidateQueries({ queryKey: ["seeker-apps", user.id] });
+            qc.invalidateQueries({ queryKey: ["seeker-applied-ids", user.id] });
+            qc.invalidateQueries({ queryKey: ["seeker-stats", user.id] });
+            onApplied?.();
+            onOpenChange(false);
+            return;
           }
         }
         toast.success("Application sent! The employer will be in touch.");
@@ -333,6 +374,43 @@ export function ApplyDialog({ jobId, jobTitle, open, onOpenChange, onApplied }: 
               ))}
             </div>
           )}
+
+          {quickHire && (
+            <div className="space-y-2 rounded-lg border border-border bg-background p-3">
+              <p className="text-sm font-semibold text-[color:var(--ink)]">
+                Pick a phone-screen time
+              </p>
+              {slots.length === 0 ? (
+                <p className="text-xs text-muted-foreground">
+                  No interview slots are available right now. You can still apply and the employer will reach out.
+                </p>
+              ) : (
+                <div className="space-y-1">
+                  {slots.map((s) => (
+                    <label key={s.id} className="flex items-center gap-2 rounded-md border border-border p-2 text-sm">
+                      <input
+                        type="radio"
+                        name="slot"
+                        className="accent-[color:var(--primary)]"
+                        checked={slotId === s.id}
+                        onChange={() => setSlotId(s.id)}
+                      />
+                      <span>
+                        {new Date(s.starts_at).toLocaleString(undefined, {
+                          dateStyle: "medium",
+                          timeStyle: "short",
+                        })}
+                      </span>
+                      <span className="ml-auto text-xs text-muted-foreground">
+                        {s.capacity - (s.booked_count ?? 0)} left
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
 
           <div className="space-y-1.5">
             <Label htmlFor="cover">Cover note (optional)</Label>

@@ -377,6 +377,7 @@ function JobDetail() {
         <ApplyDialog
           jobId={job.id}
           jobTitle={job.title}
+          quickHire={!!(job as { quick_hire?: boolean }).quick_hire}
           open={applyOpen}
           onOpenChange={setApplyOpen}
         />

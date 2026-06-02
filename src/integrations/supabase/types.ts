@@ -565,6 +565,68 @@ export type Database = {
         }
         Relationships: []
       }
+      interview_bookings: {
+        Row: {
+          applicant_id: string
+          application_id: string
+          created_at: string
+          id: string
+          slot_id: string
+          status: string
+        }
+        Insert: {
+          applicant_id: string
+          application_id: string
+          created_at?: string
+          id?: string
+          slot_id: string
+          status?: string
+        }
+        Update: {
+          applicant_id?: string
+          application_id?: string
+          created_at?: string
+          id?: string
+          slot_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interview_bookings_slot_id_fkey"
+            columns: ["slot_id"]
+            isOneToOne: false
+            referencedRelation: "interview_slots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      interview_slots: {
+        Row: {
+          booked_count: number
+          capacity: number
+          created_at: string
+          id: string
+          job_id: string
+          starts_at: string
+        }
+        Insert: {
+          booked_count?: number
+          capacity?: number
+          created_at?: string
+          id?: string
+          job_id: string
+          starts_at: string
+        }
+        Update: {
+          booked_count?: number
+          capacity?: number
+          created_at?: string
+          id?: string
+          job_id?: string
+          starts_at?: string
+        }
+        Relationships: []
+      }
       job_alerts: {
         Row: {
           applicant_id: string

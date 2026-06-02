@@ -175,6 +175,11 @@ function NewJobPage() {
     weekly_pay: false,
     quick_hire: false,
   });
+  const [slots, setSlots] = useState<Array<{ starts_at: string; capacity: number }>>([]);
+  const addSlot = () => setSlots((s) => [...s, { starts_at: "", capacity: 1 }]);
+  const updateSlot = (i: number, patch: Partial<{ starts_at: string; capacity: number }>) =>
+    setSlots((s) => s.map((slot, idx) => (idx === i ? { ...slot, ...patch } : slot)));
+  const removeSlot = (i: number) => setSlots((s) => s.filter((_, idx) => idx !== i));
 
   // Prefill city/state from company on first render (after company loads).
   useMemo(() => {
@@ -347,6 +352,20 @@ function NewJobPage() {
         }));
         const { error: qErr } = await supabase.from("screening_questions").insert(rows);
         if (qErr) toast.error(`Job posted, but screening questions failed: ${qErr.message}`);
+      }
+
+      if (created && form.quick_hire && slots.length) {
+        const slotRows = slots
+          .filter((s) => s.starts_at && s.capacity > 0)
+          .map((s) => ({
+            job_id: created.id,
+            starts_at: new Date(s.starts_at).toISOString(),
+            capacity: s.capacity,
+          }));
+        if (slotRows.length) {
+          const { error: sErr } = await supabase.from("interview_slots").insert(slotRows);
+          if (sErr) toast.error(`Job posted, but interview slots failed: ${sErr.message}`);
+        }
       }
 
       const createdRow = created as unknown as { status?: string; spam_score?: number } | null;
@@ -673,6 +692,51 @@ function NewJobPage() {
                   Same-day / quick hire
                 </label>
               </div>
+
+              {form.quick_hire && (
+                <div className="space-y-2 rounded-md border border-border bg-card p-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-semibold text-[color:var(--ink)]">
+                        Phone-screen interview slots
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Applicants will pick a time when they apply. Add a few openings.
+                      </p>
+                    </div>
+                    <Button type="button" variant="outline" size="sm" onClick={addSlot}>
+                      Add slot
+                    </Button>
+                  </div>
+                  {slots.length === 0 && (
+                    <p className="text-xs text-muted-foreground">No slots yet.</p>
+                  )}
+                  {slots.map((s, i) => (
+                    <div key={i} className="flex flex-wrap items-end gap-2">
+                      <div className="min-w-[200px] flex-1 space-y-1">
+                        <Label className="text-xs">Date &amp; time</Label>
+                        <Input
+                          type="datetime-local"
+                          value={s.starts_at}
+                          onChange={(e) => updateSlot(i, { starts_at: e.target.value })}
+                        />
+                      </div>
+                      <div className="w-24 space-y-1">
+                        <Label className="text-xs">Capacity</Label>
+                        <Input
+                          type="number"
+                          min={1}
+                          value={s.capacity}
+                          onChange={(e) => updateSlot(i, { capacity: Math.max(1, Number(e.target.value) || 1) })}
+                        />
+                      </div>
+                      <Button type="button" variant="ghost" size="sm" onClick={() => removeSlot(i)}>
+                        Remove
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
