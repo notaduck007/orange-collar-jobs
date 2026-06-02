@@ -9,3 +9,14 @@
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Row = Record<string, any>;
+
+/** Safely extract a human-readable message from an unknown thrown value. */
+export function errMsg(e: unknown, fallback = "Something went wrong"): string {
+  if (e instanceof Error) return e.message || fallback;
+  if (typeof e === "string") return e;
+  if (e && typeof e === "object" && "message" in e) {
+    const m = (e as { message?: unknown }).message;
+    if (typeof m === "string") return m;
+  }
+  return fallback;
+}
