@@ -45,7 +45,7 @@ serve(async (req) => {
     const allowed = !!isAdmin || !!canImpersonate || !!canSupport;
     if (!allowed) return json(req, { error: "Forbidden" }, 403);
 
-    const body = await req.json(req, ).catch(() => ({}));
+    const body = await req.json().catch(() => ({}));
     const targetId: string | undefined = body.user_id;
     const reason: string | undefined = body.reason;
     const targetLabel: string | undefined = body.target_label;
