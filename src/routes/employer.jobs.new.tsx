@@ -696,6 +696,25 @@ function NewJobPage() {
         </div>
       )}
 
+      {resumeOffer && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-primary/40 bg-[color:var(--primary-tint)] p-3 text-sm text-[color:var(--ink)]">
+          <div>
+            <p className="font-semibold">Resume your draft?</p>
+            <p className="text-xs text-muted-foreground">
+              We found unsaved work from {new Date(resumeOffer.savedAt).toLocaleString()}.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button type="button" size="sm" variant="outline" onClick={discardResume}>
+              Discard
+            </Button>
+            <Button type="button" size="sm" className="btn-primary" onClick={acceptResume}>
+              Restore draft
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Stepper */}
       <ol className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wider">
         {STEPS.map((label, i) => {
