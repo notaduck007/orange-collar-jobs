@@ -98,7 +98,7 @@ function JobsPage() {
         shift: string; employment_type: string;
         pay_min: number | null; pay_max: number | null;
         category: string; featured: boolean;
-        company_name: string | null; company_slug: string | null;
+        company_name: string | null; company_slug: string | null; company_verified: boolean | null;
         total_count: number;
       }>;
       const jobs: JobSummary[] = rows.map((r) => ({
@@ -106,7 +106,7 @@ function JobsPage() {
         shift: r.shift, employment_type: r.employment_type,
         pay_min: r.pay_min, pay_max: r.pay_max, featured: r.featured,
         category: r.category,
-        companies: r.company_name ? { name: r.company_name, slug: r.company_slug ?? "" } : null,
+        companies: r.company_name ? { name: r.company_name, slug: r.company_slug ?? "", verified: r.company_verified } : null,
       }));
       return { jobs, total: rows[0]?.total_count ?? 0, offset: pageParam };
     },
