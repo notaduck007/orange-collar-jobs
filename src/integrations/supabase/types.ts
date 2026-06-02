@@ -431,6 +431,73 @@ export type Database = {
         }
         Relationships: []
       }
+      company_packages: {
+        Row: {
+          company_id: string
+          created_at: string
+          expires_at: string
+          featured_total: number
+          featured_used: number
+          id: string
+          order_id: string | null
+          package_id: string | null
+          posts_total: number
+          posts_used: number
+          purchased_at: string
+          status: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          expires_at: string
+          featured_total?: number
+          featured_used?: number
+          id?: string
+          order_id?: string | null
+          package_id?: string | null
+          posts_total?: number
+          posts_used?: number
+          purchased_at?: string
+          status?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          expires_at?: string
+          featured_total?: number
+          featured_used?: number
+          id?: string
+          order_id?: string | null
+          package_id?: string | null
+          posts_total?: number
+          posts_used?: number
+          purchased_at?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_packages_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_packages_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_packages_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       credit_transactions: {
         Row: {
           company_id: string
@@ -712,6 +779,7 @@ export type Database = {
           certifications_required: string[]
           city: string | null
           company_id: string
+          company_package_id: string | null
           created_at: string
           description: string
           employment_type: Database["public"]["Enums"]["employment_type"]
@@ -749,6 +817,7 @@ export type Database = {
           certifications_required?: string[]
           city?: string | null
           company_id: string
+          company_package_id?: string | null
           created_at?: string
           description: string
           employment_type?: Database["public"]["Enums"]["employment_type"]
@@ -786,6 +855,7 @@ export type Database = {
           certifications_required?: string[]
           city?: string | null
           company_id?: string
+          company_package_id?: string | null
           created_at?: string
           description?: string
           employment_type?: Database["public"]["Enums"]["employment_type"]
@@ -830,6 +900,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jobs_company_package_id_fkey"
+            columns: ["company_package_id"]
+            isOneToOne: false
+            referencedRelation: "company_packages"
             referencedColumns: ["id"]
           },
         ]
@@ -1475,6 +1552,21 @@ export type Database = {
       consume_credit: {
         Args: { _company_id: string; _credit_type: string }
         Returns: boolean
+      }
+      get_active_package: {
+        Args: { p_company_id: string }
+        Returns: {
+          expires_at: string
+          featured_remaining: number
+          featured_total: number
+          featured_used: number
+          id: string
+          package_id: string
+          package_name: string
+          posts_remaining: number
+          posts_total: number
+          posts_used: number
+        }[]
       }
       get_public_settings: { Args: never; Returns: Json }
       grant_credits_for_order: {
