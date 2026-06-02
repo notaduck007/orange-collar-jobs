@@ -8,6 +8,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { useAuth } from "@/lib/auth";
 import { startCheckout } from "@/lib/checkout";
+import crewImage from "@/assets/crew-productive.webp";
 
 type Search = { checkout?: "success" | "cancelled" };
 
@@ -62,8 +63,18 @@ function Pricing() {
     <div className="min-h-screen bg-background">
       <SiteHeader />
 
-      <section className="bg-[color:var(--ink)] py-16 text-white sm:py-20">
-        <div className="mx-auto max-w-4xl px-4 text-center sm:px-6">
+      <section className="relative overflow-hidden bg-[color:var(--ink)] py-16 text-white sm:py-20">
+        <img
+          src={crewImage}
+          alt="Skilled warehouse crew — four diverse workers in hi-vis vests collaborating at a conveyor pick station inside a modern fulfillment center."
+          width={1600}
+          height={1067}
+          loading="lazy"
+          decoding="async"
+          className="absolute inset-0 h-full w-full object-cover opacity-25"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-[color:var(--ink)]/80 via-[color:var(--ink)]/85 to-[color:var(--ink)]" />
+        <div className="relative mx-auto max-w-4xl px-4 text-center sm:px-6">
           <p className="label-caps text-primary">For Employers</p>
           <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">Hire the dock, not the cubicle.</h1>
           <p className="mx-auto mt-4 max-w-2xl text-base text-white/70 sm:text-lg">

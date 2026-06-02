@@ -4,6 +4,7 @@ import { FileText, Bookmark, BellRing, ArrowRight, Sparkles } from "lucide-react
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { JobCard, type JobSummary } from "@/components/job-card";
+import seekerWelcome from "@/assets/seeker-welcome.webp";
 
 export const Route = createFileRoute("/seeker/")({
   head: () => ({ meta: [{ title: "My Dashboard — WarehouseJobs" }] }),
@@ -72,12 +73,23 @@ function SeekerOverview() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <p className="label-caps text-primary">My dashboard</p>
-        <h1 className="mt-1 text-3xl font-bold tracking-tight text-[color:var(--ink)]">Welcome back</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Track your warehouse job search in one place.
-        </p>
+      <div className="flex items-center gap-5 rounded-xl border border-border bg-card p-5">
+        <img
+          src={seekerWelcome}
+          alt="Smiling Latina warehouse worker in a hi-vis vest and beanie in a bright distribution center aisle, ready for the next shift."
+          width={96}
+          height={96}
+          loading="lazy"
+          decoding="async"
+          className="hidden h-20 w-20 shrink-0 rounded-full object-cover ring-2 ring-[color:var(--primary-tint)] sm:block"
+        />
+        <div>
+          <p className="label-caps text-primary">My dashboard</p>
+          <h1 className="mt-1 text-3xl font-bold tracking-tight text-[color:var(--ink)]">Welcome back</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Track your warehouse job search in one place — you've got this.
+          </p>
+        </div>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-4">
@@ -117,13 +129,24 @@ function SeekerOverview() {
         </div>
         <div className="mt-3 divide-y divide-border">
           {recentApps.length === 0 && (
-            <p className="py-6 text-center text-sm text-muted-foreground">
-              No applications yet.{" "}
-              <Link to="/jobs" className="font-semibold text-primary hover:underline">
-                Find a warehouse job
-              </Link>{" "}
-              to get started.
-            </p>
+            <div className="flex flex-col items-center gap-3 py-8 text-center sm:flex-row sm:gap-5 sm:py-6 sm:text-left">
+              <img
+                src={seekerWelcome}
+                alt="Encouraging photo of a warehouse worker smiling in an aisle of pallet racks."
+                width={72}
+                height={72}
+                loading="lazy"
+                decoding="async"
+                className="h-16 w-16 shrink-0 rounded-full object-cover ring-2 ring-[color:var(--primary-tint)]"
+              />
+              <p className="text-sm text-muted-foreground">
+                No applications yet — the right shift is out there.{" "}
+                <Link to="/jobs" className="font-semibold text-primary hover:underline">
+                  Find a warehouse job
+                </Link>{" "}
+                to get started.
+              </p>
+            </div>
           )}
           {recentApps.map((app: any) => (
             <Link
