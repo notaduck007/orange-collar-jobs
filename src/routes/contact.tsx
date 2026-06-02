@@ -46,8 +46,8 @@ function Contact() {
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-16 sm:px-6 md:grid-cols-2">
         <div>
           <p className="label-caps text-primary">Talk to us</p>
-          <h1 className="mt-3 text-4xl font-bold text-[color:var(--ink)]">Get in touch.</h1>
-          <p className="mt-3 text-foreground">Questions about posting, packages, or hiring strategy? We pick up the phone.</p>
+          <h1 className="mt-3 text-4xl font-bold text-[color:var(--ink)]">{page?.title ?? "Get in touch."}</h1>
+          {page?.body && <div className="mt-3 text-foreground"><Markdown>{page.body}</Markdown></div>}
           <ul className="mt-8 space-y-4 text-sm">
             <li className="flex items-start gap-3"><Phone className="mt-0.5 h-5 w-5 text-primary" /> <span><strong>(555) 480-DOCK</strong><br /><span className="text-muted-foreground">Mon–Fri, 7am–7pm CT</span></span></li>
             <li className="flex items-start gap-3"><Mail className="mt-0.5 h-5 w-5 text-primary" /> <span><strong>hiring@dockhire.example</strong></span></li>
