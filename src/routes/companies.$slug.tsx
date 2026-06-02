@@ -78,7 +78,15 @@ function CompanyProfile() {
     },
   });
 
-  if (isLoading) return <div className="p-12 text-center text-sm text-muted-foreground">Loading…</div>;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <SiteHeader />
+        <CompanyProfileSkeleton />
+        <SiteFooter />
+      </div>
+    );
+  }
   if (!company) return null;
 
   return (
