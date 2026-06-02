@@ -33,6 +33,8 @@ const ROUTE_CAPS: { prefix: string; cap: AdminCapability }[] = [
   { prefix: "/admin/jobs", cap: "moderation" },
   { prefix: "/admin/ads", cap: "ads" },
   { prefix: "/admin/packages", cap: "settings" },
+  { prefix: "/admin/categories", cap: "settings" },
+  { prefix: "/admin/content", cap: "settings" },
   { prefix: "/admin/users", cap: "users" },
   { prefix: "/admin/orders", cap: "billing" },
   { prefix: "/admin/billing", cap: "billing" },
