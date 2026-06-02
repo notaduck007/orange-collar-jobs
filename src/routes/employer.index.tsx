@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Briefcase, Users, Package as PackageIcon, Star, Plus, Eye, Pause, Play, Copy, X, Pencil, Sparkles, Rocket, Trash2 } from "lucide-react";
+import { Briefcase, Users, Package as PackageIcon, Star, Plus, Eye, Pause, Play, Copy, X, Pencil, Sparkles, Rocket, Trash2, AlertTriangle, CalendarClock } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -63,17 +63,38 @@ function EmployerDashboard() {
     },
   });
 
-  const { data: activePackage } = useQuery({
-    queryKey: ["active-package", company?.id],
+  const { data: activePackages = [] } = useQuery({
+    queryKey: ["active-packages-all", company?.id],
     enabled: !!company?.id,
     queryFn: async () => {
-      const { data } = await supabase.rpc("get_active_package", { p_company_id: company!.id });
-      const row = Array.isArray(data) ? data[0] : data;
-      return (row as { posts_remaining: number; featured_remaining: number; package_name: string | null; expires_at: string } | undefined) ?? null;
+      const { data } = await supabase
+        .from("company_packages")
+        .select("id, package_id, posts_total, posts_used, featured_total, featured_used, expires_at, packages(name)")
+        .eq("company_id", company!.id)
+        .eq("status", "active")
+        .gt("expires_at", new Date().toISOString())
+        .order("expires_at", { ascending: true });
+      return (data ?? [])
+        .map((cp: any) => ({
+          id: cp.id as string,
+          package_name: (cp.packages?.name as string | null) ?? null,
+          posts_remaining: Math.max((cp.posts_total ?? 0) - (cp.posts_used ?? 0), 0),
+          featured_remaining: Math.max((cp.featured_total ?? 0) - (cp.featured_used ?? 0), 0),
+          expires_at: cp.expires_at as string,
+        }))
+        .filter((p) => p.posts_remaining > 0 || p.featured_remaining > 0);
     },
   });
+  const activePackage = activePackages[0] ?? null;
+  const extraPackages = Math.max(activePackages.length - 1, 0);
   const postingCredits = activePackage?.posts_remaining ?? 0;
   const featuredCredits = activePackage?.featured_remaining ?? 0;
+  const daysToExpiry = activePackage
+    ? Math.ceil((new Date(activePackage.expires_at).getTime() - Date.now()) / 86400_000)
+    : null;
+  const showRenewBanner =
+    !!activePackage && (postingCredits <= 1 || (daysToExpiry !== null && daysToExpiry <= 5));
+  const noPackage = !activePackage;
 
 
   const { data: jobs = [], isLoading } = useQuery({
@@ -224,19 +245,49 @@ function EmployerDashboard() {
           </div>
           <Button onClick={() => navigate({ to: "/employer/jobs/new" })} className="btn-primary gap-1.5">
             <Plus className="h-4 w-4" /> Post a Job
+            {postingCredits === 0 && (
+              <span className="ml-1 rounded bg-[color:var(--hazard)] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[color:var(--ink)]">
+                0 posts left
+              </span>
+            )}
           </Button>
         </header>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {(showRenewBanner || noPackage) && (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[color:var(--hazard)]/40 bg-[color:var(--hazard)]/10 px-4 py-3">
+            <div className="flex items-start gap-2.5">
+              <AlertTriangle className="mt-0.5 h-4 w-4 text-[color:var(--ink)]" />
+              <div className="text-sm">
+                <p className="font-semibold text-[color:var(--ink)]">
+                  {noPackage
+                    ? "No active package"
+                    : postingCredits <= 1 && (daysToExpiry !== null && daysToExpiry <= 5)
+                    ? `${postingCredits} post${postingCredits === 1 ? "" : "s"} left · expires in ${daysToExpiry} day${daysToExpiry === 1 ? "" : "s"}`
+                    : postingCredits <= 1
+                    ? `${postingCredits} post${postingCredits === 1 ? "" : "s"} remaining on your package`
+                    : `Your package expires in ${daysToExpiry} day${daysToExpiry === 1 ? "" : "s"}`}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Renew now to keep posting without interruption.
+                </p>
+              </div>
+            </div>
+            <Button size="sm" className="btn-primary" onClick={() => navigate({ to: "/pricing" })}>
+              Renew
+            </Button>
+          </div>
+        )}
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <StatCard icon={Briefcase} label="Active jobs" value={activeJobs} accent />
           <StatCard icon={Users} label="Total applicants" value={totalApplicants} />
-          <StatCard
-            icon={PackageIcon}
-            label="Posts remaining"
-            value={postingCredits}
-            sub={activePackage?.package_name ?? "No active package"}
+          <PackageCard
+            packageName={activePackage?.package_name ?? null}
+            postsRemaining={postingCredits}
+            featuredRemaining={featuredCredits}
+            expiresAt={activePackage?.expires_at ?? null}
+            extraCount={extraPackages}
           />
-          <StatCard icon={Star} label="Featured upgrades" value={featuredCredits} sub="on active package" />
         </div>
 
 
@@ -355,6 +406,61 @@ function EmployerDashboard() {
         </section>
       </div>
     </TooltipProvider>
+  );
+}
+
+function PackageCard({
+  packageName,
+  postsRemaining,
+  featuredRemaining,
+  expiresAt,
+  extraCount,
+}: {
+  packageName: string | null;
+  postsRemaining: number;
+  featuredRemaining: number;
+  expiresAt: string | null;
+  extraCount: number;
+}) {
+  const expiryLabel = expiresAt
+    ? `Valid until ${new Date(expiresAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}`
+    : null;
+  const empty = !packageName && !expiresAt;
+  return (
+    <div className="rounded-xl border border-border bg-card p-5">
+      <div className="flex items-center justify-between">
+        <p className="label-caps">Active package</p>
+        <PackageIcon className="h-4 w-4 text-muted-foreground" />
+      </div>
+      {empty ? (
+        <>
+          <p className="mt-3 text-base font-semibold text-[color:var(--ink)]">No active package</p>
+          <Link to="/pricing" className="mt-1 inline-block text-xs font-semibold text-primary hover:underline">
+            Browse packages →
+          </Link>
+        </>
+      ) : (
+        <>
+          <p className="mt-3 truncate text-base font-semibold text-[color:var(--ink)]">{packageName ?? "Package"}</p>
+          <div className="mt-2 flex items-baseline gap-4">
+            <div>
+              <p className="text-2xl font-bold tabular-nums text-[color:var(--ink)]">{postsRemaining}</p>
+              <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Posts left</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold tabular-nums text-[color:var(--ink)]">{featuredRemaining}</p>
+              <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Featured</p>
+            </div>
+          </div>
+          {expiryLabel && (
+            <p className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
+              <CalendarClock className="h-3 w-3" /> {expiryLabel}
+              {extraCount > 0 && <span className="ml-1 text-muted-foreground">· +{extraCount} more</span>}
+            </p>
+          )}
+        </>
+      )}
+    </div>
   );
 }
 
