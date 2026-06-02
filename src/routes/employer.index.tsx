@@ -63,17 +63,38 @@ function EmployerDashboard() {
     },
   });
 
-  const { data: activePackage } = useQuery({
-    queryKey: ["active-package", company?.id],
+  const { data: activePackages = [] } = useQuery({
+    queryKey: ["active-packages-all", company?.id],
     enabled: !!company?.id,
     queryFn: async () => {
-      const { data } = await supabase.rpc("get_active_package", { p_company_id: company!.id });
-      const row = Array.isArray(data) ? data[0] : data;
-      return (row as { posts_remaining: number; featured_remaining: number; package_name: string | null; expires_at: string } | undefined) ?? null;
+      const { data } = await supabase
+        .from("company_packages")
+        .select("id, package_id, posts_total, posts_used, featured_total, featured_used, expires_at, packages(name)")
+        .eq("company_id", company!.id)
+        .eq("status", "active")
+        .gt("expires_at", new Date().toISOString())
+        .order("expires_at", { ascending: true });
+      return (data ?? [])
+        .map((cp: any) => ({
+          id: cp.id as string,
+          package_name: (cp.packages?.name as string | null) ?? null,
+          posts_remaining: Math.max((cp.posts_total ?? 0) - (cp.posts_used ?? 0), 0),
+          featured_remaining: Math.max((cp.featured_total ?? 0) - (cp.featured_used ?? 0), 0),
+          expires_at: cp.expires_at as string,
+        }))
+        .filter((p) => p.posts_remaining > 0 || p.featured_remaining > 0);
     },
   });
+  const activePackage = activePackages[0] ?? null;
+  const extraPackages = Math.max(activePackages.length - 1, 0);
   const postingCredits = activePackage?.posts_remaining ?? 0;
   const featuredCredits = activePackage?.featured_remaining ?? 0;
+  const daysToExpiry = activePackage
+    ? Math.ceil((new Date(activePackage.expires_at).getTime() - Date.now()) / 86400_000)
+    : null;
+  const showRenewBanner =
+    !!activePackage && (postingCredits <= 1 || (daysToExpiry !== null && daysToExpiry <= 5));
+  const noPackage = !activePackage;
 
 
   const { data: jobs = [], isLoading } = useQuery({
