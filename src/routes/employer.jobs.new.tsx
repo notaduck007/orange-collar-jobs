@@ -228,8 +228,35 @@ function NewJobPage() {
 
     setSubmitting(true);
     try {
+      // Atomically consume the posting credit first; if it fails, do not insert the job.
+      const { data: postOk, error: postCreditErr } = await supabase.rpc("consume_credit", {
+        _company_id: company.id,
+        _credit_type: "post",
+      });
+      if (postCreditErr) throw postCreditErr;
+      if (!postOk) {
+        toast.error("Out of posting credits.");
+        navigate({ to: "/pricing" });
+        return;
+      }
+
+      let featuredConsumed = false;
+      if (wantsFeatured) {
+        const { data: featOk, error: featErr } = await supabase.rpc("consume_credit", {
+          _company_id: company.id,
+          _credit_type: "featured",
+        });
+        if (featErr) throw featErr;
+        if (!featOk) {
+          toast.error("Out of featured credits — posting as a standard job.");
+        } else {
+          featuredConsumed = true;
+        }
+      }
+
       const slug = uniqueSlug(form.title);
       const expiresAt = new Date(Date.now() + durationDays * 86400_000).toISOString();
+      const featuredUntil = featuredConsumed ? expiresAt : null;
       const { data: created, error } = await supabase.from("jobs").insert({
         company_id: company.id,
         posted_by: user.id,
@@ -248,7 +275,8 @@ function NewJobPage() {
         description: form.description,
         requirements: form.requirements || null,
         status: "active" as never,
-        featured: wantsFeatured,
+        featured: featuredConsumed,
+        featured_until: featuredUntil,
         posted_at: new Date().toISOString(),
         expires_at: expiresAt,
       }).select("id").single();
@@ -269,17 +297,8 @@ function NewJobPage() {
         if (qErr) toast.error(`Job posted, but screening questions failed: ${qErr.message}`);
       }
 
-      const { error: cErr } = await supabase
-        .from("companies")
-        .update({
-          posting_credits: postingCredits - 1,
-          featured_credits: featuredCredits - (wantsFeatured ? 1 : 0),
-        })
-        .eq("id", company.id);
-      if (cErr) throw cErr;
-
       toast.success("Job posted!");
-      qc.invalidateQueries({ queryKey: ["employer-company", user.id] });
+      qc.invalidateQueries({ queryKey: ["company-credits", company.id] });
       qc.invalidateQueries({ queryKey: ["employer-jobs", company.id] });
       navigate({ to: "/employer" });
     } catch (err) {
@@ -288,6 +307,7 @@ function NewJobPage() {
       setSubmitting(false);
     }
   };
+
 
   // Hard block: no credits → redirect-style banner with CTA.
   if (company && !canPost) {
