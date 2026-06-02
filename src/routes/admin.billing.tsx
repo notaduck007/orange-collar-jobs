@@ -17,6 +17,7 @@ import {
 import { DollarSign, Download, RefreshCw, ExternalLink, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { stripeDashboardUrlFor } from "@/lib/stripe-dashboard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
