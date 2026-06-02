@@ -112,7 +112,11 @@ serve(async (req) => {
           .eq("id", existing.id)
           .maybeSingle();
         const email = session.customer_details?.email || session.customer_email;
-        const snap: any = paidOrder?.package_snapshot ?? {};
+        const snap = (paidOrder?.package_snapshot ?? {}) as {
+          name?: string;
+          posting_count?: number;
+          featured_count?: number;
+        };
         const pkgName = snap?.name ?? "Posting package";
         const inv = paidOrder?.invoice_number ?? "—";
         const amount = ((paidOrder?.amount_cents ?? 0) / 100).toFixed(2);
@@ -148,7 +152,7 @@ ${paidOrder?.receipt_url ? `Stripe receipt: ${paidOrder.receipt_url}\n` : ""}Vie
     ) {
       let sessionId: string | null = null;
       let paymentIntentId: string | null = null;
-      const obj: any = event.data.object;
+      const obj = event.data.object as { id: string };
       if (event.type.startsWith("checkout.session")) {
         sessionId = obj.id;
       } else {

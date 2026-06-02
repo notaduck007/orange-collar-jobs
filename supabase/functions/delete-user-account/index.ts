@@ -69,7 +69,7 @@ serve(async (req) => {
     } else {
       // Soft: ban the auth user so they can't sign in
       try {
-        await admin.auth.admin.updateUserById(targetId, { ban_duration: "876000h" } as any);
+        await admin.auth.admin.updateUserById(targetId, { ban_duration: "876000h" });
       } catch (_) {
         /* ignore */
       }

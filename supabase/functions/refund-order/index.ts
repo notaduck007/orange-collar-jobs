@@ -138,14 +138,18 @@ serve(async (req) => {
     });
 
     // Notify company owner
-    const ownerId = (order as any).companies?.owner_id;
+    const orderWithRels = order as typeof order & {
+      companies?: { owner_id?: string } | null;
+      packages?: { name?: string } | null;
+    };
+    const ownerId = orderWithRels.companies?.owner_id;
     if (ownerId) {
       await admin.from("notifications").insert({
         user_id: ownerId,
         sender_id: actorId,
         type: "billing",
         title: "Refund issued",
-        body: `Your order for ${(order as any).packages?.name ?? "a package"} ($${((order.amount_cents ?? 0) / 100).toFixed(2)}) has been refunded. ${reason}`,
+        body: `Your order for ${orderWithRels.packages?.name ?? "a package"} ($${((order.amount_cents ?? 0) / 100).toFixed(2)}) has been refunded. ${reason}`,
         link: "/employer/billing",
       });
     }

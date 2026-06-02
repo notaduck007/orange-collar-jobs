@@ -69,7 +69,7 @@ serve(async (req) => {
         email: u.user?.email ?? null,
         email_confirmed_at: u.user?.email_confirmed_at ?? null,
         last_sign_in_at: u.user?.last_sign_in_at ?? null,
-        banned_until: (u.user as any)?.banned_until ?? null,
+        banned_until: (u.user as { banned_until?: string | null })?.banned_until ?? null,
         created_at: u.user?.created_at ?? null,
       });
     }
@@ -85,7 +85,7 @@ serve(async (req) => {
       case "suspend": {
         const { error } = await admin.auth.admin.updateUserById(targetId, {
           ban_duration: "876000h", // ~100 years
-        } as any);
+        });
         if (error) return json(req, { error: error.message }, 400);
         await admin.from("profiles").update({ active: false }).eq("id", targetId);
         metadata = { reason: body.reason ?? null };
@@ -94,7 +94,7 @@ serve(async (req) => {
       case "reactivate": {
         const { error } = await admin.auth.admin.updateUserById(targetId, {
           ban_duration: "none",
-        } as any);
+        });
         if (error) return json(req, { error: error.message }, 400);
         await admin.from("profiles").update({ active: true }).eq("id", targetId);
         break;
@@ -108,7 +108,7 @@ serve(async (req) => {
       }
       case "resend_verification": {
         if (!targetEmail) return json(req, { error: "user has no email" }, 400);
-        const { error } = await admin.auth.resend({ type: "signup", email: targetEmail } as any);
+        const { error } = await admin.auth.resend({ type: "signup", email: targetEmail });
         if (error) return json(req, { error: error.message }, 400);
         metadata = { email: targetEmail };
         break;

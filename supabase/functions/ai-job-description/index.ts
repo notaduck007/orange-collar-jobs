@@ -10,7 +10,20 @@ const cors = {
 const SECTION_MARKER = "===DESCRIPTION===";
 const REQ_MARKER = "===REQUIREMENTS===";
 
-function buildPrompt(p: any) {
+type PromptInput = {
+  mode?: string;
+  title?: string;
+  category?: string;
+  shift?: string;
+  pay_min?: number | string;
+  pay_max?: number | string;
+  pay_unit?: string;
+  location?: string;
+  draft_description?: string;
+  draft_requirements?: string;
+};
+
+function buildPrompt(p: PromptInput) {
   const facts = [
     p.title && `Job title: ${p.title}`,
     p.category && `Category: ${p.category}`,
