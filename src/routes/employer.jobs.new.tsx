@@ -354,6 +354,20 @@ function NewJobPage() {
         if (qErr) toast.error(`Job posted, but screening questions failed: ${qErr.message}`);
       }
 
+      if (created && form.quick_hire && slots.length) {
+        const slotRows = slots
+          .filter((s) => s.starts_at && s.capacity > 0)
+          .map((s) => ({
+            job_id: created.id,
+            starts_at: new Date(s.starts_at).toISOString(),
+            capacity: s.capacity,
+          }));
+        if (slotRows.length) {
+          const { error: sErr } = await supabase.from("interview_slots").insert(slotRows);
+          if (sErr) toast.error(`Job posted, but interview slots failed: ${sErr.message}`);
+        }
+      }
+
       const createdRow = created as unknown as { status?: string; spam_score?: number } | null;
       if (createdRow?.status === "pending_review") {
         toast.warning(
