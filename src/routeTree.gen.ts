@@ -41,6 +41,7 @@ import { Route as AdminOrdersRouteImport } from './routes/admin.orders'
 import { Route as AdminModerationRouteImport } from './routes/admin.moderation'
 import { Route as AdminJobsRouteImport } from './routes/admin.jobs'
 import { Route as AdminCompaniesRouteImport } from './routes/admin.companies'
+import { Route as AdminBillingRouteImport } from './routes/admin.billing'
 import { Route as AdminAdsRouteImport } from './routes/admin.ads'
 import { Route as EmployerJobsNewRouteImport } from './routes/employer.jobs.new'
 import { Route as EmployerJobsIdEditRouteImport } from './routes/employer.jobs.$id.edit'
@@ -206,6 +207,11 @@ const AdminCompaniesRoute = AdminCompaniesRouteImport.update({
   path: '/companies',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminBillingRoute = AdminBillingRouteImport.update({
+  id: '/billing',
+  path: '/billing',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminAdsRoute = AdminAdsRouteImport.update({
   id: '/ads',
   path: '/ads',
@@ -241,6 +247,7 @@ export interface FileRoutesByFullPath {
   '/seeker': typeof SeekerRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/ads': typeof AdminAdsRoute
+  '/admin/billing': typeof AdminBillingRoute
   '/admin/companies': typeof AdminCompaniesRoute
   '/admin/jobs': typeof AdminJobsRoute
   '/admin/moderation': typeof AdminModerationRoute
@@ -276,6 +283,7 @@ export interface FileRoutesByTo {
   '/pricing': typeof PricingRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/ads': typeof AdminAdsRoute
+  '/admin/billing': typeof AdminBillingRoute
   '/admin/companies': typeof AdminCompaniesRoute
   '/admin/jobs': typeof AdminJobsRoute
   '/admin/moderation': typeof AdminModerationRoute
@@ -315,6 +323,7 @@ export interface FileRoutesById {
   '/seeker': typeof SeekerRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/ads': typeof AdminAdsRoute
+  '/admin/billing': typeof AdminBillingRoute
   '/admin/companies': typeof AdminCompaniesRoute
   '/admin/jobs': typeof AdminJobsRoute
   '/admin/moderation': typeof AdminModerationRoute
@@ -355,6 +364,7 @@ export interface FileRouteTypes {
     | '/seeker'
     | '/sitemap.xml'
     | '/admin/ads'
+    | '/admin/billing'
     | '/admin/companies'
     | '/admin/jobs'
     | '/admin/moderation'
@@ -390,6 +400,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/sitemap.xml'
     | '/admin/ads'
+    | '/admin/billing'
     | '/admin/companies'
     | '/admin/jobs'
     | '/admin/moderation'
@@ -428,6 +439,7 @@ export interface FileRouteTypes {
     | '/seeker'
     | '/sitemap.xml'
     | '/admin/ads'
+    | '/admin/billing'
     | '/admin/companies'
     | '/admin/jobs'
     | '/admin/moderation'
@@ -695,6 +707,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCompaniesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/billing': {
+      id: '/admin/billing'
+      path: '/billing'
+      fullPath: '/admin/billing'
+      preLoaderRoute: typeof AdminBillingRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/ads': {
       id: '/admin/ads'
       path: '/ads'
@@ -728,6 +747,7 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminAdsRoute: typeof AdminAdsRoute
+  AdminBillingRoute: typeof AdminBillingRoute
   AdminCompaniesRoute: typeof AdminCompaniesRoute
   AdminJobsRoute: typeof AdminJobsRoute
   AdminModerationRoute: typeof AdminModerationRoute
@@ -739,6 +759,7 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAdsRoute: AdminAdsRoute,
+  AdminBillingRoute: AdminBillingRoute,
   AdminCompaniesRoute: AdminCompaniesRoute,
   AdminJobsRoute: AdminJobsRoute,
   AdminModerationRoute: AdminModerationRoute,
