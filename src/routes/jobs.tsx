@@ -251,13 +251,14 @@ function JobsPage() {
               {search.q && <span className="text-muted-foreground"> for "{search.q}"</span>}
             </h1>
             <div className="flex flex-wrap items-center gap-2">
-              <label className="text-xs text-muted-foreground">Min pay</label>
+              <label htmlFor="filter-pay" className="text-xs text-muted-foreground">Min pay</label>
               <select
+                id="filter-pay"
                 value={search.pay_min ?? ""}
                 onChange={(e) =>
                   updateSearch({ pay_min: e.target.value ? Number(e.target.value) : undefined })
                 }
-                className="rounded-md border border-border bg-card px-2 py-1 text-xs font-medium text-[color:var(--ink)]"
+                className="rounded-md border border-border bg-card px-2 py-1 text-xs font-medium text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 <option value="">Any</option>
                 <option value="15">$15+/hr</option>
@@ -267,26 +268,28 @@ function JobsPage() {
                 <option value="22">$22+/hr</option>
                 <option value="25">$25+/hr</option>
               </select>
-              <label className="ml-2 text-xs text-muted-foreground">Within</label>
+              <label htmlFor="filter-radius" className="ml-2 text-xs text-muted-foreground">Within</label>
               <select
+                id="filter-radius"
                 value={search.radius ?? ""}
                 onChange={(e) =>
                   updateSearch({ radius: e.target.value ? Number(e.target.value) : undefined })
                 }
                 disabled={!search.loc}
                 title={search.loc ? "Search radius around location" : "Enter a location to enable radius"}
-                className="rounded-md border border-border bg-card px-2 py-1 text-xs font-medium text-[color:var(--ink)] disabled:opacity-50"
+                className="rounded-md border border-border bg-card px-2 py-1 text-xs font-medium text-[color:var(--ink)] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 <option value="">Any distance</option>
                 {RADIUS_OPTIONS.map((r) => (
                   <option key={r} value={r}>{r} miles</option>
                 ))}
               </select>
-              <label className="ml-2 text-xs text-muted-foreground">Sort</label>
+              <label htmlFor="filter-sort" className="ml-2 text-xs text-muted-foreground">Sort</label>
               <select
+                id="filter-sort"
                 value={sort}
                 onChange={(e) => updateSearch({ sort: e.target.value as "relevance" | "date" | "pay_high" })}
-                className="rounded-md border border-border bg-card px-2 py-1 text-xs font-medium text-[color:var(--ink)]"
+                className="rounded-md border border-border bg-card px-2 py-1 text-xs font-medium text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 {SORTS.map((s) => (
                   <option key={s.value} value={s.value}>{s.label}</option>
@@ -294,7 +297,7 @@ function JobsPage() {
               </select>
               {hasActiveSearch && (
                 <Button variant="outline" size="sm" onClick={createAlertFromSearch} className="gap-1.5">
-                  <BellRing className="h-4 w-4 text-primary" /> Get alerts for this search
+                  <BellRing className="h-4 w-4 text-primary" aria-hidden="true" /> Get alerts for this search
                 </Button>
               )}
             </div>
