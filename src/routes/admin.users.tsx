@@ -291,11 +291,12 @@ function AdminUsers() {
 
       <UserDrawer
         userId={openUserId}
+        rolesCatalog={rolesCatalog}
         onOpenChange={(o) => !o && setOpenUserId(null)}
         onSuspend={(id, active) => toggleActive(id, active)}
         onReset={(id) => sendReset(id)}
         onResend={(id) => resendVerify(id)}
-        onToggleRole={(id, r, has) => toggleRole(id, r, has)}
+        onToggleRole={(id, roleId, has) => toggleRoleById(id, roleId, has)}
       />
 
     </div>
