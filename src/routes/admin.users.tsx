@@ -32,11 +32,14 @@ type Row = {
   location: string | null;
   active: boolean;
   created_at: string;
-  role: AppRole;
+  roles: AppRole[];
 };
+
+const ALL_ROLES: AppRole[] = ["admin", "employer", "job_seeker"];
 
 function AdminUsers() {
   const qc = useQueryClient();
+  const { user: me } = useAuth();
   const { can, loading: permsLoading } = useAdminPermissions();
   const [q, setQ] = useState("");
   const [roleFilter, setRoleFilter] = useState<"all" | AppRole>("all");
@@ -59,7 +62,7 @@ function AdminUsers() {
       return (data ?? []).map((u): Row => {
         const rf = u.user_roles as unknown;
         const arr = Array.isArray(rf) ? (rf as Array<{ role: AppRole }>) : rf ? [rf as { role: AppRole }] : [];
-        return { ...u, role: (arr[0]?.role ?? "job_seeker") as AppRole };
+        return { ...u, roles: arr.map((r) => r.role) };
       });
     },
   });
@@ -72,13 +75,14 @@ function AdminUsers() {
       return d;
     })();
     return users.filter((u) => {
-      if (roleFilter !== "all" && u.role !== roleFilter) return false;
+      if (roleFilter !== "all" && !u.roles.includes(roleFilter)) return false;
       if (statusFilter === "active" && !u.active) return false;
       if (statusFilter === "suspended" && u.active) return false;
       if (cutoff && new Date(u.created_at) < cutoff) return false;
       return true;
     });
   }, [users, roleFilter, statusFilter, signedFilter]);
+
 
   const invokeAction = async (payload: Record<string, unknown>, successMsg: string) => {
     const { data, error } = await supabase.functions.invoke("admin-user-actions", { body: payload });
