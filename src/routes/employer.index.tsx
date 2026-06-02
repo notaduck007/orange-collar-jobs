@@ -203,41 +203,48 @@ function EmployerDashboard() {
       navigate({ to: "/pricing" });
       return;
     }
-    const { data: ok, error: credErr } = await supabase.rpc("consume_credit", {
-      _company_id: company.id,
-      _credit_type: "post",
-    });
-    if (credErr) return toast.error(credErr.message);
-    if (!ok) {
-      toast.error("Out of posting credits.");
-      navigate({ to: "/pricing" });
-      return;
-    }
     const newSlug = uniqueSlug(job.title);
-    const { error: jobErr } = await supabase.from("jobs").insert({
-      company_id: company.id,
-      posted_by: user.id,
-      title: job.title,
-      slug: newSlug,
-      category: job.category,
-      shift: job.shift as never,
-      employment_type: job.employment_type as never,
-      pay_min: job.pay_min,
-      pay_max: job.pay_max,
-      pay_period: job.pay_period,
-      location: job.location,
-      city: job.city,
-      state: job.state,
-      zip: job.zip,
-      description: job.description,
-      requirements: job.requirements,
-      status: "active",
-      featured: false,
-      expires_at: new Date(Date.now() + 30 * 86400_000).toISOString(),
+    const { data: inserted, error: jobErr } = await supabase
+      .from("jobs")
+      .insert({
+        company_id: company.id,
+        posted_by: user.id,
+        title: job.title,
+        slug: newSlug,
+        category: job.category,
+        shift: job.shift as never,
+        employment_type: job.employment_type as never,
+        pay_min: job.pay_min,
+        pay_max: job.pay_max,
+        pay_period: job.pay_period,
+        location: job.location,
+        city: job.city,
+        state: job.state,
+        zip: job.zip,
+        description: job.description,
+        requirements: job.requirements,
+        status: "draft",
+        featured: false,
+      })
+      .select("id")
+      .single();
+    if (jobErr || !inserted) return toast.error(jobErr?.message ?? "Could not duplicate job");
+    const { error: publishErr } = await supabase.rpc("consume_post_and_publish", {
+      _job_id: inserted.id,
+      _company_id: company.id,
+      _want_featured: false,
     });
-    if (jobErr) return toast.error(jobErr.message);
+    if (publishErr) {
+      await supabase.from("jobs").delete().eq("id", inserted.id).eq("status", "draft");
+      if (publishErr.message?.includes("no_active_package")) {
+        toast.error("Out of posting credits — buy a package to re-post.");
+        navigate({ to: "/pricing" });
+        return;
+      }
+      return toast.error(publishErr.message);
+    }
     toast.success("Job duplicated and re-posted");
-    qc.invalidateQueries({ queryKey: ["company-credits", company.id] });
+    qc.invalidateQueries({ queryKey: ["active-packages-all", company.id] });
     refresh();
   };
 
@@ -252,24 +259,20 @@ function EmployerDashboard() {
       navigate({ to: "/pricing" });
       return;
     }
-    const { data: ok, error: credErr } = await supabase.rpc("consume_credit", {
+    const { error } = await supabase.rpc("feature_existing_job", {
+      _job_id: job.id,
       _company_id: company.id,
-      _credit_type: "featured",
     });
-    if (credErr) return toast.error(credErr.message);
-    if (!ok) {
-      toast.error("Out of featured credits.");
-      navigate({ to: "/pricing" });
-      return;
+    if (error) {
+      if (error.message?.includes("no_featured_remaining")) {
+        toast.error("Out of featured credits — buy a package to upgrade.");
+        navigate({ to: "/pricing" });
+        return;
+      }
+      return toast.error(error.message);
     }
-    const featuredUntil = job.expires_at ?? new Date(Date.now() + 30 * 86400_000).toISOString();
-    const { error } = await supabase
-      .from("jobs")
-      .update({ featured: true, featured_until: featuredUntil })
-      .eq("id", job.id);
-    if (error) return toast.error(error.message);
     toast.success("Job marked as featured");
-    qc.invalidateQueries({ queryKey: ["company-credits", company.id] });
+    qc.invalidateQueries({ queryKey: ["active-packages-all", company.id] });
     refresh();
   };
 
