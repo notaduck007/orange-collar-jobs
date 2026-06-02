@@ -7,12 +7,13 @@ export type AdminCapability = "moderation" | "billing" | "users" | "settings" | 
  * permission keys grants the capability. */
 const CAPABILITY_KEYS: Record<AdminCapability, string[]> = {
   moderation: ["moderation.manage", "jobs.moderate"],
-  billing: ["orders.refund", "orders.edit_any", "orders.view_all"],
-  users: ["users.view_all", "users.manage_roles", "users.suspend", "users.delete"],
+  billing: ["orders.view_all", "orders.refund", "orders.edit_any", "packages.manage"],
+  users: ["users.view_all", "users.manage_roles", "users.suspend"],
   settings: ["settings.manage"],
   ads: ["ads.manage"],
-  support: ["users.view_all", "users.suspend", "users.delete"],
+  support: ["moderation.manage", "support.manage"],
 };
+
 
 const ALL_CAPS: AdminCapability[] = [
   "moderation",
