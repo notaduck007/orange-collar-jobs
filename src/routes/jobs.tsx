@@ -87,6 +87,7 @@ function JobsPage() {
     queryKey: ["jobs-search", search, sort],
     initialPageParam: 0,
     queryFn: async ({ pageParam }) => {
+      const certsArr = search.certs ? search.certs.split(",").filter(Boolean) : null;
       const { data, error } = await supabase.rpc("search_jobs", {
         p_query: search.q ?? null,
         p_location: search.loc ?? null,
@@ -98,7 +99,13 @@ function JobsPage() {
         p_sort: sort,
         p_limit: PAGE_SIZE,
         p_offset: pageParam,
-      });
+        p_temperature_env: search.temp ?? null,
+        p_certifications: certsArr && certsArr.length ? certsArr : null,
+        p_weekly_pay: search.weekly_pay ? true : null,
+        p_quick_hire: search.quick_hire ? true : null,
+        p_overtime: search.overtime ? true : null,
+        p_max_lift: search.max_lift ?? null,
+      } as never);
       if (error) throw error;
       const rows = (data ?? []) as Array<{
         id: string; slug: string; title: string; location: string;
@@ -106,6 +113,9 @@ function JobsPage() {
         pay_min: number | null; pay_max: number | null;
         category: string; featured: boolean;
         company_name: string | null; company_slug: string | null; company_verified: boolean | null;
+        temperature_env: string | null; certifications_required: string[] | null;
+        weekly_pay: boolean | null; quick_hire: boolean | null;
+        overtime_available: boolean | null; lift_requirement_lbs: number | null;
         total_count: number;
       }>;
       const jobs: JobSummary[] = rows.map((r) => ({
@@ -114,6 +124,12 @@ function JobsPage() {
         pay_min: r.pay_min, pay_max: r.pay_max, featured: r.featured,
         category: r.category,
         companies: r.company_name ? { name: r.company_name, slug: r.company_slug ?? "", verified: r.company_verified } : null,
+        temperature_env: r.temperature_env,
+        certifications_required: r.certifications_required,
+        weekly_pay: r.weekly_pay,
+        quick_hire: r.quick_hire,
+        overtime_available: r.overtime_available,
+        lift_requirement_lbs: r.lift_requirement_lbs,
       }));
       return { jobs, total: rows[0]?.total_count ?? 0, offset: pageParam };
     },
