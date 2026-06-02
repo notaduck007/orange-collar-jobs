@@ -18,6 +18,7 @@ import type { Database } from "@/integrations/supabase/types";
 
 
 type AppRole = Database["public"]["Enums"]["app_role"];
+type RoleRef = { id: string; key: string; name: string; is_system: boolean };
 
 export const Route = createFileRoute("/admin/users")({
   head: () => ({ meta: [{ title: "Users — WarehouseJobs Admin" }] }),
@@ -32,10 +33,8 @@ type Row = {
   location: string | null;
   active: boolean;
   created_at: string;
-  roles: AppRole[];
+  roles: RoleRef[];
 };
-
-const ALL_ROLES: AppRole[] = ["admin", "employer", "job_seeker"];
 
 function AdminUsers() {
   const qc = useQueryClient();
