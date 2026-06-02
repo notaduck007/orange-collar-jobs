@@ -1,57 +1,62 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { LayoutDashboard, Building2, Briefcase, Package, Megaphone, Users, Receipt, ShieldCheck } from "lucide-react";
+import { LayoutDashboard, Building2, Briefcase, Package, Megaphone, Users, Receipt, ShieldCheck, Flag, FileText, Settings } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { useAuth } from "@/lib/auth";
-import { useAdminPermissions, type AdminCapability } from "@/lib/admin-permissions";
+import { useHasAnyAdminAccess, type PermissionKey } from "@/lib/permissions";
 
 export const Route = createFileRoute("/admin")({
   component: AdminLayout,
 });
 
-type NavItem = { to: string; icon: typeof LayoutDashboard; label: string; exact?: boolean; cap?: AdminCapability };
+type NavItem = { to: string; icon: typeof LayoutDashboard; label: string; exact?: boolean; perm?: PermissionKey };
 
 const NAV: NavItem[] = [
   { to: "/admin", icon: LayoutDashboard, label: "Dashboard", exact: true },
-  { to: "/admin/users", icon: Users, label: "Users", cap: "users" },
-  { to: "/admin/companies", icon: Building2, label: "Companies", cap: "moderation" },
-  { to: "/admin/jobs", icon: Briefcase, label: "Jobs", cap: "moderation" },
-  { to: "/admin/ads", icon: Megaphone, label: "Advertisements", cap: "ads" },
-  { to: "/admin/packages", icon: Package, label: "Packages", cap: "settings" },
-  { to: "/admin/orders", icon: Receipt, label: "Orders", cap: "billing" },
+  { to: "/admin/users", icon: Users, label: "Users", perm: "users.view_all" },
+  { to: "/admin/companies", icon: Building2, label: "Companies", perm: "companies.view_all" },
+  { to: "/admin/jobs", icon: Briefcase, label: "Jobs", perm: "jobs.moderate" },
+  { to: "/admin/moderation", icon: Flag, label: "Moderation", perm: "moderation.manage" },
+  { to: "/admin/ads", icon: Megaphone, label: "Advertisements", perm: "ads.manage" },
+  { to: "/admin/packages", icon: Package, label: "Packages", perm: "packages.manage" },
+  { to: "/admin/orders", icon: Receipt, label: "Orders", perm: "orders.view_all" },
+  { to: "/admin/content", icon: FileText, label: "Content", perm: "settings.manage" },
+  { to: "/admin/settings", icon: Settings, label: "Settings", perm: "settings.manage" },
 ];
 
-// Route → required capability (for runtime guard)
-const ROUTE_CAPS: { prefix: string; cap: AdminCapability }[] = [
-  { prefix: "/admin/moderation", cap: "moderation" },
-  { prefix: "/admin/companies", cap: "moderation" },
-  { prefix: "/admin/jobs", cap: "moderation" },
-  { prefix: "/admin/ads", cap: "ads" },
-  { prefix: "/admin/packages", cap: "settings" },
-  { prefix: "/admin/categories", cap: "settings" },
-  { prefix: "/admin/content", cap: "settings" },
-  { prefix: "/admin/users", cap: "users" },
-  { prefix: "/admin/support", cap: "support" },
-  { prefix: "/admin/orders", cap: "billing" },
-  { prefix: "/admin/billing", cap: "billing" },
-  { prefix: "/admin/settings", cap: "settings" },
+// Route → required permission (for runtime guard). Admin role bypasses all.
+const ROUTE_PERMS: { prefix: string; perm: PermissionKey }[] = [
+  { prefix: "/admin/moderation", perm: "moderation.manage" },
+  { prefix: "/admin/companies", perm: "companies.view_all" },
+  { prefix: "/admin/jobs", perm: "jobs.moderate" },
+  { prefix: "/admin/ads", perm: "ads.manage" },
+  { prefix: "/admin/packages", perm: "packages.manage" },
+  { prefix: "/admin/categories", perm: "settings.manage" },
+  { prefix: "/admin/content", perm: "settings.manage" },
+  { prefix: "/admin/users", perm: "users.view_all" },
+  { prefix: "/admin/support", perm: "moderation.manage" },
+  { prefix: "/admin/orders", perm: "orders.view_all" },
+  { prefix: "/admin/billing", perm: "orders.view_all" },
+  { prefix: "/admin/settings", perm: "settings.manage" },
 ];
-
 
 function AdminLayout() {
-  const { user, role, loading } = useAuth();
+  const { user, role, permissions, loading } = useAuth();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const { loading: permsLoading, level, can } = useAdminPermissions();
+  const hasAnyAccess = useHasAnyAdminAccess();
+  const isAdmin = role === "admin";
+
+  const can = (perm?: PermissionKey) => !perm || isAdmin || permissions.includes(perm);
 
   useEffect(() => {
     if (loading) return;
     if (!user) navigate({ to: "/auth", search: { mode: "login", next: pathname } as never });
-    else if (role && role !== "admin") navigate({ to: "/" });
-  }, [user, role, loading, navigate, pathname]);
+    else if (!hasAnyAccess) navigate({ to: "/" });
+  }, [user, hasAnyAccess, loading, navigate, pathname]);
 
-  if (loading || permsLoading || !user || role !== "admin") {
+  if (loading || !user || !hasAnyAccess) {
     return (
       <div className="min-h-screen bg-background">
         <SiteHeader />
@@ -60,8 +65,8 @@ function AdminLayout() {
     );
   }
 
-  const requiredCap = ROUTE_CAPS.find((r) => pathname.startsWith(r.prefix))?.cap;
-  const blocked = requiredCap && !can(requiredCap);
+  const requiredPerm = ROUTE_PERMS.find((r) => pathname.startsWith(r.prefix))?.perm;
+  const blocked = requiredPerm && !can(requiredPerm);
 
   return (
     <div className="min-h-screen bg-background">
@@ -71,12 +76,10 @@ function AdminLayout() {
           <p className="label-caps mb-2 inline-flex items-center gap-1.5">
             <ShieldCheck className="h-3.5 w-3.5 text-primary" /> Admin
           </p>
-          {level && (
-            <p className="mb-3 text-[10px] uppercase tracking-wider text-muted-foreground">
-              Level: <span className="font-semibold text-foreground">{level.replace("_", " ")}</span>
-            </p>
-          )}
-          {NAV.filter((n) => !n.cap || can(n.cap)).map((n) => (
+          <p className="mb-3 text-[10px] uppercase tracking-wider text-muted-foreground">
+            {isAdmin ? <>Role: <span className="font-semibold text-foreground">Administrator</span></> : <>{permissions.length} permission{permissions.length === 1 ? "" : "s"}</>}
+          </p>
+          {NAV.filter((n) => can(n.perm)).map((n) => (
             <SideLink key={n.to} to={n.to} icon={n.icon} label={n.label} exact={n.exact} />
           ))}
         </aside>
@@ -88,8 +91,8 @@ function AdminLayout() {
                 You don't have access to this section
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Requires the <span className="font-semibold">{requiredCap}</span> capability.
-                Ask a super admin to update your permissions.
+                Requires the <span className="font-semibold">{requiredPerm}</span> permission.
+                Ask an administrator to grant it.
               </p>
             </div>
           ) : (
