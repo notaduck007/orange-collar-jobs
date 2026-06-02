@@ -647,6 +647,7 @@ export type Database = {
         Row: {
           category: string
           category_id: number | null
+          certifications_required: string[]
           city: string | null
           company_id: string
           created_at: string
@@ -657,13 +658,16 @@ export type Database = {
           featured_until: string | null
           id: string
           lat: number | null
+          lift_requirement_lbs: number | null
           lng: number | null
           location: string
+          overtime_available: boolean
           pay_max: number | null
           pay_min: number | null
           pay_period: string | null
           posted_at: string
           posted_by: string | null
+          quick_hire: boolean
           requirements: string | null
           search_vector: unknown
           shift: Database["public"]["Enums"]["job_shift"]
@@ -671,13 +675,16 @@ export type Database = {
           spam_score: number
           state: string | null
           status: Database["public"]["Enums"]["job_status"]
+          temperature_env: string | null
           title: string
           views: number
+          weekly_pay: boolean
           zip: string | null
         }
         Insert: {
           category: string
           category_id?: number | null
+          certifications_required?: string[]
           city?: string | null
           company_id: string
           created_at?: string
@@ -688,13 +695,16 @@ export type Database = {
           featured_until?: string | null
           id?: string
           lat?: number | null
+          lift_requirement_lbs?: number | null
           lng?: number | null
           location: string
+          overtime_available?: boolean
           pay_max?: number | null
           pay_min?: number | null
           pay_period?: string | null
           posted_at?: string
           posted_by?: string | null
+          quick_hire?: boolean
           requirements?: string | null
           search_vector?: unknown
           shift?: Database["public"]["Enums"]["job_shift"]
@@ -702,13 +712,16 @@ export type Database = {
           spam_score?: number
           state?: string | null
           status?: Database["public"]["Enums"]["job_status"]
+          temperature_env?: string | null
           title: string
           views?: number
+          weekly_pay?: boolean
           zip?: string | null
         }
         Update: {
           category?: string
           category_id?: number | null
+          certifications_required?: string[]
           city?: string | null
           company_id?: string
           created_at?: string
@@ -719,13 +732,16 @@ export type Database = {
           featured_until?: string | null
           id?: string
           lat?: number | null
+          lift_requirement_lbs?: number | null
           lng?: number | null
           location?: string
+          overtime_available?: boolean
           pay_max?: number | null
           pay_min?: number | null
           pay_period?: string | null
           posted_at?: string
           posted_by?: string | null
+          quick_hire?: boolean
           requirements?: string | null
           search_vector?: unknown
           shift?: Database["public"]["Enums"]["job_shift"]
@@ -733,8 +749,10 @@ export type Database = {
           spam_score?: number
           state?: string | null
           status?: Database["public"]["Enums"]["job_status"]
+          temperature_env?: string | null
           title?: string
           views?: number
+          weekly_pay?: boolean
           zip?: string | null
         }
         Relationships: [
@@ -1439,40 +1457,87 @@ export type Database = {
           title: string
         }[]
       }
-      search_jobs: {
-        Args: {
-          p_category?: string
-          p_limit?: number
-          p_location?: string
-          p_offset?: number
-          p_pay_min?: number
-          p_query?: string
-          p_radius_miles?: number
-          p_shift?: string
-          p_sort?: string
-          p_type?: string
-        }
-        Returns: {
-          category: string
-          company_name: string
-          company_slug: string
-          company_verified: boolean
-          created_at: string
-          distance_miles: number
-          employment_type: Database["public"]["Enums"]["employment_type"]
-          featured: boolean
-          id: string
-          location: string
-          pay_max: number
-          pay_min: number
-          pay_period: string
-          rank: number
-          shift: Database["public"]["Enums"]["job_shift"]
-          slug: string
-          title: string
-          total_count: number
-        }[]
-      }
+      search_jobs:
+        | {
+            Args: {
+              p_category?: string
+              p_limit?: number
+              p_location?: string
+              p_offset?: number
+              p_pay_min?: number
+              p_query?: string
+              p_radius_miles?: number
+              p_shift?: string
+              p_sort?: string
+              p_type?: string
+            }
+            Returns: {
+              category: string
+              company_name: string
+              company_slug: string
+              company_verified: boolean
+              created_at: string
+              distance_miles: number
+              employment_type: Database["public"]["Enums"]["employment_type"]
+              featured: boolean
+              id: string
+              location: string
+              pay_max: number
+              pay_min: number
+              pay_period: string
+              rank: number
+              shift: Database["public"]["Enums"]["job_shift"]
+              slug: string
+              title: string
+              total_count: number
+            }[]
+          }
+        | {
+            Args: {
+              p_category?: string
+              p_certifications?: string[]
+              p_limit?: number
+              p_location?: string
+              p_max_lift?: number
+              p_offset?: number
+              p_overtime?: boolean
+              p_pay_min?: number
+              p_query?: string
+              p_quick_hire?: boolean
+              p_radius_miles?: number
+              p_shift?: string
+              p_sort?: string
+              p_temperature_env?: string
+              p_type?: string
+              p_weekly_pay?: boolean
+            }
+            Returns: {
+              category: string
+              certifications_required: string[]
+              company_name: string
+              company_slug: string
+              company_verified: boolean
+              created_at: string
+              distance_miles: number
+              employment_type: Database["public"]["Enums"]["employment_type"]
+              featured: boolean
+              id: string
+              lift_requirement_lbs: number
+              location: string
+              overtime_available: boolean
+              pay_max: number
+              pay_min: number
+              pay_period: string
+              quick_hire: boolean
+              rank: number
+              shift: Database["public"]["Enums"]["job_shift"]
+              slug: string
+              temperature_env: string
+              title: string
+              total_count: number
+              weekly_pay: boolean
+            }[]
+          }
     }
     Enums: {
       ad_placement: "home_banner" | "search_inline" | "job_sidebar"

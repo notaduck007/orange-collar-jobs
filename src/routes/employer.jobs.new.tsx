@@ -168,6 +168,12 @@ function NewJobPage() {
     pay_max: "",
     pay_period: "hour" as "hour" | "year",
     feature_it: false,
+    temperature_env: "" as "" | "ambient" | "cooler" | "freezer",
+    certifications_required: [] as string[],
+    lift_requirement_lbs: "",
+    overtime_available: false,
+    weekly_pay: false,
+    quick_hire: false,
   });
 
   // Prefill city/state from company on first render (after company loads).
@@ -314,6 +320,12 @@ function NewJobPage() {
         zip: form.zip || null,
         description: form.description,
         requirements: form.requirements || null,
+        temperature_env: form.temperature_env || null,
+        certifications_required: form.certifications_required,
+        lift_requirement_lbs: form.lift_requirement_lbs ? Number(form.lift_requirement_lbs) : null,
+        overtime_available: form.overtime_available,
+        weekly_pay: form.weekly_pay,
+        quick_hire: form.quick_hire,
         status: "active" as never,
         featured: featuredConsumed,
         featured_until: featuredUntil,
@@ -581,6 +593,86 @@ function NewJobPage() {
               <p className="text-xs text-muted-foreground">
                 Listings with a posted pay range get 2–3× more applicants.
               </p>
+            </div>
+
+            <div className="rounded-lg border border-border bg-background p-4 space-y-4">
+              <div>
+                <p className="text-sm font-semibold text-[color:var(--ink)]">Warehouse details</p>
+                <p className="text-xs text-muted-foreground">These power the niche filters seekers use to qualify themselves.</p>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="temp">Temperature environment</Label>
+                  <Select
+                    value={form.temperature_env || "unset"}
+                    onValueChange={(v) => setForm({ ...form, temperature_env: v === "unset" ? "" : (v as "ambient" | "cooler" | "freezer") })}
+                  >
+                    <SelectTrigger id="temp"><SelectValue placeholder="Not specified" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="unset">Not specified</SelectItem>
+                      <SelectItem value="ambient">Ambient</SelectItem>
+                      <SelectItem value="cooler">Cooler (35–55°F)</SelectItem>
+                      <SelectItem value="freezer">Freezer (≤0°F)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="lift">Lift requirement (lbs)</Label>
+                  <Input
+                    id="lift"
+                    type="number"
+                    min={0}
+                    max={500}
+                    placeholder="e.g. 50"
+                    value={form.lift_requirement_lbs}
+                    onChange={(e) => setForm({ ...form, lift_requirement_lbs: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>Equipment certifications required</Label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { v: "forklift", l: "Forklift" },
+                    { v: "reach", l: "Reach truck" },
+                    { v: "cherry_picker", l: "Cherry picker" },
+                    { v: "pallet_jack", l: "Electric pallet jack" },
+                  ].map((c) => {
+                    const checked = form.certifications_required.includes(c.v);
+                    return (
+                      <label key={c.v} className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-2.5 py-1 text-sm">
+                        <Checkbox
+                          checked={checked}
+                          onCheckedChange={(v) => {
+                            const set = new Set(form.certifications_required);
+                            if (v) set.add(c.v); else set.delete(c.v);
+                            setForm({ ...form, certifications_required: Array.from(set) });
+                          }}
+                        />
+                        {c.l}
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="grid gap-2 sm:grid-cols-3">
+                <label className="flex items-center gap-2 rounded-md border border-border bg-card p-2 text-sm">
+                  <Checkbox checked={form.weekly_pay} onCheckedChange={(v) => setForm({ ...form, weekly_pay: !!v })} />
+                  Weekly pay
+                </label>
+                <label className="flex items-center gap-2 rounded-md border border-border bg-card p-2 text-sm">
+                  <Checkbox checked={form.overtime_available} onCheckedChange={(v) => setForm({ ...form, overtime_available: !!v })} />
+                  OT available
+                </label>
+                <label className="flex items-center gap-2 rounded-md border border-border bg-card p-2 text-sm">
+                  <Checkbox checked={form.quick_hire} onCheckedChange={(v) => setForm({ ...form, quick_hire: !!v })} />
+                  Same-day / quick hire
+                </label>
+              </div>
             </div>
           </div>
         )}
