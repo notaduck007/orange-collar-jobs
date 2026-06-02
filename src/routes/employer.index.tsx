@@ -297,13 +297,18 @@ function EmployerDashboard() {
                       <TableCell>
                         <div className="flex items-center justify-end gap-0.5">
                           {job.status === "draft" ? (
-                            <Button
-                              size="sm"
-                              className="btn-primary h-7 gap-1 text-xs"
-                              onClick={() => navigate({ to: "/employer/jobs/new", search: { draft: job.id } })}
-                            >
-                              <Rocket className="h-3 w-3" /> Finish & publish
-                            </Button>
+                            <>
+                              <Button
+                                size="sm"
+                                className="btn-primary h-7 gap-1 text-xs"
+                                onClick={() => navigate({ to: "/employer/jobs/new", search: { draft: job.id } })}
+                              >
+                                <Rocket className="h-3 w-3" /> Finish & publish
+                              </Button>
+                              <ActionIcon label="Delete draft" onClick={() => deleteDraft(job)}>
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </ActionIcon>
+                            </>
                           ) : (
                             <>
                               <ActionIcon label="View" onClick={() => navigate({ to: "/jobs/$slug", params: { slug: job.slug } })}>
