@@ -29,3 +29,6 @@ verify_jwt = true
 
 [functions.delete-user-account]
 verify_jwt = true
+
+[functions.ai-job-description]
+verify_jwt = true
