@@ -1702,6 +1702,7 @@ export type Database = {
           posts_used: number
         }[]
       }
+      get_my_permissions: { Args: never; Returns: string[] }
       get_public_settings: { Args: never; Returns: Json }
       grant_credits_for_order: {
         Args: { _order_id: string }
