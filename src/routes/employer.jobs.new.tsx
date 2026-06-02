@@ -168,6 +168,12 @@ function NewJobPage() {
     pay_max: "",
     pay_period: "hour" as "hour" | "year",
     feature_it: false,
+    temperature_env: "" as "" | "ambient" | "cooler" | "freezer",
+    certifications_required: [] as string[],
+    lift_requirement_lbs: "",
+    overtime_available: false,
+    weekly_pay: false,
+    quick_hire: false,
   });
 
   // Prefill city/state from company on first render (after company loads).
