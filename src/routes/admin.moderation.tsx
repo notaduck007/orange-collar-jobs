@@ -428,7 +428,7 @@ async function applyAction(item: Item, action: Action, reason: string, actorId?:
   let notifyLink: string | undefined;
 
   if (item.kind === "jobs") {
-    notifyLink = `/jobs/${item.id}`;
+    notifyLink = item.href;
     if (action === "approve") {
       const { error } = await supabase
         .from("jobs")
