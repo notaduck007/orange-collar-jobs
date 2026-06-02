@@ -409,6 +409,61 @@ function EmployerDashboard() {
   );
 }
 
+function PackageCard({
+  packageName,
+  postsRemaining,
+  featuredRemaining,
+  expiresAt,
+  extraCount,
+}: {
+  packageName: string | null;
+  postsRemaining: number;
+  featuredRemaining: number;
+  expiresAt: string | null;
+  extraCount: number;
+}) {
+  const expiryLabel = expiresAt
+    ? `Valid until ${new Date(expiresAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}`
+    : null;
+  const empty = !packageName && !expiresAt;
+  return (
+    <div className="rounded-xl border border-border bg-card p-5">
+      <div className="flex items-center justify-between">
+        <p className="label-caps">Active package</p>
+        <PackageIcon className="h-4 w-4 text-muted-foreground" />
+      </div>
+      {empty ? (
+        <>
+          <p className="mt-3 text-base font-semibold text-[color:var(--ink)]">No active package</p>
+          <Link to="/pricing" className="mt-1 inline-block text-xs font-semibold text-primary hover:underline">
+            Browse packages →
+          </Link>
+        </>
+      ) : (
+        <>
+          <p className="mt-3 truncate text-base font-semibold text-[color:var(--ink)]">{packageName ?? "Package"}</p>
+          <div className="mt-2 flex items-baseline gap-4">
+            <div>
+              <p className="text-2xl font-bold tabular-nums text-[color:var(--ink)]">{postsRemaining}</p>
+              <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Posts left</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold tabular-nums text-[color:var(--ink)]">{featuredRemaining}</p>
+              <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Featured</p>
+            </div>
+          </div>
+          {expiryLabel && (
+            <p className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
+              <CalendarClock className="h-3 w-3" /> {expiryLabel}
+              {extraCount > 0 && <span className="ml-1 text-muted-foreground">· +{extraCount} more</span>}
+            </p>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
 function StatCard({ icon: Icon, label, value, sub, accent }: { icon: typeof Briefcase; label: string; value: number; sub?: string; accent?: boolean }) {
   return (
     <div className={`rounded-xl border p-5 ${accent ? "border-primary/30 bg-[color:var(--primary-tint)]" : "border-border bg-card"}`}>
