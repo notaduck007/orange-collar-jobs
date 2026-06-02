@@ -39,6 +39,7 @@ type QuestionRow = {
 
 export function ApplyDialog({ jobId, jobTitle, open, onOpenChange, onApplied }: ApplyDialogProps) {
   const { user } = useAuth();
+  const { settings } = useSiteSettings();
   const qc = useQueryClient();
   const fileInput = useRef<HTMLInputElement>(null);
   const [coverNote, setCoverNote] = useState("");
