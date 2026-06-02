@@ -159,6 +159,43 @@ function Home() {
         </div>
       </section>
 
+      {/* REAL PEOPLE BAND */}
+      <section className="border-y border-border bg-card">
+        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
+          <div className="mb-8 max-w-2xl">
+            <p className="label-caps text-primary">Real people, real shifts</p>
+            <h2 className="mt-1 text-2xl font-bold text-[color:var(--ink)] sm:text-3xl">The crew behind every shipment</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Pickers, packers, forklift operators, dock leads — folks getting hired through WarehouseJobs this month.
+            </p>
+          </div>
+          <div className="grid gap-5 sm:grid-cols-3">
+            {[
+              { src: workerMarcus, name: "Marcus", role: "Forklift Operator", alt: "Marcus, a smiling Black forklift operator in an orange hi-vis vest, holding his hard hat in front of a warehouse forklift." },
+              { src: workerAisha, name: "Aisha", role: "Picker / Packer", alt: "Aisha, a young Black woman picker-packer laughing while scanning a package in a warehouse pick aisle." },
+              { src: workerLuis, name: "Luis", role: "Shipping & Receiving Lead", alt: "Luis, a Latino shipping and receiving lead in a hard hat and orange vest, holding a clipboard at an open loading dock." },
+            ].map((p) => (
+              <figure key={p.name} className="group overflow-hidden rounded-xl border border-border bg-background">
+                <div className="aspect-[4/5] overflow-hidden">
+                  <img
+                    src={p.src}
+                    alt={p.alt}
+                    width={800}
+                    height={1000}
+                    loading="lazy"
+                    decoding="async"
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                  />
+                </div>
+                <figcaption className="border-t border-border px-4 py-3">
+                  <p className="text-sm font-semibold text-[color:var(--ink)]">{p.name} — <span className="font-normal text-muted-foreground">{p.role}</span></p>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* FEATURED */}
       <section className="bg-[color:var(--primary-tint)]/40">
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
