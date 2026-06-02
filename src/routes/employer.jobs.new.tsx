@@ -692,9 +692,6 @@ function NewJobPage() {
                   Same-day / quick hire
                 </label>
               </div>
-            </div>
-          </div>
-        )}
 
               {form.quick_hire && (
                 <div className="space-y-2 rounded-md border border-border bg-card p-3">
@@ -716,12 +713,12 @@ function NewJobPage() {
                   )}
                   {slots.map((s, i) => (
                     <div key={i} className="flex flex-wrap items-end gap-2">
-                      <div className="flex-1 min-w-[200px] space-y-1">
+                      <div className="min-w-[200px] flex-1 space-y-1">
                         <Label className="text-xs">Date &amp; time</Label>
                         <Input
                           type="datetime-local"
                           value={s.starts_at}
-                          onChange={(e) => updateSlot(i, { starts_at: e.target_value ?? e.target.value })}
+                          onChange={(e) => updateSlot(i, { starts_at: e.target.value })}
                         />
                       </div>
                       <div className="w-24 space-y-1">
