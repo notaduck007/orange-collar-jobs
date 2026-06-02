@@ -44,6 +44,7 @@ export function SiteFooter() {
           <ul className="space-y-2 text-sm text-white/80">
             <li><Link to="/about" className="hover:text-primary">About</Link></li>
             <li><Link to="/contact" className="hover:text-primary">Contact</Link></li>
+            <li><Link to="/privacy" className="hover:text-primary">Privacy</Link></li>
             <li><a href={`mailto:${settings.branding.support_email}`} className="hover:text-primary">{settings.branding.support_email}</a></li>
           </ul>
         </div>
