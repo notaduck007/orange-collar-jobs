@@ -696,6 +696,54 @@ function NewJobPage() {
           </div>
         )}
 
+              {form.quick_hire && (
+                <div className="space-y-2 rounded-md border border-border bg-card p-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-semibold text-[color:var(--ink)]">
+                        Phone-screen interview slots
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Applicants will pick a time when they apply. Add a few openings.
+                      </p>
+                    </div>
+                    <Button type="button" variant="outline" size="sm" onClick={addSlot}>
+                      Add slot
+                    </Button>
+                  </div>
+                  {slots.length === 0 && (
+                    <p className="text-xs text-muted-foreground">No slots yet.</p>
+                  )}
+                  {slots.map((s, i) => (
+                    <div key={i} className="flex flex-wrap items-end gap-2">
+                      <div className="flex-1 min-w-[200px] space-y-1">
+                        <Label className="text-xs">Date &amp; time</Label>
+                        <Input
+                          type="datetime-local"
+                          value={s.starts_at}
+                          onChange={(e) => updateSlot(i, { starts_at: e.target_value ?? e.target.value })}
+                        />
+                      </div>
+                      <div className="w-24 space-y-1">
+                        <Label className="text-xs">Capacity</Label>
+                        <Input
+                          type="number"
+                          min={1}
+                          value={s.capacity}
+                          onChange={(e) => updateSlot(i, { capacity: Math.max(1, Number(e.target.value) || 1) })}
+                        />
+                      </div>
+                      <Button type="button" variant="ghost" size="sm" onClick={() => removeSlot(i)}>
+                        Remove
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {step === 2 && (
           <div className="grid gap-4 sm:grid-cols-[1fr_120px_140px]">
             <div className="space-y-1.5">
