@@ -12,6 +12,20 @@ import {
   TrendingUp,
   CheckCircle2,
   Clock,
+  ShieldCheck,
+  ScrollText,
+  BadgeCheck,
+  ListChecks,
+  Receipt,
+  Package,
+  CreditCard,
+  FileText,
+  BarChart3,
+  Download,
+  LifeBuoy,
+  Lock,
+  Settings as SettingsIcon,
+  LayoutDashboard,
 } from "lucide-react";
 import { format, subDays, eachDayOfInterval, startOfDay, isAfter, addDays } from "date-fns";
 import {
