@@ -226,7 +226,13 @@ function JobDetail() {
   };
 
   if (isLoading) {
-    return <div className="p-12 text-center text-sm text-muted-foreground">Loading…</div>;
+    return (
+      <div className="min-h-screen bg-background">
+        <SiteHeader />
+        <JobDetailSkeleton />
+        <SiteFooter />
+      </div>
+    );
   }
   if (!job) return null;
   const pay = job.pay_min && job.pay_max ? `$${job.pay_min}–$${job.pay_max} / ${job.pay_period ?? "hour"}` : null;
