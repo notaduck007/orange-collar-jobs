@@ -261,7 +261,7 @@ function UserDrawer({
           .limit(50);
         orders = data ?? [];
       }
-      void ordersR;
+      
 
       const meta = (metaR.data ?? {}) as {
         email?: string | null; email_confirmed_at?: string | null;
