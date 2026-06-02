@@ -213,6 +213,7 @@ function Home() {
         </div>
       </section>
 
+      </main>
       <SiteFooter />
     </div>
   );
