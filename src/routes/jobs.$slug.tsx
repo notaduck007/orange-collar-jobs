@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/lib/auth";
 import { ApplyDialog } from "@/components/apply-dialog";
 import { AdSlot } from "@/components/ad-slot";
+import { ReportButton } from "@/components/report-button";
 import { useAppliedJobs, useQuickApplyReady } from "@/hooks/use-applied-jobs";
 
 const EMPLOYMENT_TYPE_SCHEMA: Record<string, string> = {
@@ -324,6 +325,7 @@ function JobDetail() {
                 <Button variant="outline" onClick={() => { navigator.clipboard.writeText(window.location.href); toast.success("Link copied"); }} className="gap-1.5">
                   <Share2 className="h-4 w-4" /> Share
                 </Button>
+                {job && <ReportButton entityType="job" entityId={job.id} variant="outline" />}
               </div>
               {user && !quickApply.ready && !alreadyApplied && (
                 <p className="text-xs text-muted-foreground">
