@@ -304,20 +304,21 @@ function JobsPage() {
           </div>
 
           {activeChips.length > 0 && (
-            <div className="mb-4 flex flex-wrap items-center gap-1.5">
+            <div className="mb-4 flex flex-wrap items-center gap-1.5" role="region" aria-label="Active filters">
               {activeChips.map((chip) => (
                 <button
                   key={chip.key}
                   onClick={chip.clear}
-                  className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-2.5 py-1 text-xs font-medium text-[color:var(--ink)] hover:border-primary hover:text-primary"
+                  aria-label={`Remove filter: ${chip.label}`}
+                  className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-2.5 py-1 text-xs font-medium text-[color:var(--ink)] hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 >
                   {chip.label}
-                  <span aria-hidden className="text-muted-foreground">×</span>
+                  <span aria-hidden="true" className="text-muted-foreground">×</span>
                 </button>
               ))}
               <button
                 onClick={() => navigate({ to: "/jobs", search: {} as never })}
-                className="ml-1 text-xs font-semibold text-primary hover:underline"
+                className="ml-1 text-xs font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
               >
                 Clear all
               </button>
