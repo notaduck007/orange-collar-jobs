@@ -149,6 +149,22 @@ function NewAdForm({ companyId, ownerId, onCreated }: { companyId: string; owner
     if (!targetUrl) return toast.error("Add a target URL.");
     setSubmitting(true);
     try {
+      // Find a matching ad package for this slot to charge for
+      const { data: pkg } = await supabase
+        .from("packages")
+        .select("id, name, price_cents")
+        .eq("kind", "ad")
+        .eq("active", true)
+        .eq("ad_slot", slot)
+        .order("price_cents", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      if (!pkg) {
+        toast.error("No ad package available for this slot. Visit Pricing.");
+        setSubmitting(false);
+        return;
+      }
+
       const ext = file.name.split(".").pop();
       const path = `${ownerId}/${Date.now()}.${ext}`;
       const { error: upErr } = await supabase.storage.from("ad-creatives").upload(path, file, { upsert: false });
@@ -165,6 +181,22 @@ function NewAdForm({ companyId, ownerId, onCreated }: { companyId: string; owner
         status: "pending",
       });
       if (error) throw error;
+
+      // Kick off Stripe checkout for the ad package
+      const origin = window.location.origin;
+      const { data: checkout, error: ckErr } = await supabase.functions.invoke("create-checkout", {
+        body: {
+          package_id: pkg.id,
+          company_id: companyId,
+          success_url: `${origin}/employer/ads?checkout=success`,
+          cancel_url: `${origin}/employer/ads?checkout=cancelled`,
+        },
+      });
+      if (ckErr) throw ckErr;
+      if (checkout?.url) {
+        window.location.href = checkout.url;
+        return;
+      }
 
       toast.success("Submitted for review.");
       onCreated();
