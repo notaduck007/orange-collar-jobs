@@ -103,7 +103,7 @@ function ModerationHub() {
     queryKey: ["mod-reports"],
     queryFn: async () => {
       const { data } = await supabase
-        .from("abuse_reports")
+        .from("reports")
         .select("id, entity_type, entity_id, reason, details, reporter_id, status")
         .eq("status", "open")
         .order("created_at", { ascending: false })
