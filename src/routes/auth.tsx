@@ -20,6 +20,29 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
+const ALLOWED_NEXT_PREFIXES = [
+  "about",
+  "admin",
+  "auth",
+  "billing",
+  "companies",
+  "contact",
+  "employer",
+  "faq",
+  "jobs",
+  "pricing",
+  "privacy",
+  "seeker",
+];
+
+function safeNext(next: string | undefined): string {
+  if (!next || typeof next !== "string") return "/";
+  if (!next.startsWith("/") || next.startsWith("//")) return "/";
+  if (next === "/") return "/";
+  const seg = next.slice(1).split(/[/?#]/, 1)[0];
+  return ALLOWED_NEXT_PREFIXES.includes(seg) ? next : "/";
+}
+
 function AuthPage() {
   const { mode, role, next } = Route.useSearch();
   const navigate = useNavigate();
