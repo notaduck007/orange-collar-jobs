@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { MapPin, Clock, DollarSign, Zap, CheckCircle2 } from "lucide-react";
+import { MapPin, Clock, DollarSign, Zap, CheckCircle2, BadgeCheck } from "lucide-react";
 import { useAppliedJobs } from "@/hooks/use-applied-jobs";
 
 export interface JobSummary {
@@ -13,7 +13,7 @@ export interface JobSummary {
   pay_max: number | null;
   featured: boolean;
   category: string;
-  companies?: { name: string; slug: string } | null;
+  companies?: { name: string; slug: string; verified?: boolean | null } | null;
 }
 
 const shiftLabel: Record<string, string> = {
