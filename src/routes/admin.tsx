@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { LayoutDashboard, Building2, Briefcase, Package, Megaphone, Users, Receipt, ShieldCheck } from "lucide-react";
+import { LayoutDashboard, Building2, Briefcase, Package, Megaphone, Users, Receipt, ShieldCheck, Gavel } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { useAuth } from "@/lib/auth";
@@ -14,12 +14,24 @@ type NavItem = { to: string; icon: typeof LayoutDashboard; label: string; exact?
 
 const NAV: NavItem[] = [
   { to: "/admin", icon: LayoutDashboard, label: "Dashboard", exact: true },
+  { to: "/admin/moderation", icon: Gavel, label: "Moderation", cap: "moderation" },
   { to: "/admin/companies", icon: Building2, label: "Companies", cap: "moderation" },
   { to: "/admin/jobs", icon: Briefcase, label: "Jobs", cap: "moderation" },
   { to: "/admin/ads", icon: Megaphone, label: "Advertisements", cap: "ads" },
   { to: "/admin/packages", icon: Package, label: "Packages", cap: "settings" },
   { to: "/admin/users", icon: Users, label: "Users", cap: "users" },
   { to: "/admin/orders", icon: Receipt, label: "Orders", cap: "billing" },
+];
+
+// Route → required capability (for runtime guard)
+const ROUTE_CAPS: { prefix: string; cap: AdminCapability }[] = [
+  { prefix: "/admin/moderation", cap: "moderation" },
+  { prefix: "/admin/companies", cap: "moderation" },
+  { prefix: "/admin/jobs", cap: "moderation" },
+  { prefix: "/admin/ads", cap: "ads" },
+  { prefix: "/admin/packages", cap: "settings" },
+  { prefix: "/admin/users", cap: "users" },
+  { prefix: "/admin/orders", cap: "billing" },
 ];
 
 // Route → required capability (for runtime guard)
