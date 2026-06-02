@@ -113,7 +113,7 @@ function NewJobPage() {
   const { data: categories = [] } = useQuery({
     queryKey: ["job-categories"],
     queryFn: async () => {
-      const { data } = await supabase.from("job_categories").select("*").order("name");
+      const { data } = await supabase.from("job_categories").select("*").eq("active", true).order("sort_order").order("name");
       return data ?? [];
     },
   });

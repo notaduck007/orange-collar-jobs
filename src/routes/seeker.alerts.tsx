@@ -39,7 +39,7 @@ function AlertsPage() {
   const { data: categories = [] } = useQuery({
     queryKey: ["job-categories"],
     queryFn: async () => {
-      const { data } = await supabase.from("job_categories").select("id, name").order("name");
+      const { data } = await supabase.from("job_categories").select("id, name").eq("active", true).order("sort_order").order("name");
       return data ?? [];
     },
   });

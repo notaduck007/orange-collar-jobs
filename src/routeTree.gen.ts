@@ -40,7 +40,9 @@ import { Route as AdminPackagesRouteImport } from './routes/admin.packages'
 import { Route as AdminOrdersRouteImport } from './routes/admin.orders'
 import { Route as AdminModerationRouteImport } from './routes/admin.moderation'
 import { Route as AdminJobsRouteImport } from './routes/admin.jobs'
+import { Route as AdminContentRouteImport } from './routes/admin.content'
 import { Route as AdminCompaniesRouteImport } from './routes/admin.companies'
+import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
 import { Route as AdminBillingRouteImport } from './routes/admin.billing'
 import { Route as AdminAdsRouteImport } from './routes/admin.ads'
 import { Route as EmployerJobsNewRouteImport } from './routes/employer.jobs.new'
@@ -202,9 +204,19 @@ const AdminJobsRoute = AdminJobsRouteImport.update({
   path: '/jobs',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminContentRoute = AdminContentRouteImport.update({
+  id: '/content',
+  path: '/content',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminCompaniesRoute = AdminCompaniesRouteImport.update({
   id: '/companies',
   path: '/companies',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
+  id: '/categories',
+  path: '/categories',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminBillingRoute = AdminBillingRouteImport.update({
@@ -248,7 +260,9 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/ads': typeof AdminAdsRoute
   '/admin/billing': typeof AdminBillingRoute
+  '/admin/categories': typeof AdminCategoriesRoute
   '/admin/companies': typeof AdminCompaniesRoute
+  '/admin/content': typeof AdminContentRoute
   '/admin/jobs': typeof AdminJobsRoute
   '/admin/moderation': typeof AdminModerationRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -284,7 +298,9 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/ads': typeof AdminAdsRoute
   '/admin/billing': typeof AdminBillingRoute
+  '/admin/categories': typeof AdminCategoriesRoute
   '/admin/companies': typeof AdminCompaniesRoute
+  '/admin/content': typeof AdminContentRoute
   '/admin/jobs': typeof AdminJobsRoute
   '/admin/moderation': typeof AdminModerationRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -324,7 +340,9 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/ads': typeof AdminAdsRoute
   '/admin/billing': typeof AdminBillingRoute
+  '/admin/categories': typeof AdminCategoriesRoute
   '/admin/companies': typeof AdminCompaniesRoute
+  '/admin/content': typeof AdminContentRoute
   '/admin/jobs': typeof AdminJobsRoute
   '/admin/moderation': typeof AdminModerationRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -365,7 +383,9 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/admin/ads'
     | '/admin/billing'
+    | '/admin/categories'
     | '/admin/companies'
+    | '/admin/content'
     | '/admin/jobs'
     | '/admin/moderation'
     | '/admin/orders'
@@ -401,7 +421,9 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/admin/ads'
     | '/admin/billing'
+    | '/admin/categories'
     | '/admin/companies'
+    | '/admin/content'
     | '/admin/jobs'
     | '/admin/moderation'
     | '/admin/orders'
@@ -440,7 +462,9 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/admin/ads'
     | '/admin/billing'
+    | '/admin/categories'
     | '/admin/companies'
+    | '/admin/content'
     | '/admin/jobs'
     | '/admin/moderation'
     | '/admin/orders'
@@ -700,11 +724,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminJobsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/content': {
+      id: '/admin/content'
+      path: '/content'
+      fullPath: '/admin/content'
+      preLoaderRoute: typeof AdminContentRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/companies': {
       id: '/admin/companies'
       path: '/companies'
       fullPath: '/admin/companies'
       preLoaderRoute: typeof AdminCompaniesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/categories': {
+      id: '/admin/categories'
+      path: '/categories'
+      fullPath: '/admin/categories'
+      preLoaderRoute: typeof AdminCategoriesRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/billing': {
@@ -748,7 +786,9 @@ declare module '@tanstack/react-router' {
 interface AdminRouteChildren {
   AdminAdsRoute: typeof AdminAdsRoute
   AdminBillingRoute: typeof AdminBillingRoute
+  AdminCategoriesRoute: typeof AdminCategoriesRoute
   AdminCompaniesRoute: typeof AdminCompaniesRoute
+  AdminContentRoute: typeof AdminContentRoute
   AdminJobsRoute: typeof AdminJobsRoute
   AdminModerationRoute: typeof AdminModerationRoute
   AdminOrdersRoute: typeof AdminOrdersRoute
@@ -760,7 +800,9 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAdsRoute: AdminAdsRoute,
   AdminBillingRoute: AdminBillingRoute,
+  AdminCategoriesRoute: AdminCategoriesRoute,
   AdminCompaniesRoute: AdminCompaniesRoute,
+  AdminContentRoute: AdminContentRoute,
   AdminJobsRoute: AdminJobsRoute,
   AdminModerationRoute: AdminModerationRoute,
   AdminOrdersRoute: AdminOrdersRoute,
