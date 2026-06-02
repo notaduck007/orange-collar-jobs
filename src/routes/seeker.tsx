@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { LayoutDashboard, FileText, Bookmark, BellRing, User } from "lucide-react";
+import { LayoutDashboard, FileText, Bookmark, BellRing, User, ShieldCheck } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { useAuth } from "@/lib/auth";
@@ -45,6 +45,7 @@ function SeekerLayout() {
           <SideLink to="/seeker/saved" icon={Bookmark} label="Saved Jobs" />
           <SideLink to="/seeker/alerts" icon={BellRing} label="Job Alerts" />
           <SideLink to="/seeker/profile" icon={User} label="Profile & Resume" />
+          <SideLink to="/seeker/privacy" icon={ShieldCheck} label="Privacy & Data" />
           <Link
             to="/jobs"
             className="mt-6 block rounded-md bg-primary px-3 py-2 text-center text-sm font-semibold text-primary-foreground shadow-[var(--shadow-orange)]"
