@@ -165,10 +165,14 @@ function Home() {
               View all <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            {featured.map((job) => <JobCard key={job.id} job={job} />)}
-            {featured.length === 0 && <p className="text-sm text-muted-foreground">Loading featured jobs…</p>}
-          </div>
+          {featuredLoading ? (
+            <JobCardSkeletonList count={4} />
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2">
+              {featured.map((job) => <JobCard key={job.id} job={job} />)}
+              {featured.length === 0 && <p className="text-sm text-muted-foreground">No featured jobs right now.</p>}
+            </div>
+          )}
         </div>
       </section>
 
