@@ -472,6 +472,7 @@ function NewJobPage() {
     qc.invalidateQueries({ queryKey: ["employer-jobs", company!.id] });
     const { data: row } = await supabase.from("jobs").select("slug, title").eq("id", jobId).maybeSingle();
     setSuccess({ slug: row?.slug ?? "", title: row?.title ?? form.title });
+    clearLocalDraft();
   };
 
   const submit = async () => {
