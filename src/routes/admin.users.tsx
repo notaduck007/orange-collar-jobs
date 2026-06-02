@@ -144,10 +144,14 @@ function AdminUsers() {
   const impersonate = async (u: Row) => {
     if (!confirm("Sign in as this user? Your session will be paused and all actions are audited.")) return;
     const label = u.display_name || u.full_name || u.id.slice(0, 8);
-    const redirectTo = u.roles.includes("employer")
+    const roleKeys = u.roles.map((r) => r.key);
+    const redirectTo = roleKeys.includes("employer")
       ? "/employer"
-      : u.roles.includes("job_seeker")
+      : roleKeys.includes("job_seeker")
         ? "/seeker"
+        : "/";
+    void redirectTo;
+    const _redirect = roleKeys.includes("employer") ? "/employer" : roleKeys.includes("job_seeker") ? "/seeker" : "/";
         : "/";
     try {
       await startImpersonation(u.id, { label, kind: "user", redirectTo });
