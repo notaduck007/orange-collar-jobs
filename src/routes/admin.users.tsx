@@ -314,7 +314,7 @@ function UserDrawer({
 
       return {
         profile: profileR.data,
-        role: (rolesR.data?.[0]?.role ?? "job_seeker") as AppRole,
+        roles: ((rolesR.data ?? []) as Array<{ role: AppRole }>).map((r) => r.role),
         companies: companiesR.data ?? [],
         jobs: jobsR.data ?? [],
         applications: appsR.data ?? [],
@@ -324,6 +324,7 @@ function UserDrawer({
       };
     },
   });
+
 
   return (
     <Sheet open={!!userId} onOpenChange={onOpenChange}>
