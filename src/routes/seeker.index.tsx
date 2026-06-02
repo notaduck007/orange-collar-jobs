@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { JobCard, type JobSummary } from "@/components/job-card";
 import seekerWelcome from "@/assets/seeker-welcome.webp";
+import type { Row } from "@/lib/row-types";
 
 export const Route = createFileRoute("/seeker/")({
   head: () => ({ meta: [{ title: "My Dashboard — WarehouseJobs" }] }),
@@ -69,7 +70,7 @@ function SeekerOverview() {
         _limit: 6,
       });
       if (error) throw error;
-      return (data ?? []).map((r: any) => ({
+      return (data ?? []).map((r: Row) => ({
         id: r.id,
         slug: r.slug,
         title: r.title,
@@ -185,7 +186,7 @@ function SeekerOverview() {
               </p>
             </div>
           )}
-          {recentApps.map((app: any) => (
+          {recentApps.map((app: Row) => (
             <Link
               key={app.id}
               to="/jobs/$slug"

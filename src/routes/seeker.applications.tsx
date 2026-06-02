@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { StatusBadge } from "./seeker.index";
 import { Button } from "@/components/ui/button";
+import type { Row } from "@/lib/row-types";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -102,7 +103,7 @@ function ApplicationsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {apps.map((app: any) => (
+              {apps.map((app: Row) => (
                 <tr key={app.id} className="hover:bg-muted/30">
                   <td className="px-4 py-3">
                     <Link

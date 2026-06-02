@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
+import type { Row } from "@/lib/row-types";
 import {
   Dialog,
   DialogContent,
@@ -114,7 +115,7 @@ function ModerationHub() {
 
   const items: Item[] = useMemo(() => {
     if (tab === "jobs") {
-      return (jobsQ.data ?? []).map((j: any) => ({
+      return (jobsQ.data ?? []).map((j: Row) => ({
         id: j.id,
         kind: "jobs",
         title: j.title,
@@ -125,7 +126,7 @@ function ModerationHub() {
       }));
     }
     if (tab === "ads") {
-      return (adsQ.data ?? []).map((a: any) => ({
+      return (adsQ.data ?? []).map((a: Row) => ({
         id: a.id,
         kind: "ads",
         title: `${a.companies?.name ?? "Unknown"} — ${a.slot}`,
@@ -136,7 +137,7 @@ function ModerationHub() {
       }));
     }
     if (tab === "reviews") {
-      return (reviewsQ.data ?? []).map((r: any) => ({
+      return (reviewsQ.data ?? []).map((r: Row) => ({
         id: r.id,
         kind: "reviews",
         title: `${r.title ?? "Review"} · ${r.rating}★ — ${r.companies?.name ?? ""}`,
@@ -145,7 +146,7 @@ function ModerationHub() {
         ownerUserId: r.author_id,
       }));
     }
-    return (reportsQ.data ?? []).map((r: any) => ({
+    return (reportsQ.data ?? []).map((r: Row) => ({
       id: r.id,
       kind: "reports",
       title: `${r.entity_type} report — ${r.reason}`,
@@ -237,7 +238,7 @@ function ModerationHub() {
       qc.invalidateQueries({ queryKey: ["mod-ads"] });
       qc.invalidateQueries({ queryKey: ["mod-reviews"] });
       qc.invalidateQueries({ queryKey: ["mod-reports"] });
-    } catch (e: any) {
+    } catch (e: unknown) {
       toast.error(e?.message ?? "Action failed");
     } finally {
       setBusy(false);

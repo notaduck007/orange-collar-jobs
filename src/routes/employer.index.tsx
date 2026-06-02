@@ -35,6 +35,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Badge } from "@/components/ui/badge";
 import { uniqueSlug } from "@/lib/slug";
 import { TableSkeleton } from "@/components/ui/skeleton-list";
+import type { Row } from "@/lib/row-types";
 
 export const Route = createFileRoute("/employer/")({
   head: () => ({ meta: [{ title: "Employer Dashboard — WarehouseJobs" }] }),
@@ -114,7 +115,7 @@ function EmployerDashboard() {
         .gt("expires_at", new Date().toISOString())
         .order("expires_at", { ascending: true });
       return (data ?? [])
-        .map((cp: any) => ({
+        .map((cp: Row) => ({
           id: cp.id as string,
           package_name: (cp.packages?.name as string | null) ?? null,
           posts_remaining: Math.max((cp.posts_total ?? 0) - (cp.posts_used ?? 0), 0),

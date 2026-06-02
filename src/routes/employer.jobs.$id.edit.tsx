@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import type { Row } from "@/lib/row-types";
 import {
   Select,
   SelectContent,
@@ -88,7 +89,7 @@ function EditJobPage() {
   useEffect(() => {
     if (dbQuestions && !questionsLoaded) {
       setQuestions(
-        dbQuestions.map((q: any, i: number) => ({
+        dbQuestions.map((q: Row, i: number) => ({
           id: q.id,
           prompt: q.prompt,
           type: q.type,

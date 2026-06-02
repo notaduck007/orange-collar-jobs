@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
+import type { Row } from "@/lib/row-types";
 
 export const Route = createFileRoute("/seeker/saved")({
   head: () => ({ meta: [{ title: "Saved Jobs — WarehouseJobs" }] }),
@@ -64,7 +65,7 @@ function SavedJobsPage() {
         </div>
       ) : (
         <div className="grid gap-3">
-          {saved.map((s: any) => {
+          {saved.map((s: Row) => {
             const j = s.jobs;
             if (!j) return null;
             const pay =

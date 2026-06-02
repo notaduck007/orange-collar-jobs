@@ -20,6 +20,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
+import type { Row } from "@/lib/row-types";
 
 export const Route = createFileRoute("/seeker/privacy")({
   head: () => ({ meta: [{ title: "Privacy & Data — WarehouseJobs" }] }),
@@ -77,7 +78,7 @@ function PrivacyPage() {
       a.click();
       URL.revokeObjectURL(url);
       toast.success("Your data has been downloaded.");
-    } catch (e: any) {
+    } catch (e: unknown) {
       toast.error(e?.message ?? "Export failed");
     } finally {
       setExporting(false);
@@ -92,12 +93,12 @@ function PrivacyPage() {
         body: { mode: "soft", reason: reason || null },
       });
       if (error) throw error;
-      if ((data as any)?.error) throw new Error((data as any).error);
+      if ((data as Row)?.error) throw new Error((data as Row).error);
       toast.success("Account deleted. Signing you out…");
       await qc.invalidateQueries();
       await supabase.auth.signOut();
       window.location.href = "/";
-    } catch (e: any) {
+    } catch (e: unknown) {
       toast.error(e?.message ?? "Deletion failed");
       setDeleting(false);
     }
@@ -192,7 +193,7 @@ function PrivacyPage() {
         <section className="rounded-xl border bg-card p-6 shadow-sm">
           <h2 className="text-lg font-semibold">Request history</h2>
           <ul className="mt-3 divide-y">
-            {requestsQ.data.map((r: any) => (
+            {requestsQ.data.map((r: Row) => (
               <li key={r.id} className="flex items-center justify-between py-2 text-sm">
                 <span className="capitalize">{r.type}</span>
                 <Badge variant="outline" className="capitalize">

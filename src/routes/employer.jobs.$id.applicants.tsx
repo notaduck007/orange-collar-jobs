@@ -59,6 +59,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { isKnockout, type QuestionType } from "@/components/screening-questions-builder";
+import type { Row } from "@/lib/row-types";
 
 export const Route = createFileRoute("/employer/jobs/$id/applicants")({
   head: () => ({ meta: [{ title: "Applicants — WarehouseJobs Employers" }] }),
@@ -131,16 +132,16 @@ function ApplicantsPage() {
         .select("application_id, question_id, answer")
         .in(
           "question_id",
-          (qs ?? []).map((q: any) => q.id).length
-            ? (qs ?? []).map((q: any) => q.id)
+          (qs ?? []).map((q: Row) => q.id).length
+            ? (qs ?? []).map((q: Row) => q.id)
             : ["00000000-0000-0000-0000-000000000000"],
         );
       const qById: Record<string, { type: QuestionType; knockout_answer: unknown }> = {};
-      (qs ?? []).forEach((q: any) => {
+      (qs ?? []).forEach((q: Row) => {
         qById[q.id] = { type: q.type, knockout_answer: q.knockout_answer };
       });
       const knockedOut = new Set<string>();
-      (ans ?? []).forEach((a: any) => {
+      (ans ?? []).forEach((a: Row) => {
         const q = qById[a.question_id];
         if (q && isKnockout(q, a.answer)) knockedOut.add(a.application_id);
       });
@@ -809,7 +810,7 @@ function ApplicantDrawer({
         .eq("application_id", app.id)
         .order("created_at", { ascending: true });
       if (error) throw error;
-      const authorIds = Array.from(new Set((data ?? []).map((n: any) => n.author_id)));
+      const authorIds = Array.from(new Set((data ?? []).map((n: Row) => n.author_id)));
       let byId: Record<string, { display_name: string | null }> = {};
       if (authorIds.length) {
         const { data: profs } = await supabase
@@ -821,7 +822,7 @@ function ApplicantDrawer({
           return acc;
         }, {});
       }
-      return (data ?? []).map((n: any) => ({ ...n, author: byId[n.author_id] })) as AppNote[];
+      return (data ?? []).map((n: Row) => ({ ...n, author: byId[n.author_id] })) as AppNote[];
     },
   });
 

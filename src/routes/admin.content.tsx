@@ -21,6 +21,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Markdown } from "@/components/markdown";
+import type { Row } from "@/lib/row-types";
 
 export const Route = createFileRoute("/admin/content")({
   head: () => ({ meta: [{ title: "Content — WarehouseJobs Admin" }] }),
@@ -224,7 +225,7 @@ function PageForm({ page, onSaved }: { page: Page; onSaved: () => void }) {
           <Switch checked={published} onCheckedChange={setPublished} />
         </div>
         <Link
-          to={("/" + page.slug) as any}
+          to={("/" + page.slug) as Row}
           target="_blank"
           className="text-xs text-primary hover:underline inline-flex items-center gap-1"
         >

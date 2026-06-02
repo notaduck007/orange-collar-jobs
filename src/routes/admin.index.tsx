@@ -50,6 +50,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import type { Row } from "@/lib/row-types";
 
 export const Route = createFileRoute("/admin/")({
   head: () => ({ meta: [{ title: "Admin Analytics — WarehouseJobs" }] }),
@@ -204,7 +205,7 @@ function AdminDashboard() {
     const revenueTrend = (() => {
       const map = new Map<string, number>();
       days.forEach((d) => map.set(dayKey(d), 0));
-      data.ordersPaid.forEach((o: any) => {
+      data.ordersPaid.forEach((o: Row) => {
         const k = dayKey(o.created_at);
         if (map.has(k)) map.set(k, (map.get(k) ?? 0) + (o.amount_cents ?? 0) / 100);
       });
@@ -215,7 +216,7 @@ function AdminDashboard() {
     })();
 
     // Roles distribution
-    const roleCounts = data.roles.reduce<Record<string, number>>((acc, r: any) => {
+    const roleCounts = data.roles.reduce<Record<string, number>>((acc, r: Row) => {
       acc[r.role] = (acc[r.role] ?? 0) + 1;
       return acc;
     }, {});
@@ -223,7 +224,7 @@ function AdminDashboard() {
 
     // DAU/WAU approximation: distinct users with applications in period
     const appUsersByDay = new Map<string, Set<string>>();
-    data.applicationsNew.forEach((a: any) => {
+    data.applicationsNew.forEach((a: Row) => {
       const k = dayKey(a.created_at);
       if (!appUsersByDay.has(k)) appUsersByDay.set(k, new Set());
       appUsersByDay.get(k)!.add(a.job_id);
@@ -235,14 +236,14 @@ function AdminDashboard() {
       : 0;
 
     // Jobs by status
-    const statusCounts = data.jobsAll.reduce<Record<string, number>>((acc, j: any) => {
+    const statusCounts = data.jobsAll.reduce<Record<string, number>>((acc, j: Row) => {
       acc[j.status] = (acc[j.status] ?? 0) + 1;
       return acc;
     }, {});
     const jobsByStatus = Object.entries(statusCounts).map(([name, value]) => ({ name, value }));
 
     // Top categories (by job count)
-    const catCounts = data.jobsAll.reduce<Record<string, number>>((acc, j: any) => {
+    const catCounts = data.jobsAll.reduce<Record<string, number>>((acc, j: Row) => {
       const c = j.category || "Uncategorized";
       acc[c] = (acc[c] ?? 0) + 1;
       return acc;
@@ -253,27 +254,27 @@ function AdminDashboard() {
       .slice(0, 8);
 
     // Companies verified vs not
-    const verified = data.companiesAll.filter((c: any) => c.verified).length;
+    const verified = data.companiesAll.filter((c: Row) => c.verified).length;
     const unverified = data.companiesAll.length - verified;
 
     // Applications conversion: applications / views (in period new jobs aggregate)
-    const totalViews = data.jobsAll.reduce((s: number, j: any) => s + (j.views ?? 0), 0);
+    const totalViews = data.jobsAll.reduce((s: number, j: Row) => s + (j.views ?? 0), 0);
     const conversion = totalViews > 0 ? (data.applicationsNew.length / totalViews) * 100 : 0;
 
     // Revenue
     const revenueCents = data.ordersPaid.reduce(
-      (s: number, o: any) => s + (o.amount_cents ?? 0),
+      (s: number, o: Row) => s + (o.amount_cents ?? 0),
       0,
     );
     const adPkgIds = new Set(
-      data.packages.filter((p: any) => p.kind === "ad_slot" || p.ad_slot).map((p: any) => p.id),
+      data.packages.filter((p: Row) => p.kind === "ad_slot" || p.ad_slot).map((p: Row) => p.id),
     );
     const adRevenueCents = data.ordersPaid
-      .filter((o: any) => o.package_id && adPkgIds.has(o.package_id))
-      .reduce((s: number, o: any) => s + (o.amount_cents ?? 0), 0);
+      .filter((o: Row) => o.package_id && adPkgIds.has(o.package_id))
+      .reduce((s: number, o: Row) => s + (o.amount_cents ?? 0), 0);
 
     // By package
-    const pkgRevenue = data.ordersPaid.reduce<Record<string, number>>((acc, o: any) => {
+    const pkgRevenue = data.ordersPaid.reduce<Record<string, number>>((acc, o: Row) => {
       const name = o.packages?.name ?? "Other";
       acc[name] = (acc[name] ?? 0) + (o.amount_cents ?? 0) / 100;
       return acc;
@@ -286,9 +287,9 @@ function AdminDashboard() {
     const topEmployersMap = new Map<string, number>();
     // We need company names — fall back to id
     const companyName = new Map<string, string>();
-    data.companiesAll.forEach((c: any) => companyName.set(c.id, c.name));
-    data.jobsNew.forEach((j: any) => {
-      const id = (j as any).company_id;
+    data.companiesAll.forEach((c: Row) => companyName.set(c.id, c.name));
+    data.jobsNew.forEach((j: Row) => {
+      const id = (j as Row).company_id;
       if (!id) return;
       topEmployersMap.set(id, (topEmployersMap.get(id) ?? 0) + 1);
     });
@@ -371,7 +372,7 @@ function AdminDashboard() {
           label="Active jobs"
           value={
             data
-              ? data.jobsAll.filter((j: any) => ["active", "published"].includes(j.status)).length
+              ? data.jobsAll.filter((j: Row) => ["active", "published"].includes(j.status)).length
               : "—"
           }
           sub={data ? `+${data.jobsNew.length} posted` : ""}
@@ -401,7 +402,7 @@ function AdminDashboard() {
           companies: data?.companiesAll.length,
           jobs: data?.jobsAll.length,
           activeJobs: data
-            ? data.jobsAll.filter((j: any) => ["active", "published"].includes(j.status)).length
+            ? data.jobsAll.filter((j: Row) => ["active", "published"].includes(j.status)).length
             : undefined,
           pendingJobs: data?.pendingJobs,
           pendingAds: data?.pendingAds,
@@ -545,7 +546,7 @@ function AdminDashboard() {
             />
             <FunnelRow
               label="Hired"
-              value={data?.applicationsNew.filter((a: any) => a.status === "hired").length ?? 0}
+              value={data?.applicationsNew.filter((a: Row) => a.status === "hired").length ?? 0}
               max={metrics?.totalViews ?? 1}
             />
             <div className="mt-4 rounded-md bg-muted/50 p-3 text-xs text-muted-foreground">
@@ -653,7 +654,7 @@ function AdminDashboard() {
               </tr>
             </thead>
             <tbody>
-              {(data?.jobsExpiring ?? []).map((j: any) => (
+              {(data?.jobsExpiring ?? []).map((j: Row) => (
                 <tr key={j.id} className="border-t border-border">
                   <td className="py-2">
                     <p className="font-medium">{j.title}</p>
@@ -734,7 +735,7 @@ function DateRangeControl({ range, onChange }: { range: Range; onChange: (r: Ran
             mode="range"
             defaultMonth={range.from}
             selected={{ from: range.from, to: range.to }}
-            onSelect={(r: any) => {
+            onSelect={(r: Row) => {
               if (r?.from && r?.to && isAfter(r.to, r.from)) onChange({ from: r.from, to: r.to });
             }}
             numberOfMonths={2}

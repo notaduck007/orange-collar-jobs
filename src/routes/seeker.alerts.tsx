@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import type { Row } from "@/lib/row-types";
 import {
   Select,
   SelectContent,
@@ -222,7 +223,7 @@ function AlertsPage() {
         </div>
       ) : (
         <div className="grid gap-3">
-          {alerts.map((a: any) => (
+          {alerts.map((a: Row) => (
             <div
               key={a.id}
               className="flex items-start justify-between rounded-xl border border-border bg-card p-4"

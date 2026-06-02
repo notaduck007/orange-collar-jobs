@@ -36,6 +36,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import type { Row } from "@/lib/row-types";
 
 export const Route = createFileRoute("/admin/billing")({
   head: () => ({ meta: [{ title: "Billing — WarehouseJobs Admin" }] }),
@@ -224,14 +225,14 @@ function AdminBilling() {
       const { data, error } = await supabase.functions.invoke("refund-order", {
         body: { order_id: refundTarget.id, reason: refundReason.trim() },
       });
-      if (error || (data as any)?.error) {
-        throw new Error((data as any)?.error ?? error?.message ?? "Refund failed");
+      if (error || (data as Row)?.error) {
+        throw new Error((data as Row)?.error ?? error?.message ?? "Refund failed");
       }
       toast.success("Refund issued, credits reversed");
       setRefundTarget(null);
       setRefundReason("");
       qc.invalidateQueries({ queryKey: ["admin-billing-orders"] });
-    } catch (e: any) {
+    } catch (e: unknown) {
       toast.error(e.message ?? "Refund failed");
     } finally {
       setRefunding(false);
@@ -344,7 +345,7 @@ function AdminBilling() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All packages</SelectItem>
-            {packages.map((p: any) => (
+            {packages.map((p: Row) => (
               <SelectItem key={p.id} value={p.id}>
                 {p.name}
               </SelectItem>

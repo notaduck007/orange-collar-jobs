@@ -44,6 +44,7 @@ import { useSiteSettings } from "@/lib/site-settings";
 import { checkRateLimit, emailIsVerified, LIMITS } from "@/lib/abuse";
 import { JobCard } from "@/components/job-card";
 import { startCheckout } from "@/lib/checkout";
+import type { Row } from "@/lib/row-types";
 
 type CheckoutSearch = { checkout?: "success" | "cancelled"; draft?: string; session_id?: string };
 
@@ -354,7 +355,7 @@ function NewJobPage() {
           ? "Draft written — edit anything you'd like."
           : "Tightened up — review the changes.",
       );
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (e?.name !== "AbortError") {
         toast.error(e?.message ?? "AI request failed");
       }

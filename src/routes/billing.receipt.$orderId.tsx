@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { Printer } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import type { Row } from "@/lib/row-types";
 
 export const Route = createFileRoute("/billing/receipt/$orderId")({
   component: ReceiptPage,
@@ -70,7 +71,7 @@ function ReceiptPage() {
     return <div className="p-10 text-center text-sm">Receipt not found.</div>;
   }
 
-  const snap: any = data.package_snapshot ?? {};
+  const snap: Row = data.package_snapshot ?? {};
   const posts = data.posting_count_granted ?? snap.posting_count ?? 0;
   const feats = data.featured_count_granted ?? snap.featured_count ?? 0;
 

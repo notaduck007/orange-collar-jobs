@@ -99,7 +99,7 @@ function AdminCategories() {
       setCreating(false);
       setForm({ name: "", icon: "" });
       qc.invalidateQueries({ queryKey: ["admin-categories"] });
-    } catch (e: any) {
+    } catch (e: unknown) {
       toast.error(e.message);
     } finally {
       setSaving(false);

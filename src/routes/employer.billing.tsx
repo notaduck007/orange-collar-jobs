@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { CheckCircle2, Download, Package as PackageIcon, Receipt } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import type { Row } from "@/lib/row-types";
 
 type Search = { checkout?: "success" | "cancelled"; session_id?: string };
 
@@ -312,7 +313,7 @@ function SummaryCell({ label, value }: { label: string; value: string }) {
   );
 }
 
-function PackageCard({ pkg, dim }: { pkg: any; dim?: boolean }) {
+function PackageCard({ pkg, dim }: { pkg: Row; dim?: boolean }) {
   const postsRemaining = Math.max(pkg.posts_total - pkg.posts_used, 0);
   const featRemaining = Math.max(pkg.featured_total - pkg.featured_used, 0);
   const expires = new Date(pkg.expires_at);
