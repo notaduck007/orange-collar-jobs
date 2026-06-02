@@ -595,6 +595,7 @@ function NewJobPage() {
           qc.invalidateQueries({ queryKey: ["employer-jobs", company.id] });
           const { data: row } = await supabase.from("jobs").select("slug, title").eq("id", search.draft!).maybeSingle();
           setSuccess({ slug: row?.slug ?? "", title: row?.title ?? form.title });
+          clearLocalDraft();
           navigate({ to: "/employer/jobs/new", search: {}, replace: true });
         } catch (e) {
           toast.error(e instanceof Error ? e.message : "Couldn't auto-publish your draft");
