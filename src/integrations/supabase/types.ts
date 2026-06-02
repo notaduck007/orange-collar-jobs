@@ -670,6 +670,13 @@ export type Database = {
             foreignKeyName: "job_alerts_applicant_id_fkey"
             columns: ["applicant_id"]
             isOneToOne: false
+            referencedRelation: "discoverable_candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_alerts_applicant_id_fkey"
+            columns: ["applicant_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -1365,6 +1372,13 @@ export type Database = {
             foreignKeyName: "seeker_profiles_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: true
+            referencedRelation: "discoverable_candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seeker_profiles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -1500,6 +1514,13 @@ export type Database = {
             foreignKeyName: "user_role_assignments_user_profiles_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "discoverable_candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_role_assignments_user_profiles_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -1568,6 +1589,13 @@ export type Database = {
             foreignKeyName: "work_history_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "discoverable_candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_history_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -1602,7 +1630,16 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      discoverable_candidates: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          display_name: string | null
+          id: string | null
+          location: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       ad_increment_click: { Args: { _ad_id: string }; Returns: undefined }
