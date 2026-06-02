@@ -225,7 +225,7 @@ function PageForm({ page, onSaved }: { page: Page; onSaved: () => void }) {
           <Switch checked={published} onCheckedChange={setPublished} />
         </div>
         <Link
-          to={"/" + page.slug as never}
+          to={("/" + page.slug) as never}
           target="_blank"
           className="text-xs text-primary hover:underline inline-flex items-center gap-1"
         >
