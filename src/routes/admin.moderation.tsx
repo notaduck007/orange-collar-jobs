@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import type { Row } from "@/lib/row-types";
+import { errMsg } from "@/lib/row-types";
 import {
   Dialog,
   DialogContent,
@@ -239,7 +240,7 @@ function ModerationHub() {
       qc.invalidateQueries({ queryKey: ["mod-reviews"] });
       qc.invalidateQueries({ queryKey: ["mod-reports"] });
     } catch (e: unknown) {
-      toast.error(e?.message ?? "Action failed");
+      toast.error(errMsg(e, "Action failed"));
     } finally {
       setBusy(false);
     }

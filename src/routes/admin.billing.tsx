@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import type { Row } from "@/lib/row-types";
+import { errMsg } from "@/lib/row-types";
 
 export const Route = createFileRoute("/admin/billing")({
   head: () => ({ meta: [{ title: "Billing — WarehouseJobs Admin" }] }),
@@ -233,7 +234,7 @@ function AdminBilling() {
       setRefundReason("");
       qc.invalidateQueries({ queryKey: ["admin-billing-orders"] });
     } catch (e: unknown) {
-      toast.error(e.message ?? "Refund failed");
+      toast.error(errMsg(e, "Refund failed"));
     } finally {
       setRefunding(false);
     }

@@ -735,7 +735,7 @@ function DateRangeControl({ range, onChange }: { range: Range; onChange: (r: Ran
             mode="range"
             defaultMonth={range.from}
             selected={{ from: range.from, to: range.to }}
-            onSelect={(r: Row) => {
+            onSelect={(r) => {
               if (r?.from && r?.to && isAfter(r.to, r.from)) onChange({ from: r.from, to: r.to });
             }}
             numberOfMonths={2}

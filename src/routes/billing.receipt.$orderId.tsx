@@ -71,7 +71,7 @@ function ReceiptPage() {
     return <div className="p-10 text-center text-sm">Receipt not found.</div>;
   }
 
-  const snap: Row = data.package_snapshot ?? {};
+  const snap = (data.package_snapshot ?? {}) as Row;
   const posts = data.posting_count_granted ?? snap.posting_count ?? 0;
   const feats = data.featured_count_granted ?? snap.featured_count ?? 0;
 

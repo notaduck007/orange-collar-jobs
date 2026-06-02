@@ -45,6 +45,7 @@ import { checkRateLimit, emailIsVerified, LIMITS } from "@/lib/abuse";
 import { JobCard } from "@/components/job-card";
 import { startCheckout } from "@/lib/checkout";
 import type { Row } from "@/lib/row-types";
+import { errMsg } from "@/lib/row-types";
 
 type CheckoutSearch = { checkout?: "success" | "cancelled"; draft?: string; session_id?: string };
 
@@ -356,8 +357,8 @@ function NewJobPage() {
           : "Tightened up — review the changes.",
       );
     } catch (e: unknown) {
-      if (e?.name !== "AbortError") {
-        toast.error(e?.message ?? "AI request failed");
+      if (!(e instanceof Error) || e.name !== "AbortError") {
+        toast.error(errMsg(e, "AI request failed"));
       }
     } finally {
       setAiStreaming(null);

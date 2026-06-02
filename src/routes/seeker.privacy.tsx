@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import type { Row } from "@/lib/row-types";
+import { errMsg } from "@/lib/row-types";
 
 export const Route = createFileRoute("/seeker/privacy")({
   head: () => ({ meta: [{ title: "Privacy & Data — WarehouseJobs" }] }),
@@ -79,7 +80,7 @@ function PrivacyPage() {
       URL.revokeObjectURL(url);
       toast.success("Your data has been downloaded.");
     } catch (e: unknown) {
-      toast.error(e?.message ?? "Export failed");
+      toast.error(errMsg(e, "Export failed"));
     } finally {
       setExporting(false);
     }
@@ -99,7 +100,7 @@ function PrivacyPage() {
       await supabase.auth.signOut();
       window.location.href = "/";
     } catch (e: unknown) {
-      toast.error(e?.message ?? "Deletion failed");
+      toast.error(errMsg(e, "Deletion failed"));
       setDeleting(false);
     }
   }
