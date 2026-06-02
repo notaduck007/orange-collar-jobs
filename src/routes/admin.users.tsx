@@ -101,6 +101,16 @@ function AdminUsers() {
     invokeAction({ action: "password_reset", user_id: userId }, "Password reset email sent");
   const resendVerify = (userId: string) =>
     invokeAction({ action: "resend_verification", user_id: userId }, "Verification email resent");
+  const impersonate = async (userId: string) => {
+    if (!confirm("Sign in as this user? Your session will be paused and all actions are audited.")) return;
+    try {
+      await startImpersonation(userId);
+      toast.success("Now viewing as user");
+      window.location.assign("/");
+    } catch (e) {
+      toast.error((e as Error).message || "Impersonation failed");
+    }
+  };
 
   if (permsLoading) return <p className="text-sm text-muted-foreground">Loading…</p>;
   if (!can("users")) {
