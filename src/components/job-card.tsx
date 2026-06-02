@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
-import { MapPin, Clock, DollarSign, Zap, CheckCircle2, BadgeCheck } from "lucide-react";
+import { MapPin, Clock, DollarSign, Zap, CheckCircle2, BadgeCheck, Snowflake, Forklift, CalendarClock, Timer, Dumbbell } from "lucide-react";
 import { useAppliedJobs } from "@/hooks/use-applied-jobs";
+import { CERT_LABEL, TEMP_LABEL } from "@/lib/warehouse-attrs";
 
 export interface JobSummary {
   id: string;
@@ -14,6 +15,13 @@ export interface JobSummary {
   featured: boolean;
   category: string;
   companies?: { name: string; slug: string; verified?: boolean | null } | null;
+  // Warehouse attrs (optional — older callers may not include them)
+  temperature_env?: string | null;
+  certifications_required?: string[] | null;
+  weekly_pay?: boolean | null;
+  quick_hire?: boolean | null;
+  overtime_available?: boolean | null;
+  lift_requirement_lbs?: number | null;
 }
 
 const shiftLabel: Record<string, string> = {
@@ -33,15 +41,49 @@ const typeLabel: Record<string, string> = {
   contract: "Contract",
 };
 
+function Badge({
+  icon: Icon,
+  children,
+  tone = "neutral",
+}: {
+  icon: React.ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
+  children: React.ReactNode;
+  tone?: "neutral" | "cold" | "hot" | "money" | "fast";
+}) {
+  const toneClass = {
+    neutral: "bg-muted text-[color:var(--ink)] ring-border",
+    cold: "bg-sky-50 text-sky-800 ring-sky-200",
+    hot: "bg-amber-50 text-amber-900 ring-amber-200",
+    money: "bg-emerald-50 text-emerald-800 ring-emerald-200",
+    fast: "bg-rose-50 text-rose-800 ring-rose-200",
+  }[tone];
+  return (
+    <span className={`relative z-10 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ring-1 ${toneClass}`}>
+      <Icon className="h-3 w-3" aria-hidden />
+      {children}
+    </span>
+  );
+}
+
 export function JobCard({ job }: { job: JobSummary }) {
   const appliedIds = useAppliedJobs();
   const applied = appliedIds.has(job.id);
   const pay = job.pay_min && job.pay_max ? `$${job.pay_min}–$${job.pay_max}/hr` : null;
+
+  const certs = job.certifications_required ?? [];
+  const hasAttrBadges =
+    !!job.temperature_env ||
+    certs.length > 0 ||
+    job.weekly_pay ||
+    job.quick_hire ||
+    job.overtime_available ||
+    (job.lift_requirement_lbs ?? 0) > 0;
+
   return (
     <div className="group relative rounded-lg border border-border bg-card p-5 shadow-[var(--shadow-card)] transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-[var(--shadow-card-hover)]">
       {job.featured && (
         <div className="absolute -top-px right-4 flex items-center gap-1 rounded-b-md bg-[color:var(--hazard)] px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[color:var(--ink)]">
-          <Zap className="h-3 w-3" fill="currentColor" /> Featured
+          <Zap className="h-3 w-3" fill="currentColor" aria-hidden /> Featured
         </div>
       )}
       <p className="label-caps">{job.category} • {shiftLabel[job.shift]}</p>
@@ -69,19 +111,37 @@ export function JobCard({ job }: { job: JobSummary }) {
           )}
           {job.companies.verified && (
             <span title="Verified employer" className="relative z-10 inline-flex items-center text-blue-600">
-              <BadgeCheck className="h-4 w-4" />
+              <BadgeCheck className="h-4 w-4" aria-hidden />
             </span>
           )}
         </div>
       )}
       <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-sm text-muted-foreground">
-        <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> {job.location}</span>
-        <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {typeLabel[job.employment_type]}</span>
-        {pay && <span className="inline-flex items-center gap-1 font-medium text-[color:var(--ink)]"><DollarSign className="h-3.5 w-3.5" /> {pay}</span>}
+        <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" aria-hidden /> {job.location}</span>
+        <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" aria-hidden /> {typeLabel[job.employment_type]}</span>
+        {pay && <span className="inline-flex items-center gap-1 font-medium text-[color:var(--ink)]"><DollarSign className="h-3.5 w-3.5" aria-hidden /> {pay}</span>}
       </div>
+
+      {hasAttrBadges && (
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {job.quick_hire && <Badge icon={Timer} tone="fast">Same-day hire</Badge>}
+          {job.weekly_pay && <Badge icon={DollarSign} tone="money">Weekly pay</Badge>}
+          {job.temperature_env && job.temperature_env !== "ambient" && (
+            <Badge icon={Snowflake} tone="cold">{TEMP_LABEL[job.temperature_env] ?? job.temperature_env}</Badge>
+          )}
+          {certs.map((c) => (
+            <Badge key={c} icon={Forklift}>{CERT_LABEL[c] ?? c}</Badge>
+          ))}
+          {job.overtime_available && <Badge icon={CalendarClock} tone="hot">OT available</Badge>}
+          {(job.lift_requirement_lbs ?? 0) > 0 && (
+            <Badge icon={Dumbbell}>Lift {job.lift_requirement_lbs}+ lbs</Badge>
+          )}
+        </div>
+      )}
+
       {applied && (
         <span className="mt-3 inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200">
-          <CheckCircle2 className="h-3 w-3" /> Applied
+          <CheckCircle2 className="h-3 w-3" aria-hidden /> Applied
         </span>
       )}
     </div>
