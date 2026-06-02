@@ -3,7 +3,7 @@ import { useState, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
-import { Flag, LifeBuoy, Mail, Send, User2, Clock } from "lucide-react";
+import { Flag, LifeBuoy, Mail, Send, User2, Clock, ShieldCheck, Download, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -59,8 +59,26 @@ type Report = {
 function AdminSupport() {
   const { user } = useAuth();
   const qc = useQueryClient();
-  const [tab, setTab] = useState<"tickets" | "reports">("tickets");
+  const [tab, setTab] = useState<"tickets" | "reports" | "dsr">("tickets");
   const [statusFilter, setStatusFilter] = useState<string>("open");
+  const [dsrUserId, setDsrUserId] = useState("");
+  const [dsrBusy, setDsrBusy] = useState<string | null>(null);
+
+  const dsrQ = useQuery({
+    queryKey: ["admin-dsr"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("deletion_requests")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(200);
+      if (error) throw error;
+      return data as Array<{
+        id: string; user_id: string; type: string; status: string;
+        reason: string | null; created_at: string; processed_at: string | null;
+      }>;
+    },
+  });
 
   const ticketsQ = useQuery({
     queryKey: ["admin-tickets"],
