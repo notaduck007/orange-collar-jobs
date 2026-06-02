@@ -1432,3 +1432,80 @@ function RenewUpgradeDialog({
 function formatDate(s: string) {
   return new Date(s).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
+
+function FeatureUpsell({
+  jobId,
+  companyId,
+  activePackage,
+  onFeatured,
+}: {
+  jobId: string;
+  companyId: string | null;
+  activePackage: ActivePackage | null;
+  onFeatured: () => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const featuredLeft = activePackage?.featured_remaining ?? 0;
+  const hasCredit = featuredLeft >= 1;
+
+  const handleFeature = async () => {
+    if (!companyId) return;
+    setBusy(true);
+    try {
+      if (hasCredit) {
+        const { error } = await supabase.rpc("feature_existing_job", {
+          _job_id: jobId,
+          _company_id: companyId,
+        });
+        if (error) throw error;
+        toast.success("Your job is now featured");
+        onFeatured();
+      } else {
+        // No featured upgrade available — start checkout for a package that includes one.
+        const { data: pkgs } = await supabase
+          .from("packages")
+          .select("id, featured_count, price_cents, sort_order")
+          .eq("kind", "posting")
+          .eq("active", true)
+          .gte("featured_count", 1)
+          .order("price_cents", { ascending: true })
+          .limit(1);
+        const pkgId = pkgs?.[0]?.id;
+        if (!pkgId) {
+          toast.error("No upgrade package available right now");
+          return;
+        }
+        const res = await startCheckout(pkgId, "upgrade", null);
+        if (res?.error) toast.error(res.error);
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Couldn't feature this job");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="rounded-xl border-2 border-[color:var(--hazard)] bg-card p-5">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-start gap-3">
+          <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[color:var(--hazard)] text-[color:var(--ink)]">
+            <Sparkles className="h-5 w-5" />
+          </span>
+          <div>
+            <p className="font-bold text-[color:var(--ink)]">Get ~3× more applicants — feature this job</p>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              Pin it to the top of search and category pages.{" "}
+              {hasCredit
+                ? `Uses 1 of ${featuredLeft} featured upgrades on your package.`
+                : "You're out of featured upgrades — we'll open checkout for a package that includes one."}
+            </p>
+          </div>
+        </div>
+        <Button className="btn-primary" onClick={handleFeature} disabled={busy || !companyId}>
+          {busy ? "Working…" : hasCredit ? "Feature this job" : "Add featured upgrade"}
+        </Button>
+      </div>
+    </div>
+  );
+}
