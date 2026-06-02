@@ -630,6 +630,21 @@ function NewJobPage() {
             </Button>
           </div>
         </div>
+
+        {!success.featured && (
+          <FeatureUpsell
+            jobId={success.jobId}
+            companyId={company?.id ?? null}
+            activePackage={activePackage ?? null}
+            onFeatured={() => {
+              setSuccess((s) => (s ? { ...s, featured: true } : s));
+              if (company?.id) {
+                qc.invalidateQueries({ queryKey: ["active-package", company.id] });
+                qc.invalidateQueries({ queryKey: ["employer-jobs", company.id] });
+              }
+            }}
+          />
+        )}
       </div>
     );
   }
