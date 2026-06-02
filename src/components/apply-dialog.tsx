@@ -23,6 +23,7 @@ import {
 interface ApplyDialogProps {
   jobId: string;
   jobTitle: string;
+  quickHire?: boolean;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onApplied?: () => void;
@@ -37,7 +38,7 @@ type QuestionRow = {
   sort_order: number;
 };
 
-export function ApplyDialog({ jobId, jobTitle, open, onOpenChange, onApplied }: ApplyDialogProps) {
+export function ApplyDialog({ jobId, jobTitle, quickHire, open, onOpenChange, onApplied }: ApplyDialogProps) {
   const { user } = useAuth();
   const { settings } = useSiteSettings();
   const qc = useQueryClient();
