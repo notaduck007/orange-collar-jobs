@@ -629,6 +629,7 @@ export type Database = {
           search_vector: unknown
           shift: Database["public"]["Enums"]["job_shift"]
           slug: string
+          spam_score: number
           state: string | null
           status: Database["public"]["Enums"]["job_status"]
           title: string
@@ -659,6 +660,7 @@ export type Database = {
           search_vector?: unknown
           shift?: Database["public"]["Enums"]["job_shift"]
           slug: string
+          spam_score?: number
           state?: string | null
           status?: Database["public"]["Enums"]["job_status"]
           title: string
@@ -689,6 +691,7 @@ export type Database = {
           search_vector?: unknown
           shift?: Database["public"]["Enums"]["job_shift"]
           slug?: string
+          spam_score?: number
           state?: string | null
           status?: Database["public"]["Enums"]["job_status"]
           title?: string
@@ -895,6 +898,27 @@ export type Database = {
           location?: string | null
           phone?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      rate_limits: {
+        Row: {
+          count: number
+          key: string
+          updated_at: string
+          window_start: string
+        }
+        Insert: {
+          count?: number
+          key: string
+          updated_at?: string
+          window_start: string
+        }
+        Update: {
+          count?: number
+          key?: string
+          updated_at?: string
+          window_start?: string
         }
         Relationships: []
       }
@@ -1318,6 +1342,10 @@ export type Database = {
     Functions: {
       ad_increment_click: { Args: { _ad_id: string }; Returns: undefined }
       ad_increment_impression: { Args: { _ad_id: string }; Returns: undefined }
+      check_rate_limit: {
+        Args: { _key: string; _max: number; _window_seconds: number }
+        Returns: boolean
+      }
       consume_credit: {
         Args: { _company_id: string; _credit_type: string }
         Returns: boolean
