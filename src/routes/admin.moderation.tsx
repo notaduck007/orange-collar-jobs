@@ -103,7 +103,7 @@ function ModerationHub() {
     queryKey: ["mod-reports"],
     queryFn: async () => {
       const { data } = await supabase
-        .from("abuse_reports")
+        .from("reports")
         .select("id, entity_type, entity_id, reason, details, reporter_id, status")
         .eq("status", "open")
         .order("created_at", { ascending: false })
@@ -465,7 +465,7 @@ async function applyAction(item: Item, action: Action, reason: string, actorId?:
   } else if (item.kind === "reports") {
     const newStatus = action === "approve" ? "resolved" : action === "reject" ? "rejected" : "escalated";
     const { error } = await supabase
-      .from("abuse_reports")
+      .from("reports")
       .update({
         status: newStatus,
         resolved_by: actorId ?? null,
