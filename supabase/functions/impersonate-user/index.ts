@@ -28,12 +28,13 @@ serve(async (req) => {
 
     const admin = createClient(supabaseUrl, serviceKey);
 
-    // Allowed: app_role 'admin' OR admin_permissions level super_admin/support
-    const [{ data: roleRow }, { data: perm }] = await Promise.all([
-      admin.from("user_roles").select("role").eq("user_id", actorId).eq("role", "admin").maybeSingle(),
-      admin.from("admin_permissions").select("level").eq("user_id", actorId).maybeSingle(),
+    // Allowed: app_role 'admin' OR RBAC permission 'impersonate.use' / 'users.view_all'
+    const [{ data: isAdmin }, { data: canImpersonate }, { data: canSupport }] = await Promise.all([
+      admin.rpc("has_role", { _user_id: actorId, _role: "admin" }),
+      admin.rpc("has_permission", { _user_id: actorId, _permission_key: "impersonate.use" }),
+      admin.rpc("has_permission", { _user_id: actorId, _permission_key: "users.view_all" }),
     ]);
-    const allowed = !!roleRow || (perm && ["super_admin", "support"].includes(perm.level));
+    const allowed = !!isAdmin || !!canImpersonate || !!canSupport;
     if (!allowed) return json({ error: "Forbidden" }, 403);
 
     const body = await req.json().catch(() => ({}));
