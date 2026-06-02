@@ -97,9 +97,7 @@ function EmployerLayout() {
           <SideLink to="/employer/onboarding" icon={Building2} label="Company Profile" />
           <SideLink to="/employer/team" icon={Users} label="Team" />
           <SideLink to="/employer/ads" icon={Megaphone} label="Advertising" />
-          <Link to="/pricing" className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-foreground hover:bg-muted">
-            <CreditCard className="h-4 w-4" /> Buy Credits
-          </Link>
+          <SideLink to="/employer/billing" icon={CreditCard} label="Billing & Credits" />
           {company && (
             <div className="mt-6 rounded-lg border border-border bg-card p-3 text-xs">
               <p className="label-caps text-[10px]">Signed in as</p>
