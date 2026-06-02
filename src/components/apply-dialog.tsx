@@ -48,6 +48,7 @@ export function ApplyDialog({ jobId, jobTitle, quickHire, open, onOpenChange, on
   const [useDefault, setUseDefault] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [answers, setAnswers] = useState<Record<string, unknown>>({});
+  const [slotId, setSlotId] = useState<string>("");
 
   const { data: profile } = useQuery({
     queryKey: ["seeker-profile", user?.id],
