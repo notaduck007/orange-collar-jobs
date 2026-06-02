@@ -199,12 +199,9 @@ function EditJobPage() {
         if (upErr) throw upErr;
       }
       if (toInsertNew.length) {
-        const { error: insErr } = await supabase
-          .from("screening_questions")
-          .insert(toInsertNew);
+        const { error: insErr } = await supabase.from("screening_questions").insert(toInsertNew);
         if (insErr) throw insErr;
       }
-
 
       toast.success("Job updated");
       qc.invalidateQueries({ queryKey: ["employer-job", id] });

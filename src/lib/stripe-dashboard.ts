@@ -2,9 +2,7 @@
 // Set VITE_STRIPE_MODE="live" for live mode; anything else (default) uses test mode.
 const STRIPE_MODE = (import.meta.env.VITE_STRIPE_MODE ?? "test").toLowerCase();
 const STRIPE_BASE =
-  STRIPE_MODE === "live"
-    ? "https://dashboard.stripe.com"
-    : "https://dashboard.stripe.com/test";
+  STRIPE_MODE === "live" ? "https://dashboard.stripe.com" : "https://dashboard.stripe.com/test";
 
 export function stripePaymentIntentUrl(intentId: string): string {
   return `${STRIPE_BASE}/payments/${intentId}`;
