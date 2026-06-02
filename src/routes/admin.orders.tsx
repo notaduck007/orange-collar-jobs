@@ -58,6 +58,7 @@ function AdminOrders() {
               <th className="px-3 py-2 text-left">Package</th>
               <th className="px-3 py-2 text-right">Amount</th>
               <th className="px-3 py-2 text-left">Status</th>
+              <th className="px-3 py-2 text-left">Receipt</th>
               <th className="px-3 py-2 text-left">Stripe</th>
             </tr>
           </thead>
