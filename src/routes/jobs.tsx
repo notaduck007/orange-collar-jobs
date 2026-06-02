@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { AdSlot } from "@/components/ad-slot";
 import { JobCardSkeletonList, EmptyState } from "@/components/ui/skeleton-list";
 import { Briefcase } from "lucide-react";
+import { TEMP_ENVS, CERTIFICATIONS, CERT_LABEL, TEMP_LABEL } from "@/lib/warehouse-attrs";
 
 const searchSchema = z.object({
   q: z.string().optional(),
@@ -23,6 +24,12 @@ const searchSchema = z.object({
   sort: z.enum(["relevance", "date", "pay_high"]).optional(),
   pay_min: z.coerce.number().optional(),
   radius: z.coerce.number().optional(),
+  temp: z.enum(["ambient", "cooler", "freezer"]).optional(),
+  certs: z.string().optional(), // comma-separated cert values
+  weekly_pay: z.coerce.boolean().optional(),
+  quick_hire: z.coerce.boolean().optional(),
+  overtime: z.coerce.boolean().optional(),
+  max_lift: z.coerce.number().optional(),
 });
 
 const RADIUS_OPTIONS = [10, 25, 50, 100] as const;
