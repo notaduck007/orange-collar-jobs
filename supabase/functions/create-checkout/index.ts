@@ -85,7 +85,7 @@ serve(async (req) => {
     const origin = req.headers.get("origin") || "";
     const successBase = pending_job_id
       ? `${origin}/employer/jobs/new?checkout=success&session_id={CHECKOUT_SESSION_ID}&draft=${pending_job_id}`
-      : `${origin}/employer?checkout=success&session_id={CHECKOUT_SESSION_ID}`;
+      : `${origin}/employer/billing?checkout=success&session_id={CHECKOUT_SESSION_ID}`;
     const cancelBase = pending_job_id
       ? `${origin}/employer/jobs/new?checkout=cancelled&draft=${pending_job_id}`
       : `${origin}/pricing?checkout=cancelled`;
