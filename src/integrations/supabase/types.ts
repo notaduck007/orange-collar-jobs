@@ -1562,6 +1562,14 @@ export type Database = {
           job_id: string
         }[]
       }
+      feature_existing_job: {
+        Args: { _company_id: string; _job_id: string }
+        Returns: {
+          company_package_id: string
+          featured_until: string
+          job_id: string
+        }[]
+      }
       get_active_package: {
         Args: { p_company_id: string }
         Returns: {
