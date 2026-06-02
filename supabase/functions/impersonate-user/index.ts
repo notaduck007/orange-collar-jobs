@@ -25,13 +25,13 @@ serve(async (req) => {
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) return json({ error: "Unauthorized" }, 401);
+    if (!authHeader) return json(req, { error: "Unauthorized" }, 401);
 
     const userClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
     const { data: userData, error: userErr } = await userClient.auth.getUser();
-    if (userErr || !userData.user) return json({ error: "Unauthorized" }, 401);
+    if (userErr || !userData.user) return json(req, { error: "Unauthorized" }, 401);
     const actorId = userData.user.id;
 
     const admin = createClient(supabaseUrl, serviceKey);
@@ -43,26 +43,26 @@ serve(async (req) => {
       admin.rpc("has_permission", { _user_id: actorId, _permission_key: "users.view_all" }),
     ]);
     const allowed = !!isAdmin || !!canImpersonate || !!canSupport;
-    if (!allowed) return json({ error: "Forbidden" }, 403);
+    if (!allowed) return json(req, { error: "Forbidden" }, 403);
 
-    const body = await req.json().catch(() => ({}));
+    const body = await req.json(req, ).catch(() => ({}));
     const targetId: string | undefined = body.user_id;
     const reason: string | undefined = body.reason;
     const targetLabel: string | undefined = body.target_label;
     const targetKind: string = body.target_kind ?? "user";
     const entityId: string = body.entity_id ?? targetId ?? "";
-    if (!targetId) return json({ error: "user_id required" }, 400);
-    if (targetId === actorId) return json({ error: "Cannot impersonate self" }, 400);
+    if (!targetId) return json(req, { error: "user_id required" }, 400);
+    if (targetId === actorId) return json(req, { error: "Cannot impersonate self" }, 400);
 
     const { data: tgt, error: tgtErr } = await admin.auth.admin.getUserById(targetId);
-    if (tgtErr || !tgt.user?.email) return json({ error: "Target not found or has no email" }, 404);
+    if (tgtErr || !tgt.user?.email) return json(req, { error: "Target not found or has no email" }, 404);
 
     const { data: link, error: linkErr } = await admin.auth.admin.generateLink({
       type: "magiclink",
       email: tgt.user.email,
     });
     if (linkErr || !link.properties?.hashed_token) {
-      return json({ error: linkErr?.message ?? "Failed to mint session" }, 500);
+      return json(req, { error: linkErr?.message ?? "Failed to mint session" }, 500);
     }
 
     await admin.from("audit_log").insert({
@@ -85,6 +85,6 @@ serve(async (req) => {
       actor_id: actorId,
     });
   } catch (e) {
-    return json({ error: (e as Error).message }, 500);
+    return json(req, { error: (e as Error).message }, 500);
   }
 });
