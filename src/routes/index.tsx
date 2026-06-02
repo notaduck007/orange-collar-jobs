@@ -9,6 +9,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Button } from "@/components/ui/button";
 import { AdSlot } from "@/components/ad-slot";
+import { JobCardSkeletonList } from "@/components/ui/skeleton-list";
 
 export const Route = createFileRoute("/")({
   head: () => ({
