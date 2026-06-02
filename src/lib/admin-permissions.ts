@@ -7,12 +7,13 @@ export type AdminCapability = "moderation" | "billing" | "users" | "settings" | 
  * permission keys grants the capability. */
 const CAPABILITY_KEYS: Record<AdminCapability, string[]> = {
   moderation: ["moderation.manage", "jobs.moderate"],
-  billing: ["orders.refund", "orders.edit_any", "orders.view_all"],
-  users: ["users.view_all", "users.manage_roles", "users.suspend", "users.delete"],
+  billing: ["orders.view_all", "orders.refund", "orders.edit_any", "packages.manage"],
+  users: ["users.view_all", "users.manage_roles", "users.suspend"],
   settings: ["settings.manage"],
   ads: ["ads.manage"],
-  support: ["users.view_all", "users.suspend", "users.delete"],
+  support: ["moderation.manage", "support.manage"],
 };
+
 
 const ALL_CAPS: AdminCapability[] = [
   "moderation",
@@ -58,17 +59,11 @@ export function useAdminPermissions() {
   const has = (cap: AdminCapability) => CAPABILITY_KEYS[cap].some((k) => permissions.includes(k));
   const caps = ALL_CAPS.filter(has);
 
-  // Best-effort tier label, derived from the permission set
-  let level: AdminLevel | null = null;
-  if (caps.length === ALL_CAPS.length) level = "super_admin";
-  else if (has("moderation") && has("ads")) level = "moderator";
-  else if (has("billing")) level = "finance";
-  else if (has("support") || has("users")) level = "support";
-
   return {
     loading: false,
-    level,
+    level: null as AdminLevel | null,
     capabilities: caps,
     can: has,
   };
+
 }
