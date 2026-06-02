@@ -95,6 +95,27 @@ export function ScreeningQuestionsBuilder({ value, onChange }: Props) {
 
   return (
     <div className="space-y-3">
+      <div className="rounded-md border border-border bg-muted/30 p-3">
+        <p className="mb-2 text-xs font-semibold text-[color:var(--ink)]">Warehouse presets</p>
+        <div className="flex flex-wrap gap-1.5">
+          {SCREENING_PRESETS.map((p) => {
+            const already = value.some((q) => q.prompt.trim().toLowerCase() === p.q.prompt.trim().toLowerCase());
+            return (
+              <Button
+                key={p.label}
+                type="button"
+                size="sm"
+                variant="outline"
+                disabled={already}
+                onClick={() => addPreset(p.q)}
+                className="h-7 text-xs"
+              >
+                <Plus className="mr-1 h-3 w-3" /> {p.label}
+              </Button>
+            );
+          })}
+        </div>
+      </div>
       {value.length === 0 && (
         <p className="rounded-md border border-dashed border-border bg-background p-4 text-center text-sm text-muted-foreground">
           No screening questions yet. Add up to a few short questions to qualify applicants quickly.
