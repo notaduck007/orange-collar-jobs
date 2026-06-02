@@ -69,12 +69,12 @@ function Home() {
       <section className="relative overflow-hidden bg-[color:var(--ink)]" aria-labelledby="hero-heading">
         <img
           src={heroImage}
-          alt="Forklift operator working in a modern distribution warehouse"
+          alt="Diverse, happy warehouse crew in hi-vis vests on a loading dock at sunrise, giving a thumbs-up after a successful shift."
           width={1920}
           height={1280}
           fetchPriority="high"
           decoding="async"
-          className="absolute inset-0 h-full w-full object-cover opacity-50"
+          className="absolute inset-0 h-full w-full object-cover opacity-60"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-[color:var(--ink)]/95 via-[color:var(--ink)]/70 to-transparent" />
         <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28 lg:py-32">
