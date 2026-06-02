@@ -96,8 +96,17 @@ function AdminUsers() {
     return true;
   };
 
-  const setRole = (userId: string, role: AppRole) =>
-    invokeAction({ action: "set_role", user_id: userId, role }, "Role updated");
+  const grantRole = (userId: string, role: AppRole) =>
+    invokeAction({ action: "grant_role", user_id: userId, role }, `Granted ${role}`);
+  const revokeRole = async (userId: string, role: AppRole) => {
+    if (role === "admin" && userId === me?.id) {
+      if (!confirm("Revoke your OWN admin role? You will immediately lose admin access.")) return false;
+    }
+    return invokeAction({ action: "revoke_role", user_id: userId, role }, `Revoked ${role}`);
+  };
+  const toggleRole = (userId: string, role: AppRole, has: boolean) =>
+    has ? revokeRole(userId, role) : grantRole(userId, role);
+
   const toggleActive = (userId: string, active: boolean) =>
     invokeAction(
       { action: active ? "suspend" : "reactivate", user_id: userId },
