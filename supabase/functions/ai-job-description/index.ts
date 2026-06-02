@@ -1,5 +1,6 @@
 // deno-lint-ignore-file no-explicit-any
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -73,6 +74,57 @@ function buildPrompt(p: PromptInput) {
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   try {
+    // Authorization: caller must be an employer (owner/member of any company) or admin
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...cors, "Content-Type": "application/json" },
+      });
+    }
+    const userClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: userData, error: userErr } = await userClient.auth.getUser();
+    if (userErr || !userData.user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...cors, "Content-Type": "application/json" },
+      });
+    }
+    const actorId = userData.user.id;
+    const admin = createClient(supabaseUrl, serviceKey);
+
+    const [{ data: isAdmin }, { data: isEmployer }] = await Promise.all([
+      admin.rpc("has_role", { _user_id: actorId, _role: "admin" }),
+      admin.rpc("has_role", { _user_id: actorId, _role: "employer" }),
+    ]);
+    let allowed = !!isAdmin || !!isEmployer;
+    if (!allowed) {
+      // Fall back: any active company membership or ownership counts
+      const [{ count: memberCount }, { count: ownerCount }] = await Promise.all([
+        admin
+          .from("company_members")
+          .select("company_id", { count: "exact", head: true })
+          .eq("user_id", actorId)
+          .eq("status", "active"),
+        admin
+          .from("companies")
+          .select("id", { count: "exact", head: true })
+          .eq("owner_id", actorId),
+      ]);
+      allowed = (memberCount ?? 0) > 0 || (ownerCount ?? 0) > 0;
+    }
+    if (!allowed) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers: { ...cors, "Content-Type": "application/json" },
+      });
+    }
+
     const payload = await req.json().catch(() => ({}));
     const { system, user } = buildPrompt(payload);
 
