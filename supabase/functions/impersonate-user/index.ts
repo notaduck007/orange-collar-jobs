@@ -100,6 +100,6 @@ serve(async (req) => {
       actor_id: actorId,
     });
   } catch (e) {
-    return json(req, { error: (e as Error).message }, 500);
+    return json(req, { error: (e as Error)?.message ?? "Server error" }, 500);
   }
 });
