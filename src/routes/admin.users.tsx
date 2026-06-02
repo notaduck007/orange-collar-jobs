@@ -150,9 +150,6 @@ function AdminUsers() {
       : roleKeys.includes("job_seeker")
         ? "/seeker"
         : "/";
-    void redirectTo;
-    const _redirect = roleKeys.includes("employer") ? "/employer" : roleKeys.includes("job_seeker") ? "/seeker" : "/";
-        : "/";
     try {
       await startImpersonation(u.id, { label, kind: "user", redirectTo });
       toast.success("Now viewing as user");
