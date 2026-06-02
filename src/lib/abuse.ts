@@ -27,7 +27,6 @@ export async function checkRateLimit(
   );
   if (error) {
     // Fail-open on infra errors so legitimate users aren't blocked.
-    // eslint-disable-next-line no-console
     console.warn("rate-limit RPC failed", error);
     return true;
   }
