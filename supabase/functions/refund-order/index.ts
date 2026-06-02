@@ -3,28 +3,37 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0?target=deno";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
-const cors = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
-const json = (b: unknown, status = 200) =>
-  new Response(JSON.stringify(b), { status, headers: { ...cors, "Content-Type": "application/json" } });
+function corsHeaders(req: Request) {
+  const allowed = (Deno.env.get("ALLOWED_ORIGINS") ?? "")
+    .split(",").map((s) => s.trim()).filter(Boolean);
+  const origin = req.headers.get("origin") ?? "";
+  const allowOrigin = allowed.includes(origin) ? origin : (allowed[0] ?? "null");
+  return {
+    "Access-Control-Allow-Origin": allowOrigin,
+    "Vary": "Origin",
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+  };
+}
+
+const json = (req: Request, b: unknown, status = 200) =>
+  new Response(JSON.stringify(b), { status, headers: { ...corsHeaders(req), "Content-Type": "application/json" } });
 
 serve(async (req) => {
+  const cors = corsHeaders(req);
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) return json({ error: "Unauthorized" }, 401);
+    if (!authHeader) return json(req, { error: "Unauthorized" }, 401);
 
     const userClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
     const { data: userData, error: userErr } = await userClient.auth.getUser();
-    if (userErr || !userData.user) return json({ error: "Unauthorized" }, 401);
+    if (userErr || !userData.user) return json(req, { error: "Unauthorized" }, 401);
     const actorId = userData.user.id;
 
     const admin = createClient(supabaseUrl, serviceKey);
@@ -33,21 +42,21 @@ serve(async (req) => {
       _user_id: actorId,
       _permission_key: "orders.refund",
     });
-    if (!hasCap) return json({ error: "Forbidden — billing capability required" }, 403);
+    if (!hasCap) return json(req, { error: "Forbidden — billing capability required" }, 403);
 
     const body = await req.json();
     const orderId: string | undefined = body.order_id;
     const reason: string = body.reason ?? "Refund issued by admin";
-    if (!orderId) return json({ error: "order_id required" }, 400);
+    if (!orderId) return json(req, { error: "order_id required" }, 400);
 
     const { data: order, error: oErr } = await admin
       .from("orders")
       .select("*, companies(name, owner_id), packages(name)")
       .eq("id", orderId)
       .maybeSingle();
-    if (oErr || !order) return json({ error: "Order not found" }, 404);
-    if (order.status === "refunded") return json({ error: "Order already refunded" }, 400);
-    if (order.status !== "paid") return json({ error: `Cannot refund order in status '${order.status}'` }, 400);
+    if (oErr || !order) return json(req, { error: "Order not found" }, 404);
+    if (order.status === "refunded") return json(req, { error: "Order already refunded" }, 400);
+    if (order.status !== "paid") return json(req, { error: `Cannot refund order in status '${order.status}'` }, 400);
 
     // Stripe refund
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
@@ -62,7 +71,7 @@ serve(async (req) => {
         });
         refundId = refund.id;
       } catch (e: any) {
-        return json({ error: `Stripe refund failed: ${e.message}` }, 400);
+        return json(req, { error: `Stripe refund failed: ${e.message}` }, 400);
       }
     }
 
@@ -135,9 +144,9 @@ serve(async (req) => {
       });
     }
 
-    return json({ ok: true, refund_id: refundId, reversals });
+    return json(req, { ok: true, refund_id: refundId, reversals });
   } catch (e: any) {
     console.error("refund-order error", e);
-    return json({ error: e?.message ?? "Internal error" }, 500);
+    return json(req, { error: e?.message ?? "Internal error" }, 500);
   }
 });
