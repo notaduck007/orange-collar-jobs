@@ -303,16 +303,30 @@ function EmployerDashboard() {
           {isLoading ? (
             <TableSkeleton rows={4} cols={6} />
           ) : jobs.length === 0 ? (
-            <div className="p-12 text-center">
-              <Briefcase className="mx-auto h-10 w-10 text-muted-foreground/40" />
-              <p className="mt-3 text-base font-semibold text-[color:var(--ink)]">No jobs yet</p>
-              <p className="mt-1 text-sm text-muted-foreground">Post your first warehouse role to start receiving applicants.</p>
-              <div className="mt-5">
-                <Button onClick={() => navigate({ to: "/employer/jobs/new" })} className="btn-primary gap-1.5">
-                  <Plus className="h-4 w-4" /> Post a Job
-                </Button>
+            <div className="p-8 sm:p-12">
+              <div className="mx-auto grid max-w-3xl items-center gap-6 sm:grid-cols-[200px_1fr] sm:gap-8">
+                <img
+                  src={new URL("../assets/crew-productive.webp", import.meta.url).href}
+                  alt="A productive warehouse crew collaborating at a pick station — the team you can hire by posting your first job."
+                  width={400}
+                  height={500}
+                  loading="lazy"
+                  decoding="async"
+                  className="aspect-[4/5] w-full rounded-lg object-cover"
+                />
+                <div className="text-center sm:text-left">
+                  <p className="label-caps text-primary">Get started</p>
+                  <p className="mt-1 text-xl font-bold text-[color:var(--ink)]">Post your first job</p>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Reach forklift operators, pickers, and dock workers ready to start this week. Your free Starter package is loaded and waiting.
+                  </p>
+                  <div className="mt-5 flex flex-wrap justify-center gap-2 sm:justify-start">
+                    <Button onClick={() => navigate({ to: "/employer/jobs/new" })} className="btn-primary gap-1.5">
+                      <Plus className="h-4 w-4" /> Post a Job
+                    </Button>
+                  </div>
+                </div>
               </div>
-
             </div>
           ) : (
             <div className="overflow-x-auto">
