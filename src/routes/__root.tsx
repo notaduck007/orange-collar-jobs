@@ -100,6 +100,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content: "The job board built for warehouse workers and the companies that hire them.",
       },
       { name: "twitter:image", content: "/icon-512.png" },
+      { name: "description", content: "Orange Collar Jobs is a web app connecting warehouse employers with job seekers." },
+      { property: "og:description", content: "Orange Collar Jobs is a web app connecting warehouse employers with job seekers." },
+      { name: "twitter:description", content: "Orange Collar Jobs is a web app connecting warehouse employers with job seekers." },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
