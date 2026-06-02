@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SeekerRouteImport } from './routes/seeker'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as JobsRouteImport } from './routes/jobs'
 import { Route as FaqRouteImport } from './routes/faq'
@@ -25,6 +26,7 @@ import { Route as EmployerIndexRouteImport } from './routes/employer.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as SeekerSavedRouteImport } from './routes/seeker.saved'
 import { Route as SeekerProfileRouteImport } from './routes/seeker.profile'
+import { Route as SeekerPrivacyRouteImport } from './routes/seeker.privacy'
 import { Route as SeekerApplicationsRouteImport } from './routes/seeker.applications'
 import { Route as SeekerAlertsRouteImport } from './routes/seeker.alerts'
 import { Route as JobsSlugRouteImport } from './routes/jobs.$slug'
@@ -59,6 +61,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const SeekerRoute = SeekerRouteImport.update({
   id: '/seeker',
   path: '/seeker',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PricingRoute = PricingRouteImport.update({
@@ -129,6 +136,11 @@ const SeekerSavedRoute = SeekerSavedRouteImport.update({
 const SeekerProfileRoute = SeekerProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => SeekerRoute,
+} as any)
+const SeekerPrivacyRoute = SeekerPrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => SeekerRoute,
 } as any)
 const SeekerApplicationsRoute = SeekerApplicationsRouteImport.update({
@@ -268,6 +280,7 @@ export interface FileRoutesByFullPath {
   '/faq': typeof FaqRoute
   '/jobs': typeof JobsRouteWithChildren
   '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
   '/seeker': typeof SeekerRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/ads': typeof AdminAdsRoute
@@ -292,6 +305,7 @@ export interface FileRoutesByFullPath {
   '/jobs/$slug': typeof JobsSlugRoute
   '/seeker/alerts': typeof SeekerAlertsRoute
   '/seeker/applications': typeof SeekerApplicationsRoute
+  '/seeker/privacy': typeof SeekerPrivacyRoute
   '/seeker/profile': typeof SeekerProfileRoute
   '/seeker/saved': typeof SeekerSavedRoute
   '/admin/': typeof AdminIndexRoute
@@ -309,6 +323,7 @@ export interface FileRoutesByTo {
   '/faq': typeof FaqRoute
   '/jobs': typeof JobsRouteWithChildren
   '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/ads': typeof AdminAdsRoute
   '/admin/billing': typeof AdminBillingRoute
@@ -332,6 +347,7 @@ export interface FileRoutesByTo {
   '/jobs/$slug': typeof JobsSlugRoute
   '/seeker/alerts': typeof SeekerAlertsRoute
   '/seeker/applications': typeof SeekerApplicationsRoute
+  '/seeker/privacy': typeof SeekerPrivacyRoute
   '/seeker/profile': typeof SeekerProfileRoute
   '/seeker/saved': typeof SeekerSavedRoute
   '/admin': typeof AdminIndexRoute
@@ -352,6 +368,7 @@ export interface FileRoutesById {
   '/faq': typeof FaqRoute
   '/jobs': typeof JobsRouteWithChildren
   '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
   '/seeker': typeof SeekerRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/ads': typeof AdminAdsRoute
@@ -376,6 +393,7 @@ export interface FileRoutesById {
   '/jobs/$slug': typeof JobsSlugRoute
   '/seeker/alerts': typeof SeekerAlertsRoute
   '/seeker/applications': typeof SeekerApplicationsRoute
+  '/seeker/privacy': typeof SeekerPrivacyRoute
   '/seeker/profile': typeof SeekerProfileRoute
   '/seeker/saved': typeof SeekerSavedRoute
   '/admin/': typeof AdminIndexRoute
@@ -397,6 +415,7 @@ export interface FileRouteTypes {
     | '/faq'
     | '/jobs'
     | '/pricing'
+    | '/privacy'
     | '/seeker'
     | '/sitemap.xml'
     | '/admin/ads'
@@ -421,6 +440,7 @@ export interface FileRouteTypes {
     | '/jobs/$slug'
     | '/seeker/alerts'
     | '/seeker/applications'
+    | '/seeker/privacy'
     | '/seeker/profile'
     | '/seeker/saved'
     | '/admin/'
@@ -438,6 +458,7 @@ export interface FileRouteTypes {
     | '/faq'
     | '/jobs'
     | '/pricing'
+    | '/privacy'
     | '/sitemap.xml'
     | '/admin/ads'
     | '/admin/billing'
@@ -461,6 +482,7 @@ export interface FileRouteTypes {
     | '/jobs/$slug'
     | '/seeker/alerts'
     | '/seeker/applications'
+    | '/seeker/privacy'
     | '/seeker/profile'
     | '/seeker/saved'
     | '/admin'
@@ -480,6 +502,7 @@ export interface FileRouteTypes {
     | '/faq'
     | '/jobs'
     | '/pricing'
+    | '/privacy'
     | '/seeker'
     | '/sitemap.xml'
     | '/admin/ads'
@@ -504,6 +527,7 @@ export interface FileRouteTypes {
     | '/jobs/$slug'
     | '/seeker/alerts'
     | '/seeker/applications'
+    | '/seeker/privacy'
     | '/seeker/profile'
     | '/seeker/saved'
     | '/admin/'
@@ -524,6 +548,7 @@ export interface RootRouteChildren {
   FaqRoute: typeof FaqRoute
   JobsRoute: typeof JobsRouteWithChildren
   PricingRoute: typeof PricingRoute
+  PrivacyRoute: typeof PrivacyRoute
   SeekerRoute: typeof SeekerRouteWithChildren
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   CompaniesSlugRoute: typeof CompaniesSlugRoute
@@ -543,6 +568,13 @@ declare module '@tanstack/react-router' {
       path: '/seeker'
       fullPath: '/seeker'
       preLoaderRoute: typeof SeekerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pricing': {
@@ -641,6 +673,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/seeker/profile'
       preLoaderRoute: typeof SeekerProfileRouteImport
+      parentRoute: typeof SeekerRoute
+    }
+    '/seeker/privacy': {
+      id: '/seeker/privacy'
+      path: '/privacy'
+      fullPath: '/seeker/privacy'
+      preLoaderRoute: typeof SeekerPrivacyRouteImport
       parentRoute: typeof SeekerRoute
     }
     '/seeker/applications': {
@@ -898,6 +937,7 @@ const JobsRouteWithChildren = JobsRoute._addFileChildren(JobsRouteChildren)
 interface SeekerRouteChildren {
   SeekerAlertsRoute: typeof SeekerAlertsRoute
   SeekerApplicationsRoute: typeof SeekerApplicationsRoute
+  SeekerPrivacyRoute: typeof SeekerPrivacyRoute
   SeekerProfileRoute: typeof SeekerProfileRoute
   SeekerSavedRoute: typeof SeekerSavedRoute
   SeekerIndexRoute: typeof SeekerIndexRoute
@@ -906,6 +946,7 @@ interface SeekerRouteChildren {
 const SeekerRouteChildren: SeekerRouteChildren = {
   SeekerAlertsRoute: SeekerAlertsRoute,
   SeekerApplicationsRoute: SeekerApplicationsRoute,
+  SeekerPrivacyRoute: SeekerPrivacyRoute,
   SeekerProfileRoute: SeekerProfileRoute,
   SeekerSavedRoute: SeekerSavedRoute,
   SeekerIndexRoute: SeekerIndexRoute,
@@ -924,6 +965,7 @@ const rootRouteChildren: RootRouteChildren = {
   FaqRoute: FaqRoute,
   JobsRoute: JobsRouteWithChildren,
   PricingRoute: PricingRoute,
+  PrivacyRoute: PrivacyRoute,
   SeekerRoute: SeekerRouteWithChildren,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   CompaniesSlugRoute: CompaniesSlugRoute,

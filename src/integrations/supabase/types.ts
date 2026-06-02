@@ -469,6 +469,45 @@ export type Database = {
           },
         ]
       }
+      deletion_requests: {
+        Row: {
+          created_at: string
+          id: string
+          processed_at: string | null
+          processed_by: string | null
+          reason: string | null
+          requested_by: string | null
+          status: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          processed_at?: string | null
+          processed_by?: string | null
+          reason?: string | null
+          requested_by?: string | null
+          status?: string
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          processed_at?: string | null
+          processed_by?: string | null
+          reason?: string | null
+          requested_by?: string | null
+          status?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       faq_items: {
         Row: {
           answer: string
@@ -868,11 +907,13 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           default_resume_url: string | null
+          deleted_at: string | null
           display_name: string | null
           full_name: string | null
           id: string
           location: string | null
           phone: string | null
+          pii_anonymized_at: string | null
           updated_at: string
         }
         Insert: {
@@ -880,11 +921,13 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           default_resume_url?: string | null
+          deleted_at?: string | null
           display_name?: string | null
           full_name?: string | null
           id: string
           location?: string | null
           phone?: string | null
+          pii_anonymized_at?: string | null
           updated_at?: string
         }
         Update: {
@@ -892,11 +935,13 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           default_resume_url?: string | null
+          deleted_at?: string | null
           display_name?: string | null
           full_name?: string | null
           id?: string
           location?: string | null
           phone?: string | null
+          pii_anonymized_at?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -1342,6 +1387,7 @@ export type Database = {
     Functions: {
       ad_increment_click: { Args: { _ad_id: string }; Returns: undefined }
       ad_increment_impression: { Args: { _ad_id: string }; Returns: undefined }
+      anonymize_user: { Args: { _user_id: string }; Returns: undefined }
       check_rate_limit: {
         Args: { _key: string; _max: number; _window_seconds: number }
         Returns: boolean

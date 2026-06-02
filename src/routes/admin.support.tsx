@@ -3,7 +3,7 @@ import { useState, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
-import { Flag, LifeBuoy, Mail, Send, User2, Clock } from "lucide-react";
+import { Flag, LifeBuoy, Mail, Send, User2, Clock, ShieldCheck, Download, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -59,8 +59,26 @@ type Report = {
 function AdminSupport() {
   const { user } = useAuth();
   const qc = useQueryClient();
-  const [tab, setTab] = useState<"tickets" | "reports">("tickets");
+  const [tab, setTab] = useState<"tickets" | "reports" | "dsr">("tickets");
   const [statusFilter, setStatusFilter] = useState<string>("open");
+  const [dsrUserId, setDsrUserId] = useState("");
+  const [dsrBusy, setDsrBusy] = useState<string | null>(null);
+
+  const dsrQ = useQuery({
+    queryKey: ["admin-dsr"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("deletion_requests")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(200);
+      if (error) throw error;
+      return data as Array<{
+        id: string; user_id: string; type: string; status: string;
+        reason: string | null; created_at: string; processed_at: string | null;
+      }>;
+    },
+  });
 
   const ticketsQ = useQuery({
     queryKey: ["admin-tickets"],
@@ -127,6 +145,62 @@ function AdminSupport() {
     toast.success("Report updated");
   };
 
+  const exportUserData = async (userId: string): Promise<void> => {
+    setDsrBusy(userId + ":export");
+    try {
+      const { data: sess } = await supabase.auth.getSession();
+      const token = sess.session?.access_token;
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/export-user-data`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+          body: JSON.stringify({ user_id: userId }),
+        },
+      );
+      if (!res.ok) throw new Error(`Export failed (${res.status})`);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `dsr-export-${userId}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("Export downloaded");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Export failed";
+      toast.error(msg);
+    } finally {
+      setDsrBusy(null);
+    }
+  };
+
+  const deleteUser = async (userId: string, mode: "soft" | "hard"): Promise<void> => {
+    if (!confirm(`Confirm ${mode}-delete for user ${userId.slice(0, 8)}? This anonymizes their PII.`)) return;
+    setDsrBusy(userId + ":delete");
+    try {
+      const { data, error } = await supabase.functions.invoke("delete-user-account", {
+        body: { user_id: userId, mode },
+      });
+      if (error) throw error;
+      const payload = data as { error?: string } | null;
+      if (payload?.error) throw new Error(payload.error);
+      toast.success(`User ${mode}-deleted`);
+      qc.invalidateQueries({ queryKey: ["admin-dsr"] });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Deletion failed";
+      toast.error(msg);
+    } finally {
+      setDsrBusy(null);
+    }
+  };
+
+  const openDsr = (dsrQ.data ?? []).filter((d) => d.status === "requested").length;
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -140,6 +214,7 @@ function AdminSupport() {
         <div className="flex items-center gap-3 text-sm">
           <Badge variant="secondary"><LifeBuoy className="mr-1 h-3 w-3" />{openTickets} open tickets</Badge>
           <Badge variant="secondary"><Flag className="mr-1 h-3 w-3" />{openReports} open reports</Badge>
+          <Badge variant="secondary"><ShieldCheck className="mr-1 h-3 w-3" />{openDsr} open DSR</Badge>
         </div>
       </div>
 
@@ -148,6 +223,7 @@ function AdminSupport() {
           <TabsList>
             <TabsTrigger value="tickets">Tickets ({openTickets})</TabsTrigger>
             <TabsTrigger value="reports">Reports ({openReports})</TabsTrigger>
+            <TabsTrigger value="dsr">DSR ({openDsr})</TabsTrigger>
           </TabsList>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
@@ -227,6 +303,91 @@ function AdminSupport() {
                 ))}
                 {reports.length === 0 && (
                   <tr><td colSpan={5} className="px-3 py-8 text-center text-muted-foreground">No reports.</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="dsr" className="mt-4 space-y-4">
+          <div className="rounded-lg border border-border bg-card p-4">
+            <h3 className="text-sm font-semibold">Fulfill a data-subject request</h3>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Export or delete on behalf of a user (e.g. emailed privacy request). Actions are audited.
+            </p>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <Input
+                placeholder="User UUID"
+                value={dsrUserId}
+                onChange={(e) => setDsrUserId(e.target.value)}
+                className="w-80 font-mono text-xs"
+              />
+              <Button
+                size="sm" variant="outline"
+                disabled={!dsrUserId || dsrBusy === dsrUserId + ":export"}
+                onClick={() => exportUserData(dsrUserId)}
+              >
+                <Download className="mr-2 h-4 w-4" /> Export
+              </Button>
+              <Button
+                size="sm" variant="outline"
+                disabled={!dsrUserId || dsrBusy === dsrUserId + ":delete"}
+                onClick={() => deleteUser(dsrUserId, "soft")}
+              >
+                <ShieldCheck className="mr-2 h-4 w-4" /> Soft-delete (anonymize)
+              </Button>
+              <Button
+                size="sm" variant="destructive"
+                disabled={!dsrUserId || dsrBusy === dsrUserId + ":delete"}
+                onClick={() => deleteUser(dsrUserId, "hard")}
+              >
+                <Trash2 className="mr-2 h-4 w-4" /> Hard-delete
+              </Button>
+            </div>
+          </div>
+
+          <div className="overflow-hidden rounded-lg border border-border bg-card">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/40 text-left text-xs uppercase text-muted-foreground">
+                <tr>
+                  <th className="px-3 py-2">User</th>
+                  <th className="px-3 py-2">Type</th>
+                  <th className="px-3 py-2">Status</th>
+                  <th className="px-3 py-2">Reason</th>
+                  <th className="px-3 py-2">Requested</th>
+                  <th className="px-3 py-2">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(dsrQ.data ?? []).map((d) => (
+                  <tr key={d.id} className="border-t border-border">
+                    <td className="px-3 py-2 font-mono text-xs">{d.user_id.slice(0, 8)}</td>
+                    <td className="px-3 py-2"><Badge variant="outline">{d.type}</Badge></td>
+                    <td className="px-3 py-2"><Badge>{d.status}</Badge></td>
+                    <td className="px-3 py-2 text-xs text-muted-foreground">{d.reason ?? "—"}</td>
+                    <td className="px-3 py-2 text-xs text-muted-foreground">
+                      {formatDistanceToNow(new Date(d.created_at), { addSuffix: true })}
+                    </td>
+                    <td className="px-3 py-2">
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="ghost"
+                          onClick={() => exportUserData(d.user_id)}
+                          disabled={dsrBusy === d.user_id + ":export"}>
+                          <Download className="h-3.5 w-3.5" />
+                        </Button>
+                        {d.type === "delete" && d.status !== "completed" && (
+                          <Button size="sm" variant="ghost"
+                            onClick={() => deleteUser(d.user_id, "soft")}
+                            disabled={dsrBusy === d.user_id + ":delete"}>
+                            <ShieldCheck className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {(!dsrQ.data || dsrQ.data.length === 0) && (
+                  <tr><td colSpan={6} className="px-3 py-8 text-center text-muted-foreground">No requests.</td></tr>
                 )}
               </tbody>
             </table>
