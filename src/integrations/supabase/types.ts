@@ -406,6 +406,7 @@ export type Database = {
           employment_type: Database["public"]["Enums"]["employment_type"]
           expires_at: string | null
           featured: boolean
+          featured_until: string | null
           id: string
           lat: number | null
           lng: number | null
@@ -435,6 +436,7 @@ export type Database = {
           employment_type?: Database["public"]["Enums"]["employment_type"]
           expires_at?: string | null
           featured?: boolean
+          featured_until?: string | null
           id?: string
           lat?: number | null
           lng?: number | null
@@ -464,6 +466,7 @@ export type Database = {
           employment_type?: Database["public"]["Enums"]["employment_type"]
           expires_at?: string | null
           featured?: boolean
+          featured_until?: string | null
           id?: string
           lat?: number | null
           lng?: number | null
@@ -920,6 +923,10 @@ export type Database = {
     Functions: {
       ad_increment_click: { Args: { _ad_id: string }; Returns: undefined }
       ad_increment_impression: { Args: { _ad_id: string }; Returns: undefined }
+      consume_credit: {
+        Args: { _company_id: string; _credit_type: string }
+        Returns: boolean
+      }
       grant_credits_for_order: {
         Args: { _order_id: string }
         Returns: undefined
