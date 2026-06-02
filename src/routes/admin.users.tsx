@@ -260,8 +260,9 @@ function AdminUsers() {
         onSuspend={(id, active) => toggleActive(id, active)}
         onReset={(id) => sendReset(id)}
         onResend={(id) => resendVerify(id)}
-        onSetRole={(id, r) => setRole(id, r)}
+        onToggleRole={(id, r, has) => toggleRole(id, r, has)}
       />
+
     </div>
   );
 }
