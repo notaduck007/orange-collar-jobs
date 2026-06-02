@@ -319,7 +319,7 @@ function NewJobPage() {
         featured_until: featuredUntil,
         posted_at: new Date().toISOString(),
         expires_at: expiresAt,
-      }).select("id").single();
+      }).select("id, status, spam_score").single();
       if (error) throw error;
 
       const validQs = questions.filter((q) => q.prompt.trim().length > 0);
@@ -337,7 +337,15 @@ function NewJobPage() {
         if (qErr) toast.error(`Job posted, but screening questions failed: ${qErr.message}`);
       }
 
-      toast.success("Job posted!");
+      const createdRow = created as unknown as { status?: string; spam_score?: number } | null;
+      if (createdRow?.status === "pending_review") {
+        toast.warning(
+          "Your posting was flagged for review and is not live yet. Our team will approve it shortly.",
+          { duration: 8000 },
+        );
+      } else {
+        toast.success("Job posted!");
+      }
       qc.invalidateQueries({ queryKey: ["company-credits", company.id] });
       qc.invalidateQueries({ queryKey: ["employer-jobs", company.id] });
       navigate({ to: "/employer" });
