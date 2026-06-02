@@ -17,6 +17,7 @@ import {
 import { DollarSign, Download, RefreshCw, ExternalLink, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { stripeDashboardUrlFor } from "@/lib/stripe-dashboard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -374,12 +375,10 @@ function AdminBilling() {
           </thead>
           <tbody>
             {filtered.map((o) => {
-              const intent = o.stripe_payment_intent;
-              const stripeUrl = intent
-                ? `https://dashboard.stripe.com/test/payments/${intent}`
-                : o.stripe_session_id
-                  ? `https://dashboard.stripe.com/test/checkout/sessions/${o.stripe_session_id}`
-                  : null;
+              const stripeUrl = stripeDashboardUrlFor({
+                paymentIntent: o.stripe_payment_intent,
+                sessionId: o.stripe_session_id,
+              });
               return (
                 <tr key={o.id} className="border-t border-border">
                   <td className="px-3 py-2 text-xs text-muted-foreground whitespace-nowrap">
