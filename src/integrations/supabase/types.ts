@@ -1704,6 +1704,7 @@ export type Database = {
       }
       get_my_permissions: { Args: never; Returns: string[] }
       get_public_settings: { Args: never; Returns: Json }
+      get_user_permissions: { Args: { _user_id: string }; Returns: string[] }
       grant_credits_for_order: {
         Args: { _order_id: string }
         Returns: undefined
@@ -1749,6 +1750,13 @@ export type Database = {
           shift: Database["public"]["Enums"]["job_shift"]
           slug: string
           title: string
+        }[]
+      }
+      role_member_counts: {
+        Args: never
+        Returns: {
+          member_count: number
+          role_id: string
         }[]
       }
       search_jobs:

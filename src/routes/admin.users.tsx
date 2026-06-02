@@ -18,6 +18,7 @@ import type { Database } from "@/integrations/supabase/types";
 
 
 type AppRole = Database["public"]["Enums"]["app_role"];
+type RoleRef = { id: string; key: string; name: string; is_system: boolean };
 
 export const Route = createFileRoute("/admin/users")({
   head: () => ({ meta: [{ title: "Users — WarehouseJobs Admin" }] }),
@@ -32,10 +33,8 @@ type Row = {
   location: string | null;
   active: boolean;
   created_at: string;
-  roles: AppRole[];
+  roles: RoleRef[];
 };
-
-const ALL_ROLES: AppRole[] = ["admin", "employer", "job_seeker"];
 
 function AdminUsers() {
   const qc = useQueryClient();
@@ -47,22 +46,34 @@ function AdminUsers() {
   const [signedFilter, setSignedFilter] = useState<"all" | "7d" | "30d" | "90d">("all");
   const [openUserId, setOpenUserId] = useState<string | null>(null);
 
+  const { data: rolesCatalog = [] } = useQuery({
+    queryKey: ["roles-catalog"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("roles").select("id, key, name, is_system").order("is_system", { ascending: false }).order("name");
+      if (error) throw error;
+      return data as RoleRef[];
+    },
+  });
+  const roleByKey = useMemo(() => Object.fromEntries(rolesCatalog.map((r) => [r.key, r])), [rolesCatalog]);
+
   const { data: users = [], isLoading } = useQuery({
-    queryKey: ["admin-users", q],
-    enabled: can("users"),
+    queryKey: ["admin-users", q, rolesCatalog.length],
+    enabled: can("users") && rolesCatalog.length > 0,
     queryFn: async () => {
       let query = supabase
         .from("profiles")
-        .select("id, display_name, full_name, phone, location, active, created_at, user_roles(role)")
+        .select("id, display_name, full_name, phone, location, active, created_at, user_role_assignments(role_id)")
         .order("created_at", { ascending: false })
         .limit(500);
       if (q) query = query.or(`display_name.ilike.%${q}%,full_name.ilike.%${q}%,phone.ilike.%${q}%`);
       const { data, error } = await query;
       if (error) throw error;
+      const byId = new Map(rolesCatalog.map((r) => [r.id, r]));
       return (data ?? []).map((u): Row => {
-        const rf = u.user_roles as unknown;
-        const arr = Array.isArray(rf) ? (rf as Array<{ role: AppRole }>) : rf ? [rf as { role: AppRole }] : [];
-        return { ...u, roles: arr.map((r) => r.role) };
+        const rf = u.user_role_assignments as unknown;
+        const arr = Array.isArray(rf) ? (rf as Array<{ role_id: string }>) : rf ? [rf as { role_id: string }] : [];
+        const roles = arr.map((r) => byId.get(r.role_id)).filter(Boolean) as RoleRef[];
+        return { ...u, roles };
       });
     },
   });
@@ -75,7 +86,7 @@ function AdminUsers() {
       return d;
     })();
     return users.filter((u) => {
-      if (roleFilter !== "all" && !u.roles.includes(roleFilter)) return false;
+      if (roleFilter !== "all" && !u.roles.some((r) => r.key === roleFilter)) return false;
       if (statusFilter === "active" && !u.active) return false;
       if (statusFilter === "suspended" && u.active) return false;
       if (cutoff && new Date(u.created_at) < cutoff) return false;
@@ -96,16 +107,30 @@ function AdminUsers() {
     return true;
   };
 
-  const grantRole = (userId: string, role: AppRole) =>
-    invokeAction({ action: "grant_role", user_id: userId, role }, `Granted ${role}`);
-  const revokeRole = async (userId: string, role: AppRole) => {
-    if (role === "admin" && userId === me?.id) {
+  const grantRoleById = async (userId: string, roleId: string) => {
+    const { error } = await supabase.from("user_role_assignments").insert({ user_id: userId, role_id: roleId });
+    if (error) { toast.error(error.message); return false; }
+    toast.success("Role granted");
+    qc.invalidateQueries({ queryKey: ["admin-users"] });
+    qc.invalidateQueries({ queryKey: ["admin-user-detail"] });
+    qc.invalidateQueries({ queryKey: ["admin-role-counts"] });
+    return true;
+  };
+  const revokeRoleById = async (userId: string, roleId: string) => {
+    const adminRole = roleByKey["admin"];
+    if (adminRole && roleId === adminRole.id && userId === me?.id) {
       if (!confirm("Revoke your OWN admin role? You will immediately lose admin access.")) return false;
     }
-    return invokeAction({ action: "revoke_role", user_id: userId, role }, `Revoked ${role}`);
+    const { error } = await supabase.from("user_role_assignments").delete().eq("user_id", userId).eq("role_id", roleId);
+    if (error) { toast.error(error.message); return false; }
+    toast.success("Role revoked");
+    qc.invalidateQueries({ queryKey: ["admin-users"] });
+    qc.invalidateQueries({ queryKey: ["admin-user-detail"] });
+    qc.invalidateQueries({ queryKey: ["admin-role-counts"] });
+    return true;
   };
-  const toggleRole = (userId: string, role: AppRole, has: boolean) =>
-    has ? revokeRole(userId, role) : grantRole(userId, role);
+  const toggleRoleById = (userId: string, roleId: string, has: boolean) =>
+    has ? revokeRoleById(userId, roleId) : grantRoleById(userId, roleId);
 
   const toggleActive = (userId: string, active: boolean) =>
     invokeAction(
@@ -119,9 +144,10 @@ function AdminUsers() {
   const impersonate = async (u: Row) => {
     if (!confirm("Sign in as this user? Your session will be paused and all actions are audited.")) return;
     const label = u.display_name || u.full_name || u.id.slice(0, 8);
-    const redirectTo = u.roles.includes("employer")
+    const roleKeys = u.roles.map((r) => r.key);
+    const redirectTo = roleKeys.includes("employer")
       ? "/employer"
-      : u.roles.includes("job_seeker")
+      : roleKeys.includes("job_seeker")
         ? "/seeker"
         : "/";
     try {
@@ -212,28 +238,31 @@ function AdminUsers() {
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-wrap gap-1">
-                    {ALL_ROLES.map((r) => {
-                      const has = u.roles.includes(r);
+                    {rolesCatalog.map((r) => {
+                      const has = u.roles.some((ur) => ur.id === r.id);
                       return (
                         <button
-                          key={r}
+                          key={r.id}
                           type="button"
-                          onClick={() => toggleRole(u.id, r, has)}
+                          onClick={() => toggleRoleById(u.id, r.id, has)}
                           className={`rounded-md border px-2 py-0.5 text-[11px] font-medium transition-colors ${
                             has
-                              ? r === "admin"
+                              ? r.key === "admin"
                                 ? "border-primary bg-primary/15 text-primary"
-                                : "border-emerald-300 bg-emerald-100 text-emerald-900"
+                                : r.is_system
+                                  ? "border-emerald-300 bg-emerald-100 text-emerald-900"
+                                  : "border-violet-300 bg-violet-100 text-violet-900"
                               : "border-border bg-transparent text-muted-foreground hover:bg-muted"
                           }`}
-                          title={has ? `Revoke ${r}` : `Grant ${r}`}
+                          title={has ? `Revoke ${r.name}` : `Grant ${r.name}`}
                         >
-                          {r.replace("_", " ")}
+                          {r.name}
                         </button>
                       );
                     })}
                   </div>
                 </TableCell>
+
 
                 <TableCell>
                   {u.active
@@ -262,11 +291,12 @@ function AdminUsers() {
 
       <UserDrawer
         userId={openUserId}
+        rolesCatalog={rolesCatalog}
         onOpenChange={(o) => !o && setOpenUserId(null)}
         onSuspend={(id, active) => toggleActive(id, active)}
         onReset={(id) => sendReset(id)}
         onResend={(id) => resendVerify(id)}
-        onToggleRole={(id, r, has) => toggleRole(id, r, has)}
+        onToggleRole={(id, roleId, has) => toggleRoleById(id, roleId, has)}
       />
 
     </div>
@@ -274,14 +304,15 @@ function AdminUsers() {
 }
 
 function UserDrawer({
-  userId, onOpenChange, onSuspend, onReset, onResend, onToggleRole,
+  userId, rolesCatalog, onOpenChange, onSuspend, onReset, onResend, onToggleRole,
 }: {
   userId: string | null;
+  rolesCatalog: RoleRef[];
   onOpenChange: (o: boolean) => void;
   onSuspend: (id: string, active: boolean) => void;
   onReset: (id: string) => void;
   onResend: (id: string) => void;
-  onToggleRole: (id: string, r: AppRole, has: boolean) => void;
+  onToggleRole: (id: string, roleId: string, has: boolean) => void;
 }) {
 
   const { data, isLoading } = useQuery({
@@ -289,14 +320,15 @@ function UserDrawer({
     enabled: !!userId,
     queryFn: async () => {
       const id = userId!;
-      const [profileR, rolesR, companiesR, jobsR, appsR, auditR, metaR] = await Promise.all([
+      const [profileR, rolesR, companiesR, jobsR, appsR, auditR, metaR, permsR] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", id).maybeSingle(),
-        supabase.from("user_roles").select("role").eq("user_id", id),
+        supabase.from("user_role_assignments").select("role_id").eq("user_id", id),
         supabase.from("companies").select("id, name, slug, verified, created_at").eq("owner_id", id),
         supabase.from("jobs").select("id, title, status, created_at").eq("posted_by", id).order("created_at", { ascending: false }).limit(20),
         supabase.from("applications").select("id, job_id, status, created_at").eq("applicant_id", id).order("created_at", { ascending: false }).limit(20),
         supabase.from("audit_log").select("id, action, reason, metadata, created_at, actor_id").eq("entity_type", "user").eq("entity_id", id).order("created_at", { ascending: false }).limit(50),
         supabase.functions.invoke("admin-user-actions", { body: { action: "get_meta", user_id: id } }),
+        supabase.rpc("get_user_permissions", { _user_id: id }),
       ]);
 
       // Fetch orders for any companies owned by user
@@ -311,16 +343,21 @@ function UserDrawer({
           .limit(50);
         orders = data ?? [];
       }
-      
 
       const meta = (metaR.data ?? {}) as {
         email?: string | null; email_confirmed_at?: string | null;
         last_sign_in_at?: string | null; banned_until?: string | null; created_at?: string | null;
       };
 
+      const roleIds = ((rolesR.data ?? []) as Array<{ role_id: string }>).map((r) => r.role_id);
+      const effectivePerms = ((permsR.data ?? []) as Array<string | { get_user_permissions: string }>).map(
+        (r) => (typeof r === "string" ? r : r.get_user_permissions),
+      );
+
       return {
         profile: profileR.data,
-        roles: ((rolesR.data ?? []) as Array<{ role: AppRole }>).map((r) => r.role),
+        roleIds,
+        effectivePerms,
         companies: companiesR.data ?? [],
         jobs: jobsR.data ?? [],
         applications: appsR.data ?? [],
@@ -356,22 +393,24 @@ function UserDrawer({
             <div className="flex flex-wrap gap-2">
               <div className="flex flex-wrap items-center gap-1.5 rounded-md border border-border bg-muted/30 px-2 py-1.5">
                 <span className="label-caps text-[10px] text-muted-foreground">Roles</span>
-                {ALL_ROLES.map((r) => {
-                  const has = data.roles.includes(r);
+                {rolesCatalog.map((r) => {
+                  const has = data.roleIds.includes(r.id);
                   return (
                     <button
-                      key={r}
+                      key={r.id}
                       type="button"
-                      onClick={() => userId && onToggleRole(userId, r, has)}
+                      onClick={() => userId && onToggleRole(userId, r.id, has)}
                       className={`rounded-md border px-2 py-0.5 text-[11px] font-medium transition-colors ${
                         has
-                          ? r === "admin"
+                          ? r.key === "admin"
                             ? "border-primary bg-primary/15 text-primary"
-                            : "border-emerald-300 bg-emerald-100 text-emerald-900"
+                            : r.is_system
+                              ? "border-emerald-300 bg-emerald-100 text-emerald-900"
+                              : "border-violet-300 bg-violet-100 text-violet-900"
                           : "border-border bg-transparent text-muted-foreground hover:bg-muted"
                       }`}
                     >
-                      {has ? "✓ " : "+ "}{r.replace("_", " ")}
+                      {has ? "✓ " : "+ "}{r.name}
                     </button>
                   );
                 })}
@@ -389,6 +428,24 @@ function UserDrawer({
                 </Button>
               )}
             </div>
+
+            <div className="rounded-md border border-border bg-muted/30 p-3">
+              <p className="label-caps mb-1.5 text-[10px] text-muted-foreground">
+                Effective permissions ({data.effectivePerms.length})
+              </p>
+              {data.roleIds.some((id) => rolesCatalog.find((r) => r.id === id)?.key === "admin") ? (
+                <p className="text-xs text-[color:var(--ink)]">Administrator — implicitly holds all permissions.</p>
+              ) : data.effectivePerms.length === 0 ? (
+                <p className="text-xs text-muted-foreground">No permissions granted.</p>
+              ) : (
+                <div className="flex flex-wrap gap-1">
+                  {data.effectivePerms.sort().map((p) => (
+                    <span key={p} className="rounded-md border border-border bg-card px-1.5 py-0.5 font-mono text-[10px] text-[color:var(--ink)]">{p}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+
 
             <Tabs defaultValue="companies">
               <TabsList>

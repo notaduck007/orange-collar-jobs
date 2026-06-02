@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { LayoutDashboard, Building2, Briefcase, Package, Megaphone, Users, Receipt, ShieldCheck, Flag, FileText, Settings } from "lucide-react";
+import { LayoutDashboard, Building2, Briefcase, Package, Megaphone, Users, Receipt, ShieldCheck, Flag, FileText, Settings, KeyRound } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { useAuth } from "@/lib/auth";
@@ -15,6 +15,7 @@ type NavItem = { to: string; icon: typeof LayoutDashboard; label: string; exact?
 const NAV: NavItem[] = [
   { to: "/admin", icon: LayoutDashboard, label: "Dashboard", exact: true },
   { to: "/admin/users", icon: Users, label: "Users", perm: "users.view_all" },
+  { to: "/admin/roles", icon: KeyRound, label: "Roles & Permissions", perm: "roles.manage" },
   { to: "/admin/companies", icon: Building2, label: "Companies", perm: "companies.view_all" },
   { to: "/admin/jobs", icon: Briefcase, label: "Jobs", perm: "jobs.moderate" },
   { to: "/admin/moderation", icon: Flag, label: "Moderation", perm: "moderation.manage" },
@@ -35,6 +36,7 @@ const ROUTE_PERMS: { prefix: string; perm: PermissionKey }[] = [
   { prefix: "/admin/categories", perm: "settings.manage" },
   { prefix: "/admin/content", perm: "settings.manage" },
   { prefix: "/admin/users", perm: "users.view_all" },
+  { prefix: "/admin/roles", perm: "roles.manage" },
   { prefix: "/admin/support", perm: "moderation.manage" },
   { prefix: "/admin/orders", perm: "orders.view_all" },
   { prefix: "/admin/billing", perm: "orders.view_all" },
