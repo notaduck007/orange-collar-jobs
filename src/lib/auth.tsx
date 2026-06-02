@@ -32,6 +32,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
+      const { data: prof } = await supabase
+        .from("profiles")
+        .select("active")
+        .eq("id", s.user.id)
+        .maybeSingle();
+
+      if (prof && prof.active === false) {
+        await supabase.auth.signOut();
+        if (!active) return;
+        setSession(null);
+        setRole(null);
+        setLoading(false);
+        return;
+      }
+
       const { data } = await supabase
         .from("user_roles")
         .select("role")
