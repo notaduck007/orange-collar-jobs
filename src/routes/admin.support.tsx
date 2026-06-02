@@ -145,6 +145,62 @@ function AdminSupport() {
     toast.success("Report updated");
   };
 
+  const exportUserData = async (userId: string): Promise<void> => {
+    setDsrBusy(userId + ":export");
+    try {
+      const { data: sess } = await supabase.auth.getSession();
+      const token = sess.session?.access_token;
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/export-user-data`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+          body: JSON.stringify({ user_id: userId }),
+        },
+      );
+      if (!res.ok) throw new Error(`Export failed (${res.status})`);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `dsr-export-${userId}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("Export downloaded");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Export failed";
+      toast.error(msg);
+    } finally {
+      setDsrBusy(null);
+    }
+  };
+
+  const deleteUser = async (userId: string, mode: "soft" | "hard"): Promise<void> => {
+    if (!confirm(`Confirm ${mode}-delete for user ${userId.slice(0, 8)}? This anonymizes their PII.`)) return;
+    setDsrBusy(userId + ":delete");
+    try {
+      const { data, error } = await supabase.functions.invoke("delete-user-account", {
+        body: { user_id: userId, mode },
+      });
+      if (error) throw error;
+      const payload = data as { error?: string } | null;
+      if (payload?.error) throw new Error(payload.error);
+      toast.success(`User ${mode}-deleted`);
+      qc.invalidateQueries({ queryKey: ["admin-dsr"] });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Deletion failed";
+      toast.error(msg);
+    } finally {
+      setDsrBusy(null);
+    }
+  };
+
+  const openDsr = (dsrQ.data ?? []).filter((d) => d.status === "requested").length;
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
