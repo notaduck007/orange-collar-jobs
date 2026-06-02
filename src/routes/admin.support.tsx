@@ -250,6 +250,91 @@ function AdminSupport() {
             </table>
           </div>
         </TabsContent>
+
+        <TabsContent value="dsr" className="mt-4 space-y-4">
+          <div className="rounded-lg border border-border bg-card p-4">
+            <h3 className="text-sm font-semibold">Fulfill a data-subject request</h3>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Export or delete on behalf of a user (e.g. emailed privacy request). Actions are audited.
+            </p>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <Input
+                placeholder="User UUID"
+                value={dsrUserId}
+                onChange={(e) => setDsrUserId(e.target.value)}
+                className="w-80 font-mono text-xs"
+              />
+              <Button
+                size="sm" variant="outline"
+                disabled={!dsrUserId || dsrBusy === dsrUserId + ":export"}
+                onClick={() => exportUserData(dsrUserId)}
+              >
+                <Download className="mr-2 h-4 w-4" /> Export
+              </Button>
+              <Button
+                size="sm" variant="outline"
+                disabled={!dsrUserId || dsrBusy === dsrUserId + ":delete"}
+                onClick={() => deleteUser(dsrUserId, "soft")}
+              >
+                <ShieldCheck className="mr-2 h-4 w-4" /> Soft-delete (anonymize)
+              </Button>
+              <Button
+                size="sm" variant="destructive"
+                disabled={!dsrUserId || dsrBusy === dsrUserId + ":delete"}
+                onClick={() => deleteUser(dsrUserId, "hard")}
+              >
+                <Trash2 className="mr-2 h-4 w-4" /> Hard-delete
+              </Button>
+            </div>
+          </div>
+
+          <div className="overflow-hidden rounded-lg border border-border bg-card">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/40 text-left text-xs uppercase text-muted-foreground">
+                <tr>
+                  <th className="px-3 py-2">User</th>
+                  <th className="px-3 py-2">Type</th>
+                  <th className="px-3 py-2">Status</th>
+                  <th className="px-3 py-2">Reason</th>
+                  <th className="px-3 py-2">Requested</th>
+                  <th className="px-3 py-2">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(dsrQ.data ?? []).map((d) => (
+                  <tr key={d.id} className="border-t border-border">
+                    <td className="px-3 py-2 font-mono text-xs">{d.user_id.slice(0, 8)}</td>
+                    <td className="px-3 py-2"><Badge variant="outline">{d.type}</Badge></td>
+                    <td className="px-3 py-2"><Badge>{d.status}</Badge></td>
+                    <td className="px-3 py-2 text-xs text-muted-foreground">{d.reason ?? "—"}</td>
+                    <td className="px-3 py-2 text-xs text-muted-foreground">
+                      {formatDistanceToNow(new Date(d.created_at), { addSuffix: true })}
+                    </td>
+                    <td className="px-3 py-2">
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="ghost"
+                          onClick={() => exportUserData(d.user_id)}
+                          disabled={dsrBusy === d.user_id + ":export"}>
+                          <Download className="h-3.5 w-3.5" />
+                        </Button>
+                        {d.type === "delete" && d.status !== "completed" && (
+                          <Button size="sm" variant="ghost"
+                            onClick={() => deleteUser(d.user_id, "soft")}
+                            disabled={dsrBusy === d.user_id + ":delete"}>
+                            <ShieldCheck className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {(!dsrQ.data || dsrQ.data.length === 0) && (
+                  <tr><td colSpan={6} className="px-3 py-8 text-center text-muted-foreground">No requests.</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </TabsContent>
       </Tabs>
 
       <TicketSheet
