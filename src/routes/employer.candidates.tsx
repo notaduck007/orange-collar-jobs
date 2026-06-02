@@ -25,6 +25,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { useSiteSettings } from "@/lib/site-settings";
 
 export const Route = createFileRoute("/employer/candidates")({
   head: () => ({ meta: [{ title: "Candidate Search — WarehouseJobs" }] }),
@@ -188,6 +189,17 @@ function CandidatesPage() {
     setRelocateOnly(false);
   };
 
+  const { settings } = useSiteSettings();
+  if (!settings.toggles.candidate_search_enabled) {
+    return (
+      <div className="rounded-xl border border-border bg-card p-10 text-center">
+        <Lock className="mx-auto h-10 w-10 text-muted-foreground" />
+        <h2 className="mt-3 text-lg font-semibold text-[color:var(--ink)]">Candidate search is disabled</h2>
+        <p className="mt-1 text-sm text-muted-foreground">An administrator has turned off candidate search site-wide.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -199,6 +211,7 @@ function CandidatesPage() {
           Search opted-in seekers by skill, certification, shift, and location.
         </p>
       </div>
+
 
       {!companyLoading && !entitled && (
         <div className="rounded-xl border border-amber-300 bg-amber-50 p-6">
