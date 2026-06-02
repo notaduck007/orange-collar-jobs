@@ -28,26 +28,26 @@ serve(async (req) => {
 
     const admin = createClient(supabaseUrl, serviceKey);
 
-    // Only super_admin or support can impersonate
-    const { data: perm } = await admin
-      .from("admin_permissions")
-      .select("level")
-      .eq("user_id", actorId)
-      .maybeSingle();
-    if (!perm || !["super_admin", "support"].includes(perm.level)) {
-      return json({ error: "Forbidden" }, 403);
-    }
+    // Allowed: app_role 'admin' OR admin_permissions level super_admin/support
+    const [{ data: roleRow }, { data: perm }] = await Promise.all([
+      admin.from("user_roles").select("role").eq("user_id", actorId).eq("role", "admin").maybeSingle(),
+      admin.from("admin_permissions").select("level").eq("user_id", actorId).maybeSingle(),
+    ]);
+    const allowed = !!roleRow || (perm && ["super_admin", "support"].includes(perm.level));
+    if (!allowed) return json({ error: "Forbidden" }, 403);
 
     const body = await req.json().catch(() => ({}));
     const targetId: string | undefined = body.user_id;
     const reason: string | undefined = body.reason;
+    const targetLabel: string | undefined = body.target_label;
+    const targetKind: string = body.target_kind ?? "user";
+    const entityId: string = body.entity_id ?? targetId ?? "";
     if (!targetId) return json({ error: "user_id required" }, 400);
     if (targetId === actorId) return json({ error: "Cannot impersonate self" }, 400);
 
     const { data: tgt, error: tgtErr } = await admin.auth.admin.getUserById(targetId);
     if (tgtErr || !tgt.user?.email) return json({ error: "Target not found or has no email" }, 404);
 
-    // Mint a magiclink we exchange client-side via verifyOtp.
     const { data: link, error: linkErr } = await admin.auth.admin.generateLink({
       type: "magiclink",
       email: tgt.user.email,
@@ -59,10 +59,14 @@ serve(async (req) => {
     await admin.from("audit_log").insert({
       actor_id: actorId,
       action: "impersonate_start",
-      entity_type: "user",
-      entity_id: targetId,
+      entity_type: targetKind,
+      entity_id: entityId,
       reason: reason ?? null,
-      metadata: { target_email: tgt.user.email },
+      metadata: {
+        target_user_id: targetId,
+        target_email: tgt.user.email,
+        target_label: targetLabel ?? null,
+      },
     });
 
     return json({
