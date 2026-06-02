@@ -53,7 +53,7 @@ function BillingPage() {
     enabled: !!company?.id,
     queryFn: async () => {
       const { data } = await supabase
-        .from("orders").select("*").eq("company_id", company!.id).order("created_at", { ascending: false }).limit(20);
+        .from("orders").select("*, packages(name)").eq("company_id", company!.id).order("created_at", { ascending: false }).limit(50);
       return data ?? [];
     },
     refetchInterval: checkout === "success" ? 3000 : false,
