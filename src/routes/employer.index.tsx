@@ -214,18 +214,23 @@ function EmployerDashboard() {
               Welcome{company?.name ? `, ${company.name}` : ""}
             </h1>
           </div>
-          <PostJobButton
-            disabled={postingCredits < 1}
-            onClick={() => navigate({ to: "/employer/jobs/new" })}
-          />
+          <Button onClick={() => navigate({ to: "/employer/jobs/new" })} className="btn-primary gap-1.5">
+            <Plus className="h-4 w-4" /> Post a Job
+          </Button>
         </header>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard icon={Briefcase} label="Active jobs" value={activeJobs} accent />
           <StatCard icon={Users} label="Total applicants" value={totalApplicants} />
-          <StatCard icon={Coins} label="Posting credits" value={postingCredits} sub="standard posts" />
-          <StatCard icon={Star} label="Featured credits" value={featuredCredits} sub="upgrades" />
+          <StatCard
+            icon={PackageIcon}
+            label="Posts remaining"
+            value={postingCredits}
+            sub={activePackage?.package_name ?? "No active package"}
+          />
+          <StatCard icon={Star} label="Featured upgrades" value={featuredCredits} sub="on active package" />
         </div>
+
 
         <section className="rounded-xl border border-border bg-card">
           <div className="flex items-center justify-between border-b border-border px-5 py-4">
