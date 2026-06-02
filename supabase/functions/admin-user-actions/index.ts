@@ -36,9 +36,9 @@ serve(async (req) => {
       _user_id: actorId,
       _role: "admin",
     });
-    const { data: hasCap } = await admin.rpc("has_admin_permission", {
+    const { data: hasCap } = await admin.rpc("has_permission", {
       _user_id: actorId,
-      _capability: "users",
+      _permission_key: "users.view_all",
     });
     if (!isAdmin && !hasCap) return json({ error: "Forbidden" }, 403);
 
