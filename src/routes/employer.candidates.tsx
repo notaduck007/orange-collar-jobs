@@ -76,14 +76,14 @@ function CandidatesPage() {
   const [relocateOnly, setRelocateOnly] = useState(false);
   const [inviteTarget, setInviteTarget] = useState<Candidate | null>(null);
 
-  // Entitlement gate: signed-in employer's company must have credits.
+  // Entitlement gate: signed-in employer's company must have an active package with remaining credits.
   const { data: company, isLoading: companyLoading } = useQuery({
     queryKey: ["employer-company-candidates", user?.id],
     enabled: !!user,
     queryFn: async () => {
       const { data: owned } = await supabase
         .from("companies")
-        .select("id, name, posting_credits, featured_credits")
+        .select("id, name")
         .eq("owner_id", user!.id)
         .maybeSingle();
       if (owned) return owned;
@@ -97,16 +97,31 @@ function CandidatesPage() {
       if (!m?.company_id) return null;
       const { data } = await supabase
         .from("companies")
-        .select("id, name, posting_credits, featured_credits")
+        .select("id, name")
         .eq("id", m.company_id)
         .maybeSingle();
       return data;
     },
   });
 
+  const { data: activePackage } = useQuery({
+    queryKey: ["employer-active-package", company?.id],
+    enabled: !!company?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_active_package", {
+        p_company_id: company!.id,
+      });
+      if (error) throw error;
+      return Array.isArray(data) ? (data[0] ?? null) : (data ?? null);
+    },
+  });
+
   const entitled = useMemo(
-    () => !!company && ((company.posting_credits ?? 0) > 0 || (company.featured_credits ?? 0) > 0),
-    [company],
+    () =>
+      !!activePackage &&
+      (((activePackage.posts_remaining ?? 0) > 0) ||
+        ((activePackage.featured_remaining ?? 0) > 0)),
+    [activePackage],
   );
 
   const {
