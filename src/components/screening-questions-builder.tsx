@@ -38,6 +38,41 @@ export function newQuestion(sort_order = 0): ScreeningQuestionDraft {
   };
 }
 
+export const SCREENING_PRESETS: { label: string; q: Omit<ScreeningQuestionDraft, "sort_order"> }[] = [
+  {
+    label: "Forklift certified?",
+    q: { prompt: "Are you currently forklift certified?", type: "yes_no", options: [], required: true, knockout_answer: false },
+  },
+  {
+    label: "Available overnight?",
+    q: { prompt: "Are you available to work overnight shifts?", type: "yes_no", options: [], required: true, knockout_answer: false },
+  },
+  {
+    label: "Can lift 50 lbs?",
+    q: { prompt: "Can you repeatedly lift up to 50 lbs?", type: "yes_no", options: [], required: true, knockout_answer: false },
+  },
+  {
+    label: "Stand 8+ hours?",
+    q: { prompt: "Can you stand and walk for 8+ hours per shift?", type: "yes_no", options: [], required: true, knockout_answer: false },
+  },
+  {
+    label: "Reliable transportation?",
+    q: { prompt: "Do you have reliable transportation to the warehouse?", type: "yes_no", options: [], required: true, knockout_answer: false },
+  },
+  {
+    label: "Pass drug screen?",
+    q: { prompt: "Are you able to pass a pre-employment drug screen?", type: "yes_no", options: [], required: true, knockout_answer: false },
+  },
+  {
+    label: "Years of warehouse experience",
+    q: { prompt: "How many years of warehouse experience do you have?", type: "number", options: [], required: false, knockout_answer: null },
+  },
+  {
+    label: "Earliest start date",
+    q: { prompt: "What is your earliest possible start date?", type: "text", options: [], required: false, knockout_answer: null },
+  },
+];
+
 interface Props {
   value: ScreeningQuestionDraft[];
   onChange: (next: ScreeningQuestionDraft[]) => void;
@@ -52,9 +87,35 @@ export function ScreeningQuestionsBuilder({ value, onChange }: Props) {
   const remove = (i: number) =>
     onChange(value.filter((_, idx) => idx !== i).map((q, idx) => ({ ...q, sort_order: idx })));
   const add = () => onChange([...value, newQuestion(value.length)]);
+  const addPreset = (preset: Omit<ScreeningQuestionDraft, "sort_order">) => {
+    const exists = value.some((q) => q.prompt.trim().toLowerCase() === preset.prompt.trim().toLowerCase());
+    if (exists) return;
+    onChange([...value, { ...preset, sort_order: value.length }]);
+  };
 
   return (
     <div className="space-y-3">
+      <div className="rounded-md border border-border bg-muted/30 p-3">
+        <p className="mb-2 text-xs font-semibold text-[color:var(--ink)]">Warehouse presets</p>
+        <div className="flex flex-wrap gap-1.5">
+          {SCREENING_PRESETS.map((p) => {
+            const already = value.some((q) => q.prompt.trim().toLowerCase() === p.q.prompt.trim().toLowerCase());
+            return (
+              <Button
+                key={p.label}
+                type="button"
+                size="sm"
+                variant="outline"
+                disabled={already}
+                onClick={() => addPreset(p.q)}
+                className="h-7 text-xs"
+              >
+                <Plus className="mr-1 h-3 w-3" /> {p.label}
+              </Button>
+            );
+          })}
+        </div>
+      </div>
       {value.length === 0 && (
         <p className="rounded-md border border-dashed border-border bg-background p-4 text-center text-sm text-muted-foreground">
           No screening questions yet. Add up to a few short questions to qualify applicants quickly.
