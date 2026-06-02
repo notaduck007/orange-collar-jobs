@@ -15,6 +15,7 @@ type NavItem = { to: string; icon: typeof LayoutDashboard; label: string; exact?
 const NAV: NavItem[] = [
   { to: "/admin", icon: LayoutDashboard, label: "Dashboard", exact: true },
   { to: "/admin/users", icon: Users, label: "Users", perm: "users.view_all" },
+  { to: "/admin/roles", icon: KeyRound, label: "Roles & Permissions", perm: "roles.manage" },
   { to: "/admin/companies", icon: Building2, label: "Companies", perm: "companies.view_all" },
   { to: "/admin/jobs", icon: Briefcase, label: "Jobs", perm: "jobs.moderate" },
   { to: "/admin/moderation", icon: Flag, label: "Moderation", perm: "moderation.manage" },
