@@ -1203,18 +1203,6 @@ function NewJobPage() {
             </div>
 
 
-            <div className="space-y-1.5">
-              <Label htmlFor="requirements">Requirements</Label>
-              <Textarea
-                id="requirements"
-                rows={6}
-                placeholder="Certifications, experience, physical requirements, etc."
-                value={form.requirements}
-                onChange={(e) => setForm({ ...form, requirements: e.target.value })}
-                maxLength={3000}
-              />
-            </div>
-
             <p className="rounded-md border border-dashed border-border bg-background p-3 text-xs text-muted-foreground">
               You'll choose reach (Standard vs Featured) on the final Review step.
             </p>
