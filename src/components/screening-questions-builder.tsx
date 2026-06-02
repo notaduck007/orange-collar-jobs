@@ -38,6 +38,41 @@ export function newQuestion(sort_order = 0): ScreeningQuestionDraft {
   };
 }
 
+export const SCREENING_PRESETS: { label: string; q: Omit<ScreeningQuestionDraft, "sort_order"> }[] = [
+  {
+    label: "Forklift certified?",
+    q: { prompt: "Are you currently forklift certified?", type: "yes_no", options: [], required: true, knockout_answer: false },
+  },
+  {
+    label: "Available overnight?",
+    q: { prompt: "Are you available to work overnight shifts?", type: "yes_no", options: [], required: true, knockout_answer: false },
+  },
+  {
+    label: "Can lift 50 lbs?",
+    q: { prompt: "Can you repeatedly lift up to 50 lbs?", type: "yes_no", options: [], required: true, knockout_answer: false },
+  },
+  {
+    label: "Stand 8+ hours?",
+    q: { prompt: "Can you stand and walk for 8+ hours per shift?", type: "yes_no", options: [], required: true, knockout_answer: false },
+  },
+  {
+    label: "Reliable transportation?",
+    q: { prompt: "Do you have reliable transportation to the warehouse?", type: "yes_no", options: [], required: true, knockout_answer: false },
+  },
+  {
+    label: "Pass drug screen?",
+    q: { prompt: "Are you able to pass a pre-employment drug screen?", type: "yes_no", options: [], required: true, knockout_answer: false },
+  },
+  {
+    label: "Years of warehouse experience",
+    q: { prompt: "How many years of warehouse experience do you have?", type: "number", options: [], required: false, knockout_answer: null },
+  },
+  {
+    label: "Earliest start date",
+    q: { prompt: "What is your earliest possible start date?", type: "text", options: [], required: false, knockout_answer: null },
+  },
+];
+
 interface Props {
   value: ScreeningQuestionDraft[];
   onChange: (next: ScreeningQuestionDraft[]) => void;
