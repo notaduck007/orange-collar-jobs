@@ -28,6 +28,7 @@ function EmployerAds() {
   const { user } = useAuth();
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
+  const { checkout } = Route.useSearch();
 
   const { data: company } = useQuery({
     queryKey: ["employer-company", user?.id],
