@@ -2,18 +2,24 @@ import { Link } from "@tanstack/react-router";
 import { HardHat, LogOut } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
+import { useSiteSettings } from "@/lib/site-settings";
 
 export function SiteHeader() {
   const { user, role, signOut } = useAuth();
+  const { settings } = useSiteSettings();
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
         <Link to="/" className="flex items-center gap-2.5">
           <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary text-primary-foreground shadow-[var(--shadow-orange)]">
-            <HardHat className="h-5 w-5" strokeWidth={2.5} />
+            {settings.branding.logo_url ? (
+              <img src={settings.branding.logo_url} alt="" className="h-5 w-5 object-contain" />
+            ) : (
+              <HardHat className="h-5 w-5" strokeWidth={2.5} />
+            )}
           </div>
           <div className="flex flex-col leading-none">
-            <span className="text-base font-bold tracking-tight text-[color:var(--ink)]">WarehouseJobs</span>
+            <span className="text-base font-bold tracking-tight text-[color:var(--ink)]">{settings.branding.site_name}</span>
             <span className="label-caps text-[10px]">Hiring Now</span>
           </div>
         </Link>
