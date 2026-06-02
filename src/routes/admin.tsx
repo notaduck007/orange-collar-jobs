@@ -21,6 +21,7 @@ const NAV: NavItem[] = [
   { to: "/admin/packages", icon: Package, label: "Packages", cap: "settings" },
   { to: "/admin/users", icon: Users, label: "Users", cap: "users" },
   { to: "/admin/orders", icon: Receipt, label: "Orders", cap: "billing" },
+  { to: "/admin/billing", icon: DollarSign, label: "Billing", cap: "billing" },
 ];
 
 // Route → required capability (for runtime guard)
