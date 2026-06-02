@@ -77,12 +77,28 @@ export function ApplyDialog({ jobId, jobTitle, quickHire, open, onOpenChange, on
     },
   });
 
+  const { data: slots = [] } = useQuery({
+    queryKey: ["interview-slots", jobId],
+    enabled: open && !!quickHire,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("interview_slots")
+        .select("id, starts_at, capacity, booked_count")
+        .eq("job_id", jobId)
+        .gt("starts_at", new Date().toISOString())
+        .order("starts_at");
+      if (error) throw error;
+      return (data ?? []).filter((s) => (s.booked_count ?? 0) < s.capacity);
+    },
+  });
+
   useEffect(() => {
     if (!open) {
       setCoverNote("");
       setFile(null);
       setUseDefault(true);
       setAnswers({});
+      setSlotId("");
     }
   }, [open]);
 
