@@ -29,12 +29,19 @@ serve(async (req) => {
 
     const admin = createClient(supabaseUrl, serviceKey);
 
-    // Verify actor has 'users' capability
+    // F. Server-side enforcement: require the caller to actually be an admin
+    // (don't rely on the client-side route guard). For non-role actions we keep
+    // the existing 'users' capability check so finance/support roles still work.
+    const { data: isAdmin } = await admin.rpc("has_role", {
+      _user_id: actorId,
+      _role: "admin",
+    });
     const { data: hasCap } = await admin.rpc("has_admin_permission", {
       _user_id: actorId,
       _capability: "users",
     });
-    if (!hasCap) return json({ error: "Forbidden" }, 403);
+    if (!isAdmin && !hasCap) return json({ error: "Forbidden" }, 403);
+
 
     const body = await req.json();
     const action: string = body.action;
