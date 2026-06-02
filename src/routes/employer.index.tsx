@@ -53,10 +53,26 @@ function EmployerDashboard() {
     queryKey: ["employer-company", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data } = await supabase.from("companies").select("*").eq("owner_id", user!.id).maybeSingle();
+      const { data: owned } = await supabase.from("companies").select("*").eq("owner_id", user!.id).maybeSingle();
+      if (owned) return owned;
+      const { data: mem } = await supabase
+        .from("company_members").select("company_id").eq("user_id", user!.id).eq("status", "active").limit(1).maybeSingle();
+      if (!mem?.company_id) return null;
+      const { data } = await supabase.from("companies").select("*").eq("id", mem.company_id).maybeSingle();
       return data;
     },
   });
+
+  const { data: credits = [] } = useQuery({
+    queryKey: ["company-credits", company?.id],
+    enabled: !!company?.id,
+    queryFn: async () => {
+      const { data } = await supabase.from("company_credits").select("*").eq("company_id", company!.id);
+      return data ?? [];
+    },
+  });
+  const postingCredits = credits.find((c) => c.credit_type === "post")?.balance ?? 0;
+  const featuredCredits = credits.find((c) => c.credit_type === "featured")?.balance ?? 0;
 
   const { data: jobs = [], isLoading } = useQuery({
     queryKey: ["employer-jobs", company?.id],
@@ -88,8 +104,7 @@ function EmployerDashboard() {
 
   const activeJobs = jobs.filter((j) => j.status === "active" || j.status === "published").length;
   const totalApplicants = jobs.reduce((sum, j) => sum + j.applicant_count, 0);
-  const postingCredits = company?.posting_credits ?? 0;
-  const featuredCredits = company?.featured_credits ?? 0;
+
 
   const refresh = () => qc.invalidateQueries({ queryKey: ["employer-jobs", company?.id] });
 
