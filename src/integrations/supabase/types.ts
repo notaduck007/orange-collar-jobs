@@ -469,6 +469,36 @@ export type Database = {
           },
         ]
       }
+      faq_items: {
+        Row: {
+          answer: string
+          created_at: string
+          id: string
+          published: boolean
+          question: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          answer: string
+          created_at?: string
+          id?: string
+          published?: boolean
+          question: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          answer?: string
+          created_at?: string
+          id?: string
+          published?: boolean
+          question?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       job_alerts: {
         Row: {
           applicant_id: string
@@ -519,22 +549,31 @@ export type Database = {
       }
       job_categories: {
         Row: {
+          active: boolean
           icon: string | null
           id: number
           name: string
           slug: string
+          sort_order: number
+          updated_at: string
         }
         Insert: {
+          active?: boolean
           icon?: string | null
           id?: number
           name: string
           slug: string
+          sort_order?: number
+          updated_at?: string
         }
         Update: {
+          active?: boolean
           icon?: string | null
           id?: number
           name?: string
           slug?: string
+          sort_order?: number
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1005,6 +1044,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      site_pages: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          meta_description: string | null
+          published: boolean
+          slug: string
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          body?: string
+          created_at?: string
+          id?: string
+          meta_description?: string | null
+          published?: boolean
+          slug: string
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          meta_description?: string | null
+          published?: boolean
+          slug?: string
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
