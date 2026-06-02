@@ -323,6 +323,22 @@ function AdminDashboard() {
         />
       </div>
 
+      {/* Admin hub — all admin areas in one place */}
+      <HubGrid
+        counts={{
+          users: data?.profilesAll.length,
+          companies: data?.companiesAll.length,
+          jobs: data?.jobsAll.length,
+          activeJobs: data ? data.jobsAll.filter((j: any) => ["active", "published"].includes(j.status)).length : undefined,
+          pendingJobs: data?.pendingJobs,
+          pendingAds: data?.pendingAds,
+          openReports: data?.openReports,
+          openTickets: data?.openTickets,
+          paidOrders: data?.ordersPaid.length,
+          packages: data?.packages.length,
+        }}
+      />
+
       {/* Trend charts */}
       <div className="grid gap-4 lg:grid-cols-2">
         <ChartCard title="New users" icon={Users}>
