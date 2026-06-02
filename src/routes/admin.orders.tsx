@@ -88,6 +88,15 @@ function AdminOrders() {
                     </Badge>
                   </td>
                   <td className="px-3 py-2">
+                    {o.receipt_url ? (
+                      <a href={o.receipt_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                        View <ExternalLink className="h-3 w-3" />
+                      </a>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
+                  </td>
+                  <td className="px-3 py-2">
                     {refundUrl ? (
                       <a
                         href={refundUrl}
@@ -105,7 +114,7 @@ function AdminOrders() {
               );
             })}
             {orders.length === 0 && (
-              <tr><td colSpan={6} className="px-3 py-8 text-center text-sm text-muted-foreground">No orders yet.</td></tr>
+              <tr><td colSpan={7} className="px-3 py-8 text-center text-sm text-muted-foreground">No orders yet.</td></tr>
             )}
           </tbody>
         </table>
