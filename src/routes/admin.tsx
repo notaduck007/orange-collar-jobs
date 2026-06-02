@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { LayoutDashboard, Building2, Briefcase, Package, Megaphone, Users, Receipt, ShieldCheck, Gavel, DollarSign, Tags, FileText, Settings as SettingsIcon } from "lucide-react";
+import { LayoutDashboard, Building2, Briefcase, Package, Megaphone, Users, Receipt, ShieldCheck, Gavel, DollarSign, Tags, FileText, Settings as SettingsIcon, LifeBuoy } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { useAuth } from "@/lib/auth";
@@ -22,6 +22,7 @@ const NAV: NavItem[] = [
   { to: "/admin/categories", icon: Tags, label: "Categories", cap: "settings" },
   { to: "/admin/content", icon: FileText, label: "Content", cap: "settings" },
   { to: "/admin/users", icon: Users, label: "Users", cap: "users" },
+  { to: "/admin/support", icon: LifeBuoy, label: "Support", cap: "support" },
   { to: "/admin/orders", icon: Receipt, label: "Orders", cap: "billing" },
   { to: "/admin/billing", icon: DollarSign, label: "Billing", cap: "billing" },
   { to: "/admin/settings", icon: SettingsIcon, label: "Settings", cap: "settings" },
@@ -37,6 +38,7 @@ const ROUTE_CAPS: { prefix: string; cap: AdminCapability }[] = [
   { prefix: "/admin/categories", cap: "settings" },
   { prefix: "/admin/content", cap: "settings" },
   { prefix: "/admin/users", cap: "users" },
+  { prefix: "/admin/support", cap: "support" },
   { prefix: "/admin/orders", cap: "billing" },
   { prefix: "/admin/billing", cap: "billing" },
   { prefix: "/admin/settings", cap: "settings" },
