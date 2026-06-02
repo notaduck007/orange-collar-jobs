@@ -268,15 +268,16 @@ function AdminUsers() {
 }
 
 function UserDrawer({
-  userId, onOpenChange, onSuspend, onReset, onResend, onSetRole,
+  userId, onOpenChange, onSuspend, onReset, onResend, onToggleRole,
 }: {
   userId: string | null;
   onOpenChange: (o: boolean) => void;
   onSuspend: (id: string, active: boolean) => void;
   onReset: (id: string) => void;
   onResend: (id: string) => void;
-  onSetRole: (id: string, r: AppRole) => void;
+  onToggleRole: (id: string, r: AppRole, has: boolean) => void;
 }) {
+
   const { data, isLoading } = useQuery({
     queryKey: ["admin-user-detail", userId],
     enabled: !!userId,
