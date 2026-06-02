@@ -214,6 +214,13 @@ function AdminSupport() {
       a.download = `dsr-export-${userId}.json`;
       a.click();
       URL.revokeObjectURL(url);
+      await supabase
+        .from("deletion_requests")
+        .update({ status: "completed", processed_at: new Date().toISOString() })
+        .eq("user_id", userId)
+        .eq("type", "export")
+        .neq("status", "completed");
+      qc.invalidateQueries({ queryKey: ["admin-dsr"] });
       toast.success("Export downloaded");
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Export failed";
