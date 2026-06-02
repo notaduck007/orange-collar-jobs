@@ -221,10 +221,22 @@ function Home() {
 
       {/* EMPLOYER CTA */}
       <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6">
-        <div className="relative overflow-hidden rounded-2xl bg-[color:var(--charcoal)] p-8 text-white sm:p-12">
-          <div className="hazard-stripes absolute left-0 top-0 h-2 w-full" />
-          <div className="grid items-center gap-8 md:grid-cols-2">
-            <div>
+        <div className="relative overflow-hidden rounded-2xl bg-[color:var(--charcoal)] text-white">
+          <div className="hazard-stripes absolute left-0 top-0 z-10 h-2 w-full" />
+          <div className="grid items-stretch md:grid-cols-2">
+            <div className="relative min-h-[280px] md:min-h-full">
+              <img
+                src={crewImage}
+                alt="Productive warehouse crew of four diverse workers collaborating at a pick station inside a modern fulfillment center."
+                width={1600}
+                height={1067}
+                loading="lazy"
+                decoding="async"
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[color:var(--charcoal)]/60 md:to-[color:var(--charcoal)]" />
+            </div>
+            <div className="p-8 sm:p-12">
               <p className="label-caps text-[color:var(--hazard)]">For Employers</p>
               <h2 className="mt-2 text-3xl font-bold leading-tight sm:text-4xl">
                 Stop wasting weeks on the wrong applicants.
@@ -242,20 +254,20 @@ function Home() {
                   </Button>
                 </Link>
               </div>
+              <ul className="mt-8 grid grid-cols-2 gap-3 text-sm">
+                {[
+                  ["4 min", "Avg. time to post"],
+                  ["18k+", "Active warehouse workers"],
+                  ["48 hrs", "Avg. first qualified applicant"],
+                  ["$99", "Single post — flat rate"],
+                ].map(([num, label]) => (
+                  <li key={label} className="rounded-lg border border-white/10 bg-white/[0.04] p-3">
+                    <p className="text-xl font-bold text-primary">{num}</p>
+                    <p className="mt-0.5 text-[11px] uppercase tracking-wider text-white/60">{label}</p>
+                  </li>
+                ))}
+              </ul>
             </div>
-            <ul className="grid grid-cols-2 gap-4 text-sm">
-              {[
-                ["4 min", "Avg. time to post"],
-                ["18k+", "Active warehouse workers"],
-                ["48 hrs", "Avg. first qualified applicant"],
-                ["$99", "Single post — flat rate"],
-              ].map(([num, label]) => (
-                <li key={label} className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
-                  <p className="text-2xl font-bold text-primary">{num}</p>
-                  <p className="mt-1 text-xs uppercase tracking-wider text-white/60">{label}</p>
-                </li>
-              ))}
-            </ul>
           </div>
         </div>
       </section>
