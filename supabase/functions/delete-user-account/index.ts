@@ -35,8 +35,8 @@ serve(async (req) => {
     let isAdminAction = false;
 
     if (body.user_id && body.user_id !== actorId) {
-      const { data: hasCap } = await admin.rpc("has_admin_permission", {
-        _user_id: actorId, _capability: "support",
+      const { data: hasCap } = await admin.rpc("has_permission", {
+        _user_id: actorId, _permission_key: "users.delete",
       });
       if (!hasCap) return json({ error: "Forbidden" }, 403);
       targetId = body.user_id;

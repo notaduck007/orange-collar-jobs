@@ -1,5 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 
 export type AdminLevel = "super_admin" | "moderator" | "finance" | "support";
@@ -11,17 +9,26 @@ export type AdminCapability =
   | "ads"
   | "support";
 
-const MAP: Record<AdminLevel, AdminCapability[]> = {
-  super_admin: ["moderation", "billing", "users", "settings", "ads", "support"],
-  moderator: ["moderation", "ads", "support"],
-  finance: ["billing"],
-  support: ["support", "users"],
+/** Capability → required RBAC permission keys. Holding ANY of the listed
+ * permission keys grants the capability. */
+const CAPABILITY_KEYS: Record<AdminCapability, string[]> = {
+  moderation: ["moderation.manage", "jobs.moderate"],
+  billing: ["orders.refund", "orders.edit_any", "orders.view_all"],
+  users: ["users.view_all", "users.manage_roles", "users.suspend", "users.delete"],
+  settings: ["settings.manage"],
+  ads: ["ads.manage"],
+  support: ["users.view_all", "users.suspend", "users.delete"],
 };
 
 const ALL_CAPS: AdminCapability[] = ["moderation", "billing", "users", "settings", "ads", "support"];
 
 export function levelCapabilities(level: AdminLevel | null | undefined): AdminCapability[] {
-  return level ? MAP[level] : [];
+  if (!level) return [];
+  if (level === "super_admin") return ALL_CAPS;
+  if (level === "moderator") return ["moderation", "ads", "support"];
+  if (level === "finance") return ["billing"];
+  if (level === "support") return ["support", "users"];
+  return [];
 }
 
 export function useAdminPermissions() {
@@ -29,21 +36,10 @@ export function useAdminPermissions() {
   const isAdmin = role === "admin";
   const hasWildcard = permissions.includes("*");
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["admin-permissions", user?.id],
-    // Skip the legacy lookup for super admins — they bypass capability checks entirely.
-    enabled: !!user && !isAdmin,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("admin_permissions")
-        .select("level")
-        .eq("user_id", user!.id)
-        .maybeSingle();
-      return (data?.level as AdminLevel | undefined) ?? null;
-    },
-  });
+  if (!user) {
+    return { loading: false, level: null as AdminLevel | null, capabilities: [] as AdminCapability[], can: (_c: AdminCapability) => false };
+  }
 
-  // Super admin (system 'admin' role) bypass: always has every capability.
   if (isAdmin || hasWildcard) {
     return {
       loading: false,
@@ -53,12 +49,20 @@ export function useAdminPermissions() {
     };
   }
 
-  const level = data ?? null;
-  const caps = levelCapabilities(level);
+  const has = (cap: AdminCapability) => CAPABILITY_KEYS[cap].some((k) => permissions.includes(k));
+  const caps = ALL_CAPS.filter(has);
+
+  // Best-effort tier label, derived from the permission set
+  let level: AdminLevel | null = null;
+  if (caps.length === ALL_CAPS.length) level = "super_admin";
+  else if (has("moderation") && has("ads")) level = "moderator";
+  else if (has("billing")) level = "finance";
+  else if (has("support") || has("users")) level = "support";
+
   return {
-    loading: isLoading,
+    loading: false,
     level,
     capabilities: caps,
-    can: (c: AdminCapability) => caps.includes(c),
+    can: has,
   };
 }

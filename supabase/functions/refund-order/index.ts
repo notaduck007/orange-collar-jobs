@@ -29,9 +29,9 @@ serve(async (req) => {
 
     const admin = createClient(supabaseUrl, serviceKey);
 
-    const { data: hasCap } = await admin.rpc("has_admin_permission", {
+    const { data: hasCap } = await admin.rpc("has_permission", {
       _user_id: actorId,
-      _capability: "billing",
+      _permission_key: "orders.refund",
     });
     if (!hasCap) return json({ error: "Forbidden — billing capability required" }, 403);
 
