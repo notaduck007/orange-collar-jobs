@@ -161,7 +161,7 @@ function CompanyProfile() {
             </div>
           )}
         </section>
-      </div>
+      </main>
 
       <SiteFooter />
     </div>
