@@ -65,6 +65,16 @@ function EmployerAds() {
 
   return (
     <div>
+      {checkout === "success" && (
+        <div className="mb-4 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-900">
+          Payment received — your ad is queued for admin approval.
+        </div>
+      )}
+      {checkout === "cancelled" && (
+        <div className="mb-4 rounded-md border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-900">
+          Checkout cancelled. Your ad is saved as pending; complete payment to activate.
+        </div>
+      )}
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="label-caps">Advertising</p>
