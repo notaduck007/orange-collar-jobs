@@ -7,6 +7,9 @@ type ImpersonationState = {
   actor_session: { access_token: string; refresh_token: string };
   target_user_id: string;
   target_email: string;
+  target_label?: string;
+  target_kind?: "user" | "company";
+  redirect_to?: string;
   started_at: string;
 };
 
@@ -26,13 +29,30 @@ function setImpersonation(s: ImpersonationState | null) {
   else localStorage.removeItem(KEY);
 }
 
-export async function startImpersonation(targetUserId: string, reason?: string) {
+export type StartImpersonationOptions = {
+  reason?: string;
+  label?: string;
+  kind?: "user" | "company";
+  entityId?: string;
+  redirectTo?: string;
+};
+
+export async function startImpersonation(
+  targetUserId: string,
+  opts: StartImpersonationOptions = {},
+) {
   const { data: cur } = await supabase.auth.getSession();
   const actorSession = cur.session;
   if (!actorSession) throw new Error("Not signed in");
 
   const { data, error } = await supabase.functions.invoke("impersonate-user", {
-    body: { user_id: targetUserId, reason },
+    body: {
+      user_id: targetUserId,
+      reason: opts.reason,
+      target_label: opts.label,
+      target_kind: opts.kind ?? "user",
+      entity_id: opts.entityId ?? targetUserId,
+    },
   });
   if (error) throw error;
   const { token_hash, target_user_id, target_email, actor_id } = data as {
@@ -42,7 +62,6 @@ export async function startImpersonation(targetUserId: string, reason?: string) 
     actor_id: string;
   };
 
-  // Persist actor session BEFORE swapping, so we can restore it on stop.
   setImpersonation({
     actor_id,
     actor_session: {
@@ -51,6 +70,9 @@ export async function startImpersonation(targetUserId: string, reason?: string) 
     },
     target_user_id,
     target_email,
+    target_label: opts.label,
+    target_kind: opts.kind ?? "user",
+    redirect_to: opts.redirectTo,
     started_at: new Date().toISOString(),
   });
 
@@ -69,7 +91,12 @@ export async function stopImpersonation() {
   if (!s) return;
   try {
     await supabase.functions.invoke("stop-impersonation", {
-      body: { actor_id: s.actor_id, target_user_id: s.target_user_id },
+      body: {
+        actor_id: s.actor_id,
+        target_user_id: s.target_user_id,
+        target_label: s.target_label,
+        target_kind: s.target_kind,
+      },
     });
   } catch {
     // best-effort audit; restore session regardless
