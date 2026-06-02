@@ -748,3 +748,154 @@ function FunnelRow({ label, value, max }: { label: string; value: number; max: n
     </div>
   );
 }
+
+type HubCount = number | undefined;
+
+type HubCardDef = {
+  title: string;
+  desc: string;
+  icon: typeof Users;
+  to?: string;
+  count?: HubCount;
+  countLabel?: string;
+  planned?: boolean;
+};
+
+type HubGroup = { heading: string; cards: HubCardDef[] };
+
+function HubGrid({ counts }: { counts: {
+  users?: number; companies?: number; jobs?: number; activeJobs?: number;
+  pendingJobs?: number; pendingAds?: number; openReports?: number; openTickets?: number;
+  paidOrders?: number; packages?: number;
+} }) {
+  const moderationPending =
+    (counts.pendingJobs ?? 0) + (counts.pendingAds ?? 0) + (counts.openReports ?? 0);
+
+  const groups: HubGroup[] = [
+    {
+      heading: "User Management",
+      cards: [
+        { title: "Users", desc: "Browse, search, and manage all accounts.", icon: Users, to: "/admin/users", count: counts.users, countLabel: "total" },
+        { title: "Roles & Permissions", desc: "Admin RBAC: super-admin, moderator, finance, support.", icon: ShieldCheck, planned: true },
+        { title: "Audit Log", desc: "Immutable record of every admin action.", icon: ScrollText, planned: true },
+      ],
+    },
+    {
+      heading: "Company Management",
+      cards: [
+        { title: "Companies", desc: "Approve, edit, and manage employer profiles.", icon: Building2, to: "/admin/companies", count: counts.companies, countLabel: "total" },
+        { title: "Verification & Trust Badges", desc: "Verify employers and issue trust badges.", icon: BadgeCheck, planned: true },
+      ],
+    },
+    {
+      heading: "Jobs & Moderation",
+      cards: [
+        { title: "Jobs", desc: "All postings — review, edit, unpublish.", icon: Briefcase, to: "/admin/jobs", count: counts.jobs, countLabel: "total" },
+        { title: "Moderation Queue", desc: "Jobs, ads, reviews, and abuse reports in one place.", icon: ListChecks, planned: true, count: moderationPending, countLabel: "pending" },
+      ],
+    },
+    {
+      heading: "Payments & Monetization",
+      cards: [
+        { title: "Orders", desc: "Transaction log and receipts.", icon: Receipt, to: "/admin/orders", count: counts.paidOrders, countLabel: "paid" },
+        { title: "Packages & Pricing", desc: "Configure job-posting and ad packages.", icon: Package, to: "/admin/packages", count: counts.packages, countLabel: "active" },
+        { title: "Advertisements", desc: "Review and manage promoted slots.", icon: Megaphone, to: "/admin/ads", count: counts.pendingAds, countLabel: "pending" },
+        { title: "Billing & Refunds Console", desc: "Revenue, Stripe refunds, credits, CSV export.", icon: CreditCard, planned: true },
+      ],
+    },
+    {
+      heading: "Content & Marketing",
+      cards: [
+        { title: "Content / CMS & Categories", desc: "About, FAQ, job categories, marketing pages.", icon: FileText, planned: true },
+      ],
+    },
+    {
+      heading: "Analytics & Reports",
+      cards: [
+        { title: "Admin Analytics Dashboard", desc: "Trends, funnel, and revenue charts.", icon: BarChart3, planned: true },
+        { title: "Report Exports", desc: "Scheduled exports and CSV downloads.", icon: Download, planned: true },
+      ],
+    },
+    {
+      heading: "Trust & Support",
+      cards: [
+        { title: "Abuse Reports & Support Inbox", desc: "Triage user reports and support tickets.", icon: LifeBuoy, planned: true, count: (counts.openReports ?? 0) + (counts.openTickets ?? 0), countLabel: "open" },
+        { title: "Privacy / GDPR-CCPA Data Tools", desc: "Fulfill export and deletion requests.", icon: Lock, planned: true },
+      ],
+    },
+    {
+      heading: "Settings",
+      cards: [
+        { title: "Feature Flags & Site Settings", desc: "Toggle features and edit global settings.", icon: SettingsIcon, planned: true },
+      ],
+    },
+  ];
+
+  return (
+    <section aria-label="Admin areas" className="space-y-6">
+      <div className="flex items-end justify-between">
+        <h2 className="text-sm font-semibold text-[color:var(--ink)]">All admin areas</h2>
+        <p className="text-xs text-muted-foreground">Live areas link out · Planned items are placeholders</p>
+      </div>
+      {groups.map((g) => (
+        <div key={g.heading}>
+          <h3 className="label-caps mb-2">{g.heading}</h3>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {g.cards.map((c) => (
+              <HubCard key={c.title} {...c} />
+            ))}
+          </div>
+        </div>
+      ))}
+    </section>
+  );
+}
+
+function HubCard({ title, desc, icon: Icon, to, count, countLabel, planned }: HubCardDef) {
+  const body = (
+    <div className="flex h-full flex-col gap-2">
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex h-9 w-9 items-center justify-center rounded-md bg-[color:var(--primary-tint)]">
+          <Icon className="h-4 w-4 text-primary" />
+        </div>
+        {planned ? (
+          <span className="rounded-full border border-border bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Planned
+          </span>
+        ) : count !== undefined ? (
+          <span className="text-right text-xs text-muted-foreground">
+            <span className="block text-sm font-bold text-[color:var(--ink)]">{count.toLocaleString()}</span>
+            {countLabel}
+          </span>
+        ) : null}
+      </div>
+      <div>
+        <p className="font-semibold text-[color:var(--ink)]">{title}</p>
+        <p className="mt-0.5 text-xs text-muted-foreground">{desc}</p>
+      </div>
+    </div>
+  );
+
+  const base = "block rounded-xl border border-border bg-card p-4 h-full";
+
+  if (planned) {
+    return (
+      <div
+        aria-disabled="true"
+        role="group"
+        className={`${base} cursor-not-allowed opacity-60`}
+      >
+        {body}
+      </div>
+    );
+  }
+
+  return (
+    <Link
+      to={to!}
+      className={`${base} transition-colors hover:border-primary/40 hover:bg-[color:var(--primary-tint)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary`}
+    >
+      {body}
+    </Link>
+  );
+}
