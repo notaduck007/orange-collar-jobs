@@ -1130,6 +1130,7 @@ function NewJobPage() {
         activePackage={activePackage ?? null}
         lastPackageId={lastPackageId ?? null}
         draftId={draftId}
+        requireFeatured={form.feature_it}
       />
     </div>
   );
