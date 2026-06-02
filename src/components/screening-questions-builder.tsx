@@ -87,6 +87,11 @@ export function ScreeningQuestionsBuilder({ value, onChange }: Props) {
   const remove = (i: number) =>
     onChange(value.filter((_, idx) => idx !== i).map((q, idx) => ({ ...q, sort_order: idx })));
   const add = () => onChange([...value, newQuestion(value.length)]);
+  const addPreset = (preset: Omit<ScreeningQuestionDraft, "sort_order">) => {
+    const exists = value.some((q) => q.prompt.trim().toLowerCase() === preset.prompt.trim().toLowerCase());
+    if (exists) return;
+    onChange([...value, { ...preset, sort_order: value.length }]);
+  };
 
   return (
     <div className="space-y-3">
