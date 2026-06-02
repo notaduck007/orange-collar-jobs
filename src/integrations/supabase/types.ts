@@ -1676,6 +1676,16 @@ export type Database = {
         Args: { _company_id: string; _user_id: string }
         Returns: boolean
       }
+      list_discoverable_candidates: {
+        Args: never
+        Returns: {
+          avatar_url: string
+          created_at: string
+          display_name: string
+          id: string
+          location: string
+        }[]
+      }
       recommended_jobs: {
         Args: { _limit?: number; _user_id: string }
         Returns: {

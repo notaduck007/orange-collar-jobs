@@ -155,12 +155,17 @@ function CandidatesPage() {
       }>;
       if (profilesRaw.length === 0) return [];
 
-      const ids = profilesRaw.map((p) => p.user_id);
-      const { data: profs } = await supabase
-        .from("profiles")
-        .select("id, display_name, location")
-        .in("id", ids);
-      const byId = new Map((profs ?? []).map((p) => [p.id, p]));
+      const ids = new Set(profilesRaw.map((p) => p.user_id));
+      // Public candidate directory: phone-free RPC (replaces direct profiles read).
+      const { data: profsRaw } = await supabase.rpc(
+        "list_discoverable_candidates" as never,
+      );
+      const profs = (profsRaw ?? []) as unknown as Array<{
+        id: string;
+        display_name: string | null;
+        location: string | null;
+      }>;
+      const byId = new Map(profs.filter((p) => ids.has(p.id)).map((p) => [p.id, p]));
 
       const kw = keyword.trim().toLowerCase();
       const loc = location.trim().toLowerCase();
