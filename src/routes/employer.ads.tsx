@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 export const Route = createFileRoute("/employer/ads")({
   head: () => ({ meta: [{ title: "Advertising — WarehouseJobs Employer" }] }),
+  validateSearch: (s: Record<string, unknown>) => ({ checkout: typeof s.checkout === "string" ? s.checkout : undefined }),
   component: EmployerAds,
 });
 
