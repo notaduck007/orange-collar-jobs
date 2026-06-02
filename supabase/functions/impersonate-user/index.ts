@@ -78,7 +78,7 @@ serve(async (req) => {
       },
     });
 
-    return json({
+    return json(req, {
       token_hash: link.properties.hashed_token,
       target_user_id: targetId,
       target_email: tgt.user.email,
