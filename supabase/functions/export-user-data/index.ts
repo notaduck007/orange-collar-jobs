@@ -32,8 +32,8 @@ serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     let targetId: string = actorId;
     if (body.user_id && body.user_id !== actorId) {
-      const { data: hasCap } = await admin.rpc("has_admin_permission", {
-        _user_id: actorId, _capability: "support",
+      const { data: hasCap } = await admin.rpc("has_permission", {
+        _user_id: actorId, _permission_key: "users.view_all",
       });
       if (!hasCap) {
         return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: { ...cors, "Content-Type": "application/json" } });
