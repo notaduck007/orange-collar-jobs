@@ -1079,7 +1079,12 @@ function NewJobPage() {
         )}
 
         {step === 5 && (
-          <ReviewStep form={form} company={company} activePackage={activePackage ?? null} />
+          <ReviewStep
+            form={form}
+            setForm={setForm}
+            company={company}
+            activePackage={activePackage ?? null}
+          />
         )}
 
         <div className="flex items-center justify-between gap-2 border-t border-border pt-5">
