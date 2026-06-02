@@ -35,7 +35,7 @@ function Home() {
   const [keyword, setKeyword] = useState("");
   const [location, setLocation] = useState("");
 
-  const { data: featured = [] } = useQuery({
+  const { data: featured = [], isLoading: featuredLoading } = useQuery({
     queryKey: ["featured-jobs"],
     queryFn: async () => {
       const { data, error } = await supabase
