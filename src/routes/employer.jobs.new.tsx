@@ -30,6 +30,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { uniqueSlug } from "@/lib/slug";
 import { JOB_TEMPLATES, TEMPLATE_LIST } from "@/lib/job-templates";
 import { ScreeningQuestionsBuilder, type ScreeningQuestionDraft } from "@/components/screening-questions-builder";
+import { useSiteSettings } from "@/lib/site-settings";
 
 export const Route = createFileRoute("/employer/jobs/new")({
   head: () => ({ meta: [{ title: "Post a Job — WarehouseJobs Employers" }] }),
