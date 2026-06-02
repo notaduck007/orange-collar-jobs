@@ -1288,12 +1288,14 @@ function RenewUpgradeDialog({
   activePackage,
   lastPackageId,
   draftId,
+  requireFeatured,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   activePackage: ActivePackage | null;
   lastPackageId: string | null;
   draftId: string | null;
+  requireFeatured?: boolean;
 }) {
   const [busy, setBusy] = useState<string | null>(null);
 
@@ -1311,13 +1313,20 @@ function RenewUpgradeDialog({
     },
   });
 
-  const renewPkg = packages.find((p) => p.id === lastPackageId) ?? null;
-  const upgrades = packages.filter(
+  // When the user picked Featured but has no featured upgrades, only suggest packages that include one.
+  const eligible = requireFeatured
+    ? packages.filter((p) => (p.featured_count ?? 0) >= 1)
+    : packages;
+
+  const renewPkg = eligible.find((p) => p.id === lastPackageId) ?? null;
+  const upgrades = eligible.filter(
     (p) => p.id !== lastPackageId && (renewPkg ? p.posting_count > renewPkg.posting_count : true),
   );
   const popular = upgrades[Math.floor(upgrades.length / 2)] ?? null;
 
-  const reason = !activePackage
+  const reason = requireFeatured && activePackage && activePackage.posts_remaining >= 1
+    ? "You picked Featured but have no featured upgrades left — buy a package that includes one."
+    : !activePackage
     ? "You don't have an active package — pick one to publish your draft."
     : activePackage.posts_remaining < 1
     ? `Your ${activePackage.package_name} is used up — renew it or move up to publish.`
