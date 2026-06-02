@@ -11,6 +11,8 @@ interface AuthContextValue {
   role: AppRole | null;
   /** Every role row attached to the user. Admins are a superset. */
   roles: AppRole[];
+  /** Effective permission keys (admins receive the full catalog). */
+  permissions: string[];
   loading: boolean;
   signOut: () => Promise<void>;
 }
