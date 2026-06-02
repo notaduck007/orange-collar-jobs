@@ -180,6 +180,25 @@ export function ApplyDialog({ jobId, jobTitle, quickHire, open, onOpenChange, on
             if (aErr) toast.error(`Application sent, but answers failed: ${aErr.message}`);
           }
         }
+        if (created && quickHire && slotId) {
+          const { error: bErr } = await supabase.from("interview_bookings").insert({
+            slot_id: slotId,
+            application_id: created.id,
+            applicant_id: user.id,
+          });
+          if (bErr) {
+            toast.error(`Application sent, but interview booking failed: ${bErr.message}`);
+          } else {
+            toast.success("Application sent and interview booked! Check your notifications.");
+            qc.invalidateQueries({ queryKey: ["interview-slots", jobId] });
+            qc.invalidateQueries({ queryKey: ["seeker-apps", user.id] });
+            qc.invalidateQueries({ queryKey: ["seeker-applied-ids", user.id] });
+            qc.invalidateQueries({ queryKey: ["seeker-stats", user.id] });
+            onApplied?.();
+            onOpenChange(false);
+            return;
+          }
+        }
         toast.success("Application sent! The employer will be in touch.");
         qc.invalidateQueries({ queryKey: ["seeker-apps", user.id] });
         qc.invalidateQueries({ queryKey: ["seeker-applied-ids", user.id] });
