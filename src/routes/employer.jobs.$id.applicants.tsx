@@ -759,7 +759,7 @@ function TableView({
                   onClick={() => onOpen(a)}
                   className="text-left font-semibold text-[color:var(--ink)] hover:text-primary hover:underline"
                 >
-                  {a.profile?.display_name ?? "Applicant"}
+                  {displayName(a)}
                 </button>
                 {knockedOut.has(a.id) && (
                   <Badge
@@ -769,8 +769,8 @@ function TableView({
                     Knockout
                   </Badge>
                 )}
-                {a.profile?.phone && (
-                  <p className="text-xs text-muted-foreground">{a.profile.phone}</p>
+                {(a.applicant_phone || a.profile?.phone) && (
+                  <p className="text-xs text-muted-foreground">{a.applicant_phone || a.profile?.phone}</p>
                 )}
               </td>
               <td className="px-4 py-3 text-muted-foreground">
