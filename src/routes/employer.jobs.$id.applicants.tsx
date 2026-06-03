@@ -1005,6 +1005,12 @@ function ApplicantDrawer({
         </SheetDescription>
       </SheetHeader>
 
+      {app.booking && app.booking.status !== "cancelled" && (
+        <div className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-900">
+          📅 Phone screen: {formatBookingDate(app.booking.starts_at)}
+        </div>
+      )}
+
       <CandidateDetails app={app} />
 
       <div className="flex flex-wrap gap-2">
