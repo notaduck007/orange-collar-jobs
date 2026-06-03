@@ -117,13 +117,41 @@ function BillingPage() {
           <div className="flex items-start gap-3">
             <CheckCircle2 className="mt-0.5 h-6 w-6 text-[color:var(--success)]" />
             <div className="flex-1">
-              <h2 className="text-lg font-semibold text-[color:var(--ink)]">Payment confirmed</h2>
-              <p className="text-sm text-muted-foreground">
+              <h2 className="text-2xl font-bold text-[color:var(--ink)]">
+                You're all set 🎉 — let's post your job.
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
                 Invoice{" "}
                 <span className="font-mono">{confirmOrder.invoice_number ?? "pending"}</span> ·{" "}
                 {new Date(confirmOrder.created_at).toLocaleString()}
               </p>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <div className="mt-5 flex flex-wrap items-center gap-3">
+                <Link
+                  to="/employer/jobs/new"
+                  className="btn-primary text-base px-6 py-3"
+                >
+                  Post a job
+                </Link>
+                <a
+                  href={`/billing/receipt/${confirmOrder.id}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-sm font-medium hover:bg-muted"
+                >
+                  <Download className="h-4 w-4" /> Download receipt
+                </a>
+                {confirmOrder.receipt_url && (
+                  <a
+                    href={confirmOrder.receipt_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-sm font-medium hover:bg-muted"
+                  >
+                    Stripe receipt
+                  </a>
+                )}
+              </div>
+              <div className="mt-6 grid gap-3 sm:grid-cols-2">
                 <SummaryCell label="Package" value={confirmOrder.packages?.name ?? "—"} />
                 <SummaryCell
                   label="Amount"
@@ -149,29 +177,6 @@ function BillingPage() {
                       : "…"
                   }
                 />
-              </div>
-              <div className="mt-5 flex flex-wrap gap-2">
-                <Link to="/employer/jobs/new" className="btn-primary text-sm">
-                  Post a job
-                </Link>
-                <a
-                  href={`/billing/receipt/${confirmOrder.id}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-sm font-medium hover:bg-muted"
-                >
-                  <Download className="h-4 w-4" /> Download receipt
-                </a>
-                {confirmOrder.receipt_url && (
-                  <a
-                    href={confirmOrder.receipt_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-sm font-medium hover:bg-muted"
-                  >
-                    Stripe receipt
-                  </a>
-                )}
               </div>
             </div>
           </div>
