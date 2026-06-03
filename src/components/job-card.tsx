@@ -19,6 +19,7 @@ import { useAppliedJobs, useQuickApplyReady, useSeekerMatchProfile } from "@/hoo
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { CERT_LABEL, TEMP_LABEL } from "@/lib/warehouse-attrs";
+import { ApplySuccessDialog } from "@/components/apply-success-dialog";
 
 export interface JobSummary {
   id: string;
@@ -93,6 +94,7 @@ export function JobCard({ job }: { job: JobSummary }) {
   const seekerMatch = useSeekerMatchProfile();
   const qc = useQueryClient();
   const [submitting, setSubmitting] = useState(false);
+  const [successOpen, setSuccessOpen] = useState(false);
   const pay = job.pay_min && job.pay_max ? `$${job.pay_min}–$${job.pay_max}/hr` : null;
 
   const showApplyControl = !!user && !applied && quickApply.ready;
@@ -139,6 +141,7 @@ export function JobCard({ job }: { job: JobSummary }) {
     qc.invalidateQueries({ queryKey: ["seeker-applied-ids", user.id] });
     qc.invalidateQueries({ queryKey: ["seeker-apps", user.id] });
     qc.invalidateQueries({ queryKey: ["seeker-stats", user.id] });
+    setSuccessOpen(true);
   };
 
   const certs = job.certifications_required ?? [];
@@ -167,6 +170,7 @@ export function JobCard({ job }: { job: JobSummary }) {
 
 
   return (
+    <>
     <div className="group relative rounded-lg border border-border bg-card p-5 shadow-[var(--shadow-card)] transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-[var(--shadow-card-hover)]">
       {job.featured && (
         <div className="absolute -top-px right-4 flex items-center gap-1 rounded-b-md bg-[color:var(--hazard)] px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[color:var(--ink)]">
@@ -301,5 +305,7 @@ export function JobCard({ job }: { job: JobSummary }) {
         </div>
       ) : null}
     </div>
+    <ApplySuccessDialog open={successOpen} onOpenChange={setSuccessOpen} />
+    </>
   );
 }

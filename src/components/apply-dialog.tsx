@@ -19,6 +19,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { ApplySuccessDialog } from "@/components/apply-success-dialog";
 
 interface ApplyDialogProps {
   jobId: string;
@@ -56,6 +57,8 @@ export function ApplyDialog({
   const [submitting, setSubmitting] = useState(false);
   const [answers, setAnswers] = useState<Record<string, unknown>>({});
   const [slotId, setSlotId] = useState<string>("");
+  const [successOpen, setSuccessOpen] = useState(false);
+  const [successBooking, setSuccessBooking] = useState<string | null>(null);
 
   const { data: profile } = useQuery({
     queryKey: ["seeker-profile-snapshot", user?.id],
@@ -235,22 +238,27 @@ export function ApplyDialog({
           if (bErr) {
             toast.error(`Application sent, but interview booking failed: ${bErr.message}`);
           } else {
-            toast.success("Application sent and interview booked! Check your notifications.");
+            toast.success("Application sent and interview booked!");
             qc.invalidateQueries({ queryKey: ["interview-slots", jobId] });
             qc.invalidateQueries({ queryKey: ["seeker-apps", user.id] });
             qc.invalidateQueries({ queryKey: ["seeker-applied-ids", user.id] });
             qc.invalidateQueries({ queryKey: ["seeker-stats", user.id] });
             onApplied?.();
             onOpenChange(false);
+            const slot = slots.find((s) => s.id === slotId);
+            setSuccessBooking(slot?.starts_at ?? null);
+            setSuccessOpen(true);
             return;
           }
         }
-        toast.success("Application sent! The employer will be in touch.");
+        toast.success("Application sent!");
         qc.invalidateQueries({ queryKey: ["seeker-apps", user.id] });
         qc.invalidateQueries({ queryKey: ["seeker-applied-ids", user.id] });
         qc.invalidateQueries({ queryKey: ["seeker-stats", user.id] });
         onApplied?.();
         onOpenChange(false);
+        setSuccessBooking(null);
+        setSuccessOpen(true);
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not submit application");
@@ -265,7 +273,8 @@ export function ApplyDialog({
   const setAnswer = (id: string, v: unknown) => setAnswers((p) => ({ ...p, [id]: v }));
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Apply to {jobTitle}</DialogTitle>
@@ -484,6 +493,12 @@ export function ApplyDialog({
           </Button>
         </DialogFooter>
       </DialogContent>
-    </Dialog>
+      </Dialog>
+      <ApplySuccessDialog
+        open={successOpen}
+        onOpenChange={setSuccessOpen}
+        bookingStartsAt={successBooking}
+      />
+    </>
   );
 }

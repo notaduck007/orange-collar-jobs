@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/lib/auth";
 import { ApplyDialog } from "@/components/apply-dialog";
+import { ApplySuccessDialog } from "@/components/apply-success-dialog";
 import { AdSlot } from "@/components/ad-slot";
 import { ReportButton } from "@/components/report-button";
 import { useAppliedJobs, useQuickApplyReady } from "@/hooks/use-applied-jobs";
@@ -192,6 +193,7 @@ function JobDetail() {
   const [coverOpen, setCoverOpen] = useState(false);
   const [coverNote, setCoverNote] = useState("");
   const [quickSubmitting, setQuickSubmitting] = useState(false);
+  const [successOpen, setSuccessOpen] = useState(false);
   const appliedIds = useAppliedJobs();
   const quickApply = useQuickApplyReady();
 
@@ -269,6 +271,7 @@ function JobDetail() {
     qc.invalidateQueries({ queryKey: ["seeker-apps", user.id] });
     qc.invalidateQueries({ queryKey: ["seeker-applied-ids", user.id] });
     qc.invalidateQueries({ queryKey: ["seeker-stats", user.id] });
+    setSuccessOpen(true);
   };
 
   const apply = () => {
@@ -567,6 +570,7 @@ function JobDetail() {
           onOpenChange={setApplyOpen}
         />
       )}
+      <ApplySuccessDialog open={successOpen} onOpenChange={setSuccessOpen} />
     </div>
   );
 }
