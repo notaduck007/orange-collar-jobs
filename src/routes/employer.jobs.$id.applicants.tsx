@@ -113,7 +113,17 @@ type Applicant = {
     desired_employment_type: string | null;
     willing_to_relocate: boolean | null;
   };
+  booking?: { starts_at: string; status: string } | null;
 };
+
+function formatBookingDate(iso: string): string {
+  return new Date(iso).toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
 
 function snap<T>(s: T | null | undefined, fb: T | null | undefined): T | null {
   if (s !== null && s !== undefined) {
