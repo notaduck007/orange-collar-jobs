@@ -176,6 +176,14 @@ function OnboardingPage() {
         toast.success("Company created — your free Starter package is ready (1 post, 30 days)");
       }
       await qc.invalidateQueries({ queryKey: ["employer-company", user.id] });
+      if (pkg && !existing) {
+        const result = await startCheckout(pkg, "purchase");
+        if (result?.error) {
+          toast.error(result.error);
+          navigate({ to: "/employer" });
+        }
+        return;
+      }
       navigate({ to: (next ?? "/employer") as never });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Save failed");
