@@ -173,7 +173,12 @@ function OnboardingPage() {
           });
           if (grantErr) console.warn("starter grant failed", grantErr.message);
         }
-        toast.success("Company created — your free Starter package is ready (1 post, 30 days)");
+        toast.success("Company created — your first job post is free and ready. Let's post it.", {
+          action: {
+            label: "Post your free job",
+            onClick: () => navigate({ to: "/employer/jobs/new" }),
+          },
+        });
       }
       await qc.invalidateQueries({ queryKey: ["employer-company", user.id] });
       if (pkg && !existing) {
