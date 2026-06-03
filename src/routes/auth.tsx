@@ -104,7 +104,7 @@ function AuthPage() {
             start this week.
           </p>
         </div>
-        <p className="text-xs text-white/40">© {new Date().getFullYear()} WarehouseJobs</p>
+        <p className="text-xs text-white/40">© {new Date().getFullYear()} {brandName}</p>
       </div>
 
       <div className="flex items-center justify-center p-6 sm:p-12">
