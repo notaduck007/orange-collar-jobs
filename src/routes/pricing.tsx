@@ -254,7 +254,12 @@ function Pricing() {
                   {loading && <Loader2 className="h-4 w-4 animate-spin" />}
                   {loading ? "Redirecting…" : user ? "Buy now" : "Get started"}
                 </button>
+              </div>
+            );
+          })}
         </div>
+
+
 
         <p className="mt-6 text-center text-xs text-muted-foreground sm:text-sm">
           🔒 Secure checkout via Stripe · No contracts, cancel anytime · Questions?{" "}
