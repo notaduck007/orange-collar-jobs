@@ -95,8 +95,61 @@ type Applicant = {
   created_at: string;
   rating: number | null;
   rejection_reason: string | null;
+  applicant_name: string | null;
+  applicant_email: string | null;
+  applicant_phone: string | null;
+  applicant_certifications: string[] | null;
+  applicant_desired_shift: string | null;
+  applicant_desired_employment_type: string | null;
+  applicant_willing_to_relocate: boolean | null;
+  applicant_headline: string | null;
+  applicant_skills: string[] | null;
   profile?: { display_name: string | null; phone: string | null };
+  seeker?: {
+    headline: string | null;
+    skills: string[] | null;
+    certifications: string[] | null;
+    desired_shift: string | null;
+    desired_employment_type: string | null;
+    willing_to_relocate: boolean | null;
+  };
 };
+
+function snap<T>(s: T | null | undefined, fb: T | null | undefined): T | null {
+  if (s !== null && s !== undefined) {
+    if (Array.isArray(s)) return s.length > 0 ? s : (fb ?? null);
+    if (s !== "") return s;
+  }
+  return fb ?? null;
+}
+
+function displayName(a: Applicant): string {
+  return a.applicant_name || a.profile?.display_name || "Applicant";
+}
+
+function formatShift(s: string | null): string | null {
+  if (!s) return null;
+  const map: Record<string, string> = { first: "1st shift", second: "2nd shift", third: "3rd shift", weekend: "Weekends", any: "Any shift" };
+  return map[s] ?? s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+function formatEmploymentType(s: string | null): string | null {
+  if (!s) return null;
+  const map: Record<string, string> = { full_time: "Full-time", part_time: "Part-time", contract: "Contract", temporary: "Temporary", seasonal: "Seasonal" };
+  return map[s] ?? s.replace(/_/g, " ");
+}
+
+function candidateInfo(a: Applicant) {
+  return {
+    certifications: snap(a.applicant_certifications, a.seeker?.certifications) ?? [],
+    skills: snap(a.applicant_skills, a.seeker?.skills) ?? [],
+    shift: snap(a.applicant_desired_shift, a.seeker?.desired_shift),
+    employmentType: snap(a.applicant_desired_employment_type, a.seeker?.desired_employment_type),
+    willingToRelocate: snap(a.applicant_willing_to_relocate, a.seeker?.willing_to_relocate),
+    headline: snap(a.applicant_headline, a.seeker?.headline),
+    email: a.applicant_email,
+  };
+}
 
 type AppNote = {
   id: string;
@@ -173,19 +226,35 @@ function ApplicantsPage() {
       if (error) throw error;
       const ids = (apps ?? []).map((a) => a.applicant_id);
       let profilesById: Record<string, { display_name: string | null; phone: string | null }> = {};
+      let seekersById: Record<string, Applicant["seeker"]> = {};
       if (ids.length) {
-        const { data: profs } = await supabase
-          .from("profiles")
-          .select("id, display_name, phone")
-          .in("id", ids);
+        const [{ data: profs }, { data: seekers }] = await Promise.all([
+          supabase.from("profiles").select("id, display_name, phone").in("id", ids),
+          supabase
+            .from("seeker_profiles")
+            .select("user_id, headline, skills, certifications, desired_shift, desired_employment_type, willing_to_relocate")
+            .in("user_id", ids),
+        ]);
         profilesById = (profs ?? []).reduce<typeof profilesById>((acc, p) => {
           acc[p.id] = { display_name: p.display_name, phone: p.phone };
+          return acc;
+        }, {});
+        seekersById = (seekers ?? []).reduce<typeof seekersById>((acc, s: Row) => {
+          acc[s.user_id] = {
+            headline: s.headline ?? null,
+            skills: s.skills ?? null,
+            certifications: s.certifications ?? null,
+            desired_shift: s.desired_shift ?? null,
+            desired_employment_type: s.desired_employment_type ?? null,
+            willing_to_relocate: s.willing_to_relocate ?? null,
+          };
           return acc;
         }, {});
       }
       return (apps ?? []).map((a) => ({
         ...a,
         profile: profilesById[a.applicant_id],
+        seeker: seekersById[a.applicant_id],
       })) as Applicant[];
     },
   });
@@ -390,7 +459,7 @@ function ApplicantsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Reject this applicant?</AlertDialogTitle>
             <AlertDialogDescription>
-              {rejectFor?.profile?.display_name ?? "Applicant"} will be moved to the Rejected
+              {rejectFor ? displayName(rejectFor) : "Applicant"} will be moved to the Rejected
               column. The reason is recorded for your team only.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -551,13 +620,19 @@ function ApplicantCard({
               onPointerDown={(e) => e.stopPropagation()}
               className="truncate text-left text-sm font-semibold text-[color:var(--ink)] hover:text-primary hover:underline"
             >
-              {app.profile?.display_name ?? "Applicant"}
+              {displayName(app)}
             </button>
           ) : (
             <p className="truncate text-sm font-semibold text-[color:var(--ink)]">
-              {app.profile?.display_name ?? "Applicant"}
+              {displayName(app)}
             </p>
           )}
+          {(() => {
+            const info = candidateInfo(app);
+            return info.headline ? (
+              <p className="truncate text-[11px] text-muted-foreground">{info.headline}</p>
+            ) : null;
+          })()}
           <p className="text-[11px] text-muted-foreground">
             Applied{" "}
             {new Date(app.created_at).toLocaleDateString("en-US", {
@@ -569,9 +644,9 @@ function ApplicantCard({
         {app.rating && <StarRow value={app.rating} />}
       </div>
       <div className="mt-2 flex flex-wrap gap-1">
-        {app.profile?.phone && (
+        {(app.applicant_phone || app.profile?.phone) && (
           <span className="inline-flex items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
-            <Phone className="h-2.5 w-2.5" /> {app.profile.phone}
+            <Phone className="h-2.5 w-2.5" /> {app.applicant_phone || app.profile?.phone}
           </span>
         )}
         {app.resume_url && (
@@ -585,6 +660,35 @@ function ApplicantCard({
           </span>
         )}
       </div>
+      {(() => {
+        const info = candidateInfo(app);
+        const shift = formatShift(info.shift);
+        const et = formatEmploymentType(info.employmentType);
+        const availability = [shift, et].filter(Boolean).join(" · ");
+        const hasDetails =
+          info.certifications.length > 0 || availability || info.willingToRelocate;
+        if (!hasDetails) return null;
+        return (
+          <div className="mt-2 flex flex-wrap gap-1">
+            {info.certifications.length > 0 && (
+              <span className="inline-flex items-center rounded bg-[color:var(--primary-tint)] px-1.5 py-0.5 text-[10px] font-medium text-primary">
+                {info.certifications.slice(0, 3).join(", ")}
+                {info.certifications.length > 3 ? ` +${info.certifications.length - 3}` : ""}
+              </span>
+            )}
+            {availability && (
+              <span className="inline-flex items-center rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                {availability}
+              </span>
+            )}
+            {info.willingToRelocate && (
+              <span className="inline-flex items-center rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700">
+                Open to relocate
+              </span>
+            )}
+          </div>
+        );
+      })()}
       {!dragging && (
         <div className="mt-2 flex flex-wrap gap-1" onPointerDown={(e) => e.stopPropagation()}>
           {app.resume_url && (
@@ -655,7 +759,7 @@ function TableView({
                   onClick={() => onOpen(a)}
                   className="text-left font-semibold text-[color:var(--ink)] hover:text-primary hover:underline"
                 >
-                  {a.profile?.display_name ?? "Applicant"}
+                  {displayName(a)}
                 </button>
                 {knockedOut.has(a.id) && (
                   <Badge
@@ -665,8 +769,8 @@ function TableView({
                     Knockout
                   </Badge>
                 )}
-                {a.profile?.phone && (
-                  <p className="text-xs text-muted-foreground">{a.profile.phone}</p>
+                {(a.applicant_phone || a.profile?.phone) && (
+                  <p className="text-xs text-muted-foreground">{a.applicant_phone || a.profile?.phone}</p>
                 )}
               </td>
               <td className="px-4 py-3 text-muted-foreground">
@@ -855,7 +959,7 @@ function ApplicantDrawer({
   return (
     <div className="space-y-6">
       <SheetHeader>
-        <SheetTitle>{app.profile?.display_name ?? "Applicant"}</SheetTitle>
+        <SheetTitle>{displayName(app)}</SheetTitle>
         <SheetDescription>
           Applied{" "}
           {new Date(app.created_at).toLocaleDateString("en-US", {
@@ -865,6 +969,8 @@ function ApplicantDrawer({
           })}
         </SheetDescription>
       </SheetHeader>
+
+      <CandidateDetails app={app} />
 
       <div className="flex flex-wrap gap-2">
         {app.resume_url && (
@@ -987,5 +1093,78 @@ function ApplicantDrawer({
         </div>
       </section>
     </div>
+  );
+}
+
+function CandidateDetails({ app }: { app: Applicant }) {
+  const info = candidateInfo(app);
+  const phone = app.applicant_phone || app.profile?.phone || null;
+  const shift = formatShift(info.shift);
+  const et = formatEmploymentType(info.employmentType);
+  const availability = [shift, et].filter(Boolean).join(" · ");
+  const hasAny =
+    info.headline ||
+    info.email ||
+    phone ||
+    info.certifications.length > 0 ||
+    info.skills.length > 0 ||
+    availability ||
+    info.willingToRelocate;
+  if (!hasAny) return null;
+  return (
+    <section className="rounded-md border border-border bg-muted/30 p-3">
+      <p className="label-caps mb-2">Candidate details</p>
+      <dl className="space-y-1.5 text-sm">
+        {info.headline && (
+          <div className="text-foreground">{info.headline}</div>
+        )}
+        {info.email && (
+          <div className="flex items-center gap-1.5">
+            <Mail className="h-3.5 w-3.5 text-muted-foreground" />
+            <a href={`mailto:${info.email}`} className="text-primary hover:underline">
+              {info.email}
+            </a>
+          </div>
+        )}
+        {phone && (
+          <div className="flex items-center gap-1.5 text-foreground">
+            <Phone className="h-3.5 w-3.5 text-muted-foreground" />
+            <a href={`tel:${phone}`} className="hover:underline">{phone}</a>
+          </div>
+        )}
+        {availability && (
+          <div>
+            <span className="text-muted-foreground">Availability: </span>
+            <span className="text-foreground">{availability}</span>
+          </div>
+        )}
+        {info.willingToRelocate && (
+          <div>
+            <Badge variant="outline" className="border-emerald-300 bg-emerald-50 text-[10px] font-semibold uppercase text-emerald-700">
+              Open to relocate
+            </Badge>
+          </div>
+        )}
+        {info.certifications.length > 0 && (
+          <div>
+            <span className="text-muted-foreground">Certifications: </span>
+            <span className="text-foreground">{info.certifications.join(", ")}</span>
+          </div>
+        )}
+        {info.skills.length > 0 && (
+          <div className="flex flex-wrap items-center gap-1">
+            <span className="text-muted-foreground">Skills:</span>
+            {info.skills.map((s) => (
+              <span
+                key={s}
+                className="rounded bg-background px-1.5 py-0.5 text-[10px] text-foreground border border-border"
+              >
+                {s}
+              </span>
+            ))}
+          </div>
+        )}
+      </dl>
+    </section>
   );
 }
