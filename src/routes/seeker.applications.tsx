@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { FileDown, MapPin, Trash2 } from "lucide-react";
+import { CalendarClock, FileDown, Info, MapPin, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -37,13 +37,22 @@ function ApplicationsPage() {
       const { data } = await supabase
         .from("applications")
         .select(
-          "id, status, created_at, cover_letter, resume_url, jobs(slug, title, location, shift, companies(name, logo_url))",
+          "id, status, created_at, cover_letter, resume_url, jobs(slug, title, location, shift, companies(name, logo_url)), interview_bookings(status, slot:interview_slots(starts_at))",
         )
         .eq("applicant_id", user!.id)
         .order("created_at", { ascending: false });
       return data ?? [];
     },
   });
+
+  const formatInterview = (starts_at: string) =>
+    new Date(starts_at).toLocaleString(undefined, {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
 
   const downloadResume = async (path: string) => {
     const { data } = await supabase.storage.from("resumes").createSignedUrl(path, 60);
@@ -75,6 +84,18 @@ function ApplicationsPage() {
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
           {apps.length} total · employer status updates appear here
+        </p>
+      </div>
+
+      <div className="flex items-start gap-2 rounded-lg border border-border bg-muted/40 p-3 text-xs text-muted-foreground">
+        <Info className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" aria-hidden />
+        <p>
+          <span className="font-semibold text-foreground">How statuses work:</span>{" "}
+          <span className="font-medium text-foreground">Submitted</span> — the employer has your
+          application. <span className="font-medium text-foreground">Reviewed</span> — they've
+          opened it. <span className="font-medium text-foreground">Interview</span> — they want to
+          talk (you'll see a phone-screen time below).{" "}
+          <span className="font-medium text-foreground">Hired</span> — you got the job.
         </p>
       </div>
 
@@ -123,6 +144,22 @@ function ApplicationsPage() {
                   </td>
                   <td className="px-4 py-3">
                     <StatusBadge status={app.status} />
+                    {(() => {
+                      const bookings = (app.interview_bookings ?? []) as Array<{
+                        status: string;
+                        slot: { starts_at: string } | null;
+                      }>;
+                      const active = bookings.find(
+                        (b) => b.status !== "cancelled" && b.slot?.starts_at,
+                      );
+                      if (!active?.slot?.starts_at) return null;
+                      return (
+                        <div className="mt-1.5 inline-flex items-center gap-1 rounded-md bg-amber-50 px-1.5 py-0.5 text-[11px] font-medium text-amber-900 ring-1 ring-amber-200">
+                          <CalendarClock className="h-3 w-3" aria-hidden />
+                          Interview: {formatInterview(active.slot.starts_at)}
+                        </div>
+                      );
+                    })()}
                   </td>
                   <td className="px-4 py-3">
                     {app.resume_url ? (
