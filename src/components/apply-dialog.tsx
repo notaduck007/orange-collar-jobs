@@ -186,6 +186,7 @@ export function ApplyDialog({
         resumePath = path;
       }
 
+      const seeker = profile?.seeker ?? null;
       const { data: created, error } = await supabase
         .from("applications")
         .insert({
@@ -193,6 +194,15 @@ export function ApplyDialog({
           applicant_id: user.id,
           cover_letter: coverNote || null,
           resume_url: resumePath,
+          applicant_email: user.email ?? null,
+          applicant_name: profile?.full_name || profile?.display_name || null,
+          applicant_phone: profile?.phone ?? null,
+          applicant_headline: seeker?.headline ?? null,
+          applicant_skills: seeker?.skills ?? null,
+          applicant_certifications: seeker?.certifications ?? null,
+          applicant_desired_shift: seeker?.desired_shift ?? null,
+          applicant_desired_employment_type: seeker?.desired_employment_type ?? null,
+          applicant_willing_to_relocate: seeker?.willing_to_relocate ?? null,
         })
         .select("id")
         .single();
