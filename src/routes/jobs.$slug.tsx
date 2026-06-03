@@ -44,6 +44,9 @@ const PAY_UNIT_SCHEMA: Record<string, string> = {
 };
 
 export const Route = createFileRoute("/jobs/$slug")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    apply: s.apply === "1" || s.apply === 1 || s.apply === true ? (1 as const) : undefined,
+  }),
   loader: async ({ params }) => {
     const { data } = await supabase
       .from("jobs")
