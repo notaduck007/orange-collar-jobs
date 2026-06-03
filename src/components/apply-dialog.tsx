@@ -493,6 +493,12 @@ export function ApplyDialog({
           </Button>
         </DialogFooter>
       </DialogContent>
-    </Dialog>
+      </Dialog>
+      <ApplySuccessDialog
+        open={successOpen}
+        onOpenChange={setSuccessOpen}
+        bookingStartsAt={successBooking}
+      />
+    </>
   );
 }
