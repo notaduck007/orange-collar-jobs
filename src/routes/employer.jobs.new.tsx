@@ -787,15 +787,21 @@ function NewJobPage() {
 
   // Success screen.
   if (success) {
+    const listingUrl = success.slug
+      ? `${typeof window !== "undefined" ? window.location.origin : ""}/jobs/${success.slug}`
+      : null;
     return (
       <div className="space-y-6">
         <div className="rounded-xl border-2 border-emerald-400 bg-emerald-50 p-8 text-center">
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500 text-white">
             <Check className="h-6 w-6" />
           </div>
-          <h1 className="mt-4 text-2xl font-bold text-[color:var(--ink)]">Your job is live</h1>
+          <h1 className="mt-4 text-2xl font-bold text-[color:var(--ink)]">
+            🎉 You're live — nice work!
+          </h1>
           <p className="mx-auto mt-2 max-w-md text-sm text-emerald-900/80">
-            "{success.title}" is now visible to job seekers.
+            "{success.title}" is now in front of warehouse workers in your area. We'll email you
+            the moment qualified applicants come in.
           </p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
             {success.slug && (
@@ -808,7 +814,41 @@ function NewJobPage() {
             <Button asChild variant="outline">
               <Link to="/employer">Back to dashboard</Link>
             </Button>
+            {listingUrl && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(listingUrl);
+                    toast.success("Link copied to clipboard");
+                  } catch {
+                    toast.error("Could not copy link");
+                  }
+                }}
+              >
+                Copy link to share
+              </Button>
+            )}
           </div>
+        </div>
+
+        <div className="rounded-xl border bg-white p-6">
+          <h2 className="text-sm font-semibold text-[color:var(--ink)]">What happens next</h2>
+          <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+            <li className="flex gap-2">
+              <span aria-hidden>•</span>
+              <span>We'll email you as soon as new applicants apply.</span>
+            </li>
+            <li className="flex gap-2">
+              <span aria-hidden>•</span>
+              <span>Manage everyone from your employer dashboard.</span>
+            </li>
+            <li className="flex gap-2">
+              <span aria-hidden>•</span>
+              <span>You can edit the post or feature it to the top anytime.</span>
+            </li>
+          </ul>
         </div>
 
         {!success.featured && (
