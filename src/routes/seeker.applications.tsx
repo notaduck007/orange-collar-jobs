@@ -144,6 +144,22 @@ function ApplicationsPage() {
                   </td>
                   <td className="px-4 py-3">
                     <StatusBadge status={app.status} />
+                    {(() => {
+                      const bookings = (app.interview_bookings ?? []) as Array<{
+                        status: string;
+                        slot: { starts_at: string } | null;
+                      }>;
+                      const active = bookings.find(
+                        (b) => b.status !== "cancelled" && b.slot?.starts_at,
+                      );
+                      if (!active?.slot?.starts_at) return null;
+                      return (
+                        <div className="mt-1.5 inline-flex items-center gap-1 rounded-md bg-amber-50 px-1.5 py-0.5 text-[11px] font-medium text-amber-900 ring-1 ring-amber-200">
+                          <CalendarClock className="h-3 w-3" aria-hidden />
+                          Interview: {formatInterview(active.slot.starts_at)}
+                        </div>
+                      );
+                    })()}
                   </td>
                   <td className="px-4 py-3">
                     {app.resume_url ? (
