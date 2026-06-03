@@ -620,13 +620,19 @@ function ApplicantCard({
               onPointerDown={(e) => e.stopPropagation()}
               className="truncate text-left text-sm font-semibold text-[color:var(--ink)] hover:text-primary hover:underline"
             >
-              {app.profile?.display_name ?? "Applicant"}
+              {displayName(app)}
             </button>
           ) : (
             <p className="truncate text-sm font-semibold text-[color:var(--ink)]">
-              {app.profile?.display_name ?? "Applicant"}
+              {displayName(app)}
             </p>
           )}
+          {(() => {
+            const info = candidateInfo(app);
+            return info.headline ? (
+              <p className="truncate text-[11px] text-muted-foreground">{info.headline}</p>
+            ) : null;
+          })()}
           <p className="text-[11px] text-muted-foreground">
             Applied{" "}
             {new Date(app.created_at).toLocaleDateString("en-US", {
@@ -638,9 +644,9 @@ function ApplicantCard({
         {app.rating && <StarRow value={app.rating} />}
       </div>
       <div className="mt-2 flex flex-wrap gap-1">
-        {app.profile?.phone && (
+        {(app.applicant_phone || app.profile?.phone) && (
           <span className="inline-flex items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
-            <Phone className="h-2.5 w-2.5" /> {app.profile.phone}
+            <Phone className="h-2.5 w-2.5" /> {app.applicant_phone || app.profile?.phone}
           </span>
         )}
         {app.resume_url && (
@@ -654,6 +660,35 @@ function ApplicantCard({
           </span>
         )}
       </div>
+      {(() => {
+        const info = candidateInfo(app);
+        const shift = formatShift(info.shift);
+        const et = formatEmploymentType(info.employmentType);
+        const availability = [shift, et].filter(Boolean).join(" · ");
+        const hasDetails =
+          info.certifications.length > 0 || availability || info.willingToRelocate;
+        if (!hasDetails) return null;
+        return (
+          <div className="mt-2 flex flex-wrap gap-1">
+            {info.certifications.length > 0 && (
+              <span className="inline-flex items-center rounded bg-[color:var(--primary-tint)] px-1.5 py-0.5 text-[10px] font-medium text-primary">
+                {info.certifications.slice(0, 3).join(", ")}
+                {info.certifications.length > 3 ? ` +${info.certifications.length - 3}` : ""}
+              </span>
+            )}
+            {availability && (
+              <span className="inline-flex items-center rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                {availability}
+              </span>
+            )}
+            {info.willingToRelocate && (
+              <span className="inline-flex items-center rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700">
+                Open to relocate
+              </span>
+            )}
+          </div>
+        );
+      })()}
       {!dragging && (
         <div className="mt-2 flex flex-wrap gap-1" onPointerDown={(e) => e.stopPropagation()}>
           {app.resume_url && (
