@@ -45,3 +45,24 @@ export function useQuickApplyReady() {
   });
   return data ?? { ready: false, resumeUrl: null };
 }
+
+/** Returns the seeker's match-relevant profile (certifications, desired shift). */
+export function useSeekerMatchProfile() {
+  const { user } = useAuth();
+  const { data } = useQuery({
+    queryKey: ["seeker-match-profile", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("seeker_profiles")
+        .select("certifications, desired_shift")
+        .eq("user_id", user!.id)
+        .maybeSingle();
+      return {
+        certifications: (data?.certifications ?? []) as string[],
+        desired_shift: (data?.desired_shift ?? null) as string | null,
+      };
+    },
+  });
+  return data ?? null;
+}

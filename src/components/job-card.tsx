@@ -15,7 +15,7 @@ import {
   Timer,
   Dumbbell,
 } from "lucide-react";
-import { useAppliedJobs, useQuickApplyReady } from "@/hooks/use-applied-jobs";
+import { useAppliedJobs, useQuickApplyReady, useSeekerMatchProfile } from "@/hooks/use-applied-jobs";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { CERT_LABEL, TEMP_LABEL } from "@/lib/warehouse-attrs";
@@ -90,6 +90,7 @@ export function JobCard({ job }: { job: JobSummary }) {
   const appliedIds = useAppliedJobs();
   const applied = appliedIds.has(job.id);
   const quickApply = useQuickApplyReady();
+  const seekerMatch = useSeekerMatchProfile();
   const qc = useQueryClient();
   const [submitting, setSubmitting] = useState(false);
   const pay = job.pay_min && job.pay_max ? `$${job.pay_min}–$${job.pay_max}/hr` : null;
@@ -148,6 +149,22 @@ export function JobCard({ job }: { job: JobSummary }) {
     job.quick_hire ||
     job.overtime_available ||
     (job.lift_requirement_lbs ?? 0) > 0;
+
+  const matchHints: string[] = [];
+  if (user && seekerMatch) {
+    const seekerCerts = (seekerMatch.certifications ?? []).map((c) => c.toLowerCase());
+    const jobCerts = certs.map((c) => c.toLowerCase());
+    const overlap = jobCerts.find((c) => seekerCerts.includes(c));
+    if (overlap) {
+      const original = certs.find((c) => c.toLowerCase() === overlap) ?? overlap;
+      matchHints.push(`Matches your ${CERT_LABEL[original] ?? original} cert`);
+    }
+    if (seekerMatch.desired_shift && seekerMatch.desired_shift === job.shift) {
+      matchHints.push(`${shiftLabel[job.shift] ?? job.shift} — your preference`);
+    }
+  }
+  const hintsToShow = matchHints.slice(0, 2);
+
 
   return (
     <div className="group relative rounded-lg border border-border bg-card p-5 shadow-[var(--shadow-card)] transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-[var(--shadow-card-hover)]">
@@ -237,6 +254,20 @@ export function JobCard({ job }: { job: JobSummary }) {
           )}
         </div>
       )}
+
+      {hintsToShow.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {hintsToShow.map((h) => (
+            <span
+              key={h}
+              className="relative z-10 inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 ring-1 ring-emerald-200"
+            >
+              <CheckCircle2 className="h-3 w-3" aria-hidden /> {h}
+            </span>
+          ))}
+        </div>
+      )}
+
 
       {applied ? (
         <span className="relative z-10 mt-3 inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200">
