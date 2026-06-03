@@ -170,7 +170,16 @@ export type Database = {
       }
       applications: {
         Row: {
+          applicant_certifications: string[] | null
+          applicant_desired_employment_type: string | null
+          applicant_desired_shift: string | null
+          applicant_email: string | null
+          applicant_headline: string | null
           applicant_id: string
+          applicant_name: string | null
+          applicant_phone: string | null
+          applicant_skills: string[] | null
+          applicant_willing_to_relocate: boolean | null
           cover_letter: string | null
           created_at: string
           id: string
@@ -181,7 +190,16 @@ export type Database = {
           status: Database["public"]["Enums"]["application_status"]
         }
         Insert: {
+          applicant_certifications?: string[] | null
+          applicant_desired_employment_type?: string | null
+          applicant_desired_shift?: string | null
+          applicant_email?: string | null
+          applicant_headline?: string | null
           applicant_id: string
+          applicant_name?: string | null
+          applicant_phone?: string | null
+          applicant_skills?: string[] | null
+          applicant_willing_to_relocate?: boolean | null
           cover_letter?: string | null
           created_at?: string
           id?: string
@@ -192,7 +210,16 @@ export type Database = {
           status?: Database["public"]["Enums"]["application_status"]
         }
         Update: {
+          applicant_certifications?: string[] | null
+          applicant_desired_employment_type?: string | null
+          applicant_desired_shift?: string | null
+          applicant_email?: string | null
+          applicant_headline?: string | null
           applicant_id?: string
+          applicant_name?: string | null
+          applicant_phone?: string | null
+          applicant_skills?: string[] | null
+          applicant_willing_to_relocate?: boolean | null
           cover_letter?: string | null
           created_at?: string
           id?: string

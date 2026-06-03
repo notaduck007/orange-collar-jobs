@@ -58,17 +58,40 @@ export function ApplyDialog({
   const [slotId, setSlotId] = useState<string>("");
 
   const { data: profile } = useQuery({
-    queryKey: ["seeker-profile", user?.id],
+    queryKey: ["seeker-profile-snapshot", user?.id],
     enabled: !!user && open,
     queryFn: async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("default_resume_url, full_name")
-        .eq("id", user!.id)
-        .maybeSingle();
-      return data;
+      const [{ data: prof }, { data: seeker }] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("default_resume_url, full_name, display_name, phone")
+          .eq("id", user!.id)
+          .maybeSingle(),
+        supabase
+          .from("seeker_profiles")
+          .select(
+            "headline, skills, certifications, desired_shift, desired_employment_type, willing_to_relocate",
+          )
+          .eq("user_id", user!.id)
+          .maybeSingle(),
+      ]);
+      return { ...(prof ?? {}), seeker: seeker ?? null } as {
+        default_resume_url?: string | null;
+        full_name?: string | null;
+        display_name?: string | null;
+        phone?: string | null;
+        seeker: {
+          headline?: string | null;
+          skills?: string[] | null;
+          certifications?: string[] | null;
+          desired_shift?: string | null;
+          desired_employment_type?: string | null;
+          willing_to_relocate?: boolean | null;
+        } | null;
+      };
     },
   });
+
 
   const { data: questions = [] } = useQuery({
     queryKey: ["screening-questions", jobId],
@@ -163,6 +186,7 @@ export function ApplyDialog({
         resumePath = path;
       }
 
+      const seeker = profile?.seeker ?? null;
       const { data: created, error } = await supabase
         .from("applications")
         .insert({
@@ -170,6 +194,15 @@ export function ApplyDialog({
           applicant_id: user.id,
           cover_letter: coverNote || null,
           resume_url: resumePath,
+          applicant_email: user.email ?? null,
+          applicant_name: profile?.full_name || profile?.display_name || null,
+          applicant_phone: profile?.phone ?? null,
+          applicant_headline: seeker?.headline ?? null,
+          applicant_skills: seeker?.skills ?? null,
+          applicant_certifications: seeker?.certifications ?? null,
+          applicant_desired_shift: seeker?.desired_shift ?? null,
+          applicant_desired_employment_type: seeker?.desired_employment_type ?? null,
+          applicant_willing_to_relocate: seeker?.willing_to_relocate ?? null,
         })
         .select("id")
         .single();

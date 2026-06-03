@@ -228,11 +228,34 @@ function JobDetail() {
   const handleQuickApply = async () => {
     if (!user || !job) return;
     setQuickSubmitting(true);
+    const [{ data: prof }, { data: seeker }] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("full_name, display_name, phone")
+        .eq("id", user.id)
+        .maybeSingle(),
+      supabase
+        .from("seeker_profiles")
+        .select(
+          "headline, skills, certifications, desired_shift, desired_employment_type, willing_to_relocate",
+        )
+        .eq("user_id", user.id)
+        .maybeSingle(),
+    ]);
     const { error } = await supabase.from("applications").insert({
       job_id: job.id,
       applicant_id: user.id,
       resume_url: quickApply.resumeUrl ?? null,
       cover_letter: coverNote.trim() || null,
+      applicant_email: user.email ?? null,
+      applicant_name: prof?.full_name || prof?.display_name || null,
+      applicant_phone: prof?.phone ?? null,
+      applicant_headline: seeker?.headline ?? null,
+      applicant_skills: seeker?.skills ?? null,
+      applicant_certifications: seeker?.certifications ?? null,
+      applicant_desired_shift: seeker?.desired_shift ?? null,
+      applicant_desired_employment_type: seeker?.desired_employment_type ?? null,
+      applicant_willing_to_relocate: seeker?.willing_to_relocate ?? null,
     });
     setQuickSubmitting(false);
     if (error) {
