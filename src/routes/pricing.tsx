@@ -62,11 +62,45 @@ function Pricing() {
       return;
     }
     setBuyingId(packageId);
+
+    // Check whether the user has a company before starting checkout.
+    const { data: owned } = await supabase
+      .from("companies")
+      .select("id")
+      .eq("owner_id", user.id)
+      .limit(1)
+      .maybeSingle();
+    let hasCompany = !!owned?.id;
+    if (!hasCompany) {
+      const { data: membership } = await supabase
+        .from("company_members")
+        .select("company_id")
+        .eq("user_id", user.id)
+        .eq("status", "active")
+        .in("role", ["owner", "admin"])
+        .limit(1)
+        .maybeSingle();
+      hasCompany = !!membership?.company_id;
+    }
+
+    if (!hasCompany) {
+      toast.info("Set up your company first to purchase a package.");
+      navigate({
+        to: "/employer/onboarding",
+        search: { pkg: packageId } as never,
+      });
+      setBuyingId(null);
+      return;
+    }
+
     const result = await startCheckout(packageId, "purchase");
     if (result?.error) {
       if (result.code === "no_company" || /no company/i.test(result.error)) {
         toast.info("Set up your company first to purchase a package.");
-        navigate({ to: "/employer/onboarding", search: { next: "/pricing" } as never });
+        navigate({
+          to: "/employer/onboarding",
+          search: { pkg: packageId } as never,
+        });
       } else {
         toast.error(result.error);
       }
