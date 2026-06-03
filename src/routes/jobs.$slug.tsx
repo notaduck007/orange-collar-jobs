@@ -193,6 +193,7 @@ function JobDetail() {
   const [coverOpen, setCoverOpen] = useState(false);
   const [coverNote, setCoverNote] = useState("");
   const [quickSubmitting, setQuickSubmitting] = useState(false);
+  const [successOpen, setSuccessOpen] = useState(false);
   const appliedIds = useAppliedJobs();
   const quickApply = useQuickApplyReady();
 
