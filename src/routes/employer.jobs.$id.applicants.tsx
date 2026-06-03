@@ -226,19 +226,35 @@ function ApplicantsPage() {
       if (error) throw error;
       const ids = (apps ?? []).map((a) => a.applicant_id);
       let profilesById: Record<string, { display_name: string | null; phone: string | null }> = {};
+      let seekersById: Record<string, Applicant["seeker"]> = {};
       if (ids.length) {
-        const { data: profs } = await supabase
-          .from("profiles")
-          .select("id, display_name, phone")
-          .in("id", ids);
+        const [{ data: profs }, { data: seekers }] = await Promise.all([
+          supabase.from("profiles").select("id, display_name, phone").in("id", ids),
+          supabase
+            .from("seeker_profiles")
+            .select("user_id, headline, skills, certifications, desired_shift, desired_employment_type, willing_to_relocate")
+            .in("user_id", ids),
+        ]);
         profilesById = (profs ?? []).reduce<typeof profilesById>((acc, p) => {
           acc[p.id] = { display_name: p.display_name, phone: p.phone };
+          return acc;
+        }, {});
+        seekersById = (seekers ?? []).reduce<typeof seekersById>((acc, s: Row) => {
+          acc[s.user_id] = {
+            headline: s.headline ?? null,
+            skills: s.skills ?? null,
+            certifications: s.certifications ?? null,
+            desired_shift: s.desired_shift ?? null,
+            desired_employment_type: s.desired_employment_type ?? null,
+            willing_to_relocate: s.willing_to_relocate ?? null,
+          };
           return acc;
         }, {});
       }
       return (apps ?? []).map((a) => ({
         ...a,
         profile: profilesById[a.applicant_id],
+        seeker: seekersById[a.applicant_id],
       })) as Applicant[];
     },
   });
