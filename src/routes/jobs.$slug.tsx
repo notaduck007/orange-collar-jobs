@@ -570,6 +570,7 @@ function JobDetail() {
           onOpenChange={setApplyOpen}
         />
       )}
+      <ApplySuccessDialog open={successOpen} onOpenChange={setSuccessOpen} />
     </div>
   );
 }
