@@ -86,9 +86,59 @@ function Badge({
 }
 
 export function JobCard({ job }: { job: JobSummary }) {
+  const { user } = useAuth();
   const appliedIds = useAppliedJobs();
   const applied = appliedIds.has(job.id);
+  const quickApply = useQuickApplyReady();
+  const qc = useQueryClient();
+  const [submitting, setSubmitting] = useState(false);
   const pay = job.pay_min && job.pay_max ? `$${job.pay_min}–$${job.pay_max}/hr` : null;
+
+  const showApplyControl = !!user && !applied && quickApply.ready;
+  const canQuickApply = showApplyControl && !job.has_screening;
+
+  const handleQuickApply = async () => {
+    if (!user || submitting) return;
+    setSubmitting(true);
+    const [{ data: prof }, { data: seeker }] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("full_name, display_name, phone")
+        .eq("id", user.id)
+        .maybeSingle(),
+      supabase
+        .from("seeker_profiles")
+        .select(
+          "headline, skills, certifications, desired_shift, desired_employment_type, willing_to_relocate",
+        )
+        .eq("user_id", user.id)
+        .maybeSingle(),
+    ]);
+    const { error } = await supabase.from("applications").insert({
+      job_id: job.id,
+      applicant_id: user.id,
+      resume_url: quickApply.resumeUrl ?? null,
+      applicant_email: user.email ?? null,
+      applicant_name: prof?.full_name || prof?.display_name || null,
+      applicant_phone: prof?.phone ?? null,
+      applicant_headline: seeker?.headline ?? null,
+      applicant_skills: seeker?.skills ?? null,
+      applicant_certifications: seeker?.certifications ?? null,
+      applicant_desired_shift: seeker?.desired_shift ?? null,
+      applicant_desired_employment_type: seeker?.desired_employment_type ?? null,
+      applicant_willing_to_relocate: seeker?.willing_to_relocate ?? null,
+    });
+    setSubmitting(false);
+    if (error) {
+      if (error.code === "23505") toast.message("You've already applied to this job.");
+      else toast.error(error.message);
+      return;
+    }
+    toast.success("Application sent!");
+    qc.invalidateQueries({ queryKey: ["seeker-applied-ids", user.id] });
+    qc.invalidateQueries({ queryKey: ["seeker-apps", user.id] });
+    qc.invalidateQueries({ queryKey: ["seeker-stats", user.id] });
+  };
 
   const certs = job.certifications_required ?? [];
   const hasAttrBadges =
