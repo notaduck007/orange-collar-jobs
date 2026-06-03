@@ -87,6 +87,18 @@ function ApplicationsPage() {
         </p>
       </div>
 
+      <div className="flex items-start gap-2 rounded-lg border border-border bg-muted/40 p-3 text-xs text-muted-foreground">
+        <Info className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" aria-hidden />
+        <p>
+          <span className="font-semibold text-foreground">How statuses work:</span>{" "}
+          <span className="font-medium text-foreground">Submitted</span> — the employer has your
+          application. <span className="font-medium text-foreground">Reviewed</span> — they've
+          opened it. <span className="font-medium text-foreground">Interview</span> — they want to
+          talk (you'll see a phone-screen time below).{" "}
+          <span className="font-medium text-foreground">Hired</span> — you got the job.
+        </p>
+      </div>
+
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Loading…</p>
       ) : apps.length === 0 ? (
