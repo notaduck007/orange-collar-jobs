@@ -238,11 +238,37 @@ export function JobCard({ job }: { job: JobSummary }) {
         </div>
       )}
 
-      {applied && (
-        <span className="mt-3 inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200">
+      {applied ? (
+        <span className="relative z-10 mt-3 inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200">
           <CheckCircle2 className="h-3 w-3" aria-hidden /> Applied
         </span>
-      )}
+      ) : showApplyControl ? (
+        <div className="relative z-10 mt-3">
+          {canQuickApply ? (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleQuickApply();
+              }}
+              disabled={submitting}
+              className="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 disabled:opacity-60"
+            >
+              {submitting ? "Applying…" : "Quick apply"}
+            </button>
+          ) : (
+            <Link
+              to="/jobs/$slug"
+              params={{ slug: job.slug }}
+              onClick={(e) => e.stopPropagation()}
+              className="inline-flex items-center gap-1 rounded-full border border-primary px-3 py-1 text-xs font-semibold text-primary hover:bg-primary hover:text-primary-foreground"
+            >
+              Apply
+            </Link>
+          )}
+        </div>
+      ) : null}
     </div>
   );
 }
