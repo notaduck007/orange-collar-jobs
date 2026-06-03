@@ -248,7 +248,7 @@ export function ApplyDialog({
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label>Resume *</Label>
+            <Label>Resume (optional)</Label>
             {hasDefault && (
               <label className="flex items-start gap-3 rounded-lg border border-border bg-background p-3">
                 <input
