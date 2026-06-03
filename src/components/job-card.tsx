@@ -305,5 +305,7 @@ export function JobCard({ job }: { job: JobSummary }) {
         </div>
       ) : null}
     </div>
+    <ApplySuccessDialog open={successOpen} onOpenChange={setSuccessOpen} />
+    </>
   );
 }
