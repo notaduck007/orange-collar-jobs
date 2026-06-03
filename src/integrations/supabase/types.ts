@@ -1803,6 +1803,7 @@ export type Database = {
               distance_miles: number
               employment_type: Database["public"]["Enums"]["employment_type"]
               featured: boolean
+              has_screening: boolean
               id: string
               lift_requirement_lbs: number
               location: string
