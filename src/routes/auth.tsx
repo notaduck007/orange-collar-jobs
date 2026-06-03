@@ -94,7 +94,7 @@ function AuthPage() {
           <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary text-primary-foreground">
             <HardHat className="h-5 w-5" strokeWidth={2.5} />
           </div>
-          <span className="text-lg font-bold tracking-tight">WarehouseJobs</span>
+          <span className="text-lg font-bold tracking-tight">{brandName}</span>
         </Link>
         <div className="max-w-md">
           <p className="label-caps text-primary">Built for the floor</p>
