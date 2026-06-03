@@ -141,6 +141,7 @@ export function JobCard({ job }: { job: JobSummary }) {
     qc.invalidateQueries({ queryKey: ["seeker-applied-ids", user.id] });
     qc.invalidateQueries({ queryKey: ["seeker-apps", user.id] });
     qc.invalidateQueries({ queryKey: ["seeker-stats", user.id] });
+    setSuccessOpen(true);
   };
 
   const certs = job.certifications_required ?? [];
