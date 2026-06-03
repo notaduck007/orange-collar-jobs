@@ -15,7 +15,7 @@ import {
   Timer,
   Dumbbell,
 } from "lucide-react";
-import { useAppliedJobs, useQuickApplyReady } from "@/hooks/use-applied-jobs";
+import { useAppliedJobs, useQuickApplyReady, useSeekerMatchProfile } from "@/hooks/use-applied-jobs";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { CERT_LABEL, TEMP_LABEL } from "@/lib/warehouse-attrs";
