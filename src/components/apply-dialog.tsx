@@ -161,10 +161,14 @@ export function ApplyDialog({
           .upload(path, file, { contentType: file.type, upsert: false });
         if (upErr) throw upErr;
         resumePath = path;
-      } else if (!profile?.default_resume_url) {
-        toast.error("Please attach a resume.");
-        setSubmitting(false);
-        return;
+      } else if (file) {
+        const ext = file.name.split(".").pop() ?? "pdf";
+        const path = `${user.id}/applications/${jobId}-${Date.now()}.${ext}`;
+        const { error: upErr } = await supabase.storage
+          .from("resumes")
+          .upload(path, file, { contentType: file.type, upsert: false });
+        if (upErr) throw upErr;
+        resumePath = path;
       }
 
       const { data: created, error } = await supabase
