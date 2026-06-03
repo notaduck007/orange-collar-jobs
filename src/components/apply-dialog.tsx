@@ -464,10 +464,13 @@ export function ApplyDialog({
               id="cover"
               rows={5}
               maxLength={2000}
-              placeholder="Hi, I have 3 years of forklift experience…"
+              placeholder="Optional — but helpful. E.g. 'Forklift & reach certified, 3 yrs at a 3PL, available 2nd shift, can start immediately.'"
               value={coverNote}
               onChange={(e) => setCoverNote(e.target.value)}
             />
+            <p className="text-xs text-muted-foreground">
+              A sentence on your experience, certifications, and availability helps employers reach out faster.
+            </p>
             <p className="text-xs text-muted-foreground">{coverNote.length} / 2000</p>
           </div>
         </div>
