@@ -18,11 +18,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { slugify, uniqueSlug } from "@/lib/slug";
+import { startCheckout } from "@/lib/checkout";
 import crewImage from "@/assets/crew-productive.webp";
 
 export const Route = createFileRoute("/employer/onboarding")({
   validateSearch: (search: Record<string, unknown>) => ({
     next: typeof search.next === "string" ? search.next : undefined,
+    pkg: typeof search.pkg === "string" ? search.pkg : undefined,
   }),
   head: () => ({ meta: [{ title: "Company Profile — WarehouseJobs Employers" }] }),
   component: OnboardingPage,
@@ -52,7 +54,7 @@ const schema = z.object({
 function OnboardingPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { next } = Route.useSearch();
+  const { next, pkg } = Route.useSearch();
   const qc = useQueryClient();
 
   const { data: existing } = useQuery({
@@ -174,6 +176,14 @@ function OnboardingPage() {
         toast.success("Company created — your free Starter package is ready (1 post, 30 days)");
       }
       await qc.invalidateQueries({ queryKey: ["employer-company", user.id] });
+      if (pkg && !existing) {
+        const result = await startCheckout(pkg, "purchase");
+        if (result?.error) {
+          toast.error(result.error);
+          navigate({ to: "/employer" });
+        }
+        return;
+      }
       navigate({ to: (next ?? "/employer") as never });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Save failed");
