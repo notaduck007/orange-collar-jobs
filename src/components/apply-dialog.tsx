@@ -57,6 +57,8 @@ export function ApplyDialog({
   const [submitting, setSubmitting] = useState(false);
   const [answers, setAnswers] = useState<Record<string, unknown>>({});
   const [slotId, setSlotId] = useState<string>("");
+  const [successOpen, setSuccessOpen] = useState(false);
+  const [successBooking, setSuccessBooking] = useState<string | null>(null);
 
   const { data: profile } = useQuery({
     queryKey: ["seeker-profile-snapshot", user?.id],
