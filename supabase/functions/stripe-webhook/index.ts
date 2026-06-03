@@ -122,23 +122,61 @@ serve(async (req) => {
         const inv = paidOrder?.invoice_number ?? "—";
         const amount = ((paidOrder?.amount_cents ?? 0) / 100).toFixed(2);
         const validUntil = new Date(expiresAt).toLocaleDateString();
+
+        // Resolve brand name from site_settings (fallback to WarehouseJobs).
+        let brandName = "WarehouseJobs";
+        try {
+          const { data: branding } = await admin
+            .from("site_settings")
+            .select("value")
+            .eq("key", "branding")
+            .maybeSingle();
+          const v = (branding?.value ?? {}) as { site_name?: string };
+          if (v?.site_name) brandName = v.site_name;
+        } catch (_) {
+          /* keep fallback */
+        }
+
+        // Build absolute URLs. Prefer SITE_URL env; fall back to request origin.
+        const siteUrlEnv = (Deno.env.get("SITE_URL") ?? "").replace(/\/$/, "");
+        let origin = siteUrlEnv;
+        if (!origin) {
+          try {
+            origin = new URL(req.url).origin;
+          } catch (_) {
+            origin = "";
+          }
+        }
+        const billingUrl = `${origin}/employer/billing`;
+        const postJobUrl = `${origin}/employer/jobs/new`;
+
         if (email) {
           const body = `
-Thanks for your purchase.
+Thanks for your purchase — welcome aboard from the ${brandName} team.
 
+Your ${pkgName} is ready to use. Here's what's next:
+
+  Post your job → ${postJobUrl}
+
+Order details
+-------------
 Invoice: ${inv}
 Package: ${pkgName}
 Posts included: ${snap?.posting_count ?? existing.posting_count_granted ?? 0}
 Featured upgrades: ${snap?.featured_count ?? existing.featured_count_granted ?? 0}
 Valid until: ${validUntil}
 Amount charged: $${amount} ${(paidOrder?.currency ?? "usd").toUpperCase()}
+${paidOrder?.receipt_url ? `Stripe receipt: ${paidOrder.receipt_url}\n` : ""}
+You can review every invoice and active package any time on your billing page:
+${billingUrl}
 
-${paidOrder?.receipt_url ? `Stripe receipt: ${paidOrder.receipt_url}\n` : ""}View your billing history any time at /employer/billing.
+Thanks again,
+The ${brandName} team
           `.trim();
           await admin.functions.invoke("send-email", {
             body: {
               to: email,
-              subject: `Receipt ${inv} — ${pkgName}`,
+              subject: `${brandName} receipt ${inv} — ${pkgName}`,
               body,
             },
           });
