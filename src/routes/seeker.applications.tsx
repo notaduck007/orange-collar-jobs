@@ -37,13 +37,22 @@ function ApplicationsPage() {
       const { data } = await supabase
         .from("applications")
         .select(
-          "id, status, created_at, cover_letter, resume_url, jobs(slug, title, location, shift, companies(name, logo_url))",
+          "id, status, created_at, cover_letter, resume_url, jobs(slug, title, location, shift, companies(name, logo_url)), interview_bookings(status, slot:interview_slots(starts_at))",
         )
         .eq("applicant_id", user!.id)
         .order("created_at", { ascending: false });
       return data ?? [];
     },
   });
+
+  const formatInterview = (starts_at: string) =>
+    new Date(starts_at).toLocaleString(undefined, {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
 
   const downloadResume = async (path: string) => {
     const { data } = await supabase.storage.from("resumes").createSignedUrl(path, 60);
