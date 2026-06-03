@@ -1095,3 +1095,76 @@ function ApplicantDrawer({
     </div>
   );
 }
+
+function CandidateDetails({ app }: { app: Applicant }) {
+  const info = candidateInfo(app);
+  const phone = app.applicant_phone || app.profile?.phone || null;
+  const shift = formatShift(info.shift);
+  const et = formatEmploymentType(info.employmentType);
+  const availability = [shift, et].filter(Boolean).join(" · ");
+  const hasAny =
+    info.headline ||
+    info.email ||
+    phone ||
+    info.certifications.length > 0 ||
+    info.skills.length > 0 ||
+    availability ||
+    info.willingToRelocate;
+  if (!hasAny) return null;
+  return (
+    <section className="rounded-md border border-border bg-muted/30 p-3">
+      <p className="label-caps mb-2">Candidate details</p>
+      <dl className="space-y-1.5 text-sm">
+        {info.headline && (
+          <div className="text-foreground">{info.headline}</div>
+        )}
+        {info.email && (
+          <div className="flex items-center gap-1.5">
+            <Mail className="h-3.5 w-3.5 text-muted-foreground" />
+            <a href={`mailto:${info.email}`} className="text-primary hover:underline">
+              {info.email}
+            </a>
+          </div>
+        )}
+        {phone && (
+          <div className="flex items-center gap-1.5 text-foreground">
+            <Phone className="h-3.5 w-3.5 text-muted-foreground" />
+            <a href={`tel:${phone}`} className="hover:underline">{phone}</a>
+          </div>
+        )}
+        {availability && (
+          <div>
+            <span className="text-muted-foreground">Availability: </span>
+            <span className="text-foreground">{availability}</span>
+          </div>
+        )}
+        {info.willingToRelocate && (
+          <div>
+            <Badge variant="outline" className="border-emerald-300 bg-emerald-50 text-[10px] font-semibold uppercase text-emerald-700">
+              Open to relocate
+            </Badge>
+          </div>
+        )}
+        {info.certifications.length > 0 && (
+          <div>
+            <span className="text-muted-foreground">Certifications: </span>
+            <span className="text-foreground">{info.certifications.join(", ")}</span>
+          </div>
+        )}
+        {info.skills.length > 0 && (
+          <div className="flex flex-wrap items-center gap-1">
+            <span className="text-muted-foreground">Skills:</span>
+            {info.skills.map((s) => (
+              <span
+                key={s}
+                className="rounded bg-background px-1.5 py-0.5 text-[10px] text-foreground border border-border"
+              >
+                {s}
+              </span>
+            ))}
+          </div>
+        )}
+      </dl>
+    </section>
+  );
+}
