@@ -959,7 +959,7 @@ function ApplicantDrawer({
   return (
     <div className="space-y-6">
       <SheetHeader>
-        <SheetTitle>{app.profile?.display_name ?? "Applicant"}</SheetTitle>
+        <SheetTitle>{displayName(app)}</SheetTitle>
         <SheetDescription>
           Applied{" "}
           {new Date(app.created_at).toLocaleDateString("en-US", {
@@ -969,6 +969,8 @@ function ApplicantDrawer({
           })}
         </SheetDescription>
       </SheetHeader>
+
+      <CandidateDetails app={app} />
 
       <div className="flex flex-wrap gap-2">
         {app.resume_url && (
