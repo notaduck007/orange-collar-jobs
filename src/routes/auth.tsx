@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useSiteSettings } from "@/lib/site-settings";
 
 const searchSchema = z.object({
   mode: z.enum(["login", "signup"]).default("login").catch("login"),
@@ -46,6 +47,8 @@ function safeNext(next: string | undefined): string {
 function AuthPage() {
   const { mode, role, next } = Route.useSearch();
   const navigate = useNavigate();
+  const { settings } = useSiteSettings();
+  const brandName = settings.branding.site_name;
   const isSignup = mode === "signup";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -91,7 +94,7 @@ function AuthPage() {
           <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary text-primary-foreground">
             <HardHat className="h-5 w-5" strokeWidth={2.5} />
           </div>
-          <span className="text-lg font-bold tracking-tight">WarehouseJobs</span>
+          <span className="text-lg font-bold tracking-tight">{brandName}</span>
         </Link>
         <div className="max-w-md">
           <p className="label-caps text-primary">Built for the floor</p>
@@ -101,7 +104,7 @@ function AuthPage() {
             start this week.
           </p>
         </div>
-        <p className="text-xs text-white/40">© {new Date().getFullYear()} WarehouseJobs</p>
+        <p className="text-xs text-white/40">© {new Date().getFullYear()} {brandName}</p>
       </div>
 
       <div className="flex items-center justify-center p-6 sm:p-12">
@@ -114,7 +117,7 @@ function AuthPage() {
           </Link>
           <p className="label-caps text-primary">{isSignup ? "Get started" : "Welcome back"}</p>
           <h1 className="mt-2 text-3xl font-bold text-[color:var(--ink)]">
-            {isSignup ? "Create your account" : "Sign in to WarehouseJobs"}
+            {isSignup ? "Create your account" : `Sign in to ${brandName}`}
           </h1>
           <p className="mt-1.5 text-sm text-muted-foreground">
             {isSignup
@@ -185,7 +188,7 @@ function AuthPage() {
           </form>
 
           <p className="mt-6 text-center text-sm text-muted-foreground">
-            {isSignup ? "Already have an account?" : "New to WarehouseJobs?"}{" "}
+            {isSignup ? "Already have an account?" : `New to ${brandName}?`}{" "}
             <Link
               to="/auth"
               search={{ mode: isSignup ? "login" : "signup", next } as never}
