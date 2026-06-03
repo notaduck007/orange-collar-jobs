@@ -95,8 +95,61 @@ type Applicant = {
   created_at: string;
   rating: number | null;
   rejection_reason: string | null;
+  applicant_name: string | null;
+  applicant_email: string | null;
+  applicant_phone: string | null;
+  applicant_certifications: string[] | null;
+  applicant_desired_shift: string | null;
+  applicant_desired_employment_type: string | null;
+  applicant_willing_to_relocate: boolean | null;
+  applicant_headline: string | null;
+  applicant_skills: string[] | null;
   profile?: { display_name: string | null; phone: string | null };
+  seeker?: {
+    headline: string | null;
+    skills: string[] | null;
+    certifications: string[] | null;
+    desired_shift: string | null;
+    desired_employment_type: string | null;
+    willing_to_relocate: boolean | null;
+  };
 };
+
+function snap<T>(s: T | null | undefined, fb: T | null | undefined): T | null {
+  if (s !== null && s !== undefined) {
+    if (Array.isArray(s)) return s.length > 0 ? s : (fb ?? null);
+    if (s !== "") return s;
+  }
+  return fb ?? null;
+}
+
+function displayName(a: Applicant): string {
+  return a.applicant_name || a.profile?.display_name || "Applicant";
+}
+
+function formatShift(s: string | null): string | null {
+  if (!s) return null;
+  const map: Record<string, string> = { first: "1st shift", second: "2nd shift", third: "3rd shift", weekend: "Weekends", any: "Any shift" };
+  return map[s] ?? s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+function formatEmploymentType(s: string | null): string | null {
+  if (!s) return null;
+  const map: Record<string, string> = { full_time: "Full-time", part_time: "Part-time", contract: "Contract", temporary: "Temporary", seasonal: "Seasonal" };
+  return map[s] ?? s.replace(/_/g, " ");
+}
+
+function candidateInfo(a: Applicant) {
+  return {
+    certifications: snap(a.applicant_certifications, a.seeker?.certifications) ?? [],
+    skills: snap(a.applicant_skills, a.seeker?.skills) ?? [],
+    shift: snap(a.applicant_desired_shift, a.seeker?.desired_shift),
+    employmentType: snap(a.applicant_desired_employment_type, a.seeker?.desired_employment_type),
+    willingToRelocate: snap(a.applicant_willing_to_relocate, a.seeker?.willing_to_relocate),
+    headline: snap(a.applicant_headline, a.seeker?.headline),
+    email: a.applicant_email,
+  };
+}
 
 type AppNote = {
   id: string;
