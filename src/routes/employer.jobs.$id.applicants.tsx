@@ -688,6 +688,13 @@ function ApplicantCard({
           </span>
         )}
       </div>
+      {app.booking && app.booking.status !== "cancelled" && (
+        <div className="mt-2">
+          <span className="inline-flex items-center gap-1 rounded border border-amber-300 bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold text-amber-900">
+            📅 Phone screen: {formatBookingDate(app.booking.starts_at)}
+          </span>
+        </div>
+      )}
       {(() => {
         const info = candidateInfo(app);
         const shift = formatShift(info.shift);
