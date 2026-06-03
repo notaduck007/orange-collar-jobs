@@ -255,6 +255,20 @@ export function JobCard({ job }: { job: JobSummary }) {
         </div>
       )}
 
+      {hintsToShow.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {hintsToShow.map((h) => (
+            <span
+              key={h}
+              className="relative z-10 inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 ring-1 ring-emerald-200"
+            >
+              <CheckCircle2 className="h-3 w-3" aria-hidden /> {h}
+            </span>
+          ))}
+        </div>
+      )}
+
+
       {applied ? (
         <span className="relative z-10 mt-3 inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200">
           <CheckCircle2 className="h-3 w-3" aria-hidden /> Applied
