@@ -54,7 +54,7 @@ const schema = z.object({
 function OnboardingPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { next } = Route.useSearch();
+  const { next, pkg } = Route.useSearch();
   const qc = useQueryClient();
 
   const { data: existing } = useQuery({
