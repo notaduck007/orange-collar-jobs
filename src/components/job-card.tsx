@@ -1,4 +1,7 @@
 import { Link } from "@tanstack/react-router";
+import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
   MapPin,
   Clock,
@@ -12,7 +15,9 @@ import {
   Timer,
   Dumbbell,
 } from "lucide-react";
-import { useAppliedJobs } from "@/hooks/use-applied-jobs";
+import { useAppliedJobs, useQuickApplyReady } from "@/hooks/use-applied-jobs";
+import { useAuth } from "@/lib/auth";
+import { supabase } from "@/integrations/supabase/client";
 import { CERT_LABEL, TEMP_LABEL } from "@/lib/warehouse-attrs";
 
 export interface JobSummary {
@@ -34,6 +39,7 @@ export interface JobSummary {
   quick_hire?: boolean | null;
   overtime_available?: boolean | null;
   lift_requirement_lbs?: number | null;
+  has_screening?: boolean | null;
 }
 
 const shiftLabel: Record<string, string> = {
