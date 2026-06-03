@@ -58,17 +58,40 @@ export function ApplyDialog({
   const [slotId, setSlotId] = useState<string>("");
 
   const { data: profile } = useQuery({
-    queryKey: ["seeker-profile", user?.id],
+    queryKey: ["seeker-profile-snapshot", user?.id],
     enabled: !!user && open,
     queryFn: async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("default_resume_url, full_name")
-        .eq("id", user!.id)
-        .maybeSingle();
-      return data;
+      const [{ data: prof }, { data: seeker }] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("default_resume_url, full_name, display_name, phone")
+          .eq("id", user!.id)
+          .maybeSingle(),
+        supabase
+          .from("seeker_profiles")
+          .select(
+            "headline, skills, certifications, desired_shift, desired_employment_type, willing_to_relocate",
+          )
+          .eq("user_id", user!.id)
+          .maybeSingle(),
+      ]);
+      return { ...(prof ?? {}), seeker: seeker ?? null } as {
+        default_resume_url?: string | null;
+        full_name?: string | null;
+        display_name?: string | null;
+        phone?: string | null;
+        seeker: {
+          headline?: string | null;
+          skills?: string[] | null;
+          certifications?: string[] | null;
+          desired_shift?: string | null;
+          desired_employment_type?: string | null;
+          willing_to_relocate?: boolean | null;
+        } | null;
+      };
     },
   });
+
 
   const { data: questions = [] } = useQuery({
     queryKey: ["screening-questions", jobId],
