@@ -31,13 +31,14 @@ export const Route = createFileRoute("/pricing")({
 
 function Pricing() {
   const { user } = useAuth();
+  const { settings } = useSiteSettings();
+  const supportEmail = settings.branding.support_email;
   const navigate = useNavigate();
   const { checkout } = Route.useSearch();
   const [buyingId, setBuyingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (checkout === "cancelled") toast.info("Checkout cancelled. No charge was made.");
-    if (checkout === "success") toast.success("Payment received! Credits will appear shortly.");
   }, [checkout]);
 
   const { data: packages = [] } = useQuery({
