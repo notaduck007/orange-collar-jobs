@@ -188,7 +188,7 @@ function AuthPage() {
           </form>
 
           <p className="mt-6 text-center text-sm text-muted-foreground">
-            {isSignup ? "Already have an account?" : "New to WarehouseJobs?"}{" "}
+            {isSignup ? "Already have an account?" : `New to ${brandName}?`}{" "}
             <Link
               to="/auth"
               search={{ mode: isSignup ? "login" : "signup", next } as never}
