@@ -117,7 +117,7 @@ function AuthPage() {
           </Link>
           <p className="label-caps text-primary">{isSignup ? "Get started" : "Welcome back"}</p>
           <h1 className="mt-2 text-3xl font-bold text-[color:var(--ink)]">
-            {isSignup ? "Create your account" : "Sign in to WarehouseJobs"}
+            {isSignup ? "Create your account" : `Sign in to ${brandName}`}
           </h1>
           <p className="mt-1.5 text-sm text-muted-foreground">
             {isSignup
