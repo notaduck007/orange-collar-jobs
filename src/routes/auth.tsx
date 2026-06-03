@@ -47,6 +47,8 @@ function safeNext(next: string | undefined): string {
 function AuthPage() {
   const { mode, role, next } = Route.useSearch();
   const navigate = useNavigate();
+  const { settings } = useSiteSettings();
+  const brandName = settings.branding.site_name;
   const isSignup = mode === "signup";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
