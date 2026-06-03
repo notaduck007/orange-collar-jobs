@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { useAuth } from "@/lib/auth";
+import { useSiteSettings } from "@/lib/site-settings";
 import { startCheckout } from "@/lib/checkout";
 import crewImage from "@/assets/crew-productive.webp";
 
@@ -30,13 +31,14 @@ export const Route = createFileRoute("/pricing")({
 
 function Pricing() {
   const { user } = useAuth();
+  const { settings } = useSiteSettings();
+  const supportEmail = settings.branding.support_email;
   const navigate = useNavigate();
   const { checkout } = Route.useSearch();
   const [buyingId, setBuyingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (checkout === "cancelled") toast.info("Checkout cancelled. No charge was made.");
-    if (checkout === "success") toast.success("Payment received! Credits will appear shortly.");
   }, [checkout]);
 
   const { data: packages = [] } = useQuery({
@@ -256,6 +258,16 @@ function Pricing() {
             );
           })}
         </div>
+
+
+
+        <p className="mt-6 text-center text-xs text-muted-foreground sm:text-sm">
+          🔒 Secure checkout via Stripe · No contracts, cancel anytime · Questions?{" "}
+          <a href={`mailto:${supportEmail}`} className="underline hover:text-primary">
+            {supportEmail}
+          </a>
+        </p>
+
 
         <div className="mx-auto mt-16 max-w-2xl text-center">
           <p className="label-caps">Volume hiring?</p>
