@@ -61,7 +61,7 @@ function AuthPage() {
     setLoading(true);
     try {
       if (isSignup) {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -70,8 +70,15 @@ function AuthPage() {
           },
         });
         if (error) throw error;
-        toast.success("Account created! Check your inbox to confirm your email, then sign in.");
-        navigate({ to: "/auth", search: { mode: "login", next } as never });
+        const fallback = selectedRole === "employer" ? "/employer" : "/seeker";
+        const dest = safeNext(next) === "/" ? fallback : safeNext(next);
+        if (data.session) {
+          toast.success("Account created.");
+          navigate({ to: dest as never });
+        } else {
+          toast.success("Account created! Check your inbox to confirm your email, then sign in.");
+          navigate({ to: "/auth", search: { mode: "login", next: dest } as never });
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
