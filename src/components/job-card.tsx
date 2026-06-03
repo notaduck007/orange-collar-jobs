@@ -150,6 +150,22 @@ export function JobCard({ job }: { job: JobSummary }) {
     job.overtime_available ||
     (job.lift_requirement_lbs ?? 0) > 0;
 
+  const matchHints: string[] = [];
+  if (user && seekerMatch) {
+    const seekerCerts = (seekerMatch.certifications ?? []).map((c) => c.toLowerCase());
+    const jobCerts = certs.map((c) => c.toLowerCase());
+    const overlap = jobCerts.find((c) => seekerCerts.includes(c));
+    if (overlap) {
+      const original = certs.find((c) => c.toLowerCase() === overlap) ?? overlap;
+      matchHints.push(`Matches your ${CERT_LABEL[original] ?? original} cert`);
+    }
+    if (seekerMatch.desired_shift && seekerMatch.desired_shift === job.shift) {
+      matchHints.push(`${shiftLabel[job.shift] ?? job.shift} — your preference`);
+    }
+  }
+  const hintsToShow = matchHints.slice(0, 2);
+
+
   return (
     <div className="group relative rounded-lg border border-border bg-card p-5 shadow-[var(--shadow-card)] transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-[var(--shadow-card-hover)]">
       {job.featured && (
