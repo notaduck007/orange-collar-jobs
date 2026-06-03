@@ -273,7 +273,8 @@ export function ApplyDialog({
   const setAnswer = (id: string, v: unknown) => setAnswers((p) => ({ ...p, [id]: v }));
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Apply to {jobTitle}</DialogTitle>
