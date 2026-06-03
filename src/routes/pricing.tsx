@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { useAuth } from "@/lib/auth";
+import { useSiteSettings } from "@/lib/site-settings";
 import { startCheckout } from "@/lib/checkout";
 import crewImage from "@/assets/crew-productive.webp";
 
