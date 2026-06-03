@@ -19,6 +19,7 @@ import { useAppliedJobs, useQuickApplyReady, useSeekerMatchProfile } from "@/hoo
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { CERT_LABEL, TEMP_LABEL } from "@/lib/warehouse-attrs";
+import { ApplySuccessDialog } from "@/components/apply-success-dialog";
 
 export interface JobSummary {
   id: string;
