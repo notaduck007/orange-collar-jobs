@@ -250,7 +250,14 @@ function JobDetail() {
 
   const apply = () => {
     if (!user) {
-      navigate({ to: "/auth", search: { mode: "login", next: `/jobs/${slug}` } as never });
+      navigate({
+        to: "/auth",
+        search: {
+          mode: "signup",
+          role: "job_seeker",
+          next: `/jobs/${slug}?apply=1`,
+        } as never,
+      });
       return;
     }
     if (quickApply.ready && screeningKnown && !hasScreening) {
@@ -262,7 +269,14 @@ function JobDetail() {
 
   const save = async () => {
     if (!user) {
-      navigate({ to: "/auth", search: { mode: "login", next: `/jobs/${slug}` } as never });
+      navigate({
+        to: "/auth",
+        search: {
+          mode: "signup",
+          role: "job_seeker",
+          next: `/jobs/${slug}?apply=1`,
+        } as never,
+      });
       return;
     }
     const { error } = await supabase
@@ -271,6 +285,24 @@ function JobDetail() {
     if (error && error.code !== "23505") toast.error(error.message);
     else toast.success("Saved to your list.");
   };
+
+  const { apply: applyParam } = Route.useSearch();
+  const autoAppliedRef = useRef(false);
+  useEffect(() => {
+    if (autoAppliedRef.current) return;
+    if (applyParam !== 1) return;
+    if (!user || !job || !screeningKnown) return;
+    if (alreadyApplied) {
+      autoAppliedRef.current = true;
+      navigate({ to: "/jobs/$slug", params: { slug }, search: {}, replace: true });
+      return;
+    }
+    autoAppliedRef.current = true;
+    apply();
+    navigate({ to: "/jobs/$slug", params: { slug }, search: {}, replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [applyParam, user?.id, job?.id, screeningKnown, alreadyApplied]);
+
 
   if (isLoading) {
     return (
