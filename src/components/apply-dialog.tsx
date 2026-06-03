@@ -161,10 +161,6 @@ export function ApplyDialog({
           .upload(path, file, { contentType: file.type, upsert: false });
         if (upErr) throw upErr;
         resumePath = path;
-      } else if (!profile?.default_resume_url) {
-        toast.error("Please attach a resume.");
-        setSubmitting(false);
-        return;
       }
 
       const { data: created, error } = await supabase
@@ -248,7 +244,7 @@ export function ApplyDialog({
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label>Resume *</Label>
+            <Label>Resume (optional)</Label>
             {hasDefault && (
               <label className="flex items-start gap-3 rounded-lg border border-border bg-background p-3">
                 <input
