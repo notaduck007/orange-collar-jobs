@@ -238,22 +238,27 @@ export function ApplyDialog({
           if (bErr) {
             toast.error(`Application sent, but interview booking failed: ${bErr.message}`);
           } else {
-            toast.success("Application sent and interview booked! Check your notifications.");
+            toast.success("Application sent and interview booked!");
             qc.invalidateQueries({ queryKey: ["interview-slots", jobId] });
             qc.invalidateQueries({ queryKey: ["seeker-apps", user.id] });
             qc.invalidateQueries({ queryKey: ["seeker-applied-ids", user.id] });
             qc.invalidateQueries({ queryKey: ["seeker-stats", user.id] });
             onApplied?.();
             onOpenChange(false);
+            const slot = slots.find((s) => s.id === slotId);
+            setSuccessBooking(slot?.starts_at ?? null);
+            setSuccessOpen(true);
             return;
           }
         }
-        toast.success("Application sent! The employer will be in touch.");
+        toast.success("Application sent!");
         qc.invalidateQueries({ queryKey: ["seeker-apps", user.id] });
         qc.invalidateQueries({ queryKey: ["seeker-applied-ids", user.id] });
         qc.invalidateQueries({ queryKey: ["seeker-stats", user.id] });
         onApplied?.();
         onOpenChange(false);
+        setSuccessBooking(null);
+        setSuccessOpen(true);
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not submit application");
