@@ -459,7 +459,7 @@ function ApplicantsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Reject this applicant?</AlertDialogTitle>
             <AlertDialogDescription>
-              {rejectFor?.profile?.display_name ?? "Applicant"} will be moved to the Rejected
+              {rejectFor ? displayName(rejectFor) : "Applicant"} will be moved to the Rejected
               column. The reason is recorded for your team only.
             </AlertDialogDescription>
           </AlertDialogHeader>
