@@ -223,12 +223,12 @@ function JobDetail() {
   const screeningKnown = !!job?.id && screeningFetched;
 
   const handleQuickApply = async () => {
-    if (!user || !job || !quickApply.resumeUrl) return;
+    if (!user || !job) return;
     setQuickSubmitting(true);
     const { error } = await supabase.from("applications").insert({
       job_id: job.id,
       applicant_id: user.id,
-      resume_url: quickApply.resumeUrl,
+      resume_url: quickApply.resumeUrl ?? null,
       cover_letter: coverNote.trim() || null,
     });
     setQuickSubmitting(false);
