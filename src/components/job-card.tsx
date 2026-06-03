@@ -94,6 +94,7 @@ export function JobCard({ job }: { job: JobSummary }) {
   const seekerMatch = useSeekerMatchProfile();
   const qc = useQueryClient();
   const [submitting, setSubmitting] = useState(false);
+  const [successOpen, setSuccessOpen] = useState(false);
   const pay = job.pay_min && job.pay_max ? `$${job.pay_min}–$${job.pay_max}/hr` : null;
 
   const showApplyControl = !!user && !applied && quickApply.ready;
