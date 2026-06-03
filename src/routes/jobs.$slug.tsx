@@ -389,6 +389,42 @@ function JobDetail() {
               {pay && <Meta icon={DollarSign} label="Pay" value={pay} />}
             </div>
 
+            {(() => {
+              const j = job as typeof job & {
+                certifications_required?: string[] | null;
+                temperature_env?: string | null;
+                weekly_pay?: boolean | null;
+                overtime_available?: boolean | null;
+                quick_hire?: boolean | null;
+                lift_requirement_lbs?: number | null;
+              };
+              const certs = j.certifications_required?.filter(Boolean) ?? [];
+              const tempLabel = j.temperature_env
+                ? j.temperature_env.charAt(0).toUpperCase() + j.temperature_env.slice(1)
+                : null;
+              const badges: { key: string; label: string }[] = [];
+              if (certs.length) badges.push({ key: "certs", label: `Certs: ${certs.join(", ")}` });
+              if (tempLabel) badges.push({ key: "temp", label: tempLabel });
+              if (j.weekly_pay) badges.push({ key: "weekly", label: "Weekly pay" });
+              if (j.overtime_available) badges.push({ key: "ot", label: "OT available" });
+              if (j.quick_hire) badges.push({ key: "quick", label: "Quick hire" });
+              if (j.lift_requirement_lbs)
+                badges.push({ key: "lift", label: `Lifts up to ${j.lift_requirement_lbs} lbs` });
+              if (!badges.length) return null;
+              return (
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {badges.map((b) => (
+                    <span
+                      key={b.key}
+                      className="inline-flex items-center rounded-md border border-border bg-muted px-2.5 py-1 text-xs font-medium text-foreground"
+                    >
+                      {b.label}
+                    </span>
+                  ))}
+                </div>
+              );
+            })()}
+
             <section className="mt-6 space-y-5">
               <div>
                 <h2 className="text-lg font-semibold text-[color:var(--ink)]">Job description</h2>
