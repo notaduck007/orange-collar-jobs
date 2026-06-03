@@ -225,8 +225,10 @@ function ApplicantsPage() {
         .order("created_at", { ascending: false });
       if (error) throw error;
       const ids = (apps ?? []).map((a) => a.applicant_id);
+      const appIds = (apps ?? []).map((a) => a.id);
       let profilesById: Record<string, { display_name: string | null; phone: string | null }> = {};
       let seekersById: Record<string, Applicant["seeker"]> = {};
+      let bookingByAppId: Record<string, { starts_at: string; status: string }> = {};
       if (ids.length) {
         const [{ data: profs }, { data: seekers }] = await Promise.all([
           supabase.from("profiles").select("id, display_name, phone").in("id", ids),
@@ -251,10 +253,26 @@ function ApplicantsPage() {
           return acc;
         }, {});
       }
+      if (appIds.length) {
+        const { data: bookings } = await supabase
+          .from("interview_bookings")
+          .select("application_id, status, slot:interview_slots(starts_at)")
+          .in("application_id", appIds);
+        (bookings ?? []).forEach((b: Row) => {
+          const startsAt = b.slot?.starts_at;
+          if (!startsAt) return;
+          const existing = bookingByAppId[b.application_id];
+          // Prefer non-cancelled, otherwise earliest
+          if (!existing || (existing.status === "cancelled" && b.status !== "cancelled")) {
+            bookingByAppId[b.application_id] = { starts_at: startsAt, status: b.status };
+          }
+        });
+      }
       return (apps ?? []).map((a) => ({
         ...a,
         profile: profilesById[a.applicant_id],
         seeker: seekersById[a.applicant_id],
+        booking: bookingByAppId[a.id] ?? null,
       })) as Applicant[];
     },
   });
