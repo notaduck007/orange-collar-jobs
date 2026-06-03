@@ -90,6 +90,7 @@ export function JobCard({ job }: { job: JobSummary }) {
   const appliedIds = useAppliedJobs();
   const applied = appliedIds.has(job.id);
   const quickApply = useQuickApplyReady();
+  const seekerMatch = useSeekerMatchProfile();
   const qc = useQueryClient();
   const [submitting, setSubmitting] = useState(false);
   const pay = job.pay_min && job.pay_max ? `$${job.pay_min}–$${job.pay_max}/hr` : null;
