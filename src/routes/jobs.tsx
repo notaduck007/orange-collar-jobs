@@ -125,6 +125,7 @@ function JobsPage() {
         quick_hire: boolean | null;
         overtime_available: boolean | null;
         lift_requirement_lbs: number | null;
+        has_screening: boolean | null;
         total_count: number;
       }>;
       const jobs: JobSummary[] = rows.map((r) => ({
@@ -147,6 +148,7 @@ function JobsPage() {
         quick_hire: r.quick_hire,
         overtime_available: r.overtime_available,
         lift_requirement_lbs: r.lift_requirement_lbs,
+        has_screening: !!r.has_screening,
       }));
       return { jobs, total: rows[0]?.total_count ?? 0, offset: pageParam };
     },
