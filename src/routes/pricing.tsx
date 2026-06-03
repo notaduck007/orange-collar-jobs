@@ -160,6 +160,48 @@ function Pricing() {
             Checkout cancelled — you have not been charged. Pick a package below to try again.
           </div>
         )}
+
+        {showFreeBanner && (
+          <div className="mb-10 overflow-hidden rounded-2xl border border-primary/40 bg-[color:var(--primary-tint)]/60 p-6 sm:p-8">
+            <div className="flex flex-wrap items-center justify-between gap-5">
+              <div className="flex items-start gap-4">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground shadow-[var(--shadow-orange)]">
+                  <Gift className="h-5 w-5" strokeWidth={2.5} />
+                </div>
+                <div>
+                  <p className="label-caps text-primary">New here?</p>
+                  <p className="mt-1 text-xl font-bold text-[color:var(--ink)] sm:text-2xl">
+                    Your first job post is on us — no card required.
+                  </p>
+                  <p className="mt-1.5 text-sm text-muted-foreground">
+                    Every new employer gets a free Starter post (30-day listing). Use it before you
+                    buy a package.
+                  </p>
+                </div>
+              </div>
+              {user ? (
+                <Link to="/employer/jobs/new" className="btn-primary inline-flex items-center gap-1.5">
+                  Post your free job <ArrowRight className="h-4 w-4" />
+                </Link>
+              ) : (
+                <Link
+                  to="/auth"
+                  search={{ mode: "signup", role: "employer", next: "/employer" } as never}
+                  className="btn-primary inline-flex items-center gap-1.5"
+                >
+                  Get my free post <ArrowRight className="h-4 w-4" />
+                </Link>
+              )}
+            </div>
+          </div>
+        )}
+
+        <div className="mb-6">
+          <p className="label-caps">Need more?</p>
+          <h2 className="mt-1 text-2xl font-bold text-[color:var(--ink)] sm:text-3xl">
+            Pick a package.
+          </h2>
+        </div>
         <div className="grid gap-6 md:grid-cols-3">
           {packages.map((p, idx) => {
             const popular = idx === 1;
