@@ -170,6 +170,7 @@ export function JobCard({ job }: { job: JobSummary }) {
 
 
   return (
+    <>
     <div className="group relative rounded-lg border border-border bg-card p-5 shadow-[var(--shadow-card)] transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-[var(--shadow-card-hover)]">
       {job.featured && (
         <div className="absolute -top-px right-4 flex items-center gap-1 rounded-b-md bg-[color:var(--hazard)] px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[color:var(--ink)]">
