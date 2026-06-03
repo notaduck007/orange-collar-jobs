@@ -113,7 +113,17 @@ type Applicant = {
     desired_employment_type: string | null;
     willing_to_relocate: boolean | null;
   };
+  booking?: { starts_at: string; status: string } | null;
 };
+
+function formatBookingDate(iso: string): string {
+  return new Date(iso).toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
 
 function snap<T>(s: T | null | undefined, fb: T | null | undefined): T | null {
   if (s !== null && s !== undefined) {
@@ -225,8 +235,10 @@ function ApplicantsPage() {
         .order("created_at", { ascending: false });
       if (error) throw error;
       const ids = (apps ?? []).map((a) => a.applicant_id);
+      const appIds = (apps ?? []).map((a) => a.id);
       let profilesById: Record<string, { display_name: string | null; phone: string | null }> = {};
       let seekersById: Record<string, Applicant["seeker"]> = {};
+      let bookingByAppId: Record<string, { starts_at: string; status: string }> = {};
       if (ids.length) {
         const [{ data: profs }, { data: seekers }] = await Promise.all([
           supabase.from("profiles").select("id, display_name, phone").in("id", ids),
@@ -251,10 +263,26 @@ function ApplicantsPage() {
           return acc;
         }, {});
       }
+      if (appIds.length) {
+        const { data: bookings } = await supabase
+          .from("interview_bookings")
+          .select("application_id, status, slot:interview_slots(starts_at)")
+          .in("application_id", appIds);
+        (bookings ?? []).forEach((b: Row) => {
+          const startsAt = b.slot?.starts_at;
+          if (!startsAt) return;
+          const existing = bookingByAppId[b.application_id];
+          // Prefer non-cancelled, otherwise earliest
+          if (!existing || (existing.status === "cancelled" && b.status !== "cancelled")) {
+            bookingByAppId[b.application_id] = { starts_at: startsAt, status: b.status };
+          }
+        });
+      }
       return (apps ?? []).map((a) => ({
         ...a,
         profile: profilesById[a.applicant_id],
         seeker: seekersById[a.applicant_id],
+        booking: bookingByAppId[a.id] ?? null,
       })) as Applicant[];
     },
   });
@@ -660,6 +688,13 @@ function ApplicantCard({
           </span>
         )}
       </div>
+      {app.booking && app.booking.status !== "cancelled" && (
+        <div className="mt-2">
+          <span className="inline-flex items-center gap-1 rounded border border-amber-300 bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold text-amber-900">
+            📅 Phone screen: {formatBookingDate(app.booking.starts_at)}
+          </span>
+        </div>
+      )}
       {(() => {
         const info = candidateInfo(app);
         const shift = formatShift(info.shift);
@@ -969,6 +1004,12 @@ function ApplicantDrawer({
           })}
         </SheetDescription>
       </SheetHeader>
+
+      {app.booking && app.booking.status !== "cancelled" && (
+        <div className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-900">
+          📅 Phone screen: {formatBookingDate(app.booking.starts_at)}
+        </div>
+      )}
 
       <CandidateDetails app={app} />
 
