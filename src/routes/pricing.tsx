@@ -53,6 +53,25 @@ function Pricing() {
     },
   });
 
+  // Whether to show the "first post is free" banner: logged-out, or logged-in
+  // employer whose active package still has an untouched free post.
+  const { data: freeAvailable = false } = useQuery({
+    queryKey: ["pricing-free-available", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("company_packages")
+        .select("posts_total, posts_used, expires_at, status")
+        .eq("status", "active")
+        .eq("posts_used", 0)
+        .gt("posts_total", 0)
+        .gt("expires_at", new Date().toISOString())
+        .limit(1);
+      return (data ?? []).length > 0;
+    },
+  });
+  const showFreeBanner = !user || freeAvailable;
+
   async function handleBuy(packageId: string) {
     if (!user) {
       navigate({
