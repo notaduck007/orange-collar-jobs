@@ -128,7 +128,9 @@ function AuthPage() {
           </h1>
           <p className="mt-1.5 text-sm text-muted-foreground">
             {isSignup
-              ? "Free for job seekers. Always."
+              ? selectedRole === "employer"
+                ? "Reach warehouse workers in minutes — your first post is free."
+                : "Free for job seekers. Always."
               : "Apply faster, save jobs, and get alerts."}
           </p>
 
