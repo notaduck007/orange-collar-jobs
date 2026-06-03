@@ -97,7 +97,10 @@ export function SiteHeader() {
                   Sign in
                 </Button>
               </Link>
-              <Link to="/auth" search={{ mode: "signup", role: "employer" } as never}>
+              <Link
+                to="/auth"
+                search={{ mode: "signup", role: "employer", next: "/employer" } as never}
+              >
                 <Button
                   size="sm"
                   className="bg-primary text-primary-foreground shadow-[var(--shadow-orange)] hover:bg-[color:var(--primary-dark)]"
