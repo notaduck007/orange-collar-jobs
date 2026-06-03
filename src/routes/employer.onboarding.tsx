@@ -18,11 +18,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { slugify, uniqueSlug } from "@/lib/slug";
+import { startCheckout } from "@/lib/checkout";
 import crewImage from "@/assets/crew-productive.webp";
 
 export const Route = createFileRoute("/employer/onboarding")({
   validateSearch: (search: Record<string, unknown>) => ({
     next: typeof search.next === "string" ? search.next : undefined,
+    pkg: typeof search.pkg === "string" ? search.pkg : undefined,
   }),
   head: () => ({ meta: [{ title: "Company Profile — WarehouseJobs Employers" }] }),
   component: OnboardingPage,
