@@ -31,6 +31,38 @@ const pillars = [
   },
 ];
 
+import storyMarcus from "@/assets/mission-story-marcus.jpg";
+import storyRenee from "@/assets/mission-story-renee.jpg";
+import storyDevon from "@/assets/mission-story-devon.jpg";
+
+// PLACEHOLDER STORIES — replace names, quotes, and photos with real, consented testimonials before publishing.
+const stories = [
+  {
+    name: "Marcus T.",
+    line: "Forklift Operator · Placeholder story",
+    quote:
+      "I came in needing a fresh start. They didn't just give me a job — they showed up at my kid's school drive the next month. That meant more than the paycheck.",
+    image: storyMarcus,
+    alt: "Portrait of a man in an orange hi-vis vest at a warehouse.",
+  },
+  {
+    name: "Renee K.",
+    line: "Community Partner · Placeholder story",
+    quote:
+      "When the food bank was short on hands, their crew came out on a Saturday and worked the whole day. No cameras, no fuss. Just work.",
+    image: storyRenee,
+    alt: "Portrait of a woman volunteering at a community food bank.",
+  },
+  {
+    name: "Devon & family",
+    line: "Neighbors served · Placeholder story",
+    quote:
+      "After the storm they helped us clear out and rebuild. People we'd never met, treating us like family.",
+    image: storyDevon,
+    alt: "Portrait of a family standing in front of their home.",
+  },
+];
+
 export const Route = createFileRoute("/mission")({
   head: () => ({
     meta: [
@@ -151,6 +183,57 @@ function MissionPage() {
               — The WarehouseJobs team
             </p>
           </div>
+        </section>
+
+        {/* IMPACT STORIES */}
+        <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20">
+          <div className="mx-auto mb-12 max-w-2xl text-center">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#FF6A00]">
+              Real people
+            </p>
+            <h2 className="mt-3 text-3xl font-bold tracking-tight text-[color:var(--ink)] sm:text-4xl">
+              Lives behind the work
+            </h2>
+            <p className="mt-3 text-sm text-muted-foreground sm:text-base">
+              Stories from the people and neighborhoods we serve.
+            </p>
+          </div>
+          {/* PLACEHOLDER STORIES — replace with real, consented testimonials before publishing. */}
+          <div className="grid gap-5 sm:grid-cols-3">
+            {stories.map((s) => (
+              <figure
+                key={s.name}
+                className="group overflow-hidden rounded-xl border border-border bg-background"
+              >
+                <div className="aspect-[4/5] overflow-hidden">
+                  {/* TODO: replace with real photo */}
+                  <img
+                    src={s.image}
+                    alt={s.alt}
+                    width={800}
+                    height={1000}
+                    loading="lazy"
+                    decoding="async"
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                  />
+                </div>
+                <figcaption className="border-t border-border px-5 py-4">
+                  <p className="text-sm font-semibold text-[color:var(--ink)]">
+                    {s.name}
+                  </p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    {s.line}
+                  </p>
+                  <blockquote className="mt-3 text-sm leading-relaxed text-[color:var(--ink)]">
+                    “{s.quote}”
+                  </blockquote>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+          <p className="mt-12 text-center text-sm text-muted-foreground">
+            This is just the start.
+          </p>
         </section>
       </main>
       <SiteFooter />
