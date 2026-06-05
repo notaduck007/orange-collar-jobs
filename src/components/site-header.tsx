@@ -46,6 +46,12 @@ export function SiteHeader() {
             About
           </Link>
           <Link
+            to="/mission"
+            className="text-sm font-medium text-[color:var(--ink)] hover:text-primary"
+          >
+            Our Mission
+          </Link>
+          <Link
             to="/faq"
             className="text-sm font-medium text-[color:var(--ink)] hover:text-primary"
           >

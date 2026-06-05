@@ -69,6 +69,11 @@ export function SiteFooter() {
           <p className="label-caps mb-3 text-white/50">Company</p>
           <ul className="space-y-2 text-sm text-white/80">
             <li>
+              <Link to="/mission" className="hover:text-primary">
+                Our Mission
+              </Link>
+            </li>
+            <li>
               <Link to="/about" className="hover:text-primary">
                 About
               </Link>
