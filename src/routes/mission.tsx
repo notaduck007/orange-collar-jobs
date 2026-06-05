@@ -31,6 +31,38 @@ const pillars = [
   },
 ];
 
+import storyMarcus from "@/assets/mission-story-marcus.jpg";
+import storyRenee from "@/assets/mission-story-renee.jpg";
+import storyDevon from "@/assets/mission-story-devon.jpg";
+
+{/* PLACEHOLDER STORIES — replace names, quotes, and photos with real, consented testimonials before publishing. */}
+const stories = [
+  {
+    name: "Marcus T.",
+    line: "Forklift Operator · Placeholder story",
+    quote:
+      "I came in needing a fresh start. They didn't just give me a job — they showed up at my kid's school drive the next month. That meant more than the paycheck.",
+    image: storyMarcus,
+    alt: "Portrait of a man in an orange hi-vis vest at a warehouse.",
+  },
+  {
+    name: "Renee K.",
+    line: "Community Partner · Placeholder story",
+    quote:
+      "When the food bank was short on hands, their crew came out on a Saturday and worked the whole day. No cameras, no fuss. Just work.",
+    image: storyRenee,
+    alt: "Portrait of a woman volunteering at a community food bank.",
+  },
+  {
+    name: "Devon & family",
+    line: "Neighbors served · Placeholder story",
+    quote:
+      "After the storm they helped us clear out and rebuild. People we'd never met, treating us like family.",
+    image: storyDevon,
+    alt: "Portrait of a family standing in front of their home.",
+  },
+];
+
 export const Route = createFileRoute("/mission")({
   head: () => ({
     meta: [
