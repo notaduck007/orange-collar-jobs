@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
-{/* TODO: replace hero image with real service-day photo */}
+// TODO: replace hero image with real service-day photo
 import missionHero from "@/assets/mission-hero.jpg";
 
 export const Route = createFileRoute("/mission")({
