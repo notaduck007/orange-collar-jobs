@@ -132,6 +132,26 @@ function MissionPage() {
             ))}
           </div>
         </section>
+
+        {/* MISSION STATEMENT BAND */}
+        <section className="border-y border-border bg-[color:var(--primary-tint)]">
+          <div className="mx-auto max-w-3xl px-4 py-20 text-center sm:px-6 sm:py-24">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#FF6A00]">
+              Why we do it
+            </p>
+            <blockquote className="mt-6 font-serif text-2xl leading-relaxed text-[color:var(--ink)] sm:text-3xl sm:leading-relaxed">
+              We were built by people who clock in early and work with their
+              hands. We haven't forgotten that. The warehouse taught us that
+              showing up matters — that the people beside you are worth your
+              sweat. So we carry that off the dock and into our communities,
+              giving what we have and serving where we're needed. That's the
+              whole mission.
+            </blockquote>
+            <p className="mt-8 text-sm text-muted-foreground">
+              — The WarehouseJobs team
+            </p>
+          </div>
+        </section>
       </main>
       <SiteFooter />
     </div>
