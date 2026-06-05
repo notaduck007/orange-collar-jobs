@@ -13,6 +13,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SeekerRouteImport } from './routes/seeker'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as MissionRouteImport } from './routes/mission'
 import { Route as JobsRouteImport } from './routes/jobs'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as EmployerRouteImport } from './routes/employer'
@@ -73,6 +74,11 @@ const PrivacyRoute = PrivacyRouteImport.update({
 const PricingRoute = PricingRouteImport.update({
   id: '/pricing',
   path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MissionRoute = MissionRouteImport.update({
+  id: '/mission',
+  path: '/mission',
   getParentRoute: () => rootRouteImport,
 } as any)
 const JobsRoute = JobsRouteImport.update({
@@ -291,6 +297,7 @@ export interface FileRoutesByFullPath {
   '/employer': typeof EmployerRouteWithChildren
   '/faq': typeof FaqRoute
   '/jobs': typeof JobsRouteWithChildren
+  '/mission': typeof MissionRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/seeker': typeof SeekerRouteWithChildren
@@ -336,6 +343,7 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
   '/jobs': typeof JobsRouteWithChildren
+  '/mission': typeof MissionRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -383,6 +391,7 @@ export interface FileRoutesById {
   '/employer': typeof EmployerRouteWithChildren
   '/faq': typeof FaqRoute
   '/jobs': typeof JobsRouteWithChildren
+  '/mission': typeof MissionRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/seeker': typeof SeekerRouteWithChildren
@@ -432,6 +441,7 @@ export interface FileRouteTypes {
     | '/employer'
     | '/faq'
     | '/jobs'
+    | '/mission'
     | '/pricing'
     | '/privacy'
     | '/seeker'
@@ -477,6 +487,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/faq'
     | '/jobs'
+    | '/mission'
     | '/pricing'
     | '/privacy'
     | '/sitemap.xml'
@@ -523,6 +534,7 @@ export interface FileRouteTypes {
     | '/employer'
     | '/faq'
     | '/jobs'
+    | '/mission'
     | '/pricing'
     | '/privacy'
     | '/seeker'
@@ -571,6 +583,7 @@ export interface RootRouteChildren {
   EmployerRoute: typeof EmployerRouteWithChildren
   FaqRoute: typeof FaqRoute
   JobsRoute: typeof JobsRouteWithChildren
+  MissionRoute: typeof MissionRoute
   PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
   SeekerRoute: typeof SeekerRouteWithChildren
@@ -607,6 +620,13 @@ declare module '@tanstack/react-router' {
       path: '/pricing'
       fullPath: '/pricing'
       preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mission': {
+      id: '/mission'
+      path: '/mission'
+      fullPath: '/mission'
+      preLoaderRoute: typeof MissionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/jobs': {
@@ -1005,6 +1025,7 @@ const rootRouteChildren: RootRouteChildren = {
   EmployerRoute: EmployerRouteWithChildren,
   FaqRoute: FaqRoute,
   JobsRoute: JobsRouteWithChildren,
+  MissionRoute: MissionRoute,
   PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
   SeekerRoute: SeekerRouteWithChildren,
