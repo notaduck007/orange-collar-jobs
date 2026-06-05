@@ -94,12 +94,12 @@ function Home() {
         >
           <img
             src={heroImage}
-            alt="Diverse, happy warehouse crew in hi-vis vests on a loading dock at sunrise, giving a thumbs-up after a successful shift."
-            width={1920}
-            height={1280}
+            alt="Confident warehouse worker in a high-visibility orange safety vest standing in a bright modern distribution center."
+            width={1280}
+            height={1600}
             fetchPriority="high"
             decoding="async"
-            className="absolute inset-0 h-full w-full object-cover opacity-60"
+            className="absolute inset-0 h-full w-full object-cover object-center opacity-70"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-[color:var(--ink)]/95 via-[color:var(--ink)]/70 to-transparent" />
           <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28 lg:py-32">
