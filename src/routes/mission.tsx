@@ -3,6 +3,33 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 // TODO: replace hero image with real service-day photo
 import missionHero from "@/assets/mission-hero.jpg";
+import pillarGivingBack from "@/assets/mission-giving-back.jpg";
+import pillarChangingLives from "@/assets/mission-changing-lives.jpg";
+import pillarPhysicallyServing from "@/assets/mission-physically-serving.jpg";
+
+const pillars = [
+  {
+    title: "Giving Back",
+    body:
+      "Every shipment we help move is a paycheck for a family. We reinvest in the neighborhoods our workers come from — food drives, back-to-school supplies, and a hand for folks getting back on their feet.",
+    image: pillarGivingBack,
+    alt: "Volunteers handing out boxes of food at a community drive.",
+  },
+  {
+    title: "Changing Lives",
+    body:
+      "A steady job changes everything. We help people find honest work, build skills on the dock, and walk through doors they didn't know were open. One shift at a time, lives turn around.",
+    image: pillarChangingLives,
+    alt: "Close-up portrait of a warehouse worker smiling with pride on the job.",
+  },
+  {
+    title: "Physically Serving",
+    body:
+      "We don't just write checks. We show up — boots on, sleeves rolled — building, hauling, cleaning, and serving meals right alongside the people we're here for. Real work for real neighbors.",
+    image: pillarPhysicallyServing,
+    alt: "A warehouse crew in work gloves building and lifting together at a service event.",
+  },
+];
 
 export const Route = createFileRoute("/mission")({
   head: () => ({
