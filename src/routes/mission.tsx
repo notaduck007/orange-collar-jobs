@@ -35,7 +35,7 @@ import storyMarcus from "@/assets/mission-story-marcus.jpg";
 import storyRenee from "@/assets/mission-story-renee.jpg";
 import storyDevon from "@/assets/mission-story-devon.jpg";
 
-{/* PLACEHOLDER STORIES — replace names, quotes, and photos with real, consented testimonials before publishing. */}
+// PLACEHOLDER STORIES — replace names, quotes, and photos with real, consented testimonials before publishing.
 const stories = [
   {
     name: "Marcus T.",
