@@ -176,8 +176,17 @@ function Home() {
         </section>
 
         {/* SAMPLE CLIENTS */}
-        <section className="bg-[#FAFAFA]" aria-label="Sample clients">
+        <section className="bg-[#FAFAFA]" aria-labelledby="sample-clients-heading">
           <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-16">
+            <div className="mb-8 text-center sm:mb-12">
+              <p className="label-caps text-primary">Trusted by industry leaders</p>
+              <h2
+                id="sample-clients-heading"
+                className="mt-1 text-2xl font-bold text-[color:var(--ink)] sm:text-3xl"
+              >
+                Sample Clients
+              </h2>
+            </div>
             <div className="mx-auto grid max-w-[1100px] grid-cols-2 gap-x-6 gap-y-6 sm:grid-cols-3 sm:gap-x-10 sm:gap-y-10 lg:grid-cols-5 lg:gap-x-12">
               {[
                 { src: "/logos/ashley-homestore.png", alt: "Ashley HomeStore" },
