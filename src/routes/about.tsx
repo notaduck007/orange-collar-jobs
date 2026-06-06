@@ -27,7 +27,7 @@ function About() {
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
-      <section className="relative w-full overflow-hidden py-16 sm:py-20">
+      <section className="relative w-full overflow-hidden py-24 sm:py-32">
         <img
           src={aboutHero}
           alt="Sunrise at a distribution center as a warehouse worker in a hi-vis vest arrives for the morning shift."
