@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Markdown } from "@/components/markdown";
+import warehouseHero from "@/assets/warehouse-hero.jpg";
 import {
   Accordion,
   AccordionContent,
