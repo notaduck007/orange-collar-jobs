@@ -177,14 +177,14 @@ function Home() {
 
         {/* SAMPLE CLIENTS */}
         <section className="bg-[#FAFAFA]" aria-labelledby="sample-clients-heading">
-          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
+          <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-16">
             <h2
               id="sample-clients-heading"
               className="text-center text-[28px] font-bold text-[#9CA3AF]"
             >
               Sample Clients
             </h2>
-            <div className="mt-10 grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-3 sm:gap-x-10 lg:grid-cols-5 lg:gap-x-12">
+            <div className="mx-auto mt-10 grid max-w-[1100px] grid-cols-2 gap-x-6 gap-y-6 sm:grid-cols-3 sm:gap-x-10 sm:gap-y-10 lg:grid-cols-5 lg:gap-x-12">
               {[
                 { src: "/logos/ashley-homestore.png", alt: "Ashley HomeStore" },
                 { src: "/logos/dhl.png", alt: "DHL" },
@@ -202,19 +202,22 @@ function Home() {
                 { src: "/logos/amazon.png", alt: "Amazon" },
                 { src: "/logos/rhino-linings.png", alt: "Rhino Linings" },
               ].map((logo) => (
-                <div key={logo.src} className="flex h-16 items-center justify-center">
+                <div key={logo.src} className="flex h-20 items-center justify-center">
                   <img
                     src={logo.src}
                     alt={logo.alt}
+                    width={160}
+                    height={80}
                     loading="lazy"
                     decoding="async"
-                    className="max-h-16 max-w-[160px] object-contain"
+                    className="max-h-12 max-w-[140px] object-contain transition-transform duration-200 ease-out hover:scale-105 sm:max-h-16 sm:max-w-[160px]"
                   />
                 </div>
               ))}
             </div>
           </div>
         </section>
+
 
         {/* HOME BANNER AD */}
         <section className="mx-auto max-w-7xl px-4 pt-10 sm:px-6">
