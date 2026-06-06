@@ -45,7 +45,7 @@ function FAQ() {
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
-      <section className="relative w-full overflow-hidden py-24 sm:py-32">
+      <section className="relative w-full overflow-hidden py-24 sm:py-32 lg:py-40">
         <img
           src={faqHero}
           alt="A shift supervisor answers a new warehouse worker's questions in a bright break area."
