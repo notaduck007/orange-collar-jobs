@@ -61,7 +61,7 @@ function FAQ() {
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#FF6A00]">
             Frequently asked
           </p>
-          <h1 className="mt-3 text-4xl font-bold tracking-tight text-white drop-shadow-md sm:text-5xl">
+          <h1 className="mt-3 text-4xl font-bold tracking-tight text-white drop-shadow-md sm:text-5xl lg:text-6xl">
             {page?.title ?? "Questions, answered."}
           </h1>
           {page?.body && (
