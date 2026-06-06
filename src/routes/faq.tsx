@@ -46,16 +46,32 @@ function FAQ() {
     <div className="min-h-screen bg-background">
       <SiteHeader />
       <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
-        <p className="label-caps text-primary">Frequently asked</p>
-        <h1 className="mt-3 text-4xl font-bold tracking-tight text-[color:var(--ink)]">
-          {page?.title ?? "Questions, answered."}
-        </h1>
-        {page?.body && (
-          <div className="mt-4 text-base text-muted-foreground">
-            <Markdown>{page.body}</Markdown>
-          </div>
-        )}
-        <Accordion type="single" collapsible className="mt-8">
+      <section className="relative w-full overflow-hidden py-16 sm:py-20">
+        <img
+          src={warehouseHero}
+          alt="Wide view of a modern warehouse aisle with tall racking and workers in hi-vis vests."
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/55 to-black/75"
+        />
+        <div className="relative z-10 mx-auto max-w-3xl px-4 text-center sm:px-6">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#FF6A00]">
+            Frequently asked
+          </p>
+          <h1 className="mt-3 text-4xl font-bold tracking-tight text-white drop-shadow-md sm:text-5xl">
+            {page?.title ?? "Questions, answered."}
+          </h1>
+          {page?.body && (
+            <div className="mx-auto mt-4 max-w-2xl text-base text-white/90 sm:text-lg">
+              <Markdown>{page.body}</Markdown>
+            </div>
+          )}
+        </div>
+      </section>
+      <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
+        <Accordion type="single" collapsible>
           {faqs.map((f) => (
             <AccordionItem key={f.id} value={f.id}>
               <AccordionTrigger className="text-left text-base font-semibold text-[color:var(--ink)]">
@@ -72,6 +88,9 @@ function FAQ() {
         )}
       </div>
       <SiteFooter />
+    </div>
+  );
+}
     </div>
   );
 }
