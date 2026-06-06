@@ -109,7 +109,9 @@ function Home() {
                 id="hero-heading"
                 className="mt-4 text-4xl font-bold leading-[1.05] tracking-tight text-white sm:text-5xl lg:text-6xl"
               >
-                Warehousejobs.com is the <span className="text-primary">#1 Niche job board</span> in the warehouse industry!
+                Warehouse<span className="text-primary">jobs.com</span> is the{" "}
+                <span className="whitespace-nowrap text-primary">#1 Niche job board</span> in the warehouse industry!
+
 
               </h1>
               <p className="mt-5 max-w-xl text-base text-white/80 sm:text-lg">
