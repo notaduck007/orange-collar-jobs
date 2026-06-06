@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Markdown } from "@/components/markdown";
 
 export const Route = createFileRoute("/contact")({
-  head: () => ({ meta: [{ title: "Contact — WarehouseJobs" }] }),
+  head: () => ({ meta: [{ title: "Contact — WarehouseJobs.com" }] }),
   component: Contact,
 });
 

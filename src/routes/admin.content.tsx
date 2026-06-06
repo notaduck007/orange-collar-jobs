@@ -24,7 +24,7 @@ import { Markdown } from "@/components/markdown";
 import type { Row } from "@/lib/row-types";
 
 export const Route = createFileRoute("/admin/content")({
-  head: () => ({ meta: [{ title: "Content — WarehouseJobs Admin" }] }),
+  head: () => ({ meta: [{ title: "Content — WarehouseJobs.com Admin" }] }),
   component: AdminContent,
 });
 

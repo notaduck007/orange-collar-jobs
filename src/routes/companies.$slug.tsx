@@ -22,7 +22,7 @@ export const Route = createFileRoute("/companies/$slug")({
       | { name: string; description: string | null; location: string | null }
       | null
       | undefined;
-    const title = m ? `${m.name} — Warehouse jobs | WarehouseJobs` : "Company | WarehouseJobs";
+    const title = m ? `${m.name} — Warehouse jobs | WarehouseJobs.com` : "Company | WarehouseJobs.com";
     const desc = m
       ? (m.description ?? "").slice(0, 155).replace(/\s+/g, " ").trim() ||
         `Open warehouse roles at ${m.name}${m.location ? ` in ${m.location}` : ""}.`

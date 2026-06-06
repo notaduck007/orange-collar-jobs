@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/accordion";
 
 export const Route = createFileRoute("/faq")({
-  head: () => ({ meta: [{ title: "FAQ — WarehouseJobs" }] }),
+  head: () => ({ meta: [{ title: "FAQ — WarehouseJobs.com" }] }),
   component: FAQ,
 });
 

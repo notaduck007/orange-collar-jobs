@@ -96,7 +96,7 @@ serve(async (req) => {
       });
     }
 
-    const sender = from ?? "WarehouseJobs <no-reply@warehousejobs.app>";
+    const sender = from ?? "WarehouseJobs.com <no-reply@warehousejobs.app>";
     const resendKey = Deno.env.get("RESEND_API_KEY");
 
     if (!resendKey) {

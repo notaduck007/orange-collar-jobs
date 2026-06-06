@@ -21,7 +21,7 @@ import {
 } from "@/components/screening-questions-builder";
 
 export const Route = createFileRoute("/employer/jobs/$id/edit")({
-  head: () => ({ meta: [{ title: "Edit Job — WarehouseJobs Employers" }] }),
+  head: () => ({ meta: [{ title: "Edit Job — WarehouseJobs.com Employers" }] }),
   component: EditJobPage,
 });
 

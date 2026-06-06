@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/select";
 
 export const Route = createFileRoute("/employer/ads")({
-  head: () => ({ meta: [{ title: "Advertising — WarehouseJobs Employer" }] }),
+  head: () => ({ meta: [{ title: "Advertising — WarehouseJobs.com Employer" }] }),
   validateSearch: (s: Record<string, unknown>) => ({
     checkout: typeof s.checkout === "string" ? s.checkout : undefined,
   }),
@@ -153,7 +153,7 @@ function EmployerAds() {
           <div className="rounded-lg border border-dashed border-border bg-card p-10 text-center">
             <p className="text-base font-semibold text-[color:var(--ink)]">No ads yet.</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Create your first ad to promote your jobs across WarehouseJobs.
+              Create your first ad to promote your jobs across WarehouseJobs.com.
             </p>
           </div>
         )}

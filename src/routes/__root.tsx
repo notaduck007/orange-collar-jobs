@@ -77,16 +77,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { name: "theme-color", content: "#FF6A00" },
-      { title: "WarehouseJobs — Warehouse & Logistics Hiring" },
+      { title: "WarehouseJobs.com — Warehouse & Logistics Hiring" },
       {
         name: "description",
         content:
-          "Forklift, picker/packer, shipping & receiving, and warehouse associate jobs near you. Free for job seekers — apply in minutes on WarehouseJobs.",
+          "Forklift, picker/packer, shipping & receiving, and warehouse associate jobs near you. Free for job seekers — apply in minutes on WarehouseJobs.com.",
       },
-      { name: "application-name", content: "WarehouseJobs" },
-      { name: "apple-mobile-web-app-title", content: "WarehouseJobs" },
-      { property: "og:site_name", content: "WarehouseJobs" },
-      { property: "og:title", content: "WarehouseJobs — Warehouse & Logistics Hiring" },
+      { name: "application-name", content: "WarehouseJobs.com" },
+      { name: "apple-mobile-web-app-title", content: "WarehouseJobs.com" },
+      { property: "og:site_name", content: "WarehouseJobs.com" },
+      { property: "og:title", content: "WarehouseJobs.com — Warehouse & Logistics Hiring" },
       {
         property: "og:description",
         content: "The job board built for warehouse workers and the companies that hire them.",
@@ -94,7 +94,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { property: "og:image", content: "/icon-512.png" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "WarehouseJobs — Warehouse & Logistics Hiring" },
+      { name: "twitter:title", content: "WarehouseJobs.com — Warehouse & Logistics Hiring" },
       {
         name: "twitter:description",
         content: "The job board built for warehouse workers and the companies that hire them.",
@@ -123,7 +123,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         children: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "Organization",
-          name: "WarehouseJobs",
+          name: "WarehouseJobs.com",
           url: "/",
           logo: "/icon-512.png",
         }),

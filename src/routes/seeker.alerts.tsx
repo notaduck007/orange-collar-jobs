@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/seeker/alerts")({
-  head: () => ({ meta: [{ title: "Job Alerts — WarehouseJobs" }] }),
+  head: () => ({ meta: [{ title: "Job Alerts — WarehouseJobs.com" }] }),
   component: AlertsPage,
 });
 

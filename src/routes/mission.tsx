@@ -66,13 +66,13 @@ const stories = [
 export const Route = createFileRoute("/mission")({
   head: () => ({
     meta: [
-      { title: "Our Mission — WarehouseJobs" },
+      { title: "Our Mission — WarehouseJobs.com" },
       {
         name: "description",
         content:
           "Warehouse work built this company. Giving back, changing lives, and physically serving the communities that carry us is who we are.",
       },
-      { property: "og:title", content: "Our Mission — WarehouseJobs" },
+      { property: "og:title", content: "Our Mission — WarehouseJobs.com" },
       {
         property: "og:description",
         content:
@@ -95,7 +95,7 @@ function MissionPage() {
           {/* TODO: replace hero image with real service-day photo */}
           <img
             src={missionHero}
-            alt="WarehouseJobs crew volunteering together at a community service day, loading boxes of donated goods."
+            alt="WarehouseJobs.com crew volunteering together at a community service day, loading boxes of donated goods."
             width={1920}
             height={1024}
             className="absolute inset-0 h-full w-full object-cover"
@@ -180,7 +180,7 @@ function MissionPage() {
               whole mission.
             </blockquote>
             <p className="mt-8 text-sm text-muted-foreground">
-              — The WarehouseJobs team
+              — The WarehouseJobs.com team
             </p>
           </div>
         </section>

@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/admin/categories")({
-  head: () => ({ meta: [{ title: "Categories — WarehouseJobs Admin" }] }),
+  head: () => ({ meta: [{ title: "Categories — WarehouseJobs.com Admin" }] }),
   component: AdminCategories,
 });
 

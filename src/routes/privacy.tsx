@@ -8,7 +8,7 @@ import { Markdown } from "@/components/markdown";
 export const Route = createFileRoute("/privacy")({
   head: () => ({
     meta: [
-      { title: "Privacy Policy — WarehouseJobs" },
+      { title: "Privacy Policy — WarehouseJobs.com" },
       {
         name: "description",
         content:

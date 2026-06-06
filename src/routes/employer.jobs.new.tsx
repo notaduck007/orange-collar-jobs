@@ -50,7 +50,7 @@ import { errMsg } from "@/lib/row-types";
 type CheckoutSearch = { checkout?: "success" | "cancelled"; draft?: string; session_id?: string };
 
 export const Route = createFileRoute("/employer/jobs/new")({
-  head: () => ({ meta: [{ title: "Post a Job — WarehouseJobs Employers" }] }),
+  head: () => ({ meta: [{ title: "Post a Job — WarehouseJobs.com Employers" }] }),
   validateSearch: (s: Record<string, unknown>): CheckoutSearch => ({
     checkout: s.checkout === "success" || s.checkout === "cancelled" ? s.checkout : undefined,
     draft: typeof s.draft === "string" ? s.draft : undefined,

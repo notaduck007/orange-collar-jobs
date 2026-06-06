@@ -26,7 +26,7 @@ export const Route = createFileRoute("/employer/onboarding")({
     next: typeof search.next === "string" ? search.next : undefined,
     pkg: typeof search.pkg === "string" ? search.pkg : undefined,
   }),
-  head: () => ({ meta: [{ title: "Company Profile — WarehouseJobs Employers" }] }),
+  head: () => ({ meta: [{ title: "Company Profile — WarehouseJobs.com Employers" }] }),
   component: OnboardingPage,
 });
 
@@ -316,7 +316,7 @@ function OnboardingPage() {
           <div className="sticky top-20 overflow-hidden rounded-xl border border-border bg-card">
             <img
               src={crewImage}
-              alt="A strong, diverse warehouse crew collaborating at a conveyor pick station — the kind of team you'll reach on WarehouseJobs."
+              alt="A strong, diverse warehouse crew collaborating at a conveyor pick station — the kind of team you'll reach on WarehouseJobs.com."
               width={1600}
               height={1067}
               loading="lazy"

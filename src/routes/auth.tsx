@@ -17,7 +17,7 @@ const searchSchema = z.object({
 
 export const Route = createFileRoute("/auth")({
   validateSearch: searchSchema,
-  head: () => ({ meta: [{ title: "Sign in — WarehouseJobs" }] }),
+  head: () => ({ meta: [{ title: "Sign in — WarehouseJobs.com" }] }),
   component: AuthPage,
 });
 

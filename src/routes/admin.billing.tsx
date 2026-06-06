@@ -41,7 +41,7 @@ import type { Row } from "@/lib/row-types";
 import { errMsg } from "@/lib/row-types";
 
 export const Route = createFileRoute("/admin/billing")({
-  head: () => ({ meta: [{ title: "Billing — WarehouseJobs Admin" }] }),
+  head: () => ({ meta: [{ title: "Billing — WarehouseJobs.com Admin" }] }),
   component: AdminBilling,
 });
 

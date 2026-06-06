@@ -53,7 +53,7 @@ import { cn } from "@/lib/utils";
 import type { Row } from "@/lib/row-types";
 
 export const Route = createFileRoute("/admin/")({
-  head: () => ({ meta: [{ title: "Admin Analytics — WarehouseJobs" }] }),
+  head: () => ({ meta: [{ title: "Admin Analytics — WarehouseJobs.com" }] }),
   component: AdminDashboard,
 });
 
