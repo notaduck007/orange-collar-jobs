@@ -267,7 +267,8 @@ function Home() {
               </h2>
               <p className="mt-2 text-sm text-muted-foreground">
                 Pickers, packers, forklift operators, dock leads — folks getting hired through
-                WarehouseJobs.com this month.
+                Warehouse<span className="text-primary">jobs.com</span> this month.
+
               </p>
             </div>
             <div className="grid gap-5 sm:grid-cols-3">
