@@ -374,8 +374,9 @@ function Home() {
                   <span className="text-[color:var(--hazard)]">wrong applicants</span>.
                 </h2>
                 <p className="mt-3 max-w-md text-white/70">
-                  WarehouseJobs.com reaches qualified warehouse workers — forklift-certified, ready to
+                  Warehouse<span className="text-[color:var(--hazard)]">jobs.com</span> reaches qualified warehouse workers — forklift-certified, ready to
                   start, in your ZIP. Post in 4 minutes.
+
                 </p>
                 <div className="mt-6 flex flex-wrap gap-3">
                   <Link to="/pricing">
