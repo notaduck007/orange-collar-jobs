@@ -29,8 +29,10 @@ function About() {
       <SiteHeader />
       <section className="relative w-full overflow-hidden py-16 sm:py-20">
         <img
-          src={warehouseHero}
-          alt="Workers in hi-vis vests moving pallets through a bright modern warehouse aisle lined with tall racking."
+          src={aboutHero}
+          alt="Sunrise at a distribution center as a warehouse worker in a hi-vis vest arrives for the morning shift."
+          width={1920}
+          height={1024}
           className="absolute inset-0 h-full w-full object-cover"
         />
         <div
