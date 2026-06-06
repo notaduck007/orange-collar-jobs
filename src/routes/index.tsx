@@ -99,9 +99,10 @@ function Home() {
             height={1080}
             fetchPriority="high"
             decoding="async"
-            className="absolute inset-0 h-full w-full object-cover object-[70%_25%]"
+            className="absolute inset-0 h-full w-full object-cover object-[75%_15%] sm:object-[70%_25%]"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-[color:var(--ink)]/85 via-[color:var(--ink)]/50 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-[color:var(--ink)]/85 via-[color:var(--ink)]/40 to-transparent sm:hidden" />
           <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28 lg:py-32">
             <div className="max-w-2xl">
               <p className="label-caps text-primary">Hiring Now • Boots on the Dock</p>
