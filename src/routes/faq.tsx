@@ -45,7 +45,6 @@ function FAQ() {
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
-      <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
       <section className="relative w-full overflow-hidden py-16 sm:py-20">
         <img
           src={warehouseHero}
