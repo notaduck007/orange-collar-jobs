@@ -47,8 +47,10 @@ function FAQ() {
       <SiteHeader />
       <section className="relative w-full overflow-hidden py-16 sm:py-20">
         <img
-          src={warehouseHero}
-          alt="Wide view of a modern warehouse aisle with tall racking and workers in hi-vis vests."
+          src={faqHero}
+          alt="A shift supervisor answers a new warehouse worker's questions in a bright break area."
+          width={1920}
+          height={1024}
           className="absolute inset-0 h-full w-full object-cover"
         />
         <div
