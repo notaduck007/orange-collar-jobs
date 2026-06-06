@@ -28,13 +28,13 @@ import { JobCardSkeletonList } from "@/components/ui/skeleton-list";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "WarehouseJobs — Warehouse & Logistics Hiring" },
+      { title: "WarehouseJobs.com — Warehouse & Logistics Hiring" },
       {
         name: "description",
         content:
-          "Forklift, picker/packer, shipping & receiving, and warehouse associate jobs across the U.S. Free for job seekers — apply in minutes on WarehouseJobs.",
+          "Forklift, picker/packer, shipping & receiving, and warehouse associate jobs across the U.S. Free for job seekers — apply in minutes on WarehouseJobs.com.",
       },
-      { property: "og:title", content: "WarehouseJobs — Warehouse & Logistics Hiring" },
+      { property: "og:title", content: "WarehouseJobs.com — Warehouse & Logistics Hiring" },
       {
         property: "og:description",
         content:
@@ -264,7 +264,7 @@ function Home() {
               </h2>
               <p className="mt-2 text-sm text-muted-foreground">
                 Pickers, packers, forklift operators, dock leads — folks getting hired through
-                WarehouseJobs this month.
+                WarehouseJobs.com this month.
               </p>
             </div>
             <div className="grid gap-5 sm:grid-cols-3">
@@ -370,7 +370,7 @@ function Home() {
                   <span className="text-[color:var(--hazard)]">wrong applicants</span>.
                 </h2>
                 <p className="mt-3 max-w-md text-white/70">
-                  WarehouseJobs reaches qualified warehouse workers — forklift-certified, ready to
+                  WarehouseJobs.com reaches qualified warehouse workers — forklift-certified, ready to
                   start, in your ZIP. Post in 4 minutes.
                 </p>
                 <div className="mt-6 flex flex-wrap gap-3">

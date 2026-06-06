@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { stripeDashboardUrlFor } from "@/lib/stripe-dashboard";
 
 export const Route = createFileRoute("/admin/orders")({
-  head: () => ({ meta: [{ title: "Orders — WarehouseJobs Admin" }] }),
+  head: () => ({ meta: [{ title: "Orders — WarehouseJobs.com Admin" }] }),
   component: AdminOrders,
 });
 

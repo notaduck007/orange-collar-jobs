@@ -19,7 +19,7 @@ export const Route = createFileRoute("/pricing")({
   }),
   head: () => ({
     meta: [
-      { title: "Posting Packages & Pricing — WarehouseJobs for Employers" },
+      { title: "Posting Packages & Pricing — WarehouseJobs.com for Employers" },
       {
         name: "description",
         content: "Post warehouse jobs to qualified workers. Flat-rate packages, no contracts.",

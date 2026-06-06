@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 
 export const Route = createFileRoute("/employer/team")({
-  head: () => ({ meta: [{ title: "Team — WarehouseJobs Employer" }] }),
+  head: () => ({ meta: [{ title: "Team — WarehouseJobs.com Employer" }] }),
   component: EmployerTeam,
 });
 

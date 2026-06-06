@@ -123,8 +123,8 @@ serve(async (req) => {
         const amount = ((paidOrder?.amount_cents ?? 0) / 100).toFixed(2);
         const validUntil = new Date(expiresAt).toLocaleDateString();
 
-        // Resolve brand name from site_settings (fallback to WarehouseJobs).
-        let brandName = "WarehouseJobs";
+        // Resolve brand name from site_settings (fallback to WarehouseJobs.com).
+        let brandName = "WarehouseJobs.com";
         try {
           const { data: branding } = await admin
             .from("site_settings")

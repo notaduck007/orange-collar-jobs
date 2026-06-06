@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/select";
 
 export const Route = createFileRoute("/admin/packages")({
-  head: () => ({ meta: [{ title: "Packages — WarehouseJobs Admin" }] }),
+  head: () => ({ meta: [{ title: "Packages — WarehouseJobs.com Admin" }] }),
   component: AdminPackages,
 });
 

@@ -24,7 +24,7 @@ import type { Row } from "@/lib/row-types";
 import { errMsg } from "@/lib/row-types";
 
 export const Route = createFileRoute("/seeker/privacy")({
-  head: () => ({ meta: [{ title: "Privacy & Data — WarehouseJobs" }] }),
+  head: () => ({ meta: [{ title: "Privacy & Data — WarehouseJobs.com" }] }),
   component: PrivacyPage,
 });
 

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import type { Row } from "@/lib/row-types";
 
 export const Route = createFileRoute("/seeker/saved")({
-  head: () => ({ meta: [{ title: "Saved Jobs — WarehouseJobs" }] }),
+  head: () => ({ meta: [{ title: "Saved Jobs — WarehouseJobs.com" }] }),
   component: SavedJobsPage,
 });
 

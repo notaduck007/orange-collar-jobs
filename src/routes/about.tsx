@@ -6,7 +6,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { Markdown } from "@/components/markdown";
 
 export const Route = createFileRoute("/about")({
-  head: () => ({ meta: [{ title: "About — WarehouseJobs" }] }),
+  head: () => ({ meta: [{ title: "About — WarehouseJobs.com" }] }),
   component: About,
 });
 

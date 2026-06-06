@@ -34,7 +34,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 export const Route = createFileRoute("/admin/companies")({
-  head: () => ({ meta: [{ title: "Companies — WarehouseJobs Admin" }] }),
+  head: () => ({ meta: [{ title: "Companies — WarehouseJobs.com Admin" }] }),
   component: AdminCompanies,
 });
 
@@ -137,7 +137,7 @@ function AdminCompanies() {
             to: c.owner_id,
             subject: approve ? "Your company is verified" : "Verification rejected",
             body: approve
-              ? `${c.name} is now a Verified employer on WarehouseJobs.`
+              ? `${c.name} is now a Verified employer on WarehouseJobs.com.`
               : `We couldn't verify ${c.name}. Reason: ${reason}`,
           },
         });

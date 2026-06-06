@@ -48,7 +48,7 @@ type AppRole = Database["public"]["Enums"]["app_role"];
 type RoleRef = { id: string; key: string; name: string; is_system: boolean };
 
 export const Route = createFileRoute("/admin/users")({
-  head: () => ({ meta: [{ title: "Users — WarehouseJobs Admin" }] }),
+  head: () => ({ meta: [{ title: "Users — WarehouseJobs.com Admin" }] }),
   component: AdminUsers,
 });
 

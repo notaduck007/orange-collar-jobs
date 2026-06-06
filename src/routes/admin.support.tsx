@@ -44,17 +44,17 @@ const CANNED: { label: string; subject: string; body: string }[] = [
   {
     label: "Acknowledge",
     subject: "We received your message",
-    body: "Hi,\n\nThanks for reaching out — we've received your message and a teammate will follow up shortly.\n\n— WarehouseJobs Support",
+    body: "Hi,\n\nThanks for reaching out — we've received your message and a teammate will follow up shortly.\n\n— WarehouseJobs.com Support",
   },
   {
     label: "Need more info",
     subject: "A quick question about your request",
-    body: "Hi,\n\nThanks for the report. Could you share a bit more detail (URL, screenshot, or timing) so we can investigate?\n\n— WarehouseJobs Support",
+    body: "Hi,\n\nThanks for the report. Could you share a bit more detail (URL, screenshot, or timing) so we can investigate?\n\n— WarehouseJobs.com Support",
   },
   {
     label: "Resolved",
     subject: "Your request has been resolved",
-    body: "Hi,\n\nWe've taken care of this. Let us know if you run into anything else.\n\n— WarehouseJobs Support",
+    body: "Hi,\n\nWe've taken care of this. Let us know if you run into anything else.\n\n— WarehouseJobs.com Support",
   },
 ];
 

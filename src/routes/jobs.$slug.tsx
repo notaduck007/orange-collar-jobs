@@ -81,12 +81,12 @@ export const Route = createFileRoute("/jobs/$slug")({
       | undefined;
     const company = m?.companies?.name;
     const title = m
-      ? `${m.title}${company ? ` at ${company}` : ""} — ${m.location} | WarehouseJobs`
-      : "Warehouse Job | WarehouseJobs";
+      ? `${m.title}${company ? ` at ${company}` : ""} — ${m.location} | WarehouseJobs.com`
+      : "Warehouse Job | WarehouseJobs.com";
     const desc = m
       ? (m.description ?? "").slice(0, 155).replace(/\s+/g, " ").trim() ||
-        `${m.category} role in ${m.location}. Apply on WarehouseJobs.`
-      : "Apply to warehouse jobs near you on WarehouseJobs.";
+        `${m.category} role in ${m.location}. Apply on WarehouseJobs.com.`
+      : "Apply to warehouse jobs near you on WarehouseJobs.com.";
 
     let jsonLd: Record<string, unknown> | null = null;
     if (m) {

@@ -8,7 +8,7 @@ import seekerWelcome from "@/assets/seeker-welcome.webp";
 import type { Row } from "@/lib/row-types";
 
 export const Route = createFileRoute("/seeker/")({
-  head: () => ({ meta: [{ title: "My Dashboard — WarehouseJobs" }] }),
+  head: () => ({ meta: [{ title: "My Dashboard — WarehouseJobs.com" }] }),
   component: SeekerOverview,
 });
 

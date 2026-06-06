@@ -62,7 +62,7 @@ import { isKnockout, type QuestionType } from "@/components/screening-questions-
 import type { Row } from "@/lib/row-types";
 
 export const Route = createFileRoute("/employer/jobs/$id/applicants")({
-  head: () => ({ meta: [{ title: "Applicants — WarehouseJobs Employers" }] }),
+  head: () => ({ meta: [{ title: "Applicants — WarehouseJobs.com Employers" }] }),
   component: ApplicantsPage,
 });
 

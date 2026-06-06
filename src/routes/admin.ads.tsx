@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/admin/ads")({
-  head: () => ({ meta: [{ title: "Ad approvals — WarehouseJobs Admin" }] }),
+  head: () => ({ meta: [{ title: "Ad approvals — WarehouseJobs.com Admin" }] }),
   component: AdminAds,
 });
 

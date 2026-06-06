@@ -28,7 +28,7 @@ export type PublicSettings = {
 };
 
 const DEFAULTS: PublicSettings = {
-  branding: { site_name: "WarehouseJobs", logo_url: "", support_email: "support@example.com" },
+  branding: { site_name: "WarehouseJobs.com", logo_url: "", support_email: "support@example.com" },
   defaults: { job_duration_days: 30, free_post_allowance: 1 },
   toggles: {
     reviews_enabled: true,

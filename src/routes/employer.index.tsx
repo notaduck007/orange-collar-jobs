@@ -38,7 +38,7 @@ import { TableSkeleton } from "@/components/ui/skeleton-list";
 import type { Row } from "@/lib/row-types";
 
 export const Route = createFileRoute("/employer/")({
-  head: () => ({ meta: [{ title: "Employer Dashboard — WarehouseJobs" }] }),
+  head: () => ({ meta: [{ title: "Employer Dashboard — WarehouseJobs.com" }] }),
   component: EmployerDashboard,
 });
 

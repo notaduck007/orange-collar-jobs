@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/admin/moderation")({
-  head: () => ({ meta: [{ title: "Moderation hub — WarehouseJobs Admin" }] }),
+  head: () => ({ meta: [{ title: "Moderation hub — WarehouseJobs.com Admin" }] }),
   component: ModerationHub,
 });
 

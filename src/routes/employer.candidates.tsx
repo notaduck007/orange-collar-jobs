@@ -28,7 +28,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useSiteSettings } from "@/lib/site-settings";
 
 export const Route = createFileRoute("/employer/candidates")({
-  head: () => ({ meta: [{ title: "Candidate Search — WarehouseJobs" }] }),
+  head: () => ({ meta: [{ title: "Candidate Search — WarehouseJobs.com" }] }),
   component: CandidatesPage,
 });
 
