@@ -20,8 +20,9 @@ export function SiteHeader() {
           </div>
           <div className="flex flex-col leading-none">
             <span className="text-base font-bold tracking-tight text-[color:var(--ink)]">
-              {settings.branding.site_name}
+              Warehouse<span className="text-primary">jobs.com</span>
             </span>
+
             <span className="label-caps text-[10px]">Hiring Now</span>
           </div>
         </Link>
