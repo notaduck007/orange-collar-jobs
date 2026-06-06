@@ -133,7 +133,7 @@ function Pricing() {
     <div className="min-h-screen bg-background">
       <SiteHeader />
 
-      <section className="relative overflow-hidden bg-[color:var(--ink)] py-16 text-white sm:py-20">
+      <section className="relative overflow-hidden bg-[color:var(--ink)] py-24 text-white sm:py-32">
         <img
           src={crewImage}
           alt="Skilled warehouse crew — four diverse workers in hi-vis vests collaborating at a conveyor pick station inside a modern fulfillment center."
@@ -141,15 +141,20 @@ function Pricing() {
           height={1067}
           loading="lazy"
           decoding="async"
-          className="absolute inset-0 h-full w-full object-cover opacity-25"
+          className="absolute inset-0 h-full w-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-[color:var(--ink)]/80 via-[color:var(--ink)]/85 to-[color:var(--ink)]" />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/55 to-black/75"
+        />
         <div className="relative mx-auto max-w-4xl px-4 text-center sm:px-6">
-          <p className="label-caps text-primary">For Employers</p>
-          <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#FF6A00]">
+            For Employers
+          </p>
+          <h1 className="mt-3 text-4xl font-bold tracking-tight text-white drop-shadow-md sm:text-5xl lg:text-6xl">
             Hire the dock, not the cubicle.
           </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-base text-white/70 sm:text-lg">
+          <p className="mx-auto mt-4 max-w-2xl text-lg text-white/90 drop-shadow-sm sm:text-xl">
             Reach forklift operators, pickers, order selectors, and dock workers actively looking
             for work. Flat-rate packages — no contracts, no surprise fees.
           </p>
