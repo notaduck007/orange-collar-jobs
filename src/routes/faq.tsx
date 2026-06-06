@@ -91,6 +91,3 @@ function FAQ() {
     </div>
   );
 }
-    </div>
-  );
-}
