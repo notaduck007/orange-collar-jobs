@@ -18,8 +18,9 @@ export function SiteFooter() {
               )}
             </div>
             <span className="text-base font-bold tracking-tight">
-              {settings.branding.site_name}
+              Warehouse<span className="text-primary">jobs.com</span>
             </span>
+
           </div>
           <p className="mt-3 max-w-xs text-sm text-white/60">
             The job board built for warehouse workers and the companies that hire them.
