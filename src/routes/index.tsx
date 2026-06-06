@@ -94,9 +94,9 @@ function Home() {
         >
           <img
             src={heroImage}
-            alt="Confident warehouse worker in a high-visibility orange safety vest standing in a bright modern distribution center."
-            width={1280}
-            height={1600}
+            alt="Smiling warehouse employee in an orange high-visibility safety vest and hard hat standing in a bright modern warehouse aisle with tall racking."
+            width={1920}
+            height={1080}
             fetchPriority="high"
             decoding="async"
             className="absolute inset-0 h-full w-full object-cover object-center opacity-70"
