@@ -27,7 +27,7 @@ function About() {
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
-      <section className="relative w-full overflow-hidden py-24 sm:py-32">
+      <section className="relative w-full overflow-hidden py-24 sm:py-32 lg:py-40">
         <img
           src={aboutHero}
           alt="Sunrise at a distribution center as a warehouse worker in a hi-vis vest arrives for the morning shift."
@@ -43,7 +43,7 @@ function About() {
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#FF6A00]">
             Our story
           </p>
-          <h1 className="mt-3 text-4xl font-bold tracking-tight text-white drop-shadow-md sm:text-5xl">
+          <h1 className="mt-3 text-4xl font-bold tracking-tight text-white drop-shadow-md sm:text-5xl lg:text-6xl">
             {page?.title ?? "About"}
           </h1>
         </div>
