@@ -175,6 +175,47 @@ function Home() {
           </div>
         </section>
 
+        {/* SAMPLE CLIENTS */}
+        <section className="bg-[#FAFAFA]" aria-labelledby="sample-clients-heading">
+          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
+            <h2
+              id="sample-clients-heading"
+              className="text-center text-[28px] font-bold text-[#9CA3AF]"
+            >
+              Sample Clients
+            </h2>
+            <div className="mt-10 grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-3 sm:gap-x-10 lg:grid-cols-5 lg:gap-x-12">
+              {[
+                { src: "/logos/ashley-homestore.png", alt: "Ashley HomeStore" },
+                { src: "/logos/dhl.png", alt: "DHL" },
+                { src: "/logos/whole-foods-market.png", alt: "Whole Foods Market" },
+                { src: "/logos/heb.png", alt: "H-E-B" },
+                { src: "/logos/grainger.png", alt: "Grainger" },
+                { src: "/logos/cabelas.png", alt: "Cabela's" },
+                { src: "/logos/target.png", alt: "Target" },
+                { src: "/logos/energizer.png", alt: "Energizer" },
+                { src: "/logos/academy-sports-outdoors.png", alt: "Academy Sports + Outdoors" },
+                { src: "/logos/fedex.png", alt: "FedEx" },
+                { src: "/logos/sprouts-farmers-market.png", alt: "Sprouts Farmers Market" },
+                { src: "/logos/home-depot.png", alt: "The Home Depot" },
+                { src: "/logos/dollar-general.png", alt: "Dollar General" },
+                { src: "/logos/amazon.png", alt: "Amazon" },
+                { src: "/logos/rhino-linings.png", alt: "Rhino Linings" },
+              ].map((logo) => (
+                <div key={logo.src} className="flex h-16 items-center justify-center">
+                  <img
+                    src={logo.src}
+                    alt={logo.alt}
+                    loading="lazy"
+                    decoding="async"
+                    className="max-h-16 max-w-[160px] object-contain"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* HOME BANNER AD */}
         <section className="mx-auto max-w-7xl px-4 pt-10 sm:px-6">
           <AdSlot slot="home_banner" />
