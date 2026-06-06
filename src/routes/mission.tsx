@@ -180,7 +180,7 @@ function MissionPage() {
               whole mission.
             </blockquote>
             <p className="mt-8 text-sm text-muted-foreground">
-              — The WarehouseJobs.com team
+              — The Warehouse<span className="text-primary">jobs.com</span> team
             </p>
           </div>
         </section>

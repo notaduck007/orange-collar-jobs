@@ -109,7 +109,9 @@ function Home() {
                 id="hero-heading"
                 className="mt-4 text-4xl font-bold leading-[1.05] tracking-tight text-white sm:text-5xl lg:text-6xl"
               >
-                Warehousejobs.com is the <span className="text-primary">#1 Niche job board</span> in the warehouse industry!
+                Warehouse<span className="text-primary">jobs.com</span> is the{" "}
+                <span className="whitespace-nowrap text-primary">#1 Niche job board</span> in the warehouse industry!
+
 
               </h1>
               <p className="mt-5 max-w-xl text-base text-white/80 sm:text-lg">
@@ -265,7 +267,8 @@ function Home() {
               </h2>
               <p className="mt-2 text-sm text-muted-foreground">
                 Pickers, packers, forklift operators, dock leads — folks getting hired through
-                WarehouseJobs.com this month.
+                Warehouse<span className="text-primary">jobs.com</span> this month.
+
               </p>
             </div>
             <div className="grid gap-5 sm:grid-cols-3">
@@ -371,8 +374,9 @@ function Home() {
                   <span className="text-[color:var(--hazard)]">wrong applicants</span>.
                 </h2>
                 <p className="mt-3 max-w-md text-white/70">
-                  WarehouseJobs.com reaches qualified warehouse workers — forklift-certified, ready to
+                  Warehouse<span className="text-[color:var(--hazard)]">jobs.com</span> reaches qualified warehouse workers — forklift-certified, ready to
                   start, in your ZIP. Post in 4 minutes.
+
                 </p>
                 <div className="mt-6 flex flex-wrap gap-3">
                   <Link to="/pricing">
