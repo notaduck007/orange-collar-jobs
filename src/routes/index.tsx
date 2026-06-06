@@ -175,48 +175,6 @@ function Home() {
           </div>
         </section>
 
-        {/* SAMPLE CLIENTS */}
-        <section className="bg-[#FAFAFA]" aria-labelledby="sample-clients-heading">
-          <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-16">
-            <h2
-              id="sample-clients-heading"
-              className="text-center text-[28px] font-bold text-[#9CA3AF]"
-            >
-              Sample Clients
-            </h2>
-            <div className="mx-auto mt-10 grid max-w-[1100px] grid-cols-2 gap-x-6 gap-y-6 sm:grid-cols-3 sm:gap-x-10 sm:gap-y-10 lg:grid-cols-5 lg:gap-x-12">
-              {[
-                { src: "/logos/ashley-homestore.png", alt: "Ashley HomeStore" },
-                { src: "/logos/dhl.png", alt: "DHL" },
-                { src: "/logos/whole-foods-market.png", alt: "Whole Foods Market" },
-                { src: "/logos/heb.png", alt: "H-E-B" },
-                { src: "/logos/grainger.png", alt: "Grainger" },
-                { src: "/logos/cabelas.png", alt: "Cabela's" },
-                { src: "/logos/target.png", alt: "Target" },
-                { src: "/logos/energizer.png", alt: "Energizer" },
-                { src: "/logos/academy-sports-outdoors.png", alt: "Academy Sports + Outdoors" },
-                { src: "/logos/fedex.png", alt: "FedEx" },
-                { src: "/logos/sprouts-farmers-market.png", alt: "Sprouts Farmers Market" },
-                { src: "/logos/home-depot.png", alt: "The Home Depot" },
-                { src: "/logos/dollar-general.png", alt: "Dollar General" },
-                { src: "/logos/amazon.png", alt: "Amazon" },
-                { src: "/logos/rhino-linings.png", alt: "Rhino Linings" },
-              ].map((logo) => (
-                <div key={logo.src} className="flex h-20 items-center justify-center">
-                  <img
-                    src={logo.src}
-                    alt={logo.alt}
-                    width={160}
-                    height={80}
-                    loading="lazy"
-                    decoding="async"
-                    className="max-h-12 max-w-[140px] object-contain transition-transform duration-200 ease-out hover:scale-105 sm:max-h-16 sm:max-w-[160px]"
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
 
 
         {/* HOME BANNER AD */}
