@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, notFound } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -23,6 +23,7 @@ import { useAuth } from "@/lib/auth";
 import { ApplyDialog } from "@/components/apply-dialog";
 import { ApplySuccessDialog } from "@/components/apply-success-dialog";
 import { AdSlot } from "@/components/ad-slot";
+import { JobCard, type JobSummary } from "@/components/job-card";
 import { ReportButton } from "@/components/report-button";
 import { useAppliedJobs, useQuickApplyReady } from "@/hooks/use-applied-jobs";
 
@@ -55,7 +56,26 @@ export const Route = createFileRoute("/jobs/$slug")({
       .select("*, companies(id, name, slug, description, location, website)")
       .eq("slug", params.slug)
       .maybeSingle();
-    return { job: data };
+    if (!data) throw notFound();
+    const statusOk = data.status === "active" || data.status === "published";
+    const notExpired = !data.expires_at || new Date(data.expires_at).getTime() > Date.now();
+    const expired = !(statusOk && notExpired);
+    let similar: JobSummary[] = [];
+    if (expired) {
+      const { data: sim } = await supabase
+        .from("jobs")
+        .select(
+          "id, slug, title, location, shift, employment_type, pay_min, pay_max, featured, category, companies(name, slug, verified)",
+        )
+        .eq("category", data.category)
+        .in("status", ["active", "published"])
+        .neq("id", data.id)
+        .order("featured", { ascending: false })
+        .order("created_at", { ascending: false })
+        .limit(4);
+      similar = (sim ?? []) as unknown as JobSummary[];
+    }
+    return { job: data, expired, similar };
   },
   head: ({ params, loaderData }) => {
     const m = loaderData?.job as
@@ -87,8 +107,9 @@ export const Route = createFileRoute("/jobs/$slug")({
         `${m.category} role in ${m.location}. Apply on WarehouseJobs.com.`
       : "Apply to warehouse jobs near you on WarehouseJobs.com.";
 
+    const expired = !!loaderData?.expired;
     let jsonLd: Record<string, unknown> | null = null;
-    if (m) {
+    if (m && !expired) {
       const employmentType = EMPLOYMENT_TYPE_SCHEMA[m.employment_type] ?? "FULL_TIME";
       const baseSalary =
         m.pay_min != null || m.pay_max != null
@@ -135,17 +156,27 @@ export const Route = createFileRoute("/jobs/$slug")({
       };
     }
 
+    const meta: Array<Record<string, string>> = [
+      { title },
+      { name: "description", content: desc },
+      { property: "og:title", content: title },
+      { property: "og:description", content: desc },
+      { property: "og:type", content: "article" },
+      { name: "twitter:card", content: "summary" },
+    ];
+    if (m && !expired) {
+      meta.push({ property: "og:url", content: canonical(`/jobs/${params.slug}`) });
+    }
+    if (expired) {
+      meta.push({ name: "robots", content: "noindex" });
+    }
+
+    const emitCanonical = !!m && !expired;
     return {
-      meta: [
-        { title },
-        { name: "description", content: desc },
-        { property: "og:title", content: title },
-        { property: "og:description", content: desc },
-        { property: "og:type", content: "article" },
-        { property: "og:url", content: canonical(`/jobs/${params.slug}`) },
-        { name: "twitter:card", content: "summary" },
-      ],
-      links: [{ rel: "canonical", href: canonical(`/jobs/${params.slug}`) }],
+      meta,
+      links: emitCanonical
+        ? [{ rel: "canonical", href: canonical(`/jobs/${params.slug}`) }]
+        : undefined,
       scripts: jsonLd
         ? [{ type: "application/ld+json", children: JSON.stringify(jsonLd) }]
         : undefined,
@@ -185,7 +216,7 @@ const typeLabel: Record<string, string> = {
 
 function JobDetail() {
   const { slug } = Route.useParams();
-  const { job } = Route.useLoaderData();
+  const { job, expired, similar } = Route.useLoaderData();
   const { user } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -304,6 +335,7 @@ function JobDetail() {
     if (autoAppliedRef.current) return;
     if (applyParam !== 1) return;
     if (!user || !job || !screeningKnown) return;
+    if (expired) return;
     if (alreadyApplied) {
       autoAppliedRef.current = true;
       navigate({ to: "/jobs/$slug", params: { slug }, search: {}, replace: true });
@@ -422,73 +454,92 @@ function JobDetail() {
               )}
             </section>
 
-            <div className="mt-8 space-y-3">
-              {user && quickApply.ready && !hasScreening && !alreadyApplied && (
-                <div className="rounded-lg border border-dashed border-border bg-background p-3">
-                  <button
-                    type="button"
-                    onClick={() => setCoverOpen((v) => !v)}
-                    className="flex w-full items-center justify-between text-sm font-medium text-muted-foreground hover:text-primary"
-                  >
-                    <span>Add a cover note (optional)</span>
-                    {coverOpen ? (
-                      <ChevronUp className="h-4 w-4" />
-                    ) : (
-                      <ChevronDown className="h-4 w-4" />
-                    )}
-                  </button>
-                  {coverOpen && (
-                    <Textarea
-                      className="mt-3"
-                      rows={4}
-                      maxLength={2000}
-                      placeholder="A quick note to the hiring manager…"
-                      value={coverNote}
-                      onChange={(e) => setCoverNote(e.target.value)}
-                    />
-                  )}
-                </div>
-              )}
-              <div className="flex flex-wrap gap-2">
-                {alreadyApplied ? (
-                  <Button disabled className="btn-primary !px-6 gap-1.5 opacity-90">
-                    <CheckCircle2 className="h-4 w-4" /> Applied
-                  </Button>
-                ) : (
-                  <Button onClick={apply} disabled={quickSubmitting} className="btn-primary !px-6">
-                    {quickSubmitting
-                      ? "Sending…"
-                      : user && quickApply.ready && !hasScreening
-                        ? "Quick apply"
-                        : "Apply now"}
-                  </Button>
-                )}
-                <Button variant="outline" onClick={save} className="gap-1.5">
-                  <Bookmark className="h-4 w-4" /> Save
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    navigator.clipboard.writeText(window.location.href);
-                    toast.success("Link copied");
-                  }}
-                  className="gap-1.5"
-                >
-                  <Share2 className="h-4 w-4" /> Share
-                </Button>
-                {job && <ReportButton entityType="job" entityId={job.id} variant="outline" />}
+            {expired ? (
+              <div className="mt-8 rounded-lg border border-border bg-muted p-4 text-sm text-foreground">
+                This job is no longer accepting applications.
               </div>
-              {user && !quickApply.ready && !alreadyApplied && (
-                <p className="text-xs text-muted-foreground">
-                  Tip:{" "}
-                  <Link to="/seeker/profile" className="text-primary hover:underline">
-                    complete your profile
-                  </Link>{" "}
-                  to enable one-click quick apply.
-                </p>
-              )}
-            </div>
+            ) : (
+              <div className="mt-8 space-y-3">
+                {user && quickApply.ready && !hasScreening && !alreadyApplied && (
+                  <div className="rounded-lg border border-dashed border-border bg-background p-3">
+                    <button
+                      type="button"
+                      onClick={() => setCoverOpen((v) => !v)}
+                      className="flex w-full items-center justify-between text-sm font-medium text-muted-foreground hover:text-primary"
+                    >
+                      <span>Add a cover note (optional)</span>
+                      {coverOpen ? (
+                        <ChevronUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      )}
+                    </button>
+                    {coverOpen && (
+                      <Textarea
+                        className="mt-3"
+                        rows={4}
+                        maxLength={2000}
+                        placeholder="A quick note to the hiring manager…"
+                        value={coverNote}
+                        onChange={(e) => setCoverNote(e.target.value)}
+                      />
+                    )}
+                  </div>
+                )}
+                <div className="flex flex-wrap gap-2">
+                  {alreadyApplied ? (
+                    <Button disabled className="btn-primary !px-6 gap-1.5 opacity-90">
+                      <CheckCircle2 className="h-4 w-4" /> Applied
+                    </Button>
+                  ) : (
+                    <Button onClick={apply} disabled={quickSubmitting} className="btn-primary !px-6">
+                      {quickSubmitting
+                        ? "Sending…"
+                        : user && quickApply.ready && !hasScreening
+                          ? "Quick apply"
+                          : "Apply now"}
+                    </Button>
+                  )}
+                  <Button variant="outline" onClick={save} className="gap-1.5">
+                    <Bookmark className="h-4 w-4" /> Save
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      navigator.clipboard.writeText(window.location.href);
+                      toast.success("Link copied");
+                    }}
+                    className="gap-1.5"
+                  >
+                    <Share2 className="h-4 w-4" /> Share
+                  </Button>
+                  {job && <ReportButton entityType="job" entityId={job.id} variant="outline" />}
+                </div>
+                {user && !quickApply.ready && !alreadyApplied && (
+                  <p className="text-xs text-muted-foreground">
+                    Tip:{" "}
+                    <Link to="/seeker/profile" className="text-primary hover:underline">
+                      complete your profile
+                    </Link>{" "}
+                    to enable one-click quick apply.
+                  </p>
+                )}
+              </div>
+            )}
           </div>
+
+          {expired && similar.length > 0 && (
+            <section className="mt-8">
+              <h2 className="text-lg font-semibold text-[color:var(--ink)]">
+                Similar jobs still hiring
+              </h2>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                {(similar as JobSummary[]).map((j) => (
+                  <JobCard key={j.id} job={j} />
+                ))}
+              </div>
+            </section>
+          )}
         </main>
 
         <aside className="space-y-4">
