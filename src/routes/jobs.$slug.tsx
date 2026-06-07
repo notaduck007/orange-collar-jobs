@@ -316,15 +316,6 @@ function JobDetail() {
   }, [applyParam, user?.id, job?.id, screeningKnown, alreadyApplied]);
 
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <SiteHeader />
-        <JobDetailSkeleton />
-        <SiteFooter />
-      </div>
-    );
-  }
   if (!job) return null;
   const pay =
     job.pay_min && job.pay_max
