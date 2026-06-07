@@ -127,7 +127,7 @@ export const Route = createFileRoute("/jobs/category/$categorySlug")({
 });
 
 function CategoryPage() {
-  const { info, jobs } = Route.useLoaderData();
+  const { info, jobs, cities } = Route.useLoaderData();
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
