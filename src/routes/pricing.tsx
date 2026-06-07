@@ -218,7 +218,7 @@ function Pricing() {
           </h2>
         </div>
         <div className="grid gap-6 md:grid-cols-3">
-          {packages.map((p, idx) => {
+          {(packages as PostingPackage[]).map((p, idx) => {
             const popular = idx === 1;
             const loading = buyingId === p.id;
             return (
