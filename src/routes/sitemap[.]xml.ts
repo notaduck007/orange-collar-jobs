@@ -74,6 +74,34 @@ export const Route = createFileRoute("/sitemap.xml")({
                 priority: "0.6",
               });
             });
+
+            // Dynamic location pages — distinct city/state from active jobs
+            const { data: locJobs } = await supabase
+              .from("jobs")
+              .select("city, state")
+              .in("status", ["active", "published"])
+              .not("city", "is", null)
+              .not("state", "is", null)
+              .limit(5000);
+            const citySlugs = new Set<string>();
+            (locJobs ?? []).forEach((row: { city: string | null; state: string | null }) => {
+              const city = (row.city ?? "").trim();
+              const state = (row.state ?? "").trim();
+              if (!city || !state) return;
+              const c = city
+                .toLowerCase()
+                .replace(/[^a-z0-9\s-]/g, "")
+                .replace(/\s+/g, "-")
+                .replace(/-+/g, "-");
+              citySlugs.add(`${c}-${state.toLowerCase()}`);
+            });
+            citySlugs.forEach((slug) => {
+              entries.push({
+                path: `/warehouse-jobs/${slug}`,
+                changefreq: "daily",
+                priority: "0.8",
+              });
+            });
           }
         } catch {
           // Best-effort; still return static entries
