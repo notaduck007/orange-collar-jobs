@@ -402,6 +402,89 @@ function Contact() {
           )}
         </div>
       </div>
+
+      <section className="border-t border-border bg-card/40">
+        <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 sm:py-20">
+          <p className="label-caps text-primary">Quick answers</p>
+          <h2 className="mt-3 text-3xl font-bold tracking-tight text-[color:var(--ink)] sm:text-4xl">
+            You might not need to wait for a reply.
+          </h2>
+          <p className="mt-3 text-muted-foreground">
+            The most common questions we get — answered right here.
+          </p>
+
+          <Accordion type="single" collapsible className="mt-8">
+            <AccordionItem value="apply">
+              <AccordionTrigger className="text-left text-base font-semibold text-[color:var(--ink)]">
+                How do I apply for a job?
+              </AccordionTrigger>
+              <AccordionContent className="text-[15px] leading-relaxed text-foreground">
+                Search by job title, city, or ZIP, then click any listing to see the full
+                description, pay, and shift. Most jobs can be applied to in under a minute
+                directly on WarehouseJobs — no separate account required on the employer's
+                site.{" "}
+                <Link to="/jobs" className="text-primary underline-offset-4 hover:underline">
+                  Browse open jobs →
+                </Link>
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="cost">
+              <AccordionTrigger className="text-left text-base font-semibold text-[color:var(--ink)]">
+                How much does it cost to post a job?
+              </AccordionTrigger>
+              <AccordionContent className="text-[15px] leading-relaxed text-foreground">
+                WarehouseJobs is always free for job seekers. Employers pay a flat rate per
+                posting — no contracts, no per-applicant fees. Your first post is free so you
+                can try us out before paying.{" "}
+                <Link to="/pricing" className="text-primary underline-offset-4 hover:underline">
+                  See posting packages →
+                </Link>
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="alerts">
+              <AccordionTrigger className="text-left text-base font-semibold text-[color:var(--ink)]">
+                How do I set up job alerts?
+              </AccordionTrigger>
+              <AccordionContent className="text-[15px] leading-relaxed text-foreground">
+                Create a free job seeker account and we'll email you new openings that match
+                your role and location as soon as they're posted. You can pause, edit, or
+                cancel alerts anytime from your dashboard.{" "}
+                <Link
+                  to="/auth"
+                  search={{ mode: "signup" } as never}
+                  className="text-primary underline-offset-4 hover:underline"
+                >
+                  Create a free account →
+                </Link>
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="password">
+              <AccordionTrigger className="text-left text-base font-semibold text-[color:var(--ink)]">
+                I forgot my password — what do I do?
+              </AccordionTrigger>
+              <AccordionContent className="text-[15px] leading-relaxed text-foreground">
+                Use the "Forgot password?" link on the sign-in page and we'll email you a
+                reset link. If it doesn't arrive within a few minutes, check your spam folder
+                or get in touch using the form above.{" "}
+                <Link
+                  to="/auth"
+                  search={{ mode: "login" } as never}
+                  className="text-primary underline-offset-4 hover:underline"
+                >
+                  Go to sign in →
+                </Link>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+
+          <p className="mt-8 text-sm">
+            <Link to="/faq" className="text-primary underline-offset-4 hover:underline">
+              More questions? Visit the full FAQ →
+            </Link>
+          </p>
+        </div>
+      </section>
+
       <SiteFooter />
     </div>
   );
