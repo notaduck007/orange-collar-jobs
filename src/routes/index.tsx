@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+
 import {
   Forklift,
   Boxes,
@@ -23,10 +23,21 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Button } from "@/components/ui/button";
 import { AdSlot } from "@/components/ad-slot";
-import { JobCardSkeletonList } from "@/components/ui/skeleton-list";
+
 import { canonical } from "@/lib/seo";
 
 export const Route = createFileRoute("/")({
+  loader: async () => {
+    const { data } = await supabase
+      .from("jobs")
+      .select(
+        "id, slug, title, location, shift, employment_type, pay_min, pay_max, featured, category, companies(name, slug)",
+      )
+      .in("status", ["active", "published"])
+      .eq("featured", true)
+      .limit(4);
+    return { featured: (data ?? []) as unknown as JobSummary[] };
+  },
   head: () => ({
     meta: [
       { title: "WarehouseJobs.com — Warehouse & Logistics Hiring" },
@@ -57,25 +68,10 @@ const categories = [
 ];
 
 function Home() {
+  const { featured } = Route.useLoaderData();
   const navigate = useNavigate();
   const [keyword, setKeyword] = useState("");
   const [location, setLocation] = useState("");
-
-  const { data: featured = [], isLoading: featuredLoading } = useQuery({
-    queryKey: ["featured-jobs"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("jobs")
-        .select(
-          "id, slug, title, location, shift, employment_type, pay_min, pay_max, featured, category, companies(name, slug)",
-        )
-        .in("status", ["active", "published"])
-        .eq("featured", true)
-        .limit(4);
-      if (error) throw error;
-      return (data ?? []) as unknown as JobSummary[];
-    },
-  });
 
   const submitSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -338,18 +334,14 @@ function Home() {
                 View all <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
-            {featuredLoading ? (
-              <JobCardSkeletonList count={4} />
-            ) : (
-              <div className="grid gap-4 md:grid-cols-2">
-                {featured.map((job) => (
-                  <JobCard key={job.id} job={job} />
-                ))}
-                {featured.length === 0 && (
-                  <p className="text-sm text-muted-foreground">No featured jobs right now.</p>
-                )}
-              </div>
-            )}
+            <div className="grid gap-4 md:grid-cols-2">
+              {featured.map((job: JobSummary) => (
+                <JobCard key={job.id} job={job} />
+              ))}
+              {featured.length === 0 && (
+                <p className="text-sm text-muted-foreground">No featured jobs right now.</p>
+              )}
+            </div>
           </div>
         </section>
 

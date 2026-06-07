@@ -1,4 +1,4 @@
-import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -25,7 +25,7 @@ import { ApplySuccessDialog } from "@/components/apply-success-dialog";
 import { AdSlot } from "@/components/ad-slot";
 import { ReportButton } from "@/components/report-button";
 import { useAppliedJobs, useQuickApplyReady } from "@/hooks/use-applied-jobs";
-import { JobDetailSkeleton } from "@/components/ui/skeleton-list";
+
 import { canonical } from "@/lib/seo";
 
 const EMPLOYMENT_TYPE_SCHEMA: Record<string, string> = {
@@ -52,15 +52,13 @@ export const Route = createFileRoute("/jobs/$slug")({
   loader: async ({ params }) => {
     const { data } = await supabase
       .from("jobs")
-      .select(
-        "title, description, location, category, city, state, zip, employment_type, pay_min, pay_max, pay_period, posted_at, created_at, expires_at, companies(name, website, logo_url)",
-      )
+      .select("*, companies(id, name, slug, description, location, website)")
       .eq("slug", params.slug)
       .maybeSingle();
-    return { meta: data };
+    return { job: data };
   },
   head: ({ params, loaderData }) => {
-    const m = loaderData?.meta as
+    const m = loaderData?.job as
       | {
           title: string;
           description: string;
@@ -187,6 +185,7 @@ const typeLabel: Record<string, string> = {
 
 function JobDetail() {
   const { slug } = Route.useParams();
+  const { job } = Route.useLoaderData();
   const { user } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -197,20 +196,6 @@ function JobDetail() {
   const [successOpen, setSuccessOpen] = useState(false);
   const appliedIds = useAppliedJobs();
   const quickApply = useQuickApplyReady();
-
-  const { data: job, isLoading } = useQuery({
-    queryKey: ["job", slug],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("jobs")
-        .select("*, companies(id, name, slug, description, location, website)")
-        .eq("slug", slug)
-        .maybeSingle();
-      if (error) throw error;
-      if (!data) throw notFound();
-      return data;
-    },
-  });
 
   const alreadyApplied = !!job && appliedIds.has(job.id);
 
@@ -331,15 +316,6 @@ function JobDetail() {
   }, [applyParam, user?.id, job?.id, screeningKnown, alreadyApplied]);
 
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <SiteHeader />
-        <JobDetailSkeleton />
-        <SiteFooter />
-      </div>
-    );
-  }
   if (!job) return null;
   const pay =
     job.pay_min && job.pay_max
