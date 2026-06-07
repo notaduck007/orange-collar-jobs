@@ -166,6 +166,24 @@ function CategoryPage() {
             ))}
           </div>
         )}
+
+        {cities.length > 0 && (
+          <section className="mt-12 border-t border-border pt-6">
+            <p className="label-caps text-muted-foreground">Browse by city</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {cities.map((c: CityEntry) => (
+                <Link
+                  key={c.slug}
+                  to="/warehouse-jobs/$citySlug"
+                  params={{ citySlug: c.slug }}
+                  className="rounded-full border border-border bg-card px-3 py-1.5 text-sm font-medium text-[color:var(--ink)] hover:border-primary/60 hover:text-primary"
+                >
+                  {c.city}, {c.state}
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
       </main>
       <SiteFooter />
     </div>
