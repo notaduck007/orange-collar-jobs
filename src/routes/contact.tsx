@@ -217,62 +217,9 @@ function Contact() {
         </div>
       </div>
 
-      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-16 sm:px-6 lg:grid-cols-5 lg:gap-10">
+      <div className="mx-auto max-w-[640px] px-4 py-16 sm:px-6">
+        <div className="overflow-hidden rounded-xl border border-border border-t-4 border-t-primary bg-card p-6 shadow-[var(--shadow-card)] sm:p-8">
 
-        <aside className="space-y-6 lg:col-span-2">
-          <div className="rounded-xl border border-border bg-card p-6 shadow-[var(--shadow-card)]">
-            <ul className="space-y-6 text-sm">
-              <li className="flex items-start gap-4">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                  <Phone className="h-5 w-5" />
-                </span>
-                <span>
-                  <strong className="block text-[color:var(--ink)]">(555) 480-DOCK</strong>
-                  <span className="text-muted-foreground">Mon–Fri, 7am–7pm CT</span>
-                </span>
-              </li>
-              <li className="flex items-start gap-4">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                  <Mail className="h-5 w-5" />
-                </span>
-                <span>
-                  <strong className="block text-[color:var(--ink)]">hiring@dockhire.example</strong>
-                </span>
-              </li>
-              <li className="flex items-start gap-4">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                  <MapPin className="h-5 w-5" />
-                </span>
-                <span className="text-[color:var(--ink)]">
-                  2400 Industrial Pkwy
-                  <br />
-                  Indianapolis, IN 46241
-                </span>
-              </li>
-            </ul>
-          </div>
-
-          <div className="rounded-xl border border-border bg-card p-6 shadow-[var(--shadow-card)]">
-            <div className="flex items-start gap-3">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                <Building2 className="h-4 w-4" />
-              </span>
-              <div>
-                <h2 className="text-base font-semibold text-[color:var(--ink)]">Looking to hire?</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  See posting packages and reach qualified warehouse workers fast.
-                </p>
-                <Link to="/pricing" className="mt-3 inline-block">
-                  <Button size="sm" variant="outline" className="gap-1.5">
-                    View pricing <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </div>
-        </aside>
-
-        <div className="overflow-hidden rounded-xl border border-border border-t-4 border-t-primary bg-card p-6 shadow-[var(--shadow-card)] sm:p-8 lg:col-span-3">
           {sent ? (
             <div className="py-6 text-center">
               <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
