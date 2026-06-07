@@ -12,7 +12,7 @@ import {
   MapPin,
   ArrowRight,
 } from "lucide-react";
-import heroImage from "@/assets/warehouse-hero.jpg";
+import heroImage from "@/assets/warehouse-hero.webp";
 import crewImage from "@/assets/crew-productive.webp";
 import workerMarcus from "@/assets/worker-marcus.webp";
 import workerAisha from "@/assets/worker-aisha.webp";
