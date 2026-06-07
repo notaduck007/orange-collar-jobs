@@ -59,13 +59,14 @@ export const Route = createFileRoute("/")({
 });
 
 const categories = [
-  { name: "Forklift Operator", icon: Forklift },
-  { name: "Picker / Packer", icon: Boxes },
-  { name: "Shipping & Receiving", icon: Truck },
-  { name: "Order Selector", icon: PackageCheck },
-  { name: "Inventory Clerk", icon: ClipboardList },
-  { name: "Warehouse Associate", icon: Warehouse },
+  { name: "Forklift Operator", slug: "forklift-operator", icon: Forklift },
+  { name: "Picker / Packer", slug: "picker-packer", icon: Boxes },
+  { name: "Shipping & Receiving", slug: "shipping-receiving", icon: Truck },
+  { name: "Order Selector", slug: "order-selector", icon: PackageCheck },
+  { name: "Inventory Clerk", slug: "inventory-clerk", icon: ClipboardList },
+  { name: "Warehouse Associate", slug: "warehouse-associate", icon: Warehouse },
 ];
+
 
 function Home() {
   const { featured } = Route.useLoaderData();
