@@ -533,7 +533,7 @@ function JobDetail() {
                 Similar jobs still hiring
               </h2>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                {similar.map((j) => (
+                {(similar as JobSummary[]).map((j) => (
                   <JobCard key={j.id} job={j} />
                 ))}
               </div>
