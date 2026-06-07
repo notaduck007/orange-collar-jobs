@@ -52,19 +52,7 @@ function Pricing() {
     if (checkout === "cancelled") toast.info("Checkout cancelled. No charge was made.");
   }, [checkout]);
 
-  const { data: packages = [] } = useQuery({
-    queryKey: ["packages"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("packages")
-        .select("*")
-        .eq("active", true)
-        .eq("kind", "posting")
-        .order("sort_order");
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
+  const { packages } = Route.useLoaderData();
 
   // Whether to show the "first post is free" banner: logged-out, or logged-in
   // employer whose active package still has an untouched free post.
