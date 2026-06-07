@@ -335,6 +335,7 @@ function JobDetail() {
     if (autoAppliedRef.current) return;
     if (applyParam !== 1) return;
     if (!user || !job || !screeningKnown) return;
+    if (expired) return;
     if (alreadyApplied) {
       autoAppliedRef.current = true;
       navigate({ to: "/jobs/$slug", params: { slug }, search: {}, replace: true });
