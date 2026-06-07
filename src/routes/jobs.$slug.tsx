@@ -52,15 +52,13 @@ export const Route = createFileRoute("/jobs/$slug")({
   loader: async ({ params }) => {
     const { data } = await supabase
       .from("jobs")
-      .select(
-        "title, description, location, category, city, state, zip, employment_type, pay_min, pay_max, pay_period, posted_at, created_at, expires_at, companies(name, website, logo_url)",
-      )
+      .select("*, companies(id, name, slug, description, location, website)")
       .eq("slug", params.slug)
       .maybeSingle();
-    return { meta: data };
+    return { job: data };
   },
   head: ({ params, loaderData }) => {
-    const m = loaderData?.meta as
+    const m = loaderData?.job as
       | {
           title: string;
           description: string;
