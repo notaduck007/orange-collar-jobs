@@ -68,25 +68,10 @@ const categories = [
 ];
 
 function Home() {
+  const { featured } = Route.useLoaderData();
   const navigate = useNavigate();
   const [keyword, setKeyword] = useState("");
   const [location, setLocation] = useState("");
-
-  const { data: featured = [], isLoading: featuredLoading } = useQuery({
-    queryKey: ["featured-jobs"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("jobs")
-        .select(
-          "id, slug, title, location, shift, employment_type, pay_min, pay_max, featured, category, companies(name, slug)",
-        )
-        .in("status", ["active", "published"])
-        .eq("featured", true)
-        .limit(4);
-      if (error) throw error;
-      return (data ?? []) as unknown as JobSummary[];
-    },
-  });
 
   const submitSearch = (e: React.FormEvent) => {
     e.preventDefault();
