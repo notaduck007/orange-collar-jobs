@@ -18,6 +18,15 @@ export const Route = createFileRoute("/pricing")({
   validateSearch: (s: Record<string, unknown>): Search => ({
     checkout: s.checkout === "success" || s.checkout === "cancelled" ? s.checkout : undefined,
   }),
+  loader: async () => {
+    const { data } = await supabase
+      .from("packages")
+      .select("*")
+      .eq("active", true)
+      .eq("kind", "posting")
+      .order("sort_order");
+    return { packages: data ?? [] };
+  },
   head: () => ({
     meta: [
       { title: "Posting Packages & Pricing — WarehouseJobs.com for Employers" },
