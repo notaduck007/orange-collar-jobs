@@ -179,7 +179,27 @@ function Contact() {
         </div>
       </section>
 
+      <div className="border-b border-border bg-background">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-6 gap-y-2 px-4 py-4 text-xs text-muted-foreground sm:px-6 sm:text-sm">
+          <span className="inline-flex items-center gap-1.5">
+            <Calendar className="h-3.5 w-3.5 text-primary" />
+            Replies within 1 business day
+          </span>
+          <span className="hidden text-muted-foreground/50 sm:inline">·</span>
+          <span className="inline-flex items-center gap-1.5">
+            <Clock className="h-3.5 w-3.5 text-primary" />
+            Mon–Fri, 7am–7pm CT
+          </span>
+          <span className="hidden text-muted-foreground/50 sm:inline">·</span>
+          <span className="inline-flex items-center gap-1.5">
+            <Users className="h-3.5 w-3.5 text-primary" />
+            Real humans, no bots
+          </span>
+        </div>
+      </div>
+
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-16 sm:px-6 lg:grid-cols-5 lg:gap-10">
+
         <aside className="space-y-6 lg:col-span-2">
           <div className="rounded-xl border border-border bg-card p-6 shadow-[var(--shadow-card)]">
             <ul className="space-y-6 text-sm">
