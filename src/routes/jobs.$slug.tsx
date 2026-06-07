@@ -216,7 +216,7 @@ const typeLabel: Record<string, string> = {
 
 function JobDetail() {
   const { slug } = Route.useParams();
-  const { job } = Route.useLoaderData();
+  const { job, expired, similar } = Route.useLoaderData();
   const { user } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
