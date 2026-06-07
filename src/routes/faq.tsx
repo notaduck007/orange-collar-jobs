@@ -80,7 +80,7 @@ function FAQ() {
       </section>
       <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
         <Accordion type="single" collapsible>
-          {faqs.map((f) => (
+          {faqs.map((f: { id: string; question: string; answer: string }) => (
             <AccordionItem key={f.id} value={f.id}>
               <AccordionTrigger className="text-left text-base font-semibold text-[color:var(--ink)]">
                 {f.question}
