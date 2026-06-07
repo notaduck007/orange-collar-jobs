@@ -33,17 +33,48 @@ export const Route = createFileRoute("/faq")({
       faqs: (faqsRes.data ?? []) as Array<{ id: string; question: string; answer: string }>,
     };
   },
-  head: () => ({
-    meta: [
-      { title: "FAQ — WarehouseJobs.com" },
-      {
-        name: "description",
-        content:
-          "Answers to common questions about finding warehouse jobs, applying, job alerts, and posting jobs on WarehouseJobs.",
-      },
-    ],
-    links: [{ rel: "canonical", href: canonical("/faq") }],
-  }),
+  head: ({ loaderData }) => {
+    const faqs = loaderData?.faqs ?? [];
+    const stripMd = (s: string) =>
+      s
+        .replace(/```[\s\S]*?```/g, "")
+        .replace(/`([^`]*)`/g, "$1")
+        .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
+        .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+        .replace(/^\s{0,3}#{1,6}\s+/gm, "")
+        .replace(/[*_~>]+/g, "")
+        .replace(/\s+/g, " ")
+        .trim();
+    const scripts =
+      faqs.length > 0
+        ? [
+            {
+              type: "application/ld+json",
+              children: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                mainEntity: faqs.map((f) => ({
+                  "@type": "Question",
+                  name: f.question,
+                  acceptedAnswer: { "@type": "Answer", text: stripMd(f.answer) },
+                })),
+              }),
+            },
+          ]
+        : undefined;
+    return {
+      meta: [
+        { title: "FAQ — WarehouseJobs.com" },
+        {
+          name: "description",
+          content:
+            "Answers to common questions about finding warehouse jobs, applying, job alerts, and posting jobs on WarehouseJobs.",
+        },
+      ],
+      links: [{ rel: "canonical", href: canonical("/faq") }],
+      scripts,
+    };
+  },
   component: FAQ,
 });
 
