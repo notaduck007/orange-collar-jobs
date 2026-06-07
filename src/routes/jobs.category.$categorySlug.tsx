@@ -4,6 +4,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { JobCard, type JobSummary } from "@/components/job-card";
 import { canonical } from "@/lib/seo";
+import { fetchActiveCities, type CityEntry } from "@/lib/locations";
 
 type CategoryInfo = {
   slug: string;
