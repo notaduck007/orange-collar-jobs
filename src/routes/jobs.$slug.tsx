@@ -1,4 +1,4 @@
-import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -25,7 +25,7 @@ import { ApplySuccessDialog } from "@/components/apply-success-dialog";
 import { AdSlot } from "@/components/ad-slot";
 import { ReportButton } from "@/components/report-button";
 import { useAppliedJobs, useQuickApplyReady } from "@/hooks/use-applied-jobs";
-import { JobDetailSkeleton } from "@/components/ui/skeleton-list";
+
 import { canonical } from "@/lib/seo";
 
 const EMPLOYMENT_TYPE_SCHEMA: Record<string, string> = {
