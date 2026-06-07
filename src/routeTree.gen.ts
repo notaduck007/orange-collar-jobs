@@ -51,6 +51,7 @@ import { Route as AdminCompaniesRouteImport } from './routes/admin.companies'
 import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
 import { Route as AdminBillingRouteImport } from './routes/admin.billing'
 import { Route as AdminAdsRouteImport } from './routes/admin.ads'
+import { Route as JobsCategoryCategorySlugRouteImport } from './routes/jobs.category.$categorySlug'
 import { Route as EmployerJobsNewRouteImport } from './routes/employer.jobs.new'
 import { Route as BillingReceiptOrderIdRouteImport } from './routes/billing.receipt.$orderId'
 import { Route as EmployerJobsIdEditRouteImport } from './routes/employer.jobs.$id.edit'
@@ -266,6 +267,12 @@ const AdminAdsRoute = AdminAdsRouteImport.update({
   path: '/ads',
   getParentRoute: () => AdminRoute,
 } as any)
+const JobsCategoryCategorySlugRoute =
+  JobsCategoryCategorySlugRouteImport.update({
+    id: '/category/$categorySlug',
+    path: '/category/$categorySlug',
+    getParentRoute: () => JobsRoute,
+  } as any)
 const EmployerJobsNewRoute = EmployerJobsNewRouteImport.update({
   id: '/jobs/new',
   path: '/jobs/new',
@@ -333,6 +340,7 @@ export interface FileRoutesByFullPath {
   '/seeker/': typeof SeekerIndexRoute
   '/billing/receipt/$orderId': typeof BillingReceiptOrderIdRoute
   '/employer/jobs/new': typeof EmployerJobsNewRoute
+  '/jobs/category/$categorySlug': typeof JobsCategoryCategorySlugRoute
   '/employer/jobs/$id/applicants': typeof EmployerJobsIdApplicantsRoute
   '/employer/jobs/$id/edit': typeof EmployerJobsIdEditRoute
 }
@@ -378,6 +386,7 @@ export interface FileRoutesByTo {
   '/seeker': typeof SeekerIndexRoute
   '/billing/receipt/$orderId': typeof BillingReceiptOrderIdRoute
   '/employer/jobs/new': typeof EmployerJobsNewRoute
+  '/jobs/category/$categorySlug': typeof JobsCategoryCategorySlugRoute
   '/employer/jobs/$id/applicants': typeof EmployerJobsIdApplicantsRoute
   '/employer/jobs/$id/edit': typeof EmployerJobsIdEditRoute
 }
@@ -427,6 +436,7 @@ export interface FileRoutesById {
   '/seeker/': typeof SeekerIndexRoute
   '/billing/receipt/$orderId': typeof BillingReceiptOrderIdRoute
   '/employer/jobs/new': typeof EmployerJobsNewRoute
+  '/jobs/category/$categorySlug': typeof JobsCategoryCategorySlugRoute
   '/employer/jobs/$id/applicants': typeof EmployerJobsIdApplicantsRoute
   '/employer/jobs/$id/edit': typeof EmployerJobsIdEditRoute
 }
@@ -477,6 +487,7 @@ export interface FileRouteTypes {
     | '/seeker/'
     | '/billing/receipt/$orderId'
     | '/employer/jobs/new'
+    | '/jobs/category/$categorySlug'
     | '/employer/jobs/$id/applicants'
     | '/employer/jobs/$id/edit'
   fileRoutesByTo: FileRoutesByTo
@@ -522,6 +533,7 @@ export interface FileRouteTypes {
     | '/seeker'
     | '/billing/receipt/$orderId'
     | '/employer/jobs/new'
+    | '/jobs/category/$categorySlug'
     | '/employer/jobs/$id/applicants'
     | '/employer/jobs/$id/edit'
   id:
@@ -570,6 +582,7 @@ export interface FileRouteTypes {
     | '/seeker/'
     | '/billing/receipt/$orderId'
     | '/employer/jobs/new'
+    | '/jobs/category/$categorySlug'
     | '/employer/jobs/$id/applicants'
     | '/employer/jobs/$id/edit'
   fileRoutesById: FileRoutesById
@@ -888,6 +901,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAdsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/jobs/category/$categorySlug': {
+      id: '/jobs/category/$categorySlug'
+      path: '/category/$categorySlug'
+      fullPath: '/jobs/category/$categorySlug'
+      preLoaderRoute: typeof JobsCategoryCategorySlugRouteImport
+      parentRoute: typeof JobsRoute
+    }
     '/employer/jobs/new': {
       id: '/employer/jobs/new'
       path: '/jobs/new'
@@ -987,10 +1007,12 @@ const EmployerRouteWithChildren = EmployerRoute._addFileChildren(
 
 interface JobsRouteChildren {
   JobsSlugRoute: typeof JobsSlugRoute
+  JobsCategoryCategorySlugRoute: typeof JobsCategoryCategorySlugRoute
 }
 
 const JobsRouteChildren: JobsRouteChildren = {
   JobsSlugRoute: JobsSlugRoute,
+  JobsCategoryCategorySlugRoute: JobsCategoryCategorySlugRoute,
 }
 
 const JobsRouteWithChildren = JobsRoute._addFileChildren(JobsRouteChildren)

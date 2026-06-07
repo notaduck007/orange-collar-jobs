@@ -24,6 +24,12 @@ export const Route = createFileRoute("/sitemap.xml")({
           { path: "/faq", changefreq: "monthly", priority: "0.5" },
           { path: "/mission", changefreq: "monthly", priority: "0.5" },
           { path: "/privacy", changefreq: "yearly", priority: "0.3" },
+          { path: "/jobs/category/forklift-operator", changefreq: "daily", priority: "0.8" },
+          { path: "/jobs/category/picker-packer", changefreq: "daily", priority: "0.8" },
+          { path: "/jobs/category/shipping-receiving", changefreq: "daily", priority: "0.8" },
+          { path: "/jobs/category/order-selector", changefreq: "daily", priority: "0.8" },
+          { path: "/jobs/category/inventory-clerk", changefreq: "daily", priority: "0.8" },
+          { path: "/jobs/category/warehouse-associate", changefreq: "daily", priority: "0.8" },
         ];
 
         try {
