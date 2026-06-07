@@ -15,6 +15,15 @@ import { Markdown } from "@/components/markdown";
 import { canonical } from "@/lib/seo";
 
 export const Route = createFileRoute("/contact")({
+  loader: async () => {
+    const { data } = await supabase
+      .from("site_pages")
+      .select("title, body")
+      .eq("slug", "contact")
+      .eq("published", true)
+      .maybeSingle();
+    return { page: data ?? null };
+  },
   head: () => ({
     meta: [
       { title: "Contact — WarehouseJobs.com" },
