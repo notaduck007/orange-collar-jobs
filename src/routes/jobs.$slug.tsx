@@ -124,20 +124,43 @@ export const Route = createFileRoute("/jobs/$slug")({
               },
             }
           : undefined;
+      const datePosted = m.posted_at ?? m.created_at ?? undefined;
+      let validThrough = m.expires_at ?? undefined;
+      if (!validThrough && datePosted) {
+        const d = new Date(datePosted);
+        if (!isNaN(d.getTime())) {
+          d.setUTCDate(d.getUTCDate() + 60);
+          validThrough = d.toISOString();
+        }
+      }
+      const rawLogo = m.companies?.logo_url ?? undefined;
+      const logo = rawLogo
+        ? /^https?:\/\//i.test(rawLogo)
+          ? rawLogo
+          : `https://warehousejobs.com${rawLogo.startsWith("/") ? "" : "/"}${rawLogo}`
+        : undefined;
+      const descHtml = (m.description ?? "")
+        .split(/\n\s*\n/)
+        .map((p) => p.trim())
+        .filter(Boolean)
+        .map((p) => `<p>${p}</p>`)
+        .join("");
       jsonLd = {
         "@context": "https://schema.org",
         "@type": "JobPosting",
         title: m.title,
-        description: m.description,
-        datePosted: m.posted_at ?? m.created_at ?? undefined,
-        validThrough: m.expires_at ?? undefined,
+        description: descHtml,
+        identifier: { "@type": "PropertyValue", name: "WarehouseJobs", value: params.slug },
+        url: `https://warehousejobs.com/jobs/${params.slug}`,
+        datePosted,
+        validThrough,
         employmentType,
         hiringOrganization: company
           ? {
               "@type": "Organization",
               name: company,
               sameAs: m.companies?.website ?? undefined,
-              logo: m.companies?.logo_url ?? undefined,
+              logo,
             }
           : undefined,
         jobLocation: {
@@ -155,6 +178,7 @@ export const Route = createFileRoute("/jobs/$slug")({
         directApply: true,
       };
     }
+
 
     const meta: Array<Record<string, string>> = [
       { title },
