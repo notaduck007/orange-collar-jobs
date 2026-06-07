@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
@@ -8,6 +7,15 @@ import aboutHero from "@/assets/about-hero.jpg";
 import { canonical } from "@/lib/seo";
 
 export const Route = createFileRoute("/about")({
+  loader: async () => {
+    const { data } = await supabase
+      .from("site_pages")
+      .select("title, body, meta_description")
+      .eq("slug", "about")
+      .eq("published", true)
+      .maybeSingle();
+    return { page: data ?? null };
+  },
   head: () => ({
     meta: [
       { title: "About — WarehouseJobs.com" },
@@ -23,18 +31,7 @@ export const Route = createFileRoute("/about")({
 });
 
 function About() {
-  const { data: page } = useQuery({
-    queryKey: ["site-page", "about"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("site_pages")
-        .select("title, body, meta_description")
-        .eq("slug", "about")
-        .eq("published", true)
-        .maybeSingle();
-      return data;
-    },
-  });
+  const { page } = Route.useLoaderData();
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />

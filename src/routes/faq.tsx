@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
@@ -14,6 +13,23 @@ import {
 import { canonical } from "@/lib/seo";
 
 export const Route = createFileRoute("/faq")({
+  loader: async () => {
+    const [pageRes, faqsRes] = await Promise.all([
+      supabase
+        .from("site_pages")
+        .select("title, body")
+        .eq("slug", "faq")
+        .eq("published", true)
+        .maybeSingle(),
+      supabase
+        .from("faq_items")
+        .select("id, question, answer")
+        .eq("published", true)
+        .order("sort_order")
+        .order("created_at"),
+    ]);
+    return { page: pageRes.data ?? null, faqs: faqsRes.data ?? [] };
+  },
   head: () => ({
     meta: [
       { title: "FAQ — WarehouseJobs.com" },
@@ -29,30 +45,7 @@ export const Route = createFileRoute("/faq")({
 });
 
 function FAQ() {
-  const { data: page } = useQuery({
-    queryKey: ["site-page", "faq"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("site_pages")
-        .select("title, body")
-        .eq("slug", "faq")
-        .eq("published", true)
-        .maybeSingle();
-      return data;
-    },
-  });
-  const { data: faqs = [] } = useQuery({
-    queryKey: ["faq-items"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("faq_items")
-        .select("id, question, answer")
-        .eq("published", true)
-        .order("sort_order")
-        .order("created_at");
-      return data ?? [];
-    },
-  });
+  const { page, faqs } = Route.useLoaderData();
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />

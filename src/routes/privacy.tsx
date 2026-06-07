@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
@@ -7,6 +6,15 @@ import { Markdown } from "@/components/markdown";
 import { canonical } from "@/lib/seo";
 
 export const Route = createFileRoute("/privacy")({
+  loader: async () => {
+    const { data } = await supabase
+      .from("site_pages")
+      .select("title, body, meta_description")
+      .eq("slug", "privacy")
+      .eq("published", true)
+      .maybeSingle();
+    return { page: data ?? null };
+  },
   head: () => ({
     meta: [
       { title: "Privacy Policy — WarehouseJobs.com" },
@@ -21,18 +29,7 @@ export const Route = createFileRoute("/privacy")({
 });
 
 function PrivacyPage() {
-  const { data: page } = useQuery({
-    queryKey: ["site-page", "privacy"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("site_pages")
-        .select("title, body, meta_description")
-        .eq("slug", "privacy")
-        .eq("published", true)
-        .maybeSingle();
-      return data;
-    },
-  });
+  const { page } = Route.useLoaderData();
 
   return (
     <div className="min-h-screen bg-background">
@@ -43,7 +40,7 @@ function PrivacyPage() {
           {page?.title ?? "Privacy Policy"}
         </h1>
         <div className="mt-8 text-base leading-relaxed text-foreground">
-          <Markdown>{page?.body ?? "Loading…"}</Markdown>
+          <Markdown>{page?.body ?? ""}</Markdown>
         </div>
       </article>
       <SiteFooter />
