@@ -185,6 +185,7 @@ const typeLabel: Record<string, string> = {
 
 function JobDetail() {
   const { slug } = Route.useParams();
+  const { job } = Route.useLoaderData();
   const { user } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -195,20 +196,6 @@ function JobDetail() {
   const [successOpen, setSuccessOpen] = useState(false);
   const appliedIds = useAppliedJobs();
   const quickApply = useQuickApplyReady();
-
-  const { data: job, isLoading } = useQuery({
-    queryKey: ["job", slug],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("jobs")
-        .select("*, companies(id, name, slug, description, location, website)")
-        .eq("slug", slug)
-        .maybeSingle();
-      if (error) throw error;
-      if (!data) throw notFound();
-      return data;
-    },
-  });
 
   const alreadyApplied = !!job && appliedIds.has(job.id);
 
