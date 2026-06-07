@@ -196,14 +196,33 @@ export const Route = createFileRoute("/jobs/$slug")({
     }
 
     const emitCanonical = !!m && !expired;
+    const breadcrumbLd =
+      m && !expired
+        ? {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "Home", item: "https://warehousejobs.com/" },
+              { "@type": "ListItem", position: 2, name: "Jobs", item: "https://warehousejobs.com/jobs" },
+              {
+                "@type": "ListItem",
+                position: 3,
+                name: m.title,
+                item: `https://warehousejobs.com/jobs/${params.slug}`,
+              },
+            ],
+          }
+        : null;
+    const scripts: Array<{ type: string; children: string }> = [];
+    if (jsonLd) scripts.push({ type: "application/ld+json", children: JSON.stringify(jsonLd) });
+    if (breadcrumbLd)
+      scripts.push({ type: "application/ld+json", children: JSON.stringify(breadcrumbLd) });
     return {
       meta,
       links: emitCanonical
         ? [{ rel: "canonical", href: canonical(`/jobs/${params.slug}`) }]
         : undefined,
-      scripts: jsonLd
-        ? [{ type: "application/ld+json", children: JSON.stringify(jsonLd) }]
-        : undefined,
+      scripts: scripts.length ? scripts : undefined,
     };
   },
   component: JobDetail,
