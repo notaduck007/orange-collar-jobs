@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+
 import {
   Forklift,
   Boxes,
@@ -23,7 +23,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Button } from "@/components/ui/button";
 import { AdSlot } from "@/components/ad-slot";
-import { JobCardSkeletonList } from "@/components/ui/skeleton-list";
+
 import { canonical } from "@/lib/seo";
 
 export const Route = createFileRoute("/")({
