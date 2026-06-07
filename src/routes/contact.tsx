@@ -1,6 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Mail, Phone, MapPin, Building2, ArrowRight, Check, Loader2 } from "lucide-react";
+import { Mail, Phone, MapPin, Building2, ArrowRight, Check, Loader2, Clock, Calendar, Users } from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
