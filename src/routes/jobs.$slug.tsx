@@ -453,73 +453,92 @@ function JobDetail() {
               )}
             </section>
 
-            <div className="mt-8 space-y-3">
-              {user && quickApply.ready && !hasScreening && !alreadyApplied && (
-                <div className="rounded-lg border border-dashed border-border bg-background p-3">
-                  <button
-                    type="button"
-                    onClick={() => setCoverOpen((v) => !v)}
-                    className="flex w-full items-center justify-between text-sm font-medium text-muted-foreground hover:text-primary"
-                  >
-                    <span>Add a cover note (optional)</span>
-                    {coverOpen ? (
-                      <ChevronUp className="h-4 w-4" />
-                    ) : (
-                      <ChevronDown className="h-4 w-4" />
-                    )}
-                  </button>
-                  {coverOpen && (
-                    <Textarea
-                      className="mt-3"
-                      rows={4}
-                      maxLength={2000}
-                      placeholder="A quick note to the hiring manager…"
-                      value={coverNote}
-                      onChange={(e) => setCoverNote(e.target.value)}
-                    />
-                  )}
-                </div>
-              )}
-              <div className="flex flex-wrap gap-2">
-                {alreadyApplied ? (
-                  <Button disabled className="btn-primary !px-6 gap-1.5 opacity-90">
-                    <CheckCircle2 className="h-4 w-4" /> Applied
-                  </Button>
-                ) : (
-                  <Button onClick={apply} disabled={quickSubmitting} className="btn-primary !px-6">
-                    {quickSubmitting
-                      ? "Sending…"
-                      : user && quickApply.ready && !hasScreening
-                        ? "Quick apply"
-                        : "Apply now"}
-                  </Button>
-                )}
-                <Button variant="outline" onClick={save} className="gap-1.5">
-                  <Bookmark className="h-4 w-4" /> Save
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    navigator.clipboard.writeText(window.location.href);
-                    toast.success("Link copied");
-                  }}
-                  className="gap-1.5"
-                >
-                  <Share2 className="h-4 w-4" /> Share
-                </Button>
-                {job && <ReportButton entityType="job" entityId={job.id} variant="outline" />}
+            {expired ? (
+              <div className="mt-8 rounded-lg border border-border bg-muted p-4 text-sm text-foreground">
+                This job is no longer accepting applications.
               </div>
-              {user && !quickApply.ready && !alreadyApplied && (
-                <p className="text-xs text-muted-foreground">
-                  Tip:{" "}
-                  <Link to="/seeker/profile" className="text-primary hover:underline">
-                    complete your profile
-                  </Link>{" "}
-                  to enable one-click quick apply.
-                </p>
-              )}
-            </div>
+            ) : (
+              <div className="mt-8 space-y-3">
+                {user && quickApply.ready && !hasScreening && !alreadyApplied && (
+                  <div className="rounded-lg border border-dashed border-border bg-background p-3">
+                    <button
+                      type="button"
+                      onClick={() => setCoverOpen((v) => !v)}
+                      className="flex w-full items-center justify-between text-sm font-medium text-muted-foreground hover:text-primary"
+                    >
+                      <span>Add a cover note (optional)</span>
+                      {coverOpen ? (
+                        <ChevronUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      )}
+                    </button>
+                    {coverOpen && (
+                      <Textarea
+                        className="mt-3"
+                        rows={4}
+                        maxLength={2000}
+                        placeholder="A quick note to the hiring manager…"
+                        value={coverNote}
+                        onChange={(e) => setCoverNote(e.target.value)}
+                      />
+                    )}
+                  </div>
+                )}
+                <div className="flex flex-wrap gap-2">
+                  {alreadyApplied ? (
+                    <Button disabled className="btn-primary !px-6 gap-1.5 opacity-90">
+                      <CheckCircle2 className="h-4 w-4" /> Applied
+                    </Button>
+                  ) : (
+                    <Button onClick={apply} disabled={quickSubmitting} className="btn-primary !px-6">
+                      {quickSubmitting
+                        ? "Sending…"
+                        : user && quickApply.ready && !hasScreening
+                          ? "Quick apply"
+                          : "Apply now"}
+                    </Button>
+                  )}
+                  <Button variant="outline" onClick={save} className="gap-1.5">
+                    <Bookmark className="h-4 w-4" /> Save
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      navigator.clipboard.writeText(window.location.href);
+                      toast.success("Link copied");
+                    }}
+                    className="gap-1.5"
+                  >
+                    <Share2 className="h-4 w-4" /> Share
+                  </Button>
+                  {job && <ReportButton entityType="job" entityId={job.id} variant="outline" />}
+                </div>
+                {user && !quickApply.ready && !alreadyApplied && (
+                  <p className="text-xs text-muted-foreground">
+                    Tip:{" "}
+                    <Link to="/seeker/profile" className="text-primary hover:underline">
+                      complete your profile
+                    </Link>{" "}
+                    to enable one-click quick apply.
+                  </p>
+                )}
+              </div>
+            )}
           </div>
+
+          {expired && similar.length > 0 && (
+            <section className="mt-8">
+              <h2 className="text-lg font-semibold text-[color:var(--ink)]">
+                Similar jobs still hiring
+              </h2>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                {similar.map((j) => (
+                  <JobCard key={j.id} job={j} />
+                ))}
+              </div>
+            </section>
+          )}
         </main>
 
         <aside className="space-y-4">
