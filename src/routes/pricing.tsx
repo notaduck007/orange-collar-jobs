@@ -13,6 +13,15 @@ import crewImage from "@/assets/crew-productive.webp";
 import { canonical } from "@/lib/seo";
 
 type Search = { checkout?: "success" | "cancelled" };
+type PostingPackage = {
+  id: string;
+  name: string;
+  description: string | null;
+  price_cents: number;
+  posting_count: number;
+  duration_days: number;
+  featured_count: number;
+};
 
 export const Route = createFileRoute("/pricing")({
   validateSearch: (s: Record<string, unknown>): Search => ({
