@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Mail, Phone, MapPin } from "lucide-react";
 import { z } from "zod";
@@ -16,6 +15,15 @@ import { Markdown } from "@/components/markdown";
 import { canonical } from "@/lib/seo";
 
 export const Route = createFileRoute("/contact")({
+  loader: async () => {
+    const { data } = await supabase
+      .from("site_pages")
+      .select("title, body")
+      .eq("slug", "contact")
+      .eq("published", true)
+      .maybeSingle();
+    return { page: data ?? null };
+  },
   head: () => ({
     meta: [
       { title: "Contact — WarehouseJobs.com" },
@@ -41,18 +49,7 @@ const schema = z.object({
 function Contact() {
   const { user } = useAuth();
   const [sending, setSending] = useState(false);
-  const { data: page } = useQuery({
-    queryKey: ["site-page", "contact"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("site_pages")
-        .select("title, body")
-        .eq("slug", "contact")
-        .eq("published", true)
-        .maybeSingle();
-      return data;
-    },
-  });
+  const { page } = Route.useLoaderData();
 
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

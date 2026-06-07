@@ -1,28 +1,39 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Building2, Globe, MapPin, ArrowLeft, BadgeCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { JobCard, type JobSummary } from "@/components/job-card";
 import { ReportButton } from "@/components/report-button";
-import { CompanyProfileSkeleton } from "@/components/ui/skeleton-list";
 import { canonical } from "@/lib/seo";
 
 export const Route = createFileRoute("/companies/$slug")({
   loader: async ({ params }) => {
-    const { data } = await supabase
+    const { data: company } = await supabase
       .from("companies")
-      .select("name, description, location, logo_url")
+      .select(
+        "id, name, description, location, website, logo_url, hq_city, hq_state, industry, verified",
+      )
       .eq("slug", params.slug)
       .maybeSingle();
-    return { meta: data };
+    if (!company) return { company: null, jobs: [] as JobSummary[] };
+    const { data: jobsData } = await supabase
+      .from("jobs")
+      .select(
+        "id, slug, title, location, shift, employment_type, pay_min, pay_max, featured, category",
+      )
+      .eq("company_id", company.id)
+      .in("status", ["active", "published"])
+      .order("featured", { ascending: false })
+      .order("created_at", { ascending: false });
+    const jobs = (jobsData ?? []).map((j) => ({
+      ...j,
+      companies: { name: company.name, slug: params.slug, verified: company.verified },
+    })) as JobSummary[];
+    return { company, jobs };
   },
   head: ({ params, loaderData }) => {
-    const m = loaderData?.meta as
-      | { name: string; description: string | null; location: string | null }
-      | null
-      | undefined;
+    const m = loaderData?.company;
     const title = m ? `${m.name} — Warehouse jobs | WarehouseJobs.com` : "Company | WarehouseJobs.com";
     const desc = m
       ? (m.description ?? "").slice(0, 155).replace(/\s+/g, " ").trim() ||
@@ -55,54 +66,22 @@ export const Route = createFileRoute("/companies/$slug")({
 });
 
 function CompanyProfile() {
-  const { slug } = Route.useParams();
+  const { company, jobs } = Route.useLoaderData();
 
-  const { data: company, isLoading } = useQuery({
-    queryKey: ["company", slug],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("companies")
-        .select(
-          "id, name, description, location, website, logo_url, hq_city, hq_state, industry, verified",
-        )
-        .eq("slug", slug)
-        .maybeSingle();
-      if (error) throw error;
-      if (!data) throw notFound();
-      return data;
-    },
-  });
-
-  const { data: jobs = [] } = useQuery({
-    queryKey: ["company-jobs", company?.id],
-    enabled: !!company?.id,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("jobs")
-        .select(
-          "id, slug, title, location, shift, employment_type, pay_min, pay_max, featured, category",
-        )
-        .eq("company_id", company!.id)
-        .in("status", ["active", "published"])
-        .order("featured", { ascending: false })
-        .order("created_at", { ascending: false });
-      return (data ?? []).map((j) => ({
-        ...j,
-        companies: { name: company!.name, slug, verified: company!.verified },
-      })) as JobSummary[];
-    },
-  });
-
-  if (isLoading) {
+  if (!company) {
     return (
       <div className="min-h-screen bg-background">
         <SiteHeader />
-        <CompanyProfileSkeleton />
+        <div className="p-12 text-center">
+          <p className="text-lg font-semibold">Company not found</p>
+          <Link to="/jobs" className="mt-2 inline-block text-primary hover:underline">
+            Browse jobs
+          </Link>
+        </div>
         <SiteFooter />
       </div>
     );
   }
-  if (!company) return null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -185,7 +164,7 @@ function CompanyProfile() {
             </p>
           ) : (
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              {jobs.map((j) => (
+              {(jobs as JobSummary[]).map((j) => (
                 <JobCard key={j.id} job={j} />
               ))}
             </div>

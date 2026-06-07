@@ -13,11 +13,29 @@ import crewImage from "@/assets/crew-productive.webp";
 import { canonical } from "@/lib/seo";
 
 type Search = { checkout?: "success" | "cancelled" };
+type PostingPackage = {
+  id: string;
+  name: string;
+  description: string | null;
+  price_cents: number;
+  posting_count: number;
+  duration_days: number;
+  featured_count: number;
+};
 
 export const Route = createFileRoute("/pricing")({
   validateSearch: (s: Record<string, unknown>): Search => ({
     checkout: s.checkout === "success" || s.checkout === "cancelled" ? s.checkout : undefined,
   }),
+  loader: async () => {
+    const { data } = await supabase
+      .from("packages")
+      .select("*")
+      .eq("active", true)
+      .eq("kind", "posting")
+      .order("sort_order");
+    return { packages: data ?? [] };
+  },
   head: () => ({
     meta: [
       { title: "Posting Packages & Pricing — WarehouseJobs.com for Employers" },
@@ -43,19 +61,7 @@ function Pricing() {
     if (checkout === "cancelled") toast.info("Checkout cancelled. No charge was made.");
   }, [checkout]);
 
-  const { data: packages = [] } = useQuery({
-    queryKey: ["packages"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("packages")
-        .select("*")
-        .eq("active", true)
-        .eq("kind", "posting")
-        .order("sort_order");
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
+  const { packages } = Route.useLoaderData();
 
   // Whether to show the "first post is free" banner: logged-out, or logged-in
   // employer whose active package still has an untouched free post.
@@ -212,7 +218,7 @@ function Pricing() {
           </h2>
         </div>
         <div className="grid gap-6 md:grid-cols-3">
-          {packages.map((p, idx) => {
+          {(packages as PostingPackage[]).map((p, idx) => {
             const popular = idx === 1;
             const loading = buyingId === p.id;
             return (
