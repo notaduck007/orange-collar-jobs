@@ -36,8 +36,82 @@ const searchSchema = z.object({
 
 const RADIUS_OPTIONS = [10, 25, 50, 100] as const;
 
+const PAGE_SIZE = 20;
+
+async function fetchDefaultJobsPage() {
+  const { data, error } = await supabase.rpc("search_jobs", {
+    p_query: null,
+    p_location: null,
+    p_category: null,
+    p_shift: null,
+    p_type: null,
+    p_pay_min: undefined,
+    p_radius_miles: undefined,
+    p_sort: "date",
+    p_limit: PAGE_SIZE,
+    p_offset: 0,
+    p_temperature_env: null,
+    p_certifications: null,
+    p_weekly_pay: null,
+    p_quick_hire: null,
+    p_overtime: null,
+    p_max_lift: null,
+  } as never);
+  if (error) throw error;
+  const rows = (data ?? []) as Array<{
+    id: string;
+    slug: string;
+    title: string;
+    location: string;
+    shift: string;
+    employment_type: string;
+    pay_min: number | null;
+    pay_max: number | null;
+    category: string;
+    featured: boolean;
+    company_name: string | null;
+    company_slug: string | null;
+    company_verified: boolean | null;
+    temperature_env: string | null;
+    certifications_required: string[] | null;
+    weekly_pay: boolean | null;
+    quick_hire: boolean | null;
+    overtime_available: boolean | null;
+    lift_requirement_lbs: number | null;
+    has_screening: boolean | null;
+    total_count: number;
+  }>;
+  const jobs: JobSummary[] = rows.map((r) => ({
+    id: r.id,
+    slug: r.slug,
+    title: r.title,
+    location: r.location,
+    shift: r.shift,
+    employment_type: r.employment_type,
+    pay_min: r.pay_min,
+    pay_max: r.pay_max,
+    featured: r.featured,
+    category: r.category,
+    companies: r.company_name
+      ? { name: r.company_name, slug: r.company_slug ?? "", verified: r.company_verified }
+      : null,
+    temperature_env: r.temperature_env,
+    certifications_required: r.certifications_required,
+    weekly_pay: r.weekly_pay,
+    quick_hire: r.quick_hire,
+    overtime_available: r.overtime_available,
+    lift_requirement_lbs: r.lift_requirement_lbs,
+    has_screening: !!r.has_screening,
+  }));
+  return { jobs, total: rows[0]?.total_count ?? 0, offset: 0 };
+}
+
 export const Route = createFileRoute("/jobs")({
   validateSearch: searchSchema,
+  loader: async () => {
+    const initialPage = await fetchDefaultJobsPage();
+    return { initialPage };
+  },
   head: () => ({
     meta: [
       { title: "Warehouse Job Search — WarehouseJobs.com" },
