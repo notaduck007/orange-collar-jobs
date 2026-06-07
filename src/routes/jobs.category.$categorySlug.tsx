@@ -159,7 +159,7 @@ function CategoryPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {jobs.map((j) => (
+            {jobs.map((j: JobSummary) => (
               <JobCard key={j.id} job={j} />
             ))}
           </div>
