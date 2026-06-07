@@ -164,7 +164,7 @@ function CompanyProfile() {
             </p>
           ) : (
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              {jobs.map((j) => (
+              {(jobs as JobSummary[]).map((j) => (
                 <JobCard key={j.id} job={j} />
               ))}
             </div>
