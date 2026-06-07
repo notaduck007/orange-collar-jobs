@@ -367,7 +367,27 @@ function Contact() {
             </form>
           )}
         </div>
+
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-border bg-card px-5 py-4 shadow-[var(--shadow-card)]">
+          <div className="flex items-center gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <Building2 className="h-4 w-4" />
+            </span>
+            <div>
+              <h2 className="text-sm font-semibold text-[color:var(--ink)]">Looking to hire?</h2>
+              <p className="text-xs text-muted-foreground">
+                See posting packages and reach qualified warehouse workers fast.
+              </p>
+            </div>
+          </div>
+          <Link to="/pricing">
+            <Button size="sm" variant="outline" className="gap-1.5">
+              View pricing <ArrowRight className="h-4 w-4" />
+            </Button>
+          </Link>
+        </div>
       </div>
+
 
       <section className="border-t border-border bg-card/40">
         <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 sm:py-20">
