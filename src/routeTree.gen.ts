@@ -25,6 +25,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as SeekerIndexRouteImport } from './routes/seeker.index'
 import { Route as EmployerIndexRouteImport } from './routes/employer.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as WarehouseJobsCitySlugRouteImport } from './routes/warehouse-jobs.$citySlug'
 import { Route as SeekerSavedRouteImport } from './routes/seeker.saved'
 import { Route as SeekerProfileRouteImport } from './routes/seeker.profile'
 import { Route as SeekerPrivacyRouteImport } from './routes/seeker.privacy'
@@ -136,6 +137,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AdminRoute,
+} as any)
+const WarehouseJobsCitySlugRoute = WarehouseJobsCitySlugRouteImport.update({
+  id: '/warehouse-jobs/$citySlug',
+  path: '/warehouse-jobs/$citySlug',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const SeekerSavedRoute = SeekerSavedRouteImport.update({
   id: '/saved',
@@ -335,6 +341,7 @@ export interface FileRoutesByFullPath {
   '/seeker/privacy': typeof SeekerPrivacyRoute
   '/seeker/profile': typeof SeekerProfileRoute
   '/seeker/saved': typeof SeekerSavedRoute
+  '/warehouse-jobs/$citySlug': typeof WarehouseJobsCitySlugRoute
   '/admin/': typeof AdminIndexRoute
   '/employer/': typeof EmployerIndexRoute
   '/seeker/': typeof SeekerIndexRoute
@@ -381,6 +388,7 @@ export interface FileRoutesByTo {
   '/seeker/privacy': typeof SeekerPrivacyRoute
   '/seeker/profile': typeof SeekerProfileRoute
   '/seeker/saved': typeof SeekerSavedRoute
+  '/warehouse-jobs/$citySlug': typeof WarehouseJobsCitySlugRoute
   '/admin': typeof AdminIndexRoute
   '/employer': typeof EmployerIndexRoute
   '/seeker': typeof SeekerIndexRoute
@@ -431,6 +439,7 @@ export interface FileRoutesById {
   '/seeker/privacy': typeof SeekerPrivacyRoute
   '/seeker/profile': typeof SeekerProfileRoute
   '/seeker/saved': typeof SeekerSavedRoute
+  '/warehouse-jobs/$citySlug': typeof WarehouseJobsCitySlugRoute
   '/admin/': typeof AdminIndexRoute
   '/employer/': typeof EmployerIndexRoute
   '/seeker/': typeof SeekerIndexRoute
@@ -482,6 +491,7 @@ export interface FileRouteTypes {
     | '/seeker/privacy'
     | '/seeker/profile'
     | '/seeker/saved'
+    | '/warehouse-jobs/$citySlug'
     | '/admin/'
     | '/employer/'
     | '/seeker/'
@@ -528,6 +538,7 @@ export interface FileRouteTypes {
     | '/seeker/privacy'
     | '/seeker/profile'
     | '/seeker/saved'
+    | '/warehouse-jobs/$citySlug'
     | '/admin'
     | '/employer'
     | '/seeker'
@@ -577,6 +588,7 @@ export interface FileRouteTypes {
     | '/seeker/privacy'
     | '/seeker/profile'
     | '/seeker/saved'
+    | '/warehouse-jobs/$citySlug'
     | '/admin/'
     | '/employer/'
     | '/seeker/'
@@ -602,6 +614,7 @@ export interface RootRouteChildren {
   SeekerRoute: typeof SeekerRouteWithChildren
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   CompaniesSlugRoute: typeof CompaniesSlugRoute
+  WarehouseJobsCitySlugRoute: typeof WarehouseJobsCitySlugRoute
   BillingReceiptOrderIdRoute: typeof BillingReceiptOrderIdRoute
 }
 
@@ -718,6 +731,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/warehouse-jobs/$citySlug': {
+      id: '/warehouse-jobs/$citySlug'
+      path: '/warehouse-jobs/$citySlug'
+      fullPath: '/warehouse-jobs/$citySlug'
+      preLoaderRoute: typeof WarehouseJobsCitySlugRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/seeker/saved': {
       id: '/seeker/saved'
@@ -1053,6 +1073,7 @@ const rootRouteChildren: RootRouteChildren = {
   SeekerRoute: SeekerRouteWithChildren,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   CompaniesSlugRoute: CompaniesSlugRoute,
+  WarehouseJobsCitySlugRoute: WarehouseJobsCitySlugRoute,
   BillingReceiptOrderIdRoute: BillingReceiptOrderIdRoute,
 }
 export const routeTree = rootRouteImport
