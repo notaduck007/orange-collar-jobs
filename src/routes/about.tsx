@@ -5,9 +5,20 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Markdown } from "@/components/markdown";
 import aboutHero from "@/assets/about-hero.jpg";
+import { canonical } from "@/lib/seo";
 
 export const Route = createFileRoute("/about")({
-  head: () => ({ meta: [{ title: "About — WarehouseJobs.com" }] }),
+  head: () => ({
+    meta: [
+      { title: "About — WarehouseJobs.com" },
+      {
+        name: "description",
+        content:
+          "WarehouseJobs is a job board dedicated to warehouse and logistics work — forklift, picking, packing, shipping and receiving roles across the U.S.",
+      },
+    ],
+    links: [{ rel: "canonical", href: canonical("/about") }],
+  }),
   component: About,
 });
 

@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Markdown } from "@/components/markdown";
+import { canonical } from "@/lib/seo";
 
 export const Route = createFileRoute("/privacy")({
   head: () => ({
@@ -11,10 +12,10 @@ export const Route = createFileRoute("/privacy")({
       { title: "Privacy Policy — WarehouseJobs.com" },
       {
         name: "description",
-        content:
-          "How we collect, use, and protect your data, plus your rights to export or delete it.",
+        content: "How WarehouseJobs collects, uses, and protects your information.",
       },
     ],
+    links: [{ rel: "canonical", href: canonical("/privacy") }],
   }),
   component: PrivacyPage,
 });

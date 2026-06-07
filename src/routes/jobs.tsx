@@ -15,6 +15,7 @@ import { JobCardSkeletonList, EmptyState } from "@/components/ui/skeleton-list";
 import { Briefcase } from "lucide-react";
 import { TEMP_ENVS, CERTIFICATIONS, CERT_LABEL, TEMP_LABEL } from "@/lib/warehouse-attrs";
 import jobsStrip from "@/assets/jobs-strip.webp";
+import { canonical } from "@/lib/seo";
 
 const searchSchema = z.object({
   q: z.string().optional(),
@@ -45,6 +46,7 @@ export const Route = createFileRoute("/jobs")({
         content: "Search warehouse jobs by role, shift, employment type, and location.",
       },
     ],
+    links: [{ rel: "canonical", href: canonical("/jobs") }],
   }),
   component: JobsPage,
 });

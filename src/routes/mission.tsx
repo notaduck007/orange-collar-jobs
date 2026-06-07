@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { canonical } from "@/lib/seo";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 // TODO: replace hero image with real service-day photo
@@ -70,15 +71,16 @@ export const Route = createFileRoute("/mission")({
       {
         name: "description",
         content:
-          "Warehouse work built this company. Giving back, changing lives, and physically serving the communities that carry us is who we are.",
+          "Why we built WarehouseJobs: connecting warehouse workers with steady, well-paying work.",
       },
       { property: "og:title", content: "Our Mission — WarehouseJobs.com" },
       {
         property: "og:description",
         content:
-          "Warehouse work built this company. Giving back, changing lives, and physically serving the communities that carry us is who we are.",
+          "Why we built WarehouseJobs: connecting warehouse workers with steady, well-paying work.",
       },
     ],
+    links: [{ rel: "canonical", href: canonical("/mission") }],
   }),
   component: MissionPage,
 });
