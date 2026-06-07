@@ -55,7 +55,26 @@ export const Route = createFileRoute("/jobs/$slug")({
       .select("*, companies(id, name, slug, description, location, website)")
       .eq("slug", params.slug)
       .maybeSingle();
-    return { job: data };
+    if (!data) throw notFound();
+    const statusOk = data.status === "active" || data.status === "published";
+    const notExpired = !data.expires_at || new Date(data.expires_at).getTime() > Date.now();
+    const expired = !(statusOk && notExpired);
+    let similar: JobSummary[] = [];
+    if (expired) {
+      const { data: sim } = await supabase
+        .from("jobs")
+        .select(
+          "id, slug, title, location, shift, employment_type, pay_min, pay_max, featured, category, companies(name, slug, verified)",
+        )
+        .eq("category", data.category)
+        .in("status", ["active", "published"])
+        .neq("id", data.id)
+        .order("featured", { ascending: false })
+        .order("created_at", { ascending: false })
+        .limit(4);
+      similar = (sim ?? []) as unknown as JobSummary[];
+    }
+    return { job: data, expired, similar };
   },
   head: ({ params, loaderData }) => {
     const m = loaderData?.job as
