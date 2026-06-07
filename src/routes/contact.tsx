@@ -49,18 +49,7 @@ const schema = z.object({
 function Contact() {
   const { user } = useAuth();
   const [sending, setSending] = useState(false);
-  const { data: page } = useQuery({
-    queryKey: ["site-page", "contact"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("site_pages")
-        .select("title, body")
-        .eq("slug", "contact")
-        .eq("published", true)
-        .maybeSingle();
-      return data;
-    },
-  });
+  const { page } = Route.useLoaderData();
 
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
