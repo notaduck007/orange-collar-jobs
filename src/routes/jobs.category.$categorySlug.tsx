@@ -78,7 +78,8 @@ export const Route = createFileRoute("/jobs/category/$categorySlug")({
       .order("created_at", { ascending: false })
       .limit(50);
     const jobs = (jobsData ?? []) as unknown as JobSummary[];
-    return { info, jobs };
+    const cities = (await fetchActiveCities(8)).slice(0, 8);
+    return { info, jobs, cities };
   },
   head: ({ params, loaderData }) => {
     const info = loaderData?.info ?? CATEGORIES[params.categorySlug];
