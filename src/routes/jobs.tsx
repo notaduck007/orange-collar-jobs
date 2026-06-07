@@ -148,6 +148,7 @@ const SORTS = [
 
 function JobsPage() {
   const search = Route.useSearch();
+  const { initialPage } = Route.useLoaderData();
   const navigate = useNavigate();
   const { user, role } = useAuth();
   const qc = useQueryClient();
@@ -156,10 +157,28 @@ function JobsPage() {
 
   const sort = search.sort ?? (search.q ? "relevance" : "date");
 
-  const PAGE_SIZE = 20;
+  const isDefaultSearch =
+    !search.q &&
+    !search.loc &&
+    !search.category &&
+    !search.shift &&
+    !search.type &&
+    search.pay_min === undefined &&
+    search.radius === undefined &&
+    !search.temp &&
+    !search.certs &&
+    !search.weekly_pay &&
+    !search.quick_hire &&
+    !search.overtime &&
+    search.max_lift === undefined &&
+    !search.sort;
+
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useInfiniteQuery({
     queryKey: ["jobs-search", search, sort],
     initialPageParam: 0,
+    initialData: isDefaultSearch
+      ? { pages: [initialPage], pageParams: [0] }
+      : undefined,
     queryFn: async ({ pageParam }) => {
       const certsArr = search.certs ? search.certs.split(",").filter(Boolean) : null;
       const { data, error } = await supabase.rpc("search_jobs", {
