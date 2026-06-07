@@ -28,7 +28,10 @@ export const Route = createFileRoute("/faq")({
         .order("sort_order")
         .order("created_at"),
     ]);
-    return { page: pageRes.data ?? null, faqs: faqsRes.data ?? [] };
+    return {
+      page: pageRes.data ?? null,
+      faqs: (faqsRes.data ?? []) as Array<{ id: string; question: string; answer: string }>,
+    };
   },
   head: () => ({
     meta: [
