@@ -44,50 +44,113 @@ export const Route = createFileRoute("/contact")({
   component: Contact,
 });
 
-const schema = z.object({
-  name: z.string().trim().min(1).max(120),
-  company: z.string().trim().max(120).optional(),
-  email: z.string().trim().email().max(255),
-  subject: z.string().trim().min(3).max(200),
-  body: z.string().trim().min(5).max(4000),
+const SUBJECTS = [
+  "I'm a job seeker and need help",
+  "I'm an employer / want to post jobs",
+  "Billing question",
+  "Partnerships",
+  "Press",
+  "Something else",
+] as const;
+type Subject = (typeof SUBJECTS)[number];
+
+const MAX_BODY = 1000;
+
+const baseSchema = z.object({
+  name: z.string().trim().min(1, "Please enter your name").max(120),
+  email: z.string().trim().email("Please enter a valid email address").max(255),
+  subject: z.enum(SUBJECTS, { errorMap: () => ({ message: "Please choose a topic" }) }),
+  company: z.string().trim().max(120).optional().or(z.literal("")),
+  body: z
+    .string()
+    .trim()
+    .min(20, "Please write at least 20 characters")
+    .max(MAX_BODY, `Please keep it under ${MAX_BODY} characters`),
+  website: z.string().max(0, "Spam detected"),
 });
+
+type Errors = Partial<Record<"name" | "email" | "subject" | "company" | "body", string>>;
 
 function Contact() {
   const { user } = useAuth();
-  const [sending, setSending] = useState(false);
   const { page } = Route.useLoaderData();
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [errors, setErrors] = useState<Errors>({});
+
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState(user?.email ?? "");
+  const [subject, setSubject] = useState<Subject | "">("");
+  const [company, setCompany] = useState("");
+  const [body, setBody] = useState("");
+  const [website, setWebsite] = useState("");
+
+  const isEmployer = subject === "I'm an employer / want to post jobs";
+
+  const schema = useMemo(
+    () =>
+      isEmployer
+        ? baseSchema.extend({
+            company: z.string().trim().min(1, "Please enter your company name").max(120),
+          })
+        : baseSchema,
+    [isEmployer],
+  );
+
+  const validate = () => {
+    const parsed = schema.safeParse({ name, email, subject, company, body, website });
+    if (parsed.success) {
+      setErrors({});
+      return parsed.data;
+    }
+    const next: Errors = {};
+    for (const issue of parsed.error.issues) {
+      const key = issue.path[0] as keyof Errors;
+      if (key && !next[key]) next[key] = issue.message;
+    }
+    setErrors(next);
+    return null;
+  };
+
+  const validateField = (field: keyof Errors) => {
+    const parsed = schema.safeParse({ name, email, subject, company, body, website });
+    if (parsed.success) {
+      setErrors((e) => ({ ...e, [field]: undefined }));
+      return;
+    }
+    const issue = parsed.error.issues.find((i) => i.path[0] === field);
+    setErrors((e) => ({ ...e, [field]: issue?.message }));
+  };
+
+  const resetForm = () => {
+    setName("");
+    setEmail(user?.email ?? "");
+    setSubject("");
+    setCompany("");
+    setBody("");
+    setWebsite("");
+    setErrors({});
+    setSent(false);
+  };
 
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const form = e.currentTarget;
-    const fd = new FormData(form);
-    const parsed = schema.safeParse({
-      name: fd.get("name"),
-      company: fd.get("company") || undefined,
-      email: fd.get("email"),
-      subject: fd.get("subject"),
-      body: fd.get("body"),
-    });
-    if (!parsed.success) {
-      toast.error(parsed.error.issues[0]?.message ?? "Please check the form");
-      return;
-    }
+    const data = validate();
+    if (!data) return;
     setSending(true);
-    const subject = parsed.data.subject;
-    const bodyText = `From: ${parsed.data.name}${parsed.data.company ? ` (${parsed.data.company})` : ""}\n\n${parsed.data.body}`;
+    const bodyText = `From: ${data.name}${data.company ? ` (${data.company})` : ""}\n\n${data.body}`;
     const { error } = await supabase.from("support_tickets").insert({
       user_id: user?.id ?? null,
-      email: parsed.data.email,
-      subject,
+      email: data.email,
+      subject: data.subject,
       body: bodyText,
     });
     setSending(false);
     if (error) {
-      toast.error(error.message);
+      setErrors({ body: error.message });
       return;
     }
-    toast.success("Message sent — we'll be back to you within one business day.");
-    form.reset();
+    setSent(true);
   };
 
   return (
