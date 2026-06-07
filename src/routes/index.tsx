@@ -241,11 +241,11 @@ function Home() {
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-            {categories.map(({ name, icon: Icon }) => (
+            {categories.map(({ name, slug, icon: Icon }) => (
               <Link
                 key={name}
-                to="/jobs"
-                search={{ category: name } as never}
+                to="/jobs/category/$categorySlug"
+                params={{ categorySlug: slug }}
                 className="group flex flex-col items-center justify-center gap-3 rounded-lg border border-border bg-card p-5 text-center transition-all hover:-translate-y-0.5 hover:border-primary/60 hover:shadow-[var(--shadow-card-hover)]"
               >
                 <div className="flex h-12 w-12 items-center justify-center rounded-md bg-[color:var(--primary-tint)] text-primary group-hover:bg-primary group-hover:text-primary-foreground">
