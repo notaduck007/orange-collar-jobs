@@ -227,40 +227,154 @@ function Contact() {
           </div>
         </aside>
 
-        <form
-          onSubmit={submit}
-          className="space-y-4 overflow-hidden rounded-xl border border-border border-t-4 border-t-primary bg-card p-6 shadow-[var(--shadow-card)] sm:p-8 lg:col-span-3"
-        >
-          <div className="space-y-1.5">
-            <Label>Name</Label>
-            <Input name="name" required maxLength={120} />
-          </div>
-          <div className="space-y-1.5">
-            <Label>Company</Label>
-            <Input name="company" maxLength={120} />
-          </div>
-          <div className="space-y-1.5">
-            <Label>Email</Label>
-            <Input
-              name="email"
-              type="email"
-              required
-              maxLength={255}
-              defaultValue={user?.email ?? ""}
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label>Subject</Label>
-            <Input name="subject" required maxLength={200} placeholder="What's this about?" />
-          </div>
-          <div className="space-y-1.5">
-            <Label>How can we help?</Label>
-            <Textarea name="body" required rows={6} maxLength={4000} />
-          </div>
-          <Button type="submit" disabled={sending} className="btn-primary w-full">
-            {sending ? "Sending…" : "Send message"}
-          </Button>
-        </form>
+        <div className="overflow-hidden rounded-xl border border-border border-t-4 border-t-primary bg-card p-6 shadow-[var(--shadow-card)] sm:p-8 lg:col-span-3">
+          {sent ? (
+            <div className="py-6 text-center">
+              <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <Check className="h-7 w-7" strokeWidth={2.5} />
+              </span>
+              <h2 className="mt-5 text-2xl font-bold text-[color:var(--ink)]">Message sent!</h2>
+              <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
+                We'll reply within one business day to <strong>{email}</strong>.
+              </p>
+              <div className="mt-6 flex flex-col items-center gap-3">
+                <Link to="/jobs">
+                  <Button variant="outline" className="gap-1.5">
+                    Browse jobs while you wait <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </Link>
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  className="text-sm text-primary underline-offset-4 hover:underline"
+                >
+                  Send another message
+                </button>
+              </div>
+            </div>
+          ) : (
+            <form onSubmit={submit} className="space-y-4" noValidate>
+              {/* Honeypot — hidden from real users */}
+              <div aria-hidden="true" className="absolute left-[-9999px] top-auto h-0 w-0 overflow-hidden">
+                <label>
+                  Website
+                  <input
+                    type="text"
+                    name="website"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    value={website}
+                    onChange={(e) => setWebsite(e.target.value)}
+                  />
+                </label>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="contact-name">Name</Label>
+                <Input
+                  id="contact-name"
+                  name="name"
+                  maxLength={120}
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  onBlur={() => validateField("name")}
+                  aria-invalid={!!errors.name}
+                />
+                {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="contact-company">
+                  {isEmployer ? "Company" : "Company (optional)"}
+                </Label>
+                <Input
+                  id="contact-company"
+                  name="company"
+                  maxLength={120}
+                  value={company}
+                  onChange={(e) => setCompany(e.target.value)}
+                  onBlur={() => validateField("company")}
+                  aria-invalid={!!errors.company}
+                />
+                {errors.company && <p className="text-xs text-destructive">{errors.company}</p>}
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="contact-email">Email</Label>
+                <Input
+                  id="contact-email"
+                  name="email"
+                  type="email"
+                  maxLength={255}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onBlur={() => validateField("email")}
+                  aria-invalid={!!errors.email}
+                />
+                {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="contact-subject">What's this about?</Label>
+                <Select
+                  value={subject}
+                  onValueChange={(v) => {
+                    setSubject(v as Subject);
+                    setErrors((e) => ({ ...e, subject: undefined }));
+                  }}
+                >
+                  <SelectTrigger id="contact-subject" aria-invalid={!!errors.subject}>
+                    <SelectValue placeholder="Choose a topic" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SUBJECTS.map((s) => (
+                      <SelectItem key={s} value={s}>
+                        {s}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.subject && <p className="text-xs text-destructive">{errors.subject}</p>}
+              </div>
+
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="contact-body">How can we help?</Label>
+                  <span
+                    className={
+                      body.length > MAX_BODY
+                        ? "text-xs text-destructive"
+                        : "text-xs text-muted-foreground"
+                    }
+                  >
+                    {body.length} / {MAX_BODY}
+                  </span>
+                </div>
+                <Textarea
+                  id="contact-body"
+                  name="body"
+                  rows={6}
+                  maxLength={MAX_BODY}
+                  value={body}
+                  onChange={(e) => setBody(e.target.value)}
+                  onBlur={() => validateField("body")}
+                  aria-invalid={!!errors.body}
+                />
+                {errors.body && <p className="text-xs text-destructive">{errors.body}</p>}
+              </div>
+
+              <Button type="submit" disabled={sending} className="btn-primary w-full">
+                {sending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" /> Sending…
+                  </>
+                ) : (
+                  "Send message"
+                )}
+              </Button>
+            </form>
+          )}
+        </div>
       </div>
       <SiteFooter />
     </div>
