@@ -105,7 +105,69 @@ export function SiteFooter() {
             </li>
           </ul>
         </div>
+        <div>
+          <p className="label-caps mb-3 text-white/50">Popular Searches</p>
+          <ul className="space-y-2 text-sm text-white/80">
+            <li>
+              <Link
+                to="/jobs/category/$categorySlug"
+                params={{ categorySlug: "forklift-operator" }}
+                className="hover:text-primary"
+              >
+                Forklift Operator Jobs
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/jobs/category/$categorySlug"
+                params={{ categorySlug: "picker-packer" }}
+                className="hover:text-primary"
+              >
+                Picker / Packer Jobs
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/jobs/category/$categorySlug"
+                params={{ categorySlug: "shipping-receiving" }}
+                className="hover:text-primary"
+              >
+                Shipping & Receiving Jobs
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/jobs/category/$categorySlug"
+                params={{ categorySlug: "order-selector" }}
+                className="hover:text-primary"
+              >
+                Order Selector Jobs
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/jobs/category/$categorySlug"
+                params={{ categorySlug: "warehouse-associate" }}
+                className="hover:text-primary"
+              >
+                Warehouse Associate Jobs
+              </Link>
+            </li>
+            {POPULAR_CITIES.map((c) => (
+              <li key={c.slug}>
+                <Link
+                  to="/warehouse-jobs/$citySlug"
+                  params={{ citySlug: c.slug }}
+                  className="hover:text-primary"
+                >
+                  {c.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
+
       <div className="border-t border-white/10">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-4 py-5 text-xs text-white/50 sm:flex-row sm:px-6">
           <p>
