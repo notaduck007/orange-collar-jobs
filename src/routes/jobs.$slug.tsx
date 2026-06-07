@@ -107,8 +107,9 @@ export const Route = createFileRoute("/jobs/$slug")({
         `${m.category} role in ${m.location}. Apply on WarehouseJobs.com.`
       : "Apply to warehouse jobs near you on WarehouseJobs.com.";
 
+    const expired = !!loaderData?.expired;
     let jsonLd: Record<string, unknown> | null = null;
-    if (m) {
+    if (m && !expired) {
       const employmentType = EMPLOYMENT_TYPE_SCHEMA[m.employment_type] ?? "FULL_TIME";
       const baseSalary =
         m.pay_min != null || m.pay_max != null
@@ -155,17 +156,27 @@ export const Route = createFileRoute("/jobs/$slug")({
       };
     }
 
+    const meta: Array<Record<string, string>> = [
+      { title },
+      { name: "description", content: desc },
+      { property: "og:title", content: title },
+      { property: "og:description", content: desc },
+      { property: "og:type", content: "article" },
+      { name: "twitter:card", content: "summary" },
+    ];
+    if (m && !expired) {
+      meta.push({ property: "og:url", content: canonical(`/jobs/${params.slug}`) });
+    }
+    if (expired) {
+      meta.push({ name: "robots", content: "noindex" });
+    }
+
+    const emitCanonical = !!m && !expired;
     return {
-      meta: [
-        { title },
-        { name: "description", content: desc },
-        { property: "og:title", content: title },
-        { property: "og:description", content: desc },
-        { property: "og:type", content: "article" },
-        { property: "og:url", content: canonical(`/jobs/${params.slug}`) },
-        { name: "twitter:card", content: "summary" },
-      ],
-      links: [{ rel: "canonical", href: canonical(`/jobs/${params.slug}`) }],
+      meta,
+      links: emitCanonical
+        ? [{ rel: "canonical", href: canonical(`/jobs/${params.slug}`) }]
+        : undefined,
       scripts: jsonLd
         ? [{ type: "application/ld+json", children: JSON.stringify(jsonLd) }]
         : undefined,
