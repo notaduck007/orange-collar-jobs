@@ -186,7 +186,9 @@ export const Route = createFileRoute("/jobs/$slug")({
       { property: "og:title", content: title },
       { property: "og:description", content: desc },
       { property: "og:type", content: "article" },
-      { name: "twitter:card", content: "summary" },
+      { property: "og:image", content: "https://warehousejobs.com/og-image.png" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:image", content: "https://warehousejobs.com/og-image.png" },
     ];
     if (m && !expired) {
       meta.push({ property: "og:url", content: canonical(`/jobs/${params.slug}`) });
