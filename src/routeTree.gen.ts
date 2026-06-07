@@ -15,6 +15,7 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as MissionRouteImport } from './routes/mission'
 import { Route as LlmsDottxtRouteImport } from './routes/llms[.]txt'
+import { Route as JobsDotjsonRouteImport } from './routes/jobs[.]json'
 import { Route as JobsRouteImport } from './routes/jobs'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as EmployerRouteImport } from './routes/employer'
@@ -87,6 +88,11 @@ const MissionRoute = MissionRouteImport.update({
 const LlmsDottxtRoute = LlmsDottxtRouteImport.update({
   id: '/llms.txt',
   path: '/llms.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JobsDotjsonRoute = JobsDotjsonRouteImport.update({
+  id: '/jobs.json',
+  path: '/jobs.json',
   getParentRoute: () => rootRouteImport,
 } as any)
 const JobsRoute = JobsRouteImport.update({
@@ -316,6 +322,7 @@ export interface FileRoutesByFullPath {
   '/employer': typeof EmployerRouteWithChildren
   '/faq': typeof FaqRoute
   '/jobs': typeof JobsRouteWithChildren
+  '/jobs.json': typeof JobsDotjsonRoute
   '/llms.txt': typeof LlmsDottxtRoute
   '/mission': typeof MissionRoute
   '/pricing': typeof PricingRoute
@@ -365,6 +372,7 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
   '/jobs': typeof JobsRouteWithChildren
+  '/jobs.json': typeof JobsDotjsonRoute
   '/llms.txt': typeof LlmsDottxtRoute
   '/mission': typeof MissionRoute
   '/pricing': typeof PricingRoute
@@ -416,6 +424,7 @@ export interface FileRoutesById {
   '/employer': typeof EmployerRouteWithChildren
   '/faq': typeof FaqRoute
   '/jobs': typeof JobsRouteWithChildren
+  '/jobs.json': typeof JobsDotjsonRoute
   '/llms.txt': typeof LlmsDottxtRoute
   '/mission': typeof MissionRoute
   '/pricing': typeof PricingRoute
@@ -469,6 +478,7 @@ export interface FileRouteTypes {
     | '/employer'
     | '/faq'
     | '/jobs'
+    | '/jobs.json'
     | '/llms.txt'
     | '/mission'
     | '/pricing'
@@ -518,6 +528,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/faq'
     | '/jobs'
+    | '/jobs.json'
     | '/llms.txt'
     | '/mission'
     | '/pricing'
@@ -568,6 +579,7 @@ export interface FileRouteTypes {
     | '/employer'
     | '/faq'
     | '/jobs'
+    | '/jobs.json'
     | '/llms.txt'
     | '/mission'
     | '/pricing'
@@ -620,6 +632,7 @@ export interface RootRouteChildren {
   EmployerRoute: typeof EmployerRouteWithChildren
   FaqRoute: typeof FaqRoute
   JobsRoute: typeof JobsRouteWithChildren
+  JobsDotjsonRoute: typeof JobsDotjsonRoute
   LlmsDottxtRoute: typeof LlmsDottxtRoute
   MissionRoute: typeof MissionRoute
   PricingRoute: typeof PricingRoute
@@ -673,6 +686,13 @@ declare module '@tanstack/react-router' {
       path: '/llms.txt'
       fullPath: '/llms.txt'
       preLoaderRoute: typeof LlmsDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/jobs.json': {
+      id: '/jobs.json'
+      path: '/jobs.json'
+      fullPath: '/jobs.json'
+      preLoaderRoute: typeof JobsDotjsonRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/jobs': {
@@ -1087,6 +1107,7 @@ const rootRouteChildren: RootRouteChildren = {
   EmployerRoute: EmployerRouteWithChildren,
   FaqRoute: FaqRoute,
   JobsRoute: JobsRouteWithChildren,
+  JobsDotjsonRoute: JobsDotjsonRoute,
   LlmsDottxtRoute: LlmsDottxtRoute,
   MissionRoute: MissionRoute,
   PricingRoute: PricingRoute,
