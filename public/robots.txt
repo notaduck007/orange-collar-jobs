@@ -1,6 +1,126 @@
+# Search engines
+
+User-agent: Googlebot
+Allow: /
+Disallow: /admin
+Disallow: /employer
+Disallow: /seeker
+Disallow: /auth
+
+User-agent: Bingbot
+Allow: /
+Disallow: /admin
+Disallow: /employer
+Disallow: /seeker
+Disallow: /auth
+
+# AI assistants and answer engines
+
+User-agent: GPTBot
+Allow: /
+Disallow: /admin
+Disallow: /employer
+Disallow: /seeker
+Disallow: /auth
+
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /admin
+Disallow: /employer
+Disallow: /seeker
+Disallow: /auth
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /admin
+Disallow: /employer
+Disallow: /seeker
+Disallow: /auth
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /admin
+Disallow: /employer
+Disallow: /seeker
+Disallow: /auth
+
+User-agent: anthropic-ai
+Allow: /
+Disallow: /admin
+Disallow: /employer
+Disallow: /seeker
+Disallow: /auth
+
+User-agent: Claude-Web
+Allow: /
+Disallow: /admin
+Disallow: /employer
+Disallow: /seeker
+Disallow: /auth
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /admin
+Disallow: /employer
+Disallow: /seeker
+Disallow: /auth
+
+User-agent: Perplexity-User
+Allow: /
+Disallow: /admin
+Disallow: /employer
+Disallow: /seeker
+Disallow: /auth
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /admin
+Disallow: /employer
+Disallow: /seeker
+Disallow: /auth
+
+User-agent: Applebot
+Allow: /
+Disallow: /admin
+Disallow: /employer
+Disallow: /seeker
+Disallow: /auth
+
+User-agent: Applebot-Extended
+Allow: /
+Disallow: /admin
+Disallow: /employer
+Disallow: /seeker
+Disallow: /auth
+
+User-agent: CCBot
+Allow: /
+Disallow: /admin
+Disallow: /employer
+Disallow: /seeker
+Disallow: /auth
+
+User-agent: Grok
+Allow: /
+Disallow: /admin
+Disallow: /employer
+Disallow: /seeker
+Disallow: /auth
+
+User-agent: xAI-Crawler
+Allow: /
+Disallow: /admin
+Disallow: /employer
+Disallow: /seeker
+Disallow: /auth
+
+# Everyone else
+
 User-agent: *
 Allow: /
 Disallow: /admin
 Disallow: /employer
 Disallow: /seeker
 Disallow: /auth
+
+Sitemap: https://warehousejobs.com/sitemap.xml
