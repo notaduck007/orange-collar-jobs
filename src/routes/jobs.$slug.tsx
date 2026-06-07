@@ -26,6 +26,7 @@ import { AdSlot } from "@/components/ad-slot";
 import { ReportButton } from "@/components/report-button";
 import { useAppliedJobs, useQuickApplyReady } from "@/hooks/use-applied-jobs";
 import { JobDetailSkeleton } from "@/components/ui/skeleton-list";
+import { canonical } from "@/lib/seo";
 
 const EMPLOYMENT_TYPE_SCHEMA: Record<string, string> = {
   full_time: "FULL_TIME",
@@ -143,10 +144,10 @@ export const Route = createFileRoute("/jobs/$slug")({
         { property: "og:title", content: title },
         { property: "og:description", content: desc },
         { property: "og:type", content: "article" },
-        { property: "og:url", content: `/jobs/${params.slug}` },
+        { property: "og:url", content: canonical(`/jobs/${params.slug}`) },
         { name: "twitter:card", content: "summary" },
       ],
-      links: [{ rel: "canonical", href: `/jobs/${params.slug}` }],
+      links: [{ rel: "canonical", href: canonical(`/jobs/${params.slug}`) }],
       scripts: jsonLd
         ? [{ type: "application/ld+json", children: JSON.stringify(jsonLd) }]
         : undefined,

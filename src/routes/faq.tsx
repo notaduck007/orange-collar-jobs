@@ -11,9 +11,20 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { canonical } from "@/lib/seo";
 
 export const Route = createFileRoute("/faq")({
-  head: () => ({ meta: [{ title: "FAQ — WarehouseJobs.com" }] }),
+  head: () => ({
+    meta: [
+      { title: "FAQ — WarehouseJobs.com" },
+      {
+        name: "description",
+        content:
+          "Answers to common questions about finding warehouse jobs, applying, job alerts, and posting jobs on WarehouseJobs.",
+      },
+    ],
+    links: [{ rel: "canonical", href: canonical("/faq") }],
+  }),
   component: FAQ,
 });
 

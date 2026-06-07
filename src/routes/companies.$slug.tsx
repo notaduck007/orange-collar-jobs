@@ -7,6 +7,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { JobCard, type JobSummary } from "@/components/job-card";
 import { ReportButton } from "@/components/report-button";
 import { CompanyProfileSkeleton } from "@/components/ui/skeleton-list";
+import { canonical } from "@/lib/seo";
 
 export const Route = createFileRoute("/companies/$slug")({
   loader: async ({ params }) => {
@@ -34,7 +35,7 @@ export const Route = createFileRoute("/companies/$slug")({
         { property: "og:title", content: title },
         { property: "og:description", content: desc },
       ],
-      links: [{ rel: "canonical", href: `/companies/${params.slug}` }],
+      links: [{ rel: "canonical", href: canonical(`/companies/${params.slug}`) }],
     };
   },
   component: CompanyProfile,

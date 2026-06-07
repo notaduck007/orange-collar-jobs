@@ -24,6 +24,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { Button } from "@/components/ui/button";
 import { AdSlot } from "@/components/ad-slot";
 import { JobCardSkeletonList } from "@/components/ui/skeleton-list";
+import { canonical } from "@/lib/seo";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -41,6 +42,7 @@ export const Route = createFileRoute("/")({
           "Forklift, picker/packer, shipping & receiving, and warehouse associate jobs across the U.S.",
       },
     ],
+    links: [{ rel: "canonical", href: canonical("/") }],
   }),
   component: Home,
 });

@@ -10,6 +10,7 @@ import { useAuth } from "@/lib/auth";
 import { useSiteSettings } from "@/lib/site-settings";
 import { startCheckout } from "@/lib/checkout";
 import crewImage from "@/assets/crew-productive.webp";
+import { canonical } from "@/lib/seo";
 
 type Search = { checkout?: "success" | "cancelled" };
 
@@ -25,6 +26,7 @@ export const Route = createFileRoute("/pricing")({
         content: "Post warehouse jobs to qualified workers. Flat-rate packages, no contracts.",
       },
     ],
+    links: [{ rel: "canonical", href: canonical("/pricing") }],
   }),
   component: Pricing,
 });

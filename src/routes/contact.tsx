@@ -13,9 +13,20 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Markdown } from "@/components/markdown";
+import { canonical } from "@/lib/seo";
 
 export const Route = createFileRoute("/contact")({
-  head: () => ({ meta: [{ title: "Contact — WarehouseJobs.com" }] }),
+  head: () => ({
+    meta: [
+      { title: "Contact — WarehouseJobs.com" },
+      {
+        name: "description",
+        content:
+          "Get in touch with the WarehouseJobs team — support for job seekers and employers.",
+      },
+    ],
+    links: [{ rel: "canonical", href: canonical("/contact") }],
+  }),
   component: Contact,
 });
 
