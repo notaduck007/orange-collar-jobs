@@ -2,8 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
 
-// TODO: replace with your project URL once a project name or custom domain is set.
-const BASE_URL = "";
+const BASE_URL = "https://warehousejobs.com";
 
 interface SitemapEntry {
   path: string;
@@ -23,26 +22,50 @@ export const Route = createFileRoute("/sitemap.xml")({
           { path: "/about", changefreq: "monthly", priority: "0.5" },
           { path: "/contact", changefreq: "monthly", priority: "0.5" },
           { path: "/faq", changefreq: "monthly", priority: "0.5" },
+          { path: "/mission", changefreq: "monthly", priority: "0.5" },
+          { path: "/privacy", changefreq: "yearly", priority: "0.3" },
         ];
 
-        // Dynamic job listings
         try {
           const url = process.env.SUPABASE_URL!;
           const key = process.env.SUPABASE_PUBLISHABLE_KEY!;
           if (url && key) {
             const supabase = createClient(url, key);
-            const { data } = await supabase
+
+            // Dynamic job listings
+            const { data: jobs } = await supabase
               .from("jobs")
               .select("slug, created_at")
               .in("status", ["active", "published"])
               .order("created_at", { ascending: false })
               .limit(5000);
-            (data ?? []).forEach((j: { slug: string; created_at: string }) => {
+            (jobs ?? []).forEach((j: { slug: string; created_at: string }) => {
+              const lastmod = j.created_at;
               entries.push({
                 path: `/jobs/${j.slug}`,
-                lastmod: j.created_at?.slice(0, 10),
+                lastmod: lastmod?.slice(0, 10),
                 changefreq: "daily",
                 priority: "0.8",
+              });
+            });
+
+            // Dynamic company listings — only companies with at least one active/published job
+            const { data: companyJobs } = await supabase
+              .from("jobs")
+              .select("companies(slug)")
+              .in("status", ["active", "published"])
+              .limit(5000);
+            const slugs = new Set<string>();
+            (companyJobs ?? []).forEach((row: { companies: { slug: string } | { slug: string }[] | null }) => {
+              const c = row.companies;
+              const slug = Array.isArray(c) ? c[0]?.slug : c?.slug;
+              if (slug) slugs.add(slug);
+            });
+            slugs.forEach((slug) => {
+              entries.push({
+                path: `/companies/${slug}`,
+                changefreq: "weekly",
+                priority: "0.6",
               });
             });
           }
