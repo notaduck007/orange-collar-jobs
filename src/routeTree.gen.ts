@@ -14,6 +14,7 @@ import { Route as SeekerRouteImport } from './routes/seeker'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as MissionRouteImport } from './routes/mission'
+import { Route as LlmsDottxtRouteImport } from './routes/llms[.]txt'
 import { Route as JobsRouteImport } from './routes/jobs'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as EmployerRouteImport } from './routes/employer'
@@ -81,6 +82,11 @@ const PricingRoute = PricingRouteImport.update({
 const MissionRoute = MissionRouteImport.update({
   id: '/mission',
   path: '/mission',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LlmsDottxtRoute = LlmsDottxtRouteImport.update({
+  id: '/llms.txt',
+  path: '/llms.txt',
   getParentRoute: () => rootRouteImport,
 } as any)
 const JobsRoute = JobsRouteImport.update({
@@ -310,6 +316,7 @@ export interface FileRoutesByFullPath {
   '/employer': typeof EmployerRouteWithChildren
   '/faq': typeof FaqRoute
   '/jobs': typeof JobsRouteWithChildren
+  '/llms.txt': typeof LlmsDottxtRoute
   '/mission': typeof MissionRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
@@ -358,6 +365,7 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
   '/jobs': typeof JobsRouteWithChildren
+  '/llms.txt': typeof LlmsDottxtRoute
   '/mission': typeof MissionRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
@@ -408,6 +416,7 @@ export interface FileRoutesById {
   '/employer': typeof EmployerRouteWithChildren
   '/faq': typeof FaqRoute
   '/jobs': typeof JobsRouteWithChildren
+  '/llms.txt': typeof LlmsDottxtRoute
   '/mission': typeof MissionRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
@@ -460,6 +469,7 @@ export interface FileRouteTypes {
     | '/employer'
     | '/faq'
     | '/jobs'
+    | '/llms.txt'
     | '/mission'
     | '/pricing'
     | '/privacy'
@@ -508,6 +518,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/faq'
     | '/jobs'
+    | '/llms.txt'
     | '/mission'
     | '/pricing'
     | '/privacy'
@@ -557,6 +568,7 @@ export interface FileRouteTypes {
     | '/employer'
     | '/faq'
     | '/jobs'
+    | '/llms.txt'
     | '/mission'
     | '/pricing'
     | '/privacy'
@@ -608,6 +620,7 @@ export interface RootRouteChildren {
   EmployerRoute: typeof EmployerRouteWithChildren
   FaqRoute: typeof FaqRoute
   JobsRoute: typeof JobsRouteWithChildren
+  LlmsDottxtRoute: typeof LlmsDottxtRoute
   MissionRoute: typeof MissionRoute
   PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
@@ -653,6 +666,13 @@ declare module '@tanstack/react-router' {
       path: '/mission'
       fullPath: '/mission'
       preLoaderRoute: typeof MissionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/llms.txt': {
+      id: '/llms.txt'
+      path: '/llms.txt'
+      fullPath: '/llms.txt'
+      preLoaderRoute: typeof LlmsDottxtRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/jobs': {
@@ -1067,6 +1087,7 @@ const rootRouteChildren: RootRouteChildren = {
   EmployerRoute: EmployerRouteWithChildren,
   FaqRoute: FaqRoute,
   JobsRoute: JobsRouteWithChildren,
+  LlmsDottxtRoute: LlmsDottxtRoute,
   MissionRoute: MissionRoute,
   PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
