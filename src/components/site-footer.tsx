@@ -2,12 +2,21 @@ import { Link } from "@tanstack/react-router";
 import { HardHat } from "lucide-react";
 import { useSiteSettings } from "@/lib/site-settings";
 
+const POPULAR_CITIES: Array<{ label: string; slug: string }> = [
+  { label: "Warehouse Jobs in Dallas, TX", slug: "dallas-tx" },
+  { label: "Warehouse Jobs in Columbus, OH", slug: "columbus-oh" },
+  { label: "Warehouse Jobs in Indianapolis, IN", slug: "indianapolis-in" },
+  { label: "Warehouse Jobs in Memphis, TN", slug: "memphis-tn" },
+  { label: "Warehouse Jobs in Phoenix, AZ", slug: "phoenix-az" },
+];
+
 export function SiteFooter() {
   const { settings } = useSiteSettings();
   return (
     <footer className="mt-24 bg-[color:var(--charcoal)] text-white">
       <div className="hazard-stripes h-2 w-full" />
-      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-4">
+      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-3 lg:grid-cols-5">
+
         <div>
           <div className="flex items-center gap-2.5">
             <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary text-primary-foreground">
