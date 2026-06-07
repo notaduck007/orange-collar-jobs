@@ -163,20 +163,38 @@ function Contact() {
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
-      <section className="border-b border-border bg-card/40">
-        <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20 lg:py-24">
-          <p className="label-caps text-primary">Talk to us</p>
-          <h1 className="mt-3 text-4xl font-bold tracking-tight text-[color:var(--ink)] sm:text-5xl lg:text-6xl">
-            {page?.title ?? "Contact Us"}
-          </h1>
-          <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
-            Real people, real answers — usually within one business day.
-          </p>
-          {page?.body && (
-            <div className="mt-4 max-w-2xl text-foreground">
-              <Markdown>{page.body}</Markdown>
-            </div>
-          )}
+      <section className="relative isolate w-full overflow-hidden border-b border-border bg-[#14161A]">
+        <img
+          src={contactHero}
+          alt="WarehouseJobs support team ready to help"
+          width={1920}
+          height={640}
+          fetchPriority="high"
+          decoding="async"
+          className="absolute inset-0 h-full w-full object-cover object-[70%_center] sm:object-center"
+        />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/60 to-black/10 sm:from-black/80 sm:via-black/45 sm:to-transparent"
+        />
+        <div className="relative z-10 mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-24 lg:py-28">
+          <div className="max-w-2xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#FF6A00]">
+              Talk to us
+            </p>
+            <h1 className="mt-3 text-4xl font-bold tracking-tight text-white drop-shadow-md sm:text-5xl lg:text-6xl">
+              {page?.title ?? "Contact Us"}
+            </h1>
+            <span aria-hidden="true" className="mt-5 block h-1 w-16 rounded-full bg-[#FF6A00]" />
+            <p className="mt-5 max-w-xl text-lg text-white/90 drop-shadow">
+              Real people, real answers — usually within one business day.
+            </p>
+            {page?.body && (
+              <div className="mt-4 max-w-xl text-white/85 [&_a]:text-[#FF6A00]">
+                <Markdown>{page.body}</Markdown>
+              </div>
+            )}
+          </div>
         </div>
       </section>
 
