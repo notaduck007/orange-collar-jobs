@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/select";
 import { Markdown } from "@/components/markdown";
 import { canonical } from "@/lib/seo";
+import contactHero from "@/assets/contact-hero.webp";
 
 export const Route = createFileRoute("/contact")({
   loader: async () => {
