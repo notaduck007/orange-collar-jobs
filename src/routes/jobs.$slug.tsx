@@ -23,6 +23,7 @@ import { useAuth } from "@/lib/auth";
 import { ApplyDialog } from "@/components/apply-dialog";
 import { ApplySuccessDialog } from "@/components/apply-success-dialog";
 import { AdSlot } from "@/components/ad-slot";
+import { JobCard, type JobSummary } from "@/components/job-card";
 import { ReportButton } from "@/components/report-button";
 import { useAppliedJobs, useQuickApplyReady } from "@/hooks/use-applied-jobs";
 
