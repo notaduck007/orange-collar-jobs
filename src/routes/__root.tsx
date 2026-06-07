@@ -125,6 +125,23 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           logo: "https://warehousejobs.com/icon-512.png",
         }),
       },
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "WarehouseJobs",
+          url: "https://warehousejobs.com",
+          potentialAction: {
+            "@type": "SearchAction",
+            target: {
+              "@type": "EntryPoint",
+              urlTemplate: "https://warehousejobs.com/jobs?q={search_term_string}",
+            },
+            "query-input": "required name=search_term_string",
+          },
+        }),
+      },
     ],
   }),
   shellComponent: RootShell,
