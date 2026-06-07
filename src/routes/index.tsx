@@ -27,6 +27,17 @@ import { JobCardSkeletonList } from "@/components/ui/skeleton-list";
 import { canonical } from "@/lib/seo";
 
 export const Route = createFileRoute("/")({
+  loader: async () => {
+    const { data } = await supabase
+      .from("jobs")
+      .select(
+        "id, slug, title, location, shift, employment_type, pay_min, pay_max, featured, category, companies(name, slug)",
+      )
+      .in("status", ["active", "published"])
+      .eq("featured", true)
+      .limit(4);
+    return { featured: (data ?? []) as unknown as JobSummary[] };
+  },
   head: () => ({
     meta: [
       { title: "WarehouseJobs.com — Warehouse & Logistics Hiring" },
