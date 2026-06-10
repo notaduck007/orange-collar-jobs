@@ -508,21 +508,21 @@ function JobsPage() {
                   updateSearch({ shift: search.shift === s.value ? undefined : s.value })
                 }
               >
-                {s.label}
+                {t(s.labelKey)}
               </FilterChip>
             ))}
           </FilterGroup>
 
-          <FilterGroup label="Employment Type">
-            {TYPES.map((t) => (
+          <FilterGroup label={t("jobs.employmentType") as string}>
+            {TYPES.map((ty) => (
               <FilterChip
-                key={t.value}
-                active={search.type === t.value}
+                key={ty.value}
+                active={search.type === ty.value}
                 onClick={() =>
-                  updateSearch({ type: search.type === t.value ? undefined : t.value })
+                  updateSearch({ type: search.type === ty.value ? undefined : ty.value })
                 }
               >
-                {t.label}
+                {t(ty.labelKey)}
               </FilterChip>
             ))}
           </FilterGroup>
