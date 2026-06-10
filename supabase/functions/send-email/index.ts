@@ -145,7 +145,7 @@ serve(async (req) => {
       body: JSON.stringify({
         from: sender,
         to: [recipient],
-        subject,
+        subject: finalSubject,
         html,
       }),
     });
