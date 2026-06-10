@@ -481,7 +481,7 @@ function JobDetail() {
                   {job.category} • {shiftLabel[job.shift]}
                 </p>
                 <h1 className="mt-2 text-3xl font-bold leading-tight text-[color:var(--ink)] sm:text-4xl">
-                  {job.title}
+                  {showTranslation && translated?.title ? translated.title : job.title}
                 </h1>
                 {job.companies && (
                   <Link
@@ -495,15 +495,15 @@ function JobDetail() {
               </div>
               {job.featured && (
                 <span className="inline-flex items-center gap-1 rounded-md bg-[color:var(--hazard)] px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-[color:var(--ink)]">
-                  Featured
+                  {t("jobs.featured")}
                 </span>
               )}
             </div>
 
             <div className="mt-5 grid grid-cols-2 gap-4 border-y border-border py-4 sm:grid-cols-3">
-              <Meta icon={MapPin} label="Location" value={job.location} />
-              <Meta icon={Clock} label="Type" value={typeLabel[job.employment_type]} />
-              {pay && <Meta icon={DollarSign} label="Pay" value={pay} />}
+              <Meta icon={MapPin} label={t("jobDetail.location") as string} value={job.location} />
+              <Meta icon={Clock} label={t("jobDetail.type") as string} value={typeLabel[job.employment_type]} />
+              {pay && <Meta icon={DollarSign} label={t("jobDetail.pay") as string} value={pay} />}
             </div>
 
             {(() => {
@@ -542,18 +542,57 @@ function JobDetail() {
               );
             })()}
 
-            <section className="mt-6 space-y-5">
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  if (showTranslation) {
+                    setShowTranslation(false);
+                  } else if (translated) {
+                    setShowTranslation(true);
+                  } else {
+                    void handleTranslate();
+                  }
+                }}
+                disabled={translating}
+                className="gap-1.5"
+              >
+                {translating ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" /> {t("jobDetail.translating")}
+                  </>
+                ) : showTranslation ? (
+                  <>
+                    <Languages className="h-4 w-4" /> {t("jobDetail.showOriginal")}
+                  </>
+                ) : (
+                  <>
+                    <Languages className="h-4 w-4" /> {t("jobDetail.translate")}
+                  </>
+                )}
+              </Button>
+              {showTranslation && translated && (
+                <span className="text-xs text-muted-foreground">{t("jobDetail.poweredByAI")}</span>
+              )}
+            </div>
+
+            <section className="mt-4 space-y-5">
               <div>
-                <h2 className="text-lg font-semibold text-[color:var(--ink)]">Job description</h2>
+                <h2 className="text-lg font-semibold text-[color:var(--ink)]">{t("jobDetail.description")}</h2>
                 <p className="mt-2 whitespace-pre-line text-[15px] leading-relaxed text-foreground">
-                  {job.description}
+                  {showTranslation && translated?.description ? translated.description : job.description}
                 </p>
               </div>
-              {job.requirements && (
+              {(showTranslation && translated?.requirements
+                ? translated.requirements
+                : job.requirements) && (
                 <div>
-                  <h2 className="text-lg font-semibold text-[color:var(--ink)]">Requirements</h2>
+                  <h2 className="text-lg font-semibold text-[color:var(--ink)]">{t("jobDetail.requirements")}</h2>
                   <p className="mt-2 whitespace-pre-line text-[15px] leading-relaxed text-foreground">
-                    {job.requirements}
+                    {showTranslation && translated?.requirements
+                      ? translated.requirements
+                      : job.requirements}
                   </p>
                 </div>
               )}
