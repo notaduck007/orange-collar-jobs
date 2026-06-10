@@ -3,6 +3,7 @@ import { useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
 import { HardHat } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,6 +49,7 @@ function AuthPage() {
   const { mode, role, next } = Route.useSearch();
   const navigate = useNavigate();
   const { settings } = useSiteSettings();
+  const { t } = useTranslation();
   const brandName = settings.branding.site_name;
   const isSignup = mode === "signup";
   const [email, setEmail] = useState("");
@@ -120,25 +122,25 @@ function AuthPage() {
             to="/"
             className="mb-8 flex items-center gap-2 text-sm text-muted-foreground hover:text-primary lg:hidden"
           >
-            ← Back home
+            ← {t("common.backHome")}
           </Link>
-          <p className="label-caps text-primary">{isSignup ? "Get started" : "Welcome back"}</p>
+          <p className="label-caps text-primary">{isSignup ? t("auth.getStarted") : t("auth.welcomeBack")}</p>
           <h1 className="mt-2 text-3xl font-bold text-[color:var(--ink)]">
-            {isSignup ? "Create your account" : `Sign in to ${brandName}`}
+            {isSignup ? t("auth.signUpTitle") : t("auth.signInTitle", { brand: brandName })}
           </h1>
           <p className="mt-1.5 text-sm text-muted-foreground">
             {isSignup
               ? selectedRole === "employer"
-                ? "Reach warehouse workers in minutes — your first post is free."
-                : "Free for job seekers. Always."
-              : "Apply faster, save jobs, and get alerts."}
+                ? t("auth.employerSub")
+                : t("auth.seekerSub")
+              : t("auth.loginSub")}
           </p>
 
           <form onSubmit={submit} className="mt-7 space-y-4">
             {isSignup && (
               <>
                 <div className="space-y-1.5">
-                  <Label>I am a…</Label>
+                  <Label>{t("auth.iAm")}</Label>
                   <div className="grid grid-cols-2 gap-2">
                     {(["job_seeker", "employer"] as const).map((r) => (
                       <button
@@ -151,14 +153,14 @@ function AuthPage() {
                             : "border-border bg-card text-foreground hover:border-primary/40"
                         }`}
                       >
-                        {r === "job_seeker" ? "Job Seeker" : "Employer"}
+                        {r === "job_seeker" ? t("auth.jobSeeker") : t("auth.employer")}
                       </button>
                     ))}
                   </div>
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="name">
-                    {selectedRole === "employer" ? "Your name" : "Full name"}
+                    {selectedRole === "employer" ? t("auth.yourName") : t("auth.fullName")}
                   </Label>
                   <Input
                     id="name"
@@ -170,7 +172,7 @@ function AuthPage() {
               </>
             )}
             <div className="space-y-1.5">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t("auth.email")}</Label>
               <Input
                 id="email"
                 type="email"
@@ -180,7 +182,7 @@ function AuthPage() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{t("auth.password")}</Label>
               <Input
                 id="password"
                 type="password"
@@ -192,18 +194,18 @@ function AuthPage() {
             </div>
 
             <Button type="submit" disabled={loading} className="btn-primary w-full">
-              {loading ? "Working…" : isSignup ? "Create account" : "Sign in"}
+              {loading ? t("auth.workingBtn") : isSignup ? t("auth.createAccount") : t("auth.signIn")}
             </Button>
           </form>
 
           <p className="mt-6 text-center text-sm text-muted-foreground">
-            {isSignup ? "Already have an account?" : `New to ${brandName}?`}{" "}
+            {isSignup ? t("auth.alreadyHave") : t("auth.newHere", { brand: brandName })}{" "}
             <Link
               to="/auth"
               search={{ mode: isSignup ? "login" : "signup", next } as never}
               className="font-semibold text-primary hover:underline"
             >
-              {isSignup ? "Sign in" : "Create one"}
+              {isSignup ? t("auth.signIn") : t("auth.createOne")}
             </Link>
           </p>
         </div>

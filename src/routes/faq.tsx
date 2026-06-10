@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
@@ -80,6 +81,7 @@ export const Route = createFileRoute("/faq")({
 
 function FAQ() {
   const { page, faqs } = Route.useLoaderData();
+  const { t } = useTranslation();
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
@@ -97,10 +99,10 @@ function FAQ() {
         />
         <div className="relative z-10 mx-auto max-w-3xl px-4 text-center sm:px-6">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#FF6A00]">
-            Frequently asked
+            {t("faq.eyebrow")}
           </p>
           <h1 className="mt-3 text-4xl font-bold tracking-tight text-white drop-shadow-md sm:text-5xl lg:text-6xl">
-            {page?.title ?? "Questions, answered."}
+            {page?.title ?? t("faq.fallbackTitle")}
           </h1>
           {page?.body && (
             <div className="mx-auto mt-4 max-w-2xl text-base text-white/90 sm:text-lg">
@@ -123,7 +125,7 @@ function FAQ() {
           ))}
         </Accordion>
         {faqs.length === 0 && (
-          <p className="mt-8 text-sm text-muted-foreground">No FAQ items published yet.</p>
+          <p className="mt-8 text-sm text-muted-foreground">{t("faq.empty")}</p>
         )}
       </div>
       <SiteFooter />
