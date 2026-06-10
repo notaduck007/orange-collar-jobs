@@ -527,16 +527,16 @@ function JobsPage() {
             ))}
           </FilterGroup>
 
-          <FilterGroup label="Temperature">
-            {TEMP_ENVS.map((t) => (
+          <FilterGroup label={t("jobs.temperature") as string}>
+            {TEMP_ENVS.map((te) => (
               <FilterChip
-                key={t.value}
-                active={search.temp === t.value}
+                key={te.value}
+                active={search.temp === te.value}
                 onClick={() =>
-                  updateSearch({ temp: search.temp === t.value ? undefined : t.value })
+                  updateSearch({ temp: search.temp === te.value ? undefined : te.value })
                 }
               >
-                {t.short}
+                {te.short}
               </FilterChip>
             ))}
           </FilterGroup>
