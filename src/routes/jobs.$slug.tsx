@@ -281,9 +281,9 @@ function JobDetail() {
   const [showTranslation, setShowTranslation] = useState(false);
   const [translating, setTranslating] = useState(false);
   const [translated, setTranslated] = useState<{
-    title?: string;
-    description?: string;
-    requirements?: string;
+    title?: string | null;
+    description?: string | null;
+    requirements?: string | null;
   } | null>(null);
 
   // Auto-show translation if language is ES and we have a cached one
