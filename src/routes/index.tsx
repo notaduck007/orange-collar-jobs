@@ -180,12 +180,12 @@ function Home() {
         <section className="bg-[#FAFAFA]" aria-labelledby="sample-clients-heading">
           <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-16">
             <div className="mb-8 text-center sm:mb-12">
-              <p className="label-caps text-primary">Trusted by industry leaders</p>
+              <p className="label-caps text-primary">{t("home.trustedEyebrow")}</p>
               <h2
                 id="sample-clients-heading"
                 className="mt-1 text-2xl font-bold text-[color:var(--ink)] sm:text-3xl"
               >
-                Sample Clients
+                {t("home.trustedTitle")}
               </h2>
             </div>
             <div className="mx-auto grid max-w-[1100px] grid-cols-2 gap-x-6 gap-y-6 sm:grid-cols-3 sm:gap-x-10 sm:gap-y-10 lg:grid-cols-5 lg:gap-x-12">
@@ -232,9 +232,9 @@ function Home() {
         <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
           <div className="mb-8 flex items-end justify-between">
             <div>
-              <p className="label-caps">Browse by role</p>
+              <p className="label-caps">{t("home.browseEyebrow")}</p>
               <h2 className="mt-1 text-2xl font-bold text-[color:var(--ink)] sm:text-3xl">
-                What kind of work?
+                {t("home.browseTitle")}
               </h2>
             </div>
           </div>
@@ -259,14 +259,12 @@ function Home() {
         <section className="border-y border-border bg-card">
           <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
             <div className="mb-8 max-w-2xl">
-              <p className="label-caps text-primary">Real people, real shifts</p>
+              <p className="label-caps text-primary">{t("home.realPeopleEyebrow")}</p>
               <h2 className="mt-1 text-2xl font-bold text-[color:var(--ink)] sm:text-3xl">
-                The crew behind every shipment
+                {t("home.realPeopleTitle")}
               </h2>
               <p className="mt-2 text-sm text-muted-foreground">
-                Pickers, packers, forklift operators, dock leads — folks getting hired through
-                Warehouse<span className="text-primary">jobs.com</span> this month.
-
+                {t("home.realPeopleSub")}
               </p>
             </div>
             <div className="grid gap-5 sm:grid-cols-3">
@@ -321,16 +319,16 @@ function Home() {
           <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
             <div className="mb-8 flex items-end justify-between">
               <div>
-                <p className="label-caps text-primary">Featured Listings</p>
+                <p className="label-caps text-primary">{t("home.featuredEyebrow")}</p>
                 <h2 className="mt-1 text-2xl font-bold text-[color:var(--ink)] sm:text-3xl">
-                  Jobs hiring this week
+                  {t("home.featuredTitle")}
                 </h2>
               </div>
               <Link
                 to="/jobs"
                 className="hidden items-center gap-1 text-sm font-semibold text-primary hover:underline sm:inline-flex"
               >
-                View all <ArrowRight className="h-4 w-4" />
+                {t("home.viewAll")} <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
             <div className="grid gap-4 md:grid-cols-2">
@@ -338,7 +336,7 @@ function Home() {
                 <JobCard key={job.id} job={job} />
               ))}
               {featured.length === 0 && (
-                <p className="text-sm text-muted-foreground">No featured jobs right now.</p>
+                <p className="text-sm text-muted-foreground">{t("home.noFeatured")}</p>
               )}
             </div>
           </div>
@@ -362,26 +360,24 @@ function Home() {
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[color:var(--charcoal)]/60 md:to-[color:var(--charcoal)]" />
               </div>
               <div className="p-8 sm:p-12">
-                <p className="label-caps text-[color:var(--hazard)]">For Employers</p>
+                <p className="label-caps text-[color:var(--hazard)]">{t("home.employerEyebrow")}</p>
                 <h2 className="mt-2 text-3xl font-bold leading-tight text-white sm:text-4xl">
-                  Stop wasting weeks on the{" "}
-                  <span className="text-[color:var(--hazard)]">wrong applicants</span>.
+                  {t("home.employerTitleA")}{" "}
+                  <span className="text-[color:var(--hazard)]">{t("home.employerTitleB")}</span>.
                 </h2>
                 <p className="mt-3 max-w-md text-white/70">
-                  Warehouse<span className="text-[color:var(--hazard)]">jobs.com</span> reaches qualified warehouse workers — forklift-certified, ready to
-                  start, in your ZIP. Post in 4 minutes.
-
+                  {t("home.employerSub")}
                 </p>
                 <div className="mt-6 flex flex-wrap gap-3">
                   <Link to="/pricing">
-                    <Button className="btn-primary">See Pricing</Button>
+                    <Button className="btn-primary">{t("home.seePricing")}</Button>
                   </Link>
                   <Link to="/contact">
                     <Button
                       variant="outline"
                       className="border-white/30 bg-transparent text-white hover:bg-white/10 hover:text-white"
                     >
-                      Talk to Sales
+                      {t("home.talkToSales")}
                     </Button>
                   </Link>
                 </div>
