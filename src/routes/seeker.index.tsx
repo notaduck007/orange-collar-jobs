@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { FileText, Bookmark, BellRing, ArrowRight, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -14,6 +15,7 @@ export const Route = createFileRoute("/seeker/")({
 
 function SeekerOverview() {
   const { user } = useAuth();
+  const { t } = useTranslation();
 
   const { data: stats } = useQuery({
     queryKey: ["seeker-stats", user?.id],
@@ -99,32 +101,32 @@ function SeekerOverview() {
           className="hidden h-20 w-20 shrink-0 rounded-full object-cover ring-2 ring-[color:var(--primary-tint)] sm:block"
         />
         <div>
-          <p className="label-caps text-primary">My dashboard</p>
+          <p className="label-caps text-primary">{t("seeker.eyebrow")}</p>
           <h1 className="mt-1 text-3xl font-bold tracking-tight text-[color:var(--ink)]">
-            Welcome back
+            {t("seeker.welcome")}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Track your warehouse job search in one place — you've got this.
+            {t("seeker.sub")}
           </p>
         </div>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-4">
         <StatCard
-          label="Active applications"
+          label={t("seeker.activeApps")}
           value={stats?.activeApps ?? 0}
           icon={FileText}
           to="/seeker/applications"
         />
         <StatCard
-          label="Hired"
+          label={t("seeker.hired")}
           value={stats?.hired ?? 0}
           icon={FileText}
           to="/seeker/applications"
         />
-        <StatCard label="Saved jobs" value={stats?.saved ?? 0} icon={Bookmark} to="/seeker/saved" />
+        <StatCard label={t("seeker.saved")} value={stats?.saved ?? 0} icon={Bookmark} to="/seeker/saved" />
         <StatCard
-          label="Active alerts"
+          label={t("seeker.alerts")}
           value={stats?.alerts ?? 0}
           icon={BellRing}
           to="/seeker/alerts"
@@ -135,17 +137,17 @@ function SeekerOverview() {
         <div className="rounded-xl border border-border bg-card p-5">
           <div className="flex items-center justify-between">
             <h2 className="flex items-center gap-1.5 text-lg font-semibold text-[color:var(--ink)]">
-              <Sparkles className="h-4 w-4 text-primary" /> Recommended for you
+              <Sparkles className="h-4 w-4 text-primary" /> {t("seeker.recommended")}
             </h2>
             <Link
               to="/seeker/profile"
               className="text-xs font-semibold text-primary hover:underline"
             >
-              Tune preferences <ArrowRight className="ml-0.5 inline h-3 w-3" />
+              {t("seeker.tunePrefs")} <ArrowRight className="ml-0.5 inline h-3 w-3" />
             </Link>
           </div>
           <p className="mt-1 text-xs text-muted-foreground">
-            Based on your shift, employment type, skills and location.
+            {t("seeker.recommendedSub")}
           </p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {recommended.map((job) => (
@@ -157,12 +159,12 @@ function SeekerOverview() {
 
       <div className="rounded-xl border border-border bg-card p-5">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-[color:var(--ink)]">Recent applications</h2>
+          <h2 className="text-lg font-semibold text-[color:var(--ink)]">{t("seeker.recentApps")}</h2>
           <Link
             to="/seeker/applications"
             className="text-xs font-semibold text-primary hover:underline"
           >
-            See all <ArrowRight className="ml-0.5 inline h-3 w-3" />
+            {t("seeker.seeAll")} <ArrowRight className="ml-0.5 inline h-3 w-3" />
           </Link>
         </div>
         <div className="mt-3 divide-y divide-border">
@@ -178,11 +180,10 @@ function SeekerOverview() {
                 className="h-16 w-16 shrink-0 rounded-full object-cover ring-2 ring-[color:var(--primary-tint)]"
               />
               <p className="text-sm text-muted-foreground">
-                No applications yet — the right shift is out there.{" "}
+                {t("seeker.noApps")}{" "}
                 <Link to="/jobs" className="font-semibold text-primary hover:underline">
-                  Find a warehouse job
-                </Link>{" "}
-                to get started.
+                  {t("seeker.findJob")}
+                </Link>
               </p>
             </div>
           )}
@@ -234,19 +235,20 @@ function StatCard({
 }
 
 export function StatusBadge({ status }: { status: string }) {
-  const map: Record<string, { label: string; cls: string }> = {
-    submitted: { label: "Submitted", cls: "bg-muted text-foreground" },
-    reviewed: { label: "Reviewed", cls: "bg-blue-100 text-blue-900" },
-    shortlisted: { label: "Shortlisted", cls: "bg-[color:var(--primary-tint)] text-primary" },
-    hired: { label: "Hired", cls: "bg-emerald-100 text-emerald-900" },
-    rejected: { label: "Not selected", cls: "bg-rose-100 text-rose-900" },
+  const { t } = useTranslation();
+  const map: Record<string, { labelKey: string; cls: string }> = {
+    submitted: { labelKey: "seeker.status_submitted", cls: "bg-muted text-foreground" },
+    reviewed: { labelKey: "seeker.status_reviewed", cls: "bg-blue-100 text-blue-900" },
+    shortlisted: { labelKey: "seeker.status_shortlisted", cls: "bg-[color:var(--primary-tint)] text-primary" },
+    hired: { labelKey: "seeker.status_hired", cls: "bg-emerald-100 text-emerald-900" },
+    rejected: { labelKey: "seeker.status_rejected", cls: "bg-rose-100 text-rose-900" },
   };
   const m = map[status] ?? map.submitted;
   return (
     <span
       className={`rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-wider ${m.cls}`}
     >
-      {m.label}
+      {t(m.labelKey)}
     </span>
   );
 }

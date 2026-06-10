@@ -670,6 +670,7 @@ export type Database = {
           frequency: string
           id: string
           keyword: string | null
+          language: string
           state: string | null
         }
         Insert: {
@@ -680,6 +681,7 @@ export type Database = {
           frequency?: string
           id?: string
           keyword?: string | null
+          language?: string
           state?: string | null
         }
         Update: {
@@ -690,6 +692,7 @@ export type Database = {
           frequency?: string
           id?: string
           keyword?: string | null
+          language?: string
           state?: string | null
         }
         Relationships: [
@@ -738,6 +741,47 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      job_translations: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          job_id: string
+          language: string
+          requirements: string | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          job_id: string
+          language: string
+          requirements?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          job_id?: string
+          language?: string
+          requirements?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_translations_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       jobs: {
         Row: {
@@ -1062,6 +1106,7 @@ export type Database = {
           display_name: string | null
           full_name: string | null
           id: string
+          language: string
           location: string | null
           phone: string | null
           pii_anonymized_at: string | null
@@ -1076,6 +1121,7 @@ export type Database = {
           display_name?: string | null
           full_name?: string | null
           id: string
+          language?: string
           location?: string | null
           phone?: string | null
           pii_anonymized_at?: string | null
@@ -1090,6 +1136,7 @@ export type Database = {
           display_name?: string | null
           full_name?: string | null
           id?: string
+          language?: string
           location?: string | null
           phone?: string | null
           pii_anonymized_at?: string | null

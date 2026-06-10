@@ -1,6 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { HardHat } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useSiteSettings } from "@/lib/site-settings";
+import { LanguageToggle } from "@/components/language-toggle";
 
 const POPULAR_CITIES: Array<{ label: string; slug: string }> = [
   { label: "Warehouse Jobs in Dallas, TX", slug: "dallas-tx" },
@@ -12,6 +14,7 @@ const POPULAR_CITIES: Array<{ label: string; slug: string }> = [
 
 export function SiteFooter() {
   const { settings } = useSiteSettings();
+  const { t } = useTranslation();
   return (
     <footer className="mt-24 bg-[color:var(--charcoal)] text-white">
       <div className="hazard-stripes h-2 w-full" />
@@ -29,75 +32,37 @@ export function SiteFooter() {
             <span className="text-base font-bold tracking-tight">
               Warehouse<span className="text-primary">jobs.com</span>
             </span>
-
           </div>
           <p className="mt-3 max-w-xs text-sm text-white/60">
-            The job board built for warehouse workers and the companies that hire them.
+            {t("footer.tagline")}
           </p>
+          <div className="mt-4">
+            <LanguageToggle variant="footer" />
+          </div>
         </div>
         <div>
-          <p className="label-caps mb-3 text-white/50">For Workers</p>
+          <p className="label-caps mb-3 text-white/50">{t("footer.forWorkers")}</p>
           <ul className="space-y-2 text-sm text-white/80">
-            <li>
-              <Link to="/jobs" className="hover:text-primary">
-                Browse jobs
-              </Link>
-            </li>
-            <li>
-              <Link to="/auth" search={{ mode: "signup" }} className="hover:text-primary">
-                Create alerts
-              </Link>
-            </li>
-            <li>
-              <Link to="/faq" className="hover:text-primary">
-                FAQ
-              </Link>
-            </li>
+            <li><Link to="/jobs" className="hover:text-primary">{t("footer.browseJobs")}</Link></li>
+            <li><Link to="/auth" search={{ mode: "signup" }} className="hover:text-primary">{t("footer.createAlerts")}</Link></li>
+            <li><Link to="/faq" className="hover:text-primary">{t("common.faq")}</Link></li>
           </ul>
         </div>
         <div>
-          <p className="label-caps mb-3 text-white/50">For Employers</p>
+          <p className="label-caps mb-3 text-white/50">{t("footer.forEmployers")}</p>
           <ul className="space-y-2 text-sm text-white/80">
-            <li>
-              <Link to="/pricing" className="hover:text-primary">
-                Post a job
-              </Link>
-            </li>
-            <li>
-              <Link to="/pricing" className="hover:text-primary">
-                Packages
-              </Link>
-            </li>
-            <li>
-              <Link to="/contact" className="hover:text-primary">
-                Talk to sales
-              </Link>
-            </li>
+            <li><Link to="/pricing" className="hover:text-primary">{t("footer.postJob")}</Link></li>
+            <li><Link to="/pricing" className="hover:text-primary">{t("footer.packages")}</Link></li>
+            <li><Link to="/contact" className="hover:text-primary">{t("footer.talkSales")}</Link></li>
           </ul>
         </div>
         <div>
-          <p className="label-caps mb-3 text-white/50">Company</p>
+          <p className="label-caps mb-3 text-white/50">{t("footer.company")}</p>
           <ul className="space-y-2 text-sm text-white/80">
-            <li>
-              <Link to="/mission" className="hover:text-primary">
-                Our Mission
-              </Link>
-            </li>
-            <li>
-              <Link to="/about" className="hover:text-primary">
-                About
-              </Link>
-            </li>
-            <li>
-              <Link to="/contact" className="hover:text-primary">
-                Contact
-              </Link>
-            </li>
-            <li>
-              <Link to="/privacy" className="hover:text-primary">
-                Privacy
-              </Link>
-            </li>
+            <li><Link to="/mission" className="hover:text-primary">{t("common.mission")}</Link></li>
+            <li><Link to="/about" className="hover:text-primary">{t("common.about")}</Link></li>
+            <li><Link to="/contact" className="hover:text-primary">{t("common.contact")}</Link></li>
+            <li><Link to="/privacy" className="hover:text-primary">{t("footer.privacy")}</Link></li>
             <li>
               <a href={`mailto:${settings.branding.support_email}`} className="hover:text-primary">
                 {settings.branding.support_email}
@@ -106,60 +71,16 @@ export function SiteFooter() {
           </ul>
         </div>
         <div>
-          <p className="label-caps mb-3 text-white/50">Popular Searches</p>
+          <p className="label-caps mb-3 text-white/50">{t("footer.popularSearches")}</p>
           <ul className="space-y-2 text-sm text-white/80">
-            <li>
-              <Link
-                to="/jobs/category/$categorySlug"
-                params={{ categorySlug: "forklift-operator" }}
-                className="hover:text-primary"
-              >
-                Forklift Operator Jobs
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/jobs/category/$categorySlug"
-                params={{ categorySlug: "picker-packer" }}
-                className="hover:text-primary"
-              >
-                Picker / Packer Jobs
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/jobs/category/$categorySlug"
-                params={{ categorySlug: "shipping-receiving" }}
-                className="hover:text-primary"
-              >
-                Shipping & Receiving Jobs
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/jobs/category/$categorySlug"
-                params={{ categorySlug: "order-selector" }}
-                className="hover:text-primary"
-              >
-                Order Selector Jobs
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/jobs/category/$categorySlug"
-                params={{ categorySlug: "warehouse-associate" }}
-                className="hover:text-primary"
-              >
-                Warehouse Associate Jobs
-              </Link>
-            </li>
+            <li><Link to="/jobs/category/$categorySlug" params={{ categorySlug: "forklift-operator" }} className="hover:text-primary">{t("footer.forkliftJobs")}</Link></li>
+            <li><Link to="/jobs/category/$categorySlug" params={{ categorySlug: "picker-packer" }} className="hover:text-primary">{t("footer.pickerJobs")}</Link></li>
+            <li><Link to="/jobs/category/$categorySlug" params={{ categorySlug: "shipping-receiving" }} className="hover:text-primary">{t("footer.shippingJobs")}</Link></li>
+            <li><Link to="/jobs/category/$categorySlug" params={{ categorySlug: "order-selector" }} className="hover:text-primary">{t("footer.selectorJobs")}</Link></li>
+            <li><Link to="/jobs/category/$categorySlug" params={{ categorySlug: "warehouse-associate" }} className="hover:text-primary">{t("footer.associateJobs")}</Link></li>
             {POPULAR_CITIES.map((c) => (
               <li key={c.slug}>
-                <Link
-                  to="/warehouse-jobs/$citySlug"
-                  params={{ citySlug: c.slug }}
-                  className="hover:text-primary"
-                >
+                <Link to="/warehouse-jobs/$citySlug" params={{ citySlug: c.slug }} className="hover:text-primary">
                   {c.label}
                 </Link>
               </li>
@@ -171,9 +92,9 @@ export function SiteFooter() {
       <div className="border-t border-white/10">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-4 py-5 text-xs text-white/50 sm:flex-row sm:px-6">
           <p>
-            © {new Date().getFullYear()} {settings.branding.site_name}. All rights reserved.
+            © {new Date().getFullYear()} {settings.branding.site_name}. {t("footer.rights")}
           </p>
-          <p>Built for the dock — boots-on-the-ground hiring.</p>
+          <p>{t("footer.tagline")}</p>
         </div>
       </div>
     </footer>

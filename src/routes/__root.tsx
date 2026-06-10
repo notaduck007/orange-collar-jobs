@@ -14,6 +14,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "@/lib/auth";
 import { Toaster } from "@/components/ui/sonner";
 import { ImpersonationBanner } from "@/components/impersonation-banner";
+import "@/lib/i18n";
 
 function NotFoundComponent() {
   return (

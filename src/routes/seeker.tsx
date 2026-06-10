@@ -1,5 +1,6 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { LayoutDashboard, FileText, Bookmark, BellRing, User, ShieldCheck } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
@@ -13,6 +14,7 @@ function SeekerLayout() {
   const { user, role, loading } = useAuth();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (loading) return;
@@ -29,7 +31,7 @@ function SeekerLayout() {
     return (
       <div className="min-h-screen bg-background">
         <SiteHeader />
-        <div className="p-12 text-center text-sm text-muted-foreground">Loading…</div>
+        <div className="p-12 text-center text-sm text-muted-foreground">{t("common.loading")}</div>
       </div>
     );
   }
@@ -39,18 +41,18 @@ function SeekerLayout() {
       <SiteHeader />
       <div className="mx-auto grid max-w-7xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[220px_1fr]">
         <aside className="space-y-1">
-          <p className="label-caps mb-2">Job seeker</p>
-          <SideLink to="/seeker" icon={LayoutDashboard} label="Overview" exact />
-          <SideLink to="/seeker/applications" icon={FileText} label="My Applications" />
-          <SideLink to="/seeker/saved" icon={Bookmark} label="Saved Jobs" />
-          <SideLink to="/seeker/alerts" icon={BellRing} label="Job Alerts" />
-          <SideLink to="/seeker/profile" icon={User} label="Profile & Resume" />
-          <SideLink to="/seeker/privacy" icon={ShieldCheck} label="Privacy & Data" />
+          <p className="label-caps mb-2">{t("common.jobSeeker")}</p>
+          <SideLink to="/seeker" icon={LayoutDashboard} label={t("seeker.overview")} exact />
+          <SideLink to="/seeker/applications" icon={FileText} label={t("seeker.myApplications")} />
+          <SideLink to="/seeker/saved" icon={Bookmark} label={t("seeker.savedJobs")} />
+          <SideLink to="/seeker/alerts" icon={BellRing} label={t("seeker.jobAlerts")} />
+          <SideLink to="/seeker/profile" icon={User} label={t("seeker.profileResume")} />
+          <SideLink to="/seeker/privacy" icon={ShieldCheck} label={t("seeker.privacy")} />
           <Link
             to="/jobs"
             className="mt-6 block rounded-md bg-primary px-3 py-2 text-center text-sm font-semibold text-primary-foreground shadow-[var(--shadow-orange)]"
           >
-            Search jobs →
+            {t("seeker.searchJobsBtn")}
           </Link>
         </aside>
         <main className="min-w-0">

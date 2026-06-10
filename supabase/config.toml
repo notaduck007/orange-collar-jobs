@@ -32,3 +32,6 @@ verify_jwt = true
 
 [functions.ai-job-description]
 verify_jwt = true
+
+[functions.translate-job]
+verify_jwt = false

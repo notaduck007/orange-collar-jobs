@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate, notFound } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   MapPin,
   Clock,
@@ -12,6 +13,8 @@ import {
   CheckCircle2,
   ChevronDown,
   ChevronUp,
+  Languages,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -265,6 +268,7 @@ function JobDetail() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const { t, i18n } = useTranslation();
   const [applyOpen, setApplyOpen] = useState(false);
   const [coverOpen, setCoverOpen] = useState(false);
   const [coverNote, setCoverNote] = useState("");
@@ -272,6 +276,62 @@ function JobDetail() {
   const [successOpen, setSuccessOpen] = useState(false);
   const appliedIds = useAppliedJobs();
   const quickApply = useQuickApplyReady();
+
+  // Translation state
+  const [showTranslation, setShowTranslation] = useState(false);
+  const [translating, setTranslating] = useState(false);
+  const [translated, setTranslated] = useState<{
+    title?: string | null;
+    description?: string | null;
+    requirements?: string | null;
+  } | null>(null);
+
+  // Auto-show translation if language is ES and we have a cached one
+  useEffect(() => {
+    if (!job || i18n.language !== "es") return;
+    let cancelled = false;
+    void supabase
+      .from("job_translations")
+      .select("title, description, requirements")
+      .eq("job_id", job.id)
+      .eq("language", "es")
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!cancelled && data) {
+          setTranslated(data);
+          setShowTranslation(true);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [job, i18n.language]);
+
+  const handleTranslate = async () => {
+    if (!job) return;
+    if (translated) {
+      setShowTranslation(true);
+      return;
+    }
+    setTranslating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("translate-job", {
+        body: { jobId: job.id, language: "es" },
+      });
+      if (error) throw error;
+      setTranslated({
+        title: data?.title,
+        description: data?.description,
+        requirements: data?.requirements,
+      });
+      setShowTranslation(true);
+    } catch (e) {
+      toast.error(t("jobDetail.translationFailed") as string);
+      console.error(e);
+    } finally {
+      setTranslating(false);
+    }
+  };
 
   const alreadyApplied = !!job && appliedIds.has(job.id);
 
@@ -408,7 +468,7 @@ function JobDetail() {
           to="/jobs"
           className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-primary"
         >
-          <ArrowLeft className="h-4 w-4" /> Back to search
+          <ArrowLeft className="h-4 w-4" /> {t("jobDetail.backToSearch")}
         </Link>
       </div>
 
@@ -421,7 +481,7 @@ function JobDetail() {
                   {job.category} • {shiftLabel[job.shift]}
                 </p>
                 <h1 className="mt-2 text-3xl font-bold leading-tight text-[color:var(--ink)] sm:text-4xl">
-                  {job.title}
+                  {showTranslation && translated?.title ? translated.title : job.title}
                 </h1>
                 {job.companies && (
                   <Link
@@ -435,15 +495,15 @@ function JobDetail() {
               </div>
               {job.featured && (
                 <span className="inline-flex items-center gap-1 rounded-md bg-[color:var(--hazard)] px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-[color:var(--ink)]">
-                  Featured
+                  {t("jobs.featured")}
                 </span>
               )}
             </div>
 
             <div className="mt-5 grid grid-cols-2 gap-4 border-y border-border py-4 sm:grid-cols-3">
-              <Meta icon={MapPin} label="Location" value={job.location} />
-              <Meta icon={Clock} label="Type" value={typeLabel[job.employment_type]} />
-              {pay && <Meta icon={DollarSign} label="Pay" value={pay} />}
+              <Meta icon={MapPin} label={t("jobDetail.location") as string} value={job.location} />
+              <Meta icon={Clock} label={t("jobDetail.type") as string} value={typeLabel[job.employment_type]} />
+              {pay && <Meta icon={DollarSign} label={t("jobDetail.pay") as string} value={pay} />}
             </div>
 
             {(() => {
@@ -482,18 +542,57 @@ function JobDetail() {
               );
             })()}
 
-            <section className="mt-6 space-y-5">
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  if (showTranslation) {
+                    setShowTranslation(false);
+                  } else if (translated) {
+                    setShowTranslation(true);
+                  } else {
+                    void handleTranslate();
+                  }
+                }}
+                disabled={translating}
+                className="gap-1.5"
+              >
+                {translating ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" /> {t("jobDetail.translating")}
+                  </>
+                ) : showTranslation ? (
+                  <>
+                    <Languages className="h-4 w-4" /> {t("jobDetail.showOriginal")}
+                  </>
+                ) : (
+                  <>
+                    <Languages className="h-4 w-4" /> {t("jobDetail.translate")}
+                  </>
+                )}
+              </Button>
+              {showTranslation && translated && (
+                <span className="text-xs text-muted-foreground">{t("jobDetail.poweredByAI")}</span>
+              )}
+            </div>
+
+            <section className="mt-4 space-y-5">
               <div>
-                <h2 className="text-lg font-semibold text-[color:var(--ink)]">Job description</h2>
+                <h2 className="text-lg font-semibold text-[color:var(--ink)]">{t("jobDetail.description")}</h2>
                 <p className="mt-2 whitespace-pre-line text-[15px] leading-relaxed text-foreground">
-                  {job.description}
+                  {showTranslation && translated?.description ? translated.description : job.description}
                 </p>
               </div>
-              {job.requirements && (
+              {(showTranslation && translated?.requirements
+                ? translated.requirements
+                : job.requirements) && (
                 <div>
-                  <h2 className="text-lg font-semibold text-[color:var(--ink)]">Requirements</h2>
+                  <h2 className="text-lg font-semibold text-[color:var(--ink)]">{t("jobDetail.requirements")}</h2>
                   <p className="mt-2 whitespace-pre-line text-[15px] leading-relaxed text-foreground">
-                    {job.requirements}
+                    {showTranslation && translated?.requirements
+                      ? translated.requirements
+                      : job.requirements}
                   </p>
                 </div>
               )}
@@ -501,7 +600,7 @@ function JobDetail() {
 
             {expired ? (
               <div className="mt-8 rounded-lg border border-border bg-muted p-4 text-sm text-foreground">
-                This job is no longer accepting applications.
+                {t("jobDetail.expired")}
               </div>
             ) : (
               <div className="mt-8 space-y-3">
@@ -539,14 +638,14 @@ function JobDetail() {
                   ) : (
                     <Button onClick={apply} disabled={quickSubmitting} className="btn-primary !px-6">
                       {quickSubmitting
-                        ? "Sending…"
+                        ? t("apply.sending")
                         : user && quickApply.ready && !hasScreening
-                          ? "Quick apply"
-                          : "Apply now"}
+                          ? t("jobDetail.quickApply")
+                          : t("jobDetail.apply")}
                     </Button>
                   )}
                   <Button variant="outline" onClick={save} className="gap-1.5">
-                    <Bookmark className="h-4 w-4" /> Save
+                    <Bookmark className="h-4 w-4" /> {t("jobDetail.save")}
                   </Button>
                   <Button
                     variant="outline"
@@ -556,7 +655,7 @@ function JobDetail() {
                     }}
                     className="gap-1.5"
                   >
-                    <Share2 className="h-4 w-4" /> Share
+                    <Share2 className="h-4 w-4" /> {t("jobDetail.share")}
                   </Button>
                   {job && <ReportButton entityType="job" entityId={job.id} variant="outline" />}
                 </div>
@@ -576,7 +675,7 @@ function JobDetail() {
           {expired && similar.length > 0 && (
             <section className="mt-8">
               <h2 className="text-lg font-semibold text-[color:var(--ink)]">
-                Similar jobs still hiring
+                {t("jobDetail.similarJobs")}
               </h2>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 {(similar as JobSummary[]).map((j) => (

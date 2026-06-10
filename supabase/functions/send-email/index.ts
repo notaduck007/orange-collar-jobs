@@ -80,7 +80,8 @@ serve(async (req) => {
       }
     }
 
-    const { to, subject, body, from } = await req.json();
+    const payload = await req.json();
+    const { to, subject, body, from, language, subject_es, body_es } = payload as Record<string, unknown>;
     if (!to || !subject) {
       return new Response(JSON.stringify({ error: "missing to/subject" }), {
         status: 400,
@@ -96,22 +97,44 @@ serve(async (req) => {
       });
     }
 
+    // Resolve target language: explicit "language" wins; otherwise pull from the
+    // recipient's profile when "to" is a user UUID.
+    let lang = (typeof language === "string" && (language === "es" || language === "en")) ? language : "en";
+    if (!language && UUID_RE.test(String(to)) && supabaseUrl && serviceKey) {
+      const admin = createClient(supabaseUrl, serviceKey);
+      const { data: prof } = await admin
+        .from("profiles")
+        .select("language")
+        .eq("id", String(to))
+        .maybeSingle();
+      if ((prof as any)?.language === "es") lang = "es";
+    }
+
     const sender = from ?? "WarehouseJobs.com <no-reply@warehousejobs.app>";
     const resendKey = Deno.env.get("RESEND_API_KEY");
+
+    // Pick ES variants when target lang is Spanish and they were provided
+    const finalSubject = lang === "es" && typeof subject_es === "string" && subject_es.length
+      ? subject_es
+      : String(subject);
+    const finalBodyRaw = lang === "es" && typeof body_es === "string" && body_es.length
+      ? body_es
+      : (typeof body === "string" ? body : "");
 
     if (!resendKey) {
       console.log("[send-email] RESEND_API_KEY not set; skipping send", {
         from: sender,
         to: recipient,
-        subject,
+        subject: finalSubject,
+        lang,
       });
       return new Response(
-        JSON.stringify({ ok: false, skipped: true, reason: "email_provider_not_configured" }),
+        JSON.stringify({ ok: false, skipped: true, reason: "email_provider_not_configured", lang }),
         { headers: { ...cors, "Content-Type": "application/json" } },
       );
     }
 
-    const html = typeof body === "string" && body.length > 0 ? body : `<p>${subject}</p>`;
+    const html = finalBodyRaw && finalBodyRaw.length > 0 ? finalBodyRaw : `<p>${finalSubject}</p>`;
 
     const resp = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -122,7 +145,7 @@ serve(async (req) => {
       body: JSON.stringify({
         from: sender,
         to: [recipient],
-        subject,
+        subject: finalSubject,
         html,
       }),
     });

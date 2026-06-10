@@ -1,12 +1,15 @@
 import { Link } from "@tanstack/react-router";
 import { HardHat, LogOut } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { useSiteSettings } from "@/lib/site-settings";
+import { LanguageToggle } from "@/components/language-toggle";
 
 export function SiteHeader() {
   const { user, role, signOut } = useAuth();
   const { settings } = useSiteSettings();
+  const { t } = useTranslation();
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
@@ -32,35 +35,36 @@ export function SiteHeader() {
             to="/jobs"
             className="text-sm font-medium text-[color:var(--ink)] hover:text-primary"
           >
-            Find Jobs
+            {t("common.findJobs")}
           </Link>
           <Link
             to="/pricing"
             className="text-sm font-medium text-[color:var(--ink)] hover:text-primary"
           >
-            For Employers
+            {t("common.forEmployers")}
           </Link>
           <Link
             to="/about"
             className="text-sm font-medium text-[color:var(--ink)] hover:text-primary"
           >
-            About
+            {t("common.about")}
           </Link>
           <Link
             to="/mission"
             className="text-sm font-medium text-[color:var(--ink)] hover:text-primary"
           >
-            Our Mission
+            {t("common.mission")}
           </Link>
           <Link
             to="/faq"
             className="text-sm font-medium text-[color:var(--ink)] hover:text-primary"
           >
-            FAQ
+            {t("common.faq")}
           </Link>
         </nav>
 
         <div className="flex items-center gap-2">
+          <LanguageToggle variant="header" />
           {user ? (
             <>
               {role === "admin" ? (
@@ -69,7 +73,7 @@ export function SiteHeader() {
                     size="sm"
                     className="bg-primary text-primary-foreground shadow-[var(--shadow-orange)] hover:bg-[color:var(--primary-dark)]"
                   >
-                    Admin Dashboard
+                    {t("common.adminDashboard")}
                   </Button>
                 </Link>
               ) : (
@@ -77,31 +81,35 @@ export function SiteHeader() {
                   {role === "employer" && (
                     <Link to="/employer">
                       <Button variant="outline" size="sm">
-                        Employer Dashboard
+                        {t("common.employerDashboard")}
                       </Button>
                     </Link>
                   )}
                   {role === "job_seeker" && (
                     <Link to="/seeker">
                       <Button variant="outline" size="sm">
-                        My Dashboard
+                        {t("common.myDashboard")}
                       </Button>
                     </Link>
                   )}
                 </>
               )}
               <span className="hidden text-xs text-muted-foreground sm:inline">
-                {role === "employer" ? "Employer" : role === "admin" ? "Admin" : "Job Seeker"}
+                {role === "employer"
+                  ? t("common.employer")
+                  : role === "admin"
+                    ? t("common.admin")
+                    : t("common.jobSeeker")}
               </span>
               <Button variant="ghost" size="sm" onClick={() => signOut()} className="gap-1.5">
-                <LogOut className="h-4 w-4" /> Sign out
+                <LogOut className="h-4 w-4" /> {t("common.signOut")}
               </Button>
             </>
           ) : (
             <>
               <Link to="/auth" search={{ mode: "login" }}>
                 <Button variant="ghost" size="sm">
-                  Sign in
+                  {t("common.signIn")}
                 </Button>
               </Link>
               <Link
@@ -112,7 +120,7 @@ export function SiteHeader() {
                   size="sm"
                   className="bg-primary text-primary-foreground shadow-[var(--shadow-orange)] hover:bg-[color:var(--primary-dark)]"
                 >
-                  Post a Job
+                  {t("common.postJob")}
                 </Button>
               </Link>
             </>
