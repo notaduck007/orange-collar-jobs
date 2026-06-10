@@ -600,7 +600,7 @@ function JobDetail() {
 
             {expired ? (
               <div className="mt-8 rounded-lg border border-border bg-muted p-4 text-sm text-foreground">
-                This job is no longer accepting applications.
+                {t("jobDetail.expired")}
               </div>
             ) : (
               <div className="mt-8 space-y-3">
@@ -638,14 +638,14 @@ function JobDetail() {
                   ) : (
                     <Button onClick={apply} disabled={quickSubmitting} className="btn-primary !px-6">
                       {quickSubmitting
-                        ? "Sending…"
+                        ? t("apply.sending")
                         : user && quickApply.ready && !hasScreening
-                          ? "Quick apply"
-                          : "Apply now"}
+                          ? t("jobDetail.quickApply")
+                          : t("jobDetail.apply")}
                     </Button>
                   )}
                   <Button variant="outline" onClick={save} className="gap-1.5">
-                    <Bookmark className="h-4 w-4" /> Save
+                    <Bookmark className="h-4 w-4" /> {t("jobDetail.save")}
                   </Button>
                   <Button
                     variant="outline"
