@@ -655,7 +655,7 @@ function JobDetail() {
                     }}
                     className="gap-1.5"
                   >
-                    <Share2 className="h-4 w-4" /> Share
+                    <Share2 className="h-4 w-4" /> {t("jobDetail.share")}
                   </Button>
                   {job && <ReportButton entityType="job" entityId={job.id} variant="outline" />}
                 </div>
@@ -675,7 +675,7 @@ function JobDetail() {
           {expired && similar.length > 0 && (
             <section className="mt-8">
               <h2 className="text-lg font-semibold text-[color:var(--ink)]">
-                Similar jobs still hiring
+                {t("jobDetail.similarJobs")}
               </h2>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 {(similar as JobSummary[]).map((j) => (
