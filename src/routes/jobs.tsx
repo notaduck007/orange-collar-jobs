@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { toast } from "sonner";
 import { Search, MapPin, Filter as FilterIcon, BellRing } from "lucide-react";
@@ -126,24 +127,24 @@ export const Route = createFileRoute("/jobs")({
 });
 
 const SHIFTS = [
-  { value: "first", label: "1st Shift" },
-  { value: "second", label: "2nd Shift" },
-  { value: "third", label: "3rd Shift" },
-  { value: "weekend", label: "Weekend" },
+  { value: "first", labelKey: "jobs.shift_first" },
+  { value: "second", labelKey: "jobs.shift_second" },
+  { value: "third", labelKey: "jobs.shift_third" },
+  { value: "weekend", labelKey: "jobs.shift_weekend" },
 ];
 const TYPES = [
-  { value: "full_time", label: "Full-time" },
-  { value: "part_time", label: "Part-time" },
-  { value: "temp", label: "Temp" },
-  { value: "temp_to_hire", label: "Temp-to-Hire" },
-  { value: "seasonal", label: "Seasonal" },
-  { value: "contract", label: "Contract" },
+  { value: "full_time", labelKey: "jobs.type_full_time" },
+  { value: "part_time", labelKey: "jobs.type_part_time" },
+  { value: "temp", labelKey: "jobs.type_temp" },
+  { value: "temp_to_hire", labelKey: "jobs.type_temp_to_hire" },
+  { value: "seasonal", labelKey: "jobs.type_seasonal" },
+  { value: "contract", labelKey: "jobs.type_contract" },
 ];
 
 const SORTS = [
-  { value: "relevance", label: "Best match" },
-  { value: "date", label: "Newest" },
-  { value: "pay_high", label: "Highest pay" },
+  { value: "relevance", labelKey: "jobs.sort_relevance" },
+  { value: "date", labelKey: "jobs.sort_date" },
+  { value: "pay_high", labelKey: "jobs.sort_pay_high" },
 ] as const;
 
 function JobsPage() {
@@ -152,6 +153,7 @@ function JobsPage() {
   const navigate = useNavigate();
   const { user, role } = useAuth();
   const qc = useQueryClient();
+  const { t } = useTranslation();
   const [keyword, setKeyword] = useState(search.q ?? "");
   const [location, setLocation] = useState(search.loc ?? "");
 
@@ -304,8 +306,12 @@ function JobsPage() {
     search.max_lift
   );
 
-  const shiftLabel = SHIFTS.find((s) => s.value === search.shift)?.label;
-  const typeLabel = TYPES.find((t) => t.value === search.type)?.label;
+  const shiftLabel = SHIFTS.find((s) => s.value === search.shift)?.labelKey
+    ? (t(SHIFTS.find((s) => s.value === search.shift)!.labelKey) as string)
+    : undefined;
+  const typeLabel = TYPES.find((tt) => tt.value === search.type)?.labelKey
+    ? (t(TYPES.find((tt) => tt.value === search.type)!.labelKey) as string)
+    : undefined;
   const activeChips: Array<{ key: string; label: string; clear: () => void }> = [];
   if (search.q)
     activeChips.push({
@@ -376,19 +382,19 @@ function JobsPage() {
   if (search.weekly_pay)
     activeChips.push({
       key: "weekly",
-      label: "Weekly pay",
+      label: t("jobs.weeklyPay") as string,
       clear: () => updateSearch({ weekly_pay: undefined }),
     });
   if (search.quick_hire)
     activeChips.push({
       key: "quick",
-      label: "Same-day hire",
+      label: t("jobs.quickHire") as string,
       clear: () => updateSearch({ quick_hire: undefined }),
     });
   if (search.overtime)
     activeChips.push({
       key: "ot",
-      label: "OT available",
+      label: t("jobs.overtime") as string,
       clear: () => updateSearch({ overtime: undefined }),
     });
   if (search.max_lift)
@@ -449,37 +455,37 @@ function JobsPage() {
           <form
             onSubmit={submit}
             role="search"
-            aria-label="Search warehouse jobs"
+            aria-label={t("common.searchJobs") as string}
             className="flex flex-col gap-2 rounded-xl bg-white p-2 shadow-xl sm:flex-row sm:items-stretch"
           >
             <div className="flex flex-1 items-center gap-2 px-3 py-2.5">
               <Search className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
               <label htmlFor="jobs-keyword" className="sr-only">
-                Job title, keyword, or company
+                {t("common.keyword")}
               </label>
               <input
                 id="jobs-keyword"
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
-                placeholder="Job title, keyword, or company"
+                placeholder={t("common.keyword") as string}
                 className="w-full bg-transparent text-[color:var(--ink)] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
               />
             </div>
             <div className="flex flex-1 items-center gap-2 border-t border-border px-3 py-2.5 sm:border-l sm:border-t-0">
               <MapPin className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
               <label htmlFor="jobs-location" className="sr-only">
-                Location (city, state, or ZIP)
+                {t("common.locationPlaceholder")}
               </label>
               <input
                 id="jobs-location"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                placeholder="City, state, or ZIP"
+                placeholder={t("common.locationPlaceholder") as string}
                 className="w-full bg-transparent text-[color:var(--ink)] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
               />
             </div>
             <button type="submit" className="btn-primary sm:px-6">
-              Search
+              {t("common.search")}
             </button>
           </form>
         </div>
@@ -490,10 +496,10 @@ function JobsPage() {
         <aside className="space-y-6">
           <div className="flex items-center gap-2">
             <FilterIcon className="h-4 w-4 text-primary" />
-            <p className="label-caps">Filters</p>
+            <p className="label-caps">{t("jobs.filters")}</p>
           </div>
 
-          <FilterGroup label="Shift">
+          <FilterGroup label={t("jobs.shift") as string}>
             {SHIFTS.map((s) => (
               <FilterChip
                 key={s.value}
@@ -535,7 +541,7 @@ function JobsPage() {
             ))}
           </FilterGroup>
 
-          <FilterGroup label="Equipment certifications">
+          <FilterGroup label={t("jobs.certifications") as string}>
             {CERTIFICATIONS.map((c) => {
               const active = (search.certs ?? "").split(",").filter(Boolean).includes(c.value);
               return (
@@ -556,24 +562,24 @@ function JobsPage() {
             })}
           </FilterGroup>
 
-          <FilterGroup label="Perks">
+          <FilterGroup label={t("jobs.perks") as string}>
             <FilterChip
               active={!!search.weekly_pay}
               onClick={() => updateSearch({ weekly_pay: search.weekly_pay ? undefined : true })}
             >
-              Weekly pay
+              {t("jobs.weeklyPay")}
             </FilterChip>
             <FilterChip
               active={!!search.quick_hire}
               onClick={() => updateSearch({ quick_hire: search.quick_hire ? undefined : true })}
             >
-              Same-day hire
+              {t("jobs.quickHire")}
             </FilterChip>
             <FilterChip
               active={!!search.overtime}
               onClick={() => updateSearch({ overtime: search.overtime ? undefined : true })}
             >
-              OT available
+              {t("jobs.overtime")}
             </FilterChip>
           </FilterGroup>
 
@@ -582,7 +588,7 @@ function JobsPage() {
               htmlFor="filter-lift"
               className="mb-2 block text-sm font-semibold text-[color:var(--ink)]"
             >
-              Max lift (lbs)
+              {t("jobs.maxLift")}
             </label>
             <select
               id="filter-lift"
@@ -592,7 +598,7 @@ function JobsPage() {
               }
               className="w-full rounded-md border border-border bg-card px-2 py-1.5 text-xs font-medium text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
-              <option value="">Any</option>
+              <option value="">{t("jobs.any")}</option>
               <option value="25">≤ 25 lbs</option>
               <option value="50">≤ 50 lbs</option>
               <option value="75">≤ 75 lbs</option>
@@ -605,7 +611,7 @@ function JobsPage() {
               onClick={() => navigate({ to: "/jobs", search: {} as never })}
               className="text-xs font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
             >
-              Clear all filters
+              {t("jobs.clearAll")}
             </button>
           )}
         </aside>
@@ -614,12 +620,15 @@ function JobsPage() {
         <main>
           <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
             <h1 className="text-2xl font-bold text-[color:var(--ink)]">
-              {isLoading ? "Searching…" : `${total} warehouse job${total === 1 ? "" : "s"}`}
-              {search.q && <span className="text-muted-foreground"> for "{search.q}"</span>}
+              {isLoading
+                ? t("jobs.pageTitleSearching")
+                : t("jobs.resultsCount", { count: total })}
+              {search.q && <span className="text-muted-foreground"> {t("jobs.forQuery", { q: search.q })}</span>}
+            </h1>
             </h1>
             <div className="flex flex-wrap items-center gap-2">
               <label htmlFor="filter-pay" className="text-xs text-muted-foreground">
-                Min pay
+                {t("jobs.minPay")}
               </label>
               <select
                 id="filter-pay"
@@ -629,7 +638,7 @@ function JobsPage() {
                 }
                 className="rounded-md border border-border bg-card px-2 py-1 text-xs font-medium text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
-                <option value="">Any</option>
+                <option value="">{t("jobs.any")}</option>
                 <option value="15">$15+/hr</option>
                 <option value="17">$17+/hr</option>
                 <option value="18">$18+/hr</option>
@@ -638,7 +647,7 @@ function JobsPage() {
                 <option value="25">$25+/hr</option>
               </select>
               <label htmlFor="filter-radius" className="ml-2 text-xs text-muted-foreground">
-                Within
+                {t("jobs.within")}
               </label>
               <select
                 id="filter-radius"
@@ -652,7 +661,7 @@ function JobsPage() {
                 }
                 className="rounded-md border border-border bg-card px-2 py-1 text-xs font-medium text-[color:var(--ink)] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
-                <option value="">Any distance</option>
+                <option value="">{t("jobs.anyDistance")}</option>
                 {RADIUS_OPTIONS.map((r) => (
                   <option key={r} value={r}>
                     {r} miles
@@ -660,7 +669,7 @@ function JobsPage() {
                 ))}
               </select>
               <label htmlFor="filter-sort" className="ml-2 text-xs text-muted-foreground">
-                Sort
+                {t("jobs.sort")}
               </label>
               <select
                 id="filter-sort"
@@ -672,7 +681,7 @@ function JobsPage() {
               >
                 {SORTS.map((s) => (
                   <option key={s.value} value={s.value}>
-                    {s.label}
+                    {t(s.labelKey)}
                   </option>
                 ))}
               </select>
@@ -683,8 +692,7 @@ function JobsPage() {
                   onClick={createAlertFromSearch}
                   className="gap-1.5"
                 >
-                  <BellRing className="h-4 w-4 text-primary" aria-hidden="true" /> Get alerts for
-                  this search
+                  <BellRing className="h-4 w-4 text-primary" aria-hidden="true" /> {t("jobs.getAlerts")}
                 </Button>
               )}
             </div>
@@ -721,7 +729,7 @@ function JobsPage() {
           {featured.length > 0 && (
             <div className="mb-6">
               <p className="label-caps mb-3 flex items-center gap-2 text-primary">
-                <span className="hazard-stripes inline-block h-3 w-3 rounded-sm" /> Featured
+                <span className="hazard-stripes inline-block h-3 w-3 rounded-sm" /> {t("jobs.featured")}
               </p>
               <div className="grid gap-3">
                 {featured.map((j) => (
@@ -746,8 +754,8 @@ function JobsPage() {
                 {jobs.length === 0 && (
                   <EmptyState
                     icon={Briefcase}
-                    title="No jobs match those filters."
-                    description="Try widening your search or clearing a filter."
+                    title={t("jobs.emptyTitle") as string}
+                    description={t("jobs.emptyBody") as string}
                   />
                 )}
               </div>
@@ -765,12 +773,12 @@ function JobsPage() {
                     onClick={() => fetchNextPage()}
                     disabled={isFetchingNextPage}
                   >
-                    {isFetchingNextPage ? "Loading…" : "Load more jobs"}
+                    {isFetchingNextPage ? t("common.loading") : t("jobs.loadMore")}
                   </Button>
                 </div>
               ) : jobs.length > 0 ? (
                 <p className="mt-6 text-center text-xs text-muted-foreground">
-                  You've reached the end · {total} job{total === 1 ? "" : "s"} total
+                  {t("jobs.endOfResults", { total })}
                 </p>
               ) : null}
             </>
