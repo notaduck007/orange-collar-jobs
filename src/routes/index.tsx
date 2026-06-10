@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import {
   Forklift,
@@ -71,6 +72,7 @@ const categories = [
 function Home() {
   const { featured } = Route.useLoaderData();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [keyword, setKeyword] = useState("");
   const [location, setLocation] = useState("");
 
@@ -104,72 +106,68 @@ function Home() {
           <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-[color:var(--ink)]/85 via-[color:var(--ink)]/40 to-transparent sm:hidden" />
           <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28 lg:py-32">
             <div className="max-w-2xl">
-              <p className="label-caps text-primary">Hiring Now • Boots on the Dock</p>
+              <p className="label-caps text-primary">{t("home.eyebrow")}</p>
               <h1
                 id="hero-heading"
                 className="mt-4 text-4xl font-bold leading-[1.05] tracking-tight text-white sm:text-5xl lg:text-6xl"
               >
-                Warehouse jobs near you, <span className="text-primary">hiring this week.</span>
-
-
-
+                {t("home.headlineA")} <span className="text-primary">{t("home.headlineB")}</span>
               </h1>
               <p className="mt-5 max-w-xl text-base text-white/80 sm:text-lg">
-                Forklift, picker, packer, dock worker, order selector. Real openings from real
-                distribution centers — search by ZIP and start working this week.
+                {t("home.sub")}
               </p>
 
               {/* SEARCH BAR */}
               <form
                 onSubmit={submitSearch}
                 role="search"
-                aria-label="Search warehouse jobs"
+                aria-label={t("common.searchJobs") as string}
                 className="mt-8 rounded-xl bg-white p-2 shadow-2xl sm:flex sm:items-stretch sm:gap-1"
               >
                 <div className="flex flex-1 items-center gap-2 px-3 py-2.5">
                   <Search className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
                   <label htmlFor="hero-keyword" className="sr-only">
-                    Job title or keyword
+                    {t("common.keyword")}
                   </label>
                   <input
                     id="hero-keyword"
                     value={keyword}
                     onChange={(e) => setKeyword(e.target.value)}
-                    placeholder="Job title or keyword"
+                    placeholder={t("common.keyword") as string}
                     className="w-full bg-transparent text-[color:var(--ink)] placeholder:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
                   />
                 </div>
                 <div className="mt-1 flex flex-1 items-center gap-2 border-t border-border px-3 py-2.5 sm:mt-0 sm:border-l sm:border-t-0">
                   <MapPin className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
                   <label htmlFor="hero-location" className="sr-only">
-                    Location (city, state, or ZIP)
+                    {t("common.locationPlaceholder")}
                   </label>
                   <input
                     id="hero-location"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    placeholder="City, state, or ZIP"
+                    placeholder={t("common.locationPlaceholder") as string}
                     className="w-full bg-transparent text-[color:var(--ink)] placeholder:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
                   />
                 </div>
                 <button type="submit" className="btn-primary mt-1 w-full sm:mt-0 sm:w-auto sm:px-6">
-                  Search Jobs
+                  {t("common.searchJobs")}
                 </button>
               </form>
 
               <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-white/70">
-                <span className="label-caps text-white/60">Popular:</span>
+                <span className="label-caps text-white/60">{t("common.popular")}</span>
                 {["Forklift Operator", "Picker / Packer", "2nd Shift", "Order Selector"].map(
-                  (t) => (
+                  (tag) => (
                     <button
-                      key={t}
+                      key={tag}
                       onClick={() => {
-                        setKeyword(t);
-                        navigate({ to: "/jobs", search: { q: t } as never });
+                        setKeyword(tag);
+                        navigate({ to: "/jobs", search: { q: tag } as never });
                       }}
                       className="rounded hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                     >
-                      {t}
+                      {tag}
                     </button>
                   ),
                 )}
