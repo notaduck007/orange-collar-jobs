@@ -625,7 +625,6 @@ function JobsPage() {
                 : t("jobs.resultsCount", { count: total })}
               {search.q && <span className="text-muted-foreground"> {t("jobs.forQuery", { q: search.q })}</span>}
             </h1>
-            </h1>
             <div className="flex flex-wrap items-center gap-2">
               <label htmlFor="filter-pay" className="text-xs text-muted-foreground">
                 {t("jobs.minPay")}
