@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { FileText, Upload } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useSiteSettings } from "@/lib/site-settings";
@@ -49,6 +50,7 @@ export function ApplyDialog({
 }: ApplyDialogProps) {
   const { user } = useAuth();
   const { settings } = useSiteSettings();
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const fileInput = useRef<HTMLInputElement>(null);
   const [coverNote, setCoverNote] = useState("");
@@ -277,16 +279,15 @@ export function ApplyDialog({
       <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Apply to {jobTitle}</DialogTitle>
+          <DialogTitle>{t("apply.title", { job: jobTitle })}</DialogTitle>
           <DialogDescription>
-            Send your resume and an optional note. The employer will see your full name and any
-            cover note you add.
+            {t("apply.description")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label>Resume (optional)</Label>
+            <Label>{t("apply.resume")}</Label>
             {hasDefault && (
               <label className="flex items-start gap-3 rounded-lg border border-border bg-background p-3">
                 <input
@@ -299,7 +300,7 @@ export function ApplyDialog({
                   <div className="flex items-center gap-2">
                     <FileText className="h-4 w-4 text-primary" />
                     <p className="text-sm font-semibold text-[color:var(--ink)]">
-                      Use my default resume
+                      {t("apply.useDefault")}
                     </p>
                   </div>
                   <p className="mt-0.5 truncate text-xs text-muted-foreground">{defaultName}</p>
@@ -317,7 +318,7 @@ export function ApplyDialog({
               )}
               <div className="flex-1">
                 <p className="text-sm font-semibold text-[color:var(--ink)]">
-                  {hasDefault ? "Upload a different resume" : "Upload a resume"}
+                  {hasDefault ? t("apply.uploadDifferent") : t("apply.uploadResume")}
                 </p>
                 <input
                   ref={fileInput}
@@ -341,16 +342,16 @@ export function ApplyDialog({
                   onClick={() => fileInput.current?.click()}
                 >
                   <Upload className="mr-1 h-4 w-4" />
-                  {file ? file.name : "Choose file"}
+                  {file ? file.name : t("apply.chooseFile")}
                 </Button>
-                <p className="mt-1 text-xs text-muted-foreground">PDF / DOC / DOCX</p>
+                <p className="mt-1 text-xs text-muted-foreground">{t("apply.fileTypes")}</p>
               </div>
             </label>
           </div>
 
           {questions.length > 0 && (
             <div className="space-y-3 rounded-lg border border-border bg-background p-3">
-              <p className="text-sm font-semibold text-[color:var(--ink)]">Screening questions</p>
+              <p className="text-sm font-semibold text-[color:var(--ink)]">{t("apply.screening")}</p>
               {questions.map((q) => (
                 <div key={q.id} className="space-y-1.5">
                   <Label className="text-sm">
@@ -367,7 +368,7 @@ export function ApplyDialog({
                             checked={answers[q.id] === v}
                             onChange={() => setAnswer(q.id, v)}
                           />
-                          {v ? "Yes" : "No"}
+                          {v ? t("apply.yes") : t("apply.no")}
                         </label>
                       ))}
                     </div>
@@ -430,12 +431,11 @@ export function ApplyDialog({
           {quickHire && (
             <div className="space-y-2 rounded-lg border border-border bg-background p-3">
               <p className="text-sm font-semibold text-[color:var(--ink)]">
-                Pick a phone-screen time
+                {t("apply.pickSlot")}
               </p>
               {slots.length === 0 ? (
                 <p className="text-xs text-muted-foreground">
-                  No interview slots are available right now. You can still apply and the employer
-                  will reach out.
+                  {t("apply.noSlots")}
                 </p>
               ) : (
                 <div className="space-y-1">
@@ -468,7 +468,7 @@ export function ApplyDialog({
           )}
 
           <div className="space-y-1.5">
-            <Label htmlFor="cover">Cover note (optional)</Label>
+            <Label htmlFor="cover">{t("apply.coverNote")}</Label>
             <Textarea
               id="cover"
               rows={5}
@@ -486,10 +486,10 @@ export function ApplyDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t("apply.cancel")}
           </Button>
           <Button className="btn-primary" onClick={submit} disabled={submitting}>
-            {submitting ? "Sending…" : "Send application"}
+            {submitting ? t("apply.sending") : t("apply.submit")}
           </Button>
         </DialogFooter>
       </DialogContent>
