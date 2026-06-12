@@ -1,0 +1,394 @@
+// ═══════════════════════════════════════════════════════════════════════════
+// WarehouseJobs Prisma Schema
+// Source of truth for the PostgreSQL database structure.
+// Run `bun run db:migrate:dev` to apply changes.
+// ═══════════════════════════════════════════════════════════════════════════
+
+generator client {
+  provider = "prisma-client-js"
+  // "native" covers local dev (macOS/host). The linux targets cover the
+  // node:24-slim (Debian bookworm, OpenSSL 3.0) container on both arm64 and amd64.
+  binaryTargets = ["native", "linux-arm64-openssl-3.0.x", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ── Enums ────────────────────────────────────────────────────────────────────
+
+enum UserRole {
+  admin
+  vendor
+  seeker
+}
+
+enum JobStatus {
+  draft
+  active
+  published
+  closed
+  expired
+}
+
+enum JobSourceType {
+  direct      // posted via platform UI by a vendor
+  scraped     // ingested by automated scraper
+  api         // posted via vendor API key
+  syndicated  // imported from partner feed
+}
+
+enum EmploymentType {
+  full_time
+  part_time
+  temp
+  temp_to_hire
+  contract
+  seasonal
+}
+
+enum JobShift {
+  first
+  second
+  third
+  weekend
+  flexible
+}
+
+enum PayPeriod {
+  hour
+  day
+  week
+  month
+  year
+}
+
+enum TemperatureEnv {
+  ambient
+  cooler
+  freezer
+}
+
+enum ApplicationStatus {
+  new
+  reviewing
+  shortlisted
+  interview
+  offer
+  hired
+  rejected
+  withdrawn
+}
+
+enum ScreeningQuestionType {
+  yes_no
+  single
+  multi
+  number
+  text
+}
+
+enum BatchStatus {
+  queued
+  processing
+  completed
+  failed
+}
+
+enum AdStatus {
+  active
+  paused
+  ended
+}
+
+// ── Users ────────────────────────────────────────────────────────────────────
+
+model User {
+  id                String    @id @default(uuid())
+  email             String    @unique
+  passwordHash      String    @map("password_hash")
+  role              UserRole  @default(seeker)
+  fullName          String?   @map("full_name")
+  phone             String?
+  emailVerifiedAt   DateTime? @map("email_verified_at")
+  migrationSource   String?   @map("migration_source")  // "supabase" for migrated users
+  requiresReset     Boolean   @default(false) @map("requires_reset")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  refreshTokens     RefreshToken[]
+  emailVerifications EmailVerification[]
+  passwordResets    PasswordReset[]
+  applications      Application[]
+  company           Company?    @relation("CompanyOwner")
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  tokenHash String   @map("token_hash")
+  expiresAt DateTime @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model EmailVerification {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("email_verifications")
+}
+
+model PasswordReset {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("password_resets")
+}
+
+// ── Companies ────────────────────────────────────────────────────────────────
+
+model Company {
+  id          String   @id @default(uuid())
+  ownerId     String   @unique @map("owner_id")
+  name        String
+  slug        String   @unique
+  description String?
+  website     String?
+  logoUrl     String?  @map("logo_url")
+  verified    Boolean  @default(false)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  owner    User             @relation("CompanyOwner", fields: [ownerId], references: [id])
+  jobs     Job[]
+  packages CompanyPackage[]
+
+  @@map("companies")
+}
+
+model CompanyPackage {
+  id            String    @id @default(uuid())
+  companyId     String    @map("company_id")
+  name          String
+  totalCredits  Int       @map("total_credits")
+  usedCredits   Int       @default(0) @map("used_credits")
+  expiresAt     DateTime? @map("expires_at")
+  purchasedAt   DateTime  @default(now()) @map("purchased_at")
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  jobs    Job[]
+
+  @@index([companyId])
+  @@map("company_packages")
+}
+
+// ── Jobs ─────────────────────────────────────────────────────────────────────
+
+model Job {
+  id                    String         @id @default(uuid())
+  companyId             String?        @map("company_id")
+  companyPackageId      String?        @map("company_package_id")
+  title                 String
+  slug                  String         @unique
+  category              String
+  categorySlug          String         @map("category_slug")
+  location              String
+  city                  String
+  state                 String
+  zip                   String?
+  lat                   Float?
+  lng                   Float?
+  employmentType        EmploymentType @map("employment_type")
+  shift                 JobShift
+  payMin                Float?         @map("pay_min")
+  payMax                Float?         @map("pay_max")
+  payPeriod             PayPeriod?     @map("pay_period")
+  description           String
+  requirements          String?
+  temperatureEnv        TemperatureEnv? @map("temperature_env")
+  certificationsRequired String[]      @map("certifications_required") @default([])
+  liftRequirementLbs    Int?           @map("lift_requirement_lbs")
+  overtimeAvailable     Boolean        @default(false) @map("overtime_available")
+  weeklyPay             Boolean        @default(false) @map("weekly_pay")
+  quickHire             Boolean        @default(false) @map("quick_hire")
+  status                JobStatus      @default(draft)
+  sourceType            JobSourceType  @default(direct) @map("source_type")
+  externalId            String?        @map("external_id")
+  sourceUrl             String?        @map("source_url")
+  featured              Boolean        @default(false)
+  featuredUntil         DateTime?      @map("featured_until")
+  views                 Int            @default(0)
+  postedAt              DateTime?      @map("posted_at")
+  expiresAt             DateTime?      @map("expires_at")
+  createdAt             DateTime       @default(now()) @map("created_at")
+  updatedAt             DateTime       @updatedAt @map("updated_at")
+
+  company        Company?         @relation(fields: [companyId], references: [id])
+  package        CompanyPackage?  @relation(fields: [companyPackageId], references: [id])
+  screeningQuestions ScreeningQuestion[]
+  interviewSlots     InterviewSlot[]
+  applications       Application[]
+
+  @@unique([companyId, externalId])
+  @@index([status, postedAt])
+  @@index([sourceType, status])
+  @@index([city, state, status])
+  @@map("jobs")
+}
+
+model ScreeningQuestion {
+  id        String                @id @default(uuid())
+  jobId     String                @map("job_id")
+  prompt    String
+  type      ScreeningQuestionType
+  options   String[]              @default([])
+  required  Boolean               @default(false)
+  sortOrder Int                   @map("sort_order")
+
+  job     Job                 @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  answers ApplicationAnswer[]
+
+  @@index([jobId])
+  @@map("screening_questions")
+}
+
+model InterviewSlot {
+  id           String   @id @default(uuid())
+  jobId        String   @map("job_id")
+  startsAt     DateTime @map("starts_at")
+  endsAt       DateTime @map("ends_at")
+  maxBookings  Int      @default(1) @map("max_bookings")
+  bookedCount  Int      @default(0) @map("booked_count")
+
+  job      Job              @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  bookings InterviewBooking[]
+
+  @@index([jobId])
+  @@map("interview_slots")
+}
+
+// ── Applications ─────────────────────────────────────────────────────────────
+
+model Application {
+  id          String            @id @default(uuid())
+  jobId       String            @map("job_id")
+  seekerId    String?           @map("seeker_id")
+  // Guest fields for unauthenticated apply
+  guestName   String?           @map("guest_name")
+  guestPhone  String?           @map("guest_phone")
+  guestZip    String?           @map("guest_zip")
+  guestEmail  String?           @map("guest_email")
+  resumeUrl   String?           @map("resume_url")
+  coverNote   String?           @map("cover_note")
+  status      ApplicationStatus @default(new)
+  appliedAt   DateTime          @default(now()) @map("applied_at")
+  updatedAt   DateTime          @updatedAt @map("updated_at")
+
+  job      Job                @relation(fields: [jobId], references: [id])
+  seeker   User?              @relation(fields: [seekerId], references: [id])
+  answers  ApplicationAnswer[]
+  booking  InterviewBooking?
+
+  @@unique([jobId, seekerId])
+  @@index([jobId])
+  @@index([seekerId])
+  @@map("applications")
+}
+
+model ApplicationAnswer {
+  id          String @id @default(uuid())
+  applicationId String @map("application_id")
+  questionId  String @map("question_id")
+  answer      String
+
+  application Application       @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  question    ScreeningQuestion @relation(fields: [questionId], references: [id])
+
+  @@map("application_answers")
+}
+
+model InterviewBooking {
+  id            String   @id @default(uuid())
+  applicationId String   @unique @map("application_id")
+  slotId        String   @map("slot_id")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  application Application   @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  slot        InterviewSlot @relation(fields: [slotId], references: [id])
+
+  @@map("interview_bookings")
+}
+
+// ── Batch Ingestion ───────────────────────────────────────────────────────────
+
+model ApiKey {
+  id          String    @id @default(uuid())
+  keyHash     String    @unique @map("key_hash")
+  description String
+  companyId   String?   @map("company_id")
+  lastUsedAt  DateTime? @map("last_used_at")
+  expiresAt   DateTime? @map("expires_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@map("api_keys")
+}
+
+model BatchJob {
+  id          String      @id @default(uuid())
+  companyId   String?     @map("company_id")
+  status      BatchStatus @default(queued)
+  total       Int         @default(0)
+  created     Int         @default(0)
+  updated     Int         @default(0)
+  skipped     Int         @default(0)
+  failed      Int         @default(0)
+  errors      Json        @default("[]")
+  startedAt   DateTime?   @map("started_at")
+  completedAt DateTime?   @map("completed_at")
+  createdAt   DateTime    @default(now()) @map("created_at")
+
+  @@index([status])
+  @@map("batch_jobs")
+}
+
+// ── Advertising ───────────────────────────────────────────────────────────────
+
+model AdCampaign {
+  id          String   @id @default(uuid())
+  name        String
+  imageUrl    String   @map("image_url")
+  linkUrl     String   @map("link_url")
+  slot        String
+  status      AdStatus @default(active)
+  startsAt    DateTime @map("starts_at")
+  endsAt      DateTime @map("ends_at")
+  targeting   Json     @default("{}")
+  impressions Int      @default(0)
+  clicks      Int      @default(0)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([status, startsAt, endsAt])
+  @@map("ad_campaigns")
+}
