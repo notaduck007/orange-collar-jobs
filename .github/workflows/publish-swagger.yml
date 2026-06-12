@@ -1,0 +1,70 @@
+name: Publish OpenAPI to SwaggerHub
+
+# Runs automatically when docs/api/openapi.yaml changes on main,
+# or manually via the Actions UI with an optional version override.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/api/openapi.yaml'
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'Auto-bump version before publishing (leave blank to use version already in YAML)'
+        type: choice
+        options: ['', patch, minor, major]
+        default: ''
+      version:
+        description: 'Explicit version override (e.g. 1.2.0). Ignored when bump is set.'
+        required: false
+        default: ''
+      dry_run:
+        description: 'Dry run — validate and print curl command, but do not push'
+        type: boolean
+        default: false
+
+jobs:
+  publish:
+    name: Push spec to SwaggerHub
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Verify spec file exists
+        run: |
+          if [[ ! -f docs/api/openapi.yaml ]]; then
+            echo "::error file=docs/api/openapi.yaml::OpenAPI spec not found"
+            exit 1
+          fi
+          echo "Spec size: $(wc -c < docs/api/openapi.yaml) bytes"
+
+      - name: Bump version (if requested)
+        if: ${{ inputs.bump != '' }}
+        run: bash scripts/bump-api-version.sh "${{ inputs.bump }}"
+
+      - name: Build publish arguments
+        id: args
+        run: |
+          ARGS=""
+          if [[ "${{ inputs.dry_run }}" == "true" ]]; then
+            ARGS="${ARGS} --dry-run"
+          fi
+          # explicit version override only applies when bump was not used
+          if [[ -z "${{ inputs.bump }}" && -n "${{ inputs.version }}" ]]; then
+            ARGS="${ARGS} --version ${{ inputs.version }}"
+          fi
+          echo "args=${ARGS}" >> "${GITHUB_OUTPUT}"
+
+      - name: Publish to SwaggerHub
+        env:
+          SWAGGER_API_KEY: ${{ secrets.SWAGGER_API_KEY }}
+        run: bash scripts/publish-swagger.sh ${{ steps.args.outputs.args }}
+
+      - name: Annotate PR / commit with SwaggerHub URL
+        if: success()
+        run: |
+          VERSION=$(grep -m1 '^\s*version:' docs/api/openapi.yaml | sed 's/.*version:[[:space:]]*//' | tr -d "\"' ")
+          echo "::notice title=SwaggerHub Published::https://app.swaggerhub.com/apis/redbonzai/opencompute/${VERSION}"

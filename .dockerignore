@@ -1,0 +1,45 @@
+# Build context is the repo root (for src/api/Dockerfile). Keep it lean.
+
+# Dependencies (reinstalled inside the image)
+node_modules
+src/api/node_modules
+**/node_modules
+
+# Build artifacts
+dist
+src/api/dist
+.output
+.vinxi
+.tanstack
+.nitro
+
+# Env / secrets (never bake into image)
+.env
+.env.*
+src/api/.env
+src/api/.env.*
+!src/api/.env.example
+
+# VCS / editor / OS
+.git
+.github
+.cursor
+.vscode
+.idea
+.DS_Store
+
+# Tests & coverage (not needed for production build)
+src/api/coverage
+src/api/test
+**/*.spec.ts
+**/*.e2e-spec.ts
+
+# Docs & demo
+docs
+*.md
+
+# Frontend source (API image does not need it)
+src/components
+src/routes
+src/integrations
+public

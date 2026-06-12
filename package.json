@@ -9,7 +9,20 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "api:setup:env": "cd src/api && test -f .env || cp .env.example .env",
+    "api:install": "cd src/api && bun install",
+    "api:migrate:dev": "cd src/api && bun run db:migrate:dev",
+    "api:dev": "cd src/api && bun run start:dev",
+    "api:build": "cd src/api && bun run build",
+    "api:test": "cd src/api && bun run test",
+    "api:bump:patch": "bash scripts/bump-api-version.sh patch",
+    "api:bump:minor": "bash scripts/bump-api-version.sh minor",
+    "api:bump:major": "bash scripts/bump-api-version.sh major",
+    "api:publish": "bash scripts/publish-swagger.sh",
+    "api:release:patch": "bash scripts/bump-api-version.sh patch --push",
+    "api:release:minor": "bash scripts/bump-api-version.sh minor --push",
+    "api:release:major": "bash scripts/bump-api-version.sh major --push"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

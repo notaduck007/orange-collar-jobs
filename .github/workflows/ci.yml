@@ -1,0 +1,244 @@
+name: API CI
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'src/api/**'
+      - 'docker-compose.yml'
+      - '.github/workflows/ci.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'src/api/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '24'
+  WORKING_DIR: src/api
+
+jobs:
+  # ────────────────────────────────────────────────────────────────────────────
+  lint-type-check:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        working-directory: ${{ env.WORKING_DIR }}
+        run: bun install --frozen-lockfile
+
+      - name: Lint
+        working-directory: ${{ env.WORKING_DIR }}
+        run: bun run lint
+
+      - name: Type check
+        working-directory: ${{ env.WORKING_DIR }}
+        run: bun run type-check
+
+  # ────────────────────────────────────────────────────────────────────────────
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: lint-type-check
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: oven-sh/setup-bun@v2.2.0
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        working-directory: ${{ env.WORKING_DIR }}
+        run: bun install --frozen-lockfile
+
+      - name: Run unit tests with coverage
+        working-directory: ${{ env.WORKING_DIR }}
+        run: bun run test:cov --selectProjects unit
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-unit
+          path: ${{ env.WORKING_DIR }}/coverage/
+
+  # ────────────────────────────────────────────────────────────────────────────
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: lint-type-check
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: warehousejobs_test
+          POSTGRES_USER: wj_user
+          POSTGRES_PASSWORD: wj_dev_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+      minio:
+        image: minio/minio:latest
+        env:
+          MINIO_ROOT_USER: wj_minio_user
+          MINIO_ROOT_PASSWORD: wj_minio_dev_password
+        ports:
+          - 9000:9000
+        options: >-
+          --health-cmd "curl -f http://localhost:9000/minio/health/live"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        working-directory: ${{ env.WORKING_DIR }}
+        run: bun install --frozen-lockfile
+
+      - name: Run Prisma migrations on test DB
+        working-directory: ${{ env.WORKING_DIR }}
+        env:
+          DATABASE_URL: postgresql://wj_user:wj_dev_password@localhost:5432/warehousejobs_test
+        run: bun run db:migrate:deploy
+
+      - name: Create MinIO test buckets
+        run: |
+          docker run --rm --network host minio/mc:latest \
+            /bin/sh -c "
+              mc alias set local http://localhost:9000 wj_minio_user wj_minio_dev_password &&
+              mc mb --ignore-existing local/resumes &&
+              mc mb --ignore-existing local/company-logos &&
+              mc mb --ignore-existing local/ad-assets
+            "
+
+      - name: Run integration tests
+        working-directory: ${{ env.WORKING_DIR }}
+        env:
+          DATABASE_URL: postgresql://wj_user:wj_dev_password@localhost:5432/warehousejobs_test
+          TEST_DATABASE_URL: postgresql://wj_user:wj_dev_password@localhost:5432/warehousejobs_test
+          REDIS_URL: redis://localhost:6379
+          STORAGE_ENDPOINT: http://localhost:9000
+          STORAGE_ACCESS_KEY: wj_minio_user
+          STORAGE_SECRET_KEY: wj_minio_dev_password
+          STORAGE_FORCE_PATH_STYLE: 'true'
+          JWT_SECRET: ci_jwt_secret_min_32_chars_for_testing
+          JWT_REFRESH_SECRET: ci_refresh_secret_min_32_chars_testing
+          EMAIL_API_KEY: test_email_key
+          EMAIL_FROM: noreply@test.com
+          API_KEY_HASH: $2b$12$placeholder_hash_for_ci_testing
+        run: bun run test:integration
+
+  # ────────────────────────────────────────────────────────────────────────────
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: [unit-tests, integration-tests]
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: warehousejobs_e2e
+          POSTGRES_USER: wj_user
+          POSTGRES_PASSWORD: wj_dev_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        working-directory: ${{ env.WORKING_DIR }}
+        run: bun install --frozen-lockfile
+
+      - name: Run Prisma migrations
+        working-directory: ${{ env.WORKING_DIR }}
+        env:
+          DATABASE_URL: postgresql://wj_user:wj_dev_password@localhost:5432/warehousejobs_e2e
+        run: bun run db:migrate:deploy
+
+      - name: Run E2E tests
+        working-directory: ${{ env.WORKING_DIR }}
+        env:
+          DATABASE_URL: postgresql://wj_user:wj_dev_password@localhost:5432/warehousejobs_e2e
+          TEST_DATABASE_URL: postgresql://wj_user:wj_dev_password@localhost:5432/warehousejobs_e2e
+          REDIS_URL: redis://localhost:6379
+          STORAGE_ENDPOINT: http://localhost:9000
+          STORAGE_ACCESS_KEY: wj_minio_user
+          STORAGE_SECRET_KEY: wj_minio_dev_password
+          STORAGE_FORCE_PATH_STYLE: 'true'
+          JWT_SECRET: ci_jwt_secret_min_32_chars_for_testing
+          JWT_REFRESH_SECRET: ci_refresh_secret_min_32_chars_testing
+          EMAIL_API_KEY: test_email_key
+          EMAIL_FROM: noreply@test.com
+          API_KEY_HASH: $2b$12$placeholder_hash_for_ci_testing
+        run: bun run test:e2e
+
+  # ────────────────────────────────────────────────────────────────────────────
+  build:
+    name: Build Check
+    runs-on: ubuntu-latest
+    needs: [unit-tests]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        working-directory: ${{ env.WORKING_DIR }}
+        run: bun install --frozen-lockfile
+
+      - name: Build
+        working-directory: ${{ env.WORKING_DIR }}
+        run: bun run build

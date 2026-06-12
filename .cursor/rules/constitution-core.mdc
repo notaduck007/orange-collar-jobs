@@ -1,0 +1,53 @@
+---
+description: Always-on WarehouseJobs invariants — fail-closed, layering, API contract, quality gates, precedence
+alwaysApply: true
+---
+
+# WarehouseJobs Core Invariants
+
+Lean always-on summary. Full governance is canonical in the linked docs — read them when a task needs detail.
+
+## Fail-Closed (overrides all other rules)
+
+If information is missing, ambiguous, or conflicting: do NOT guess, do NOT proceed. STOP and ask.
+
+## API Contract Rule (hard rule)
+
+- `docs/api/openapi.yaml` is the source of truth for all endpoint signatures, request/response shapes, and error codes.
+- No endpoint may be implemented that deviates from the spec without first updating the spec.
+- No new endpoint may be added without first adding it to the spec.
+
+## Architecture Boundaries
+
+- Layering: Controllers (thin) → Domain Services (business logic) → Core capabilities (`src/api/src/core/*`) → Prisma / Redis / MinIO.
+- Controllers validate input and call one service method. Services own business logic. No business logic in controllers.
+- Cross-cutting types live in `src/api/src/core/`. Import from module barrels (`index.ts`) only.
+- Domains never import another domain's internals. Only `src/core/` modules are `@Global()`.
+
+## Quality Gates (STOP if any fails)
+
+```bash
+# Run from src/api/
+npm run lint
+npm run type-check
+npm run test
+npm run test:integration   # when DB/Redis touched
+npm run test:e2e           # when HTTP surface touched
+npm run test:cov           # >= 85% line coverage for changed services
+```
+
+Do not skip gates, bypass CI, or merge with known failures.
+
+## Source Precedence (highest wins)
+
+1. `CLAUDE.md` (constitution) 2. `AGENTS.md` (orchestration) 3. `docs/plan.md` (tasks/gates)
+4. `docs/api/openapi.yaml` (API contract) 5. `docs/agent/standards/` 6. `.cursor/skills/` 7. `docs/agent/personas/` 8. `docs/agent/analysis/`
+
+If `AGENTS.md` conflicts with `CLAUDE.md`, `CLAUDE.md` prevails.
+
+## Where to Look
+
+- Constitution: [CLAUDE.md](../../CLAUDE.md) · Orchestration: [AGENTS.md](../../AGENTS.md) · Plan/tasks: [docs/plan.md](../../docs/plan.md)
+- API contract: [docs/api/openapi.yaml](../../docs/api/openapi.yaml)
+- Task → read-order index: [docs/agent/standards/AGENT-TASK-INDEX.md](../../docs/agent/standards/AGENT-TASK-INDEX.md)
+- Reasoning workflows: `.cursor/skills/*/SKILL.md` · Coding standards: `.cursor/rules/*.mdc`

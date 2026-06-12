@@ -1,0 +1,32 @@
+---
+description: Naming conventions for NestJS API files and symbols
+globs: src/api/src/**/*.ts
+alwaysApply: false
+---
+
+# Naming Conventions
+
+Full standard: [docs/agent/standards/common/naming.md](../../docs/agent/standards/common/naming.md)
+
+## Files
+- Services: `JobsService.ts`, `AuthService.ts` (PascalCase + `Service`)
+- Controllers: `JobsController.ts` (PascalCase + `Controller`)
+- Modules: `jobs.module.ts` (kebab-case + `.module.ts`)
+- DTOs: `CreateJobDto.ts`, `UpdateJobDto.ts`, `JobSearchDto.ts`
+- Types: `types.ts` per domain (never `interfaces.ts`)
+- Barrels: always `index.ts`
+
+## Symbols
+- Classes: `PascalCase` (`JobsService`, `CreateJobDto`)
+- Interfaces: `IPascalCase` for adapter contracts (`IJwtStrategy`); plain `PascalCase` for data shapes
+- Enums: `PascalCase` (`JobStatus`, `ApplicationStatus`)
+- Enum values: `UPPER_SNAKE` (`JobStatus.ACTIVE`, `ApplicationStatus.NEW`)
+- Constants/tokens: `UPPER_SNAKE` (`JWT_SECRET`, `JOB_REPOSITORY`)
+- Methods/properties: `camelCase`
+- Route paths: `kebab-case` (`/warehouse-jobs`, `/quick-apply`)
+- Database columns: `snake_case` (Prisma maps to `camelCase` in TypeScript)
+
+## Domain-Specific Naming
+- Job posting: `PostedBy`, `CompanyPackageId`, `SourceType`
+- Application states: match `ApplicationStatus` enum exactly
+- Batch: `batchId`, `BatchJobItem`, `BatchStatus`

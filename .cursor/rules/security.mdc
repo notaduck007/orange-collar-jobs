@@ -1,0 +1,19 @@
+---
+description: Security rules for all API source files
+globs: src/api/src/**/*.ts
+alwaysApply: false
+---
+
+# Security Standard
+
+Full standard: [docs/agent/standards/common/security.md](../../docs/agent/standards/common/security.md)
+
+- **Secrets**: Never commit API keys, tokens, or connection strings. All credentials via `ConfigService` / env vars only.
+- **Auth**: Every controller method that isn't explicitly `@Public()` requires `JwtAuthGuard`. Role guards applied at controller level, not per-method.
+- **Input validation**: All DTOs have `class-validator` decorators. `ValidationPipe` with `whitelist: true, forbidNonWhitelisted: true` at app level.
+- **Errors**: Use typed errors from `src/core/error/` only. `GlobalExceptionFilter` strips stack traces in production responses.
+- **Rate limiting**: `@Throttle()` applied to all unauthenticated endpoints. Default: 60 requests/60 seconds.
+- **Passwords**: `bcryptjs` with cost factor ≥ 12. Never log password values.
+- **Tokens**: JWTs verified with `@nestjs/jwt`. Refresh tokens stored as hashed values in DB. Revocation via token family tracking.
+- **API keys (batch)**: Stored as bcrypt hash in DB. Never log or return the plaintext key.
+- **SQL**: Prisma ORM only — no raw SQL string interpolation with user input.
