@@ -1,0 +1,18 @@
+---
+description: NestJS module structure and barrel import rules for all API source files
+globs: src/api/src/**/*.ts
+alwaysApply: false
+---
+
+# Module & Barrel Rules
+
+Full standard: [docs/agent/standards/common/modules.md](../../docs/agent/standards/common/modules.md)
+Skill: `.cursor/skills/module-design-pattern/SKILL.md`
+
+- Every domain module has an `index.ts` barrel that exports only its public surface.
+- Import from barrels only — never `import { Foo } from '../jobs/JobsService'` from outside the module.
+- Domain modules import `src/core/` globals only. Cross-domain imports are **forbidden**.
+- Only `src/core/` modules use `@Global()`. Domain modules never use `@Global()`.
+- `@Module({ imports, providers, exports, controllers })` — nothing else in the decorator.
+- One `NestJS module` per bounded context; one controller per resource.
+- DI tokens for adapter interfaces: `export const JOB_SEARCH_SERVICE = Symbol('JOB_SEARCH_SERVICE')`.

@@ -1,0 +1,19 @@
+---
+description: Strict TypeScript rules for all NestJS source files
+globs: src/api/src/**/*.ts
+alwaysApply: false
+---
+
+# TypeScript Standard
+
+Full standard: [docs/agent/standards/common/typescript.md](../../docs/agent/standards/common/typescript.md)
+
+- `strict: true` is non-negotiable (`strictNullChecks`, `noImplicitAny`, `noUnusedLocals`, `noUnusedParameters`, `exactOptionalPropertyTypes`).
+- No `any` — use `unknown` + narrow. No `!` non-null assertion. No `as` cast without a Zod/type-guard above it.
+- Explicit return types on all public service and controller methods.
+- `readonly` on all immutable interface properties.
+- Cross-module imports use path aliases (`@core/*`, `@domains/*`), never relative `../../`.
+- Use `import type` for type-only imports.
+- Always `async/await` — never `.then()/.catch()` chains. Never fire-and-forget without logging.
+- Enums for domain status values (`JobStatus`, `ApplicationStatus`). String unions for internal flags.
+- DTOs: `class-validator` decorators on all properties. `class-transformer` for type coercion. `PartialType` for update DTOs.

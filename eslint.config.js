@@ -6,7 +6,8 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist", ".output", ".vinxi"] },
+  // src/api is a self-contained NestJS app with its own ESLint config (.eslintrc.js).
+  { ignores: ["dist", ".output", ".vinxi", "src/api"] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],

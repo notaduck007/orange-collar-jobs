@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SMS Provider Comparison — WarehouseJobs.com</title>
+<style>
+  :root {
+    --brand:       #f97316;
+    --brand-dark:  #c2410c;
+    --brand-soft:  #fff7ed;
+    --green:       #16a34a;
+    --green-soft:  #f0fdf4;
+    --red:         #dc2626;
+    --red-soft:    #fef2f2;
+    --yellow:      #d97706;
+    --yellow-soft: #fffbeb;
+    --blue:        #2563eb;
+    --blue-soft:   #eff6ff;
+    --purple:      #7c3aed;
+    --purple-soft: #f5f3ff;
+    --bg:          #ffffff;
+    --surface:     #f8fafc;
+    --border:      #e2e8f0;
+    --text:        #0f172a;
+    --muted:       #64748b;
+    --mono:        'SFMono-Regular', Consolas, Menlo, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--text);
+    background: var(--bg);
+  }
+
+  /* Header */
+  .page-header {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    color: #fff;
+    padding: 44px 40px 36px;
+    border-bottom: 4px solid var(--brand);
+  }
+  .page-header .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(249,115,22,.2); border: 1px solid rgba(249,115,22,.4);
+    color: #fb923c; font-size: 11px; font-weight: 600;
+    letter-spacing: .08em; text-transform: uppercase;
+    padding: 4px 10px; border-radius: 100px; margin-bottom: 14px;
+  }
+  .page-header h1 { font-size: 28px; font-weight: 800; letter-spacing: -.02em; margin-bottom: 8px; }
+  .page-header h1 span { color: var(--brand); }
+  .page-header p { font-size: 15px; color: #94a3b8; max-width: 680px; }
+
+  /* Nav */
+  .nav-bar {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 0 40px; display: flex; gap: 2px; overflow-x: auto;
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 1px 3px rgba(0,0,0,.07);
+  }
+  .nav-bar a {
+    display: inline-block; padding: 13px 15px 11px;
+    font-size: 13px; font-weight: 500; color: var(--muted);
+    text-decoration: none; border-bottom: 3px solid transparent; white-space: nowrap;
+  }
+  .nav-bar a:hover { color: var(--text); border-bottom-color: var(--border); }
+
+  /* Main */
+  .main { max-width: 1100px; margin: 0 auto; padding: 44px 40px 80px; }
+
+  .section { margin-bottom: 56px; scroll-margin-top: 70px; }
+  .section-title {
+    font-size: 21px; font-weight: 700; padding-bottom: 12px;
+    border-bottom: 2px solid var(--brand); margin-bottom: 8px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-title .icon {
+    width: 30px; height: 30px; background: var(--brand-soft);
+    border-radius: 8px; display: inline-flex;
+    align-items: center; justify-content: center; font-size: 16px;
+  }
+  .section-desc { color: var(--muted); margin-bottom: 24px; font-size: 14px; }
+
+  /* Provider cards */
+  .provider-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 18px; margin-bottom: 32px; }
+  .provider-card {
+    border: 2px solid var(--border); border-radius: 14px;
+    padding: 22px; position: relative; overflow: hidden;
+  }
+  .provider-card.winner { border-color: var(--green); }
+  .provider-card.good   { border-color: var(--blue); }
+  .provider-card.ok     { border-color: var(--yellow); }
+  .provider-card.bad    { border-color: #cbd5e1; opacity: .75; }
+  .provider-card .provider-badge {
+    position: absolute; top: 14px; right: 14px;
+    font-size: 10px; font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; padding: 3px 8px; border-radius: 100px;
+  }
+  .badge-winner { background: var(--green-soft); color: var(--green); border: 1px solid #86efac; }
+  .badge-good   { background: var(--blue-soft);  color: var(--blue);  border: 1px solid #93c5fd; }
+  .badge-ok     { background: var(--yellow-soft);color: var(--yellow);border: 1px solid #fcd34d; }
+  .badge-bad    { background: var(--surface);    color: var(--muted); border: 1px solid var(--border); }
+  .provider-logo {
+    font-size: 22px; font-weight: 800; letter-spacing: -.02em;
+    margin-bottom: 6px;
+  }
+  .provider-tagline { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+  .provider-price { font-size: 22px; font-weight: 800; color: var(--text); line-height: 1; }
+  .provider-price span { font-size: 13px; font-weight: 400; color: var(--muted); }
+  .provider-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 12px; }
+  .ptag {
+    font-size: 11px; padding: 2px 7px; border-radius: 100px; font-weight: 500;
+  }
+  .ptag-yes  { background: var(--green-soft);  color: var(--green);  border: 1px solid #86efac; }
+  .ptag-no   { background: var(--red-soft);    color: var(--red);    border: 1px solid #fca5a5; }
+  .ptag-part { background: var(--yellow-soft); color: var(--yellow); border: 1px solid #fcd34d; }
+
+  /* Tables */
+  .table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border); margin-bottom: 28px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  thead { background: var(--surface); }
+  th {
+    text-align: left; padding: 11px 14px;
+    font-weight: 600; font-size: 12px;
+    text-transform: uppercase; letter-spacing: .05em;
+    color: var(--muted); border-bottom: 1px solid var(--border);
+  }
+  td { padding: 11px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fafbfc; }
+  .cost-cell { font-family: var(--mono); font-weight: 600; }
+  .cost-low  { color: var(--green); }
+  .cost-mid  { color: var(--yellow); }
+  .cost-high { color: var(--red); }
+
+  /* Check / X icons */
+  .chk  { color: var(--green);  font-weight: 700; }
+  .x    { color: var(--red);    font-weight: 700; }
+  .part { color: var(--yellow); font-weight: 700; }
+
+  /* Callout boxes */
+  .callout {
+    border-radius: 10px; padding: 18px 22px; margin-bottom: 20px;
+    display: flex; gap: 14px; align-items: flex-start;
+    border: 1px solid;
+  }
+  .callout-icon { font-size: 20px; flex-shrink: 0; line-height: 1.4; }
+  .callout-body h4 { font-weight: 700; margin-bottom: 4px; font-size: 14px; }
+  .callout-body p  { font-size: 13px; }
+  .callout-body p + p { margin-top: 4px; }
+  .callout.green  { background: var(--green-soft);  border-color: #86efac; }
+  .callout.blue   { background: var(--blue-soft);   border-color: #93c5fd; }
+  .callout.yellow { background: var(--yellow-soft); border-color: #fcd34d; }
+  .callout.red    { background: var(--red-soft);    border-color: #fca5a5; }
+
+  /* Volume calculator */
+  .volume-section { margin-bottom: 32px; }
+  .volume-tabs { display: flex; gap: 6px; margin-bottom: 16px; }
+  .vtab {
+    padding: 8px 18px; border-radius: 8px; font-size: 13px; font-weight: 600;
+    cursor: pointer; border: 2px solid var(--border); background: var(--surface);
+    color: var(--muted); transition: all .15s;
+  }
+  .vtab.active { border-color: var(--brand); background: var(--brand-soft); color: var(--brand-dark); }
+  .vtab-panel { display: none; }
+  .vtab-panel.active { display: block; }
+
+  /* Cost breakdown rows */
+  .cost-row {
+    display: grid; grid-template-columns: 180px 1fr 1fr 1fr;
+    gap: 12px; padding: 14px 18px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; margin-bottom: 8px; align-items: center;
+  }
+  .cost-row.header {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .06em; color: var(--muted);
+    background: #f1f5f9;
+  }
+  .cost-row .provider-name { font-weight: 700; font-size: 15px; }
+  .cost-number {
+    font-family: var(--mono); font-size: 18px; font-weight: 800;
+    text-align: center;
+  }
+  .winner-row { border-color: var(--green); border-width: 2px; }
+
+  /* Integration code */
+  pre {
+    background: #0f172a; color: #e2e8f0;
+    border-radius: 10px; padding: 20px 24px;
+    overflow-x: auto; font-family: var(--mono); font-size: 13px;
+    line-height: 1.6; margin-bottom: 16px;
+  }
+  code { font-family: var(--mono); font-size: 12px; background: #f1f5f9; color: var(--brand-dark); padding: 2px 5px; border-radius: 4px; }
+
+  /* Recommendation box */
+  .rec-box {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    border: 2px solid var(--brand); border-radius: 16px;
+    padding: 32px 36px; color: #fff;
+  }
+  .rec-box h3 { font-size: 20px; font-weight: 800; margin-bottom: 6px; color: var(--brand); }
+  .rec-box p  { color: #94a3b8; font-size: 14px; margin-bottom: 20px; }
+  .rec-grid   { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .rec-item   { background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12); border-radius: 10px; padding: 18px; }
+  .rec-item h4 { font-size: 13px; font-weight: 700; color: #fb923c; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; }
+  .rec-item p  { font-size: 13px; color: #cbd5e1; line-height: 1.6; }
+
+  /* Footer */
+  .page-footer {
+    background: var(--surface); border-top: 1px solid var(--border);
+    padding: 22px 40px; font-size: 12px; color: var(--muted);
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+  }
+
+  @media (max-width: 700px) {
+    .page-header, .nav-bar, .main, .page-footer { padding-left: 20px; padding-right: 20px; }
+    .provider-grid { grid-template-columns: 1fr; }
+    .cost-row { grid-template-columns: 1fr 1fr; }
+    .rec-grid { grid-template-columns: 1fr; }
+  }
+  @media print {
+    .nav-bar { display: none; }
+    .cost-row { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="page-header">
+  <div class="badge">💬 SMS Provider Analysis</div>
+  <h1>SMS Cost Comparison — <span>WarehouseJobs.com</span></h1>
+  <p>
+    Evaluating Twilio, Klaviyo SMS, SimpleTexting, and Postscript for
+    OTP authentication, job application notifications, and job alert messaging.
+  </p>
+</header>
+
+<!-- Nav -->
+<nav class="nav-bar">
+  <a href="#use-cases">Use Cases</a>
+  <a href="#twilio-products">Twilio Products</a>
+  <a href="#providers">Provider Comparison</a>
+  <a href="#cost">Cost by Volume</a>
+  <a href="#features">Feature Matrix</a>
+  <a href="#integration">Integration</a>
+  <a href="#recommendation">Recommendation</a>
+</nav>
+
+<main class="main">
+
+  <!-- Use Cases -->
+  <section class="section" id="use-cases">
+    <h2 class="section-title"><span class="icon">🎯</span>WarehouseJobs SMS Use Cases</h2>
+    <p class="section-desc">Three distinct SMS channels are required, each with different priorities and volumes.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Channel</th>
+            <th>Trigger</th>
+            <th>Type</th>
+            <th>Volume (growth stage)</th>
+            <th>Latency Requirement</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Auth OTP</strong></td>
+            <td>Registration, login, password reset</td>
+            <td><span class="ptag ptag-yes">Transactional</span></td>
+            <td>~10,000 / month</td>
+            <td><strong>&lt; 3 seconds</strong> (user is waiting)</td>
+          </tr>
+          <tr>
+            <td><strong>Application Notifications</strong></td>
+            <td>New applicant (to employer) · status change (to seeker)</td>
+            <td><span class="ptag ptag-yes">Transactional</span></td>
+            <td>~20,000 / month</td>
+            <td>&lt; 30 seconds</td>
+          </tr>
+          <tr>
+            <td><strong>Job Alerts</strong></td>
+            <td>New jobs matching seeker preferences (opt-in)</td>
+            <td><span class="ptag ptag-part">Marketing</span></td>
+            <td>~5,000–50,000 / month</td>
+            <td>Best-effort (batch)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout yellow">
+      <span class="callout-icon">⚠️</span>
+      <div class="callout-body">
+        <h4>A2P 10DLC Registration Required (US)</h4>
+        <p>All US SMS sent from an application ("Application-to-Person") require 10DLC brand and campaign registration since 2021. This applies regardless of provider. Failure to register causes message filtering by carriers. One-time setup: ~$20 brand fee + ~$10/month per campaign.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Twilio Products -->
+  <section class="section" id="twilio-products">
+    <h2 class="section-title"><span class="icon">🔴</span>Twilio Products for WarehouseJobs</h2>
+    <p class="section-desc">
+      Twilio organises its platform into three categories relevant here:
+      <strong>Authentication</strong>, <strong>Communications</strong>, and <strong>Phone Numbers</strong>.
+      Each WarehouseJobs SMS channel maps to a specific product.
+    </p>
+
+    <!-- npm package callout -->
+    <div class="callout green" style="margin-bottom:28px">
+      <span class="callout-icon">📦</span>
+      <div class="callout-body">
+        <h4>npm / Bun Package — <code>twilio</code></h4>
+        <p>The official Twilio Node.js SDK. TypeScript types are <strong>bundled inside the package</strong> — no <code>@types/twilio</code> needed.</p>
+        <p style="margin-top:8px"><code style="font-size:13px;padding:6px 12px;border-radius:6px;display:inline-block">bun add twilio</code>&nbsp;&nbsp; npm: <a href="https://www.npmjs.com/package/twilio" target="_blank" style="color:var(--green)">npmjs.com/package/twilio</a> &nbsp;·&nbsp; docs: <a href="https://www.twilio.com/docs/libraries/node" target="_blank" style="color:var(--green)">twilio.com/docs/libraries/node</a></p>
+      </div>
+    </div>
+
+    <!-- Product mapping table -->
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>WarehouseJobs Channel</th>
+            <th>Twilio Product</th>
+            <th>Category</th>
+            <th>Pricing</th>
+            <th>Why This Product</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Auth OTP -->
+          <tr style="background:#f0fdf4">
+            <td><strong>Auth OTP</strong><br><small style="color:var(--muted)">Register · Login · Password Reset</small></td>
+            <td>
+              <strong style="color:#f22f46">Twilio Verify</strong><br>
+              <a href="https://www.twilio.com/en-us/verify" target="_blank" style="font-size:12px;color:var(--blue)">twilio.com/verify</a>
+            </td>
+            <td><span class="ptag ptag-yes">Authentication</span></td>
+            <td><code>$0.05</code> / verification<br><small style="color:var(--muted)">First 100/mo free</small></td>
+            <td>Managed OTP service — handles code generation, expiry (10 min), retry throttling, and carrier delivery. No Redis OTP state in your app. Supports SMS, WhatsApp, and email from one API.</td>
+          </tr>
+          <!-- Phone Validation -->
+          <tr>
+            <td><strong>Phone Validation</strong><br><small style="color:var(--muted)">On registration / apply form</small></td>
+            <td>
+              <strong style="color:#f22f46">Twilio Lookup</strong><br>
+              <a href="https://www.twilio.com/en-us/lookup" target="_blank" style="font-size:12px;color:var(--blue)">twilio.com/lookup</a>
+            </td>
+            <td><span class="ptag ptag-yes">Authentication</span></td>
+            <td><code>$0.005</code> / lookup<br><small style="color:var(--muted)">Basic · $0.01 with carrier data</small></td>
+            <td>Validates phone number format, detects line type (mobile vs landline vs VoIP), and flags invalid numbers <em>before</em> a Verify OTP is sent — prevents wasted verification spend.</td>
+          </tr>
+          <!-- Application Notifications -->
+          <tr style="background:#f0fdf4">
+            <td><strong>Application Notifications</strong><br><small style="color:var(--muted)">Status changes · New applicant alerts</small></td>
+            <td>
+              <strong style="color:#f22f46">Twilio Programmable SMS</strong><br>
+              <a href="https://www.twilio.com/en-us/sms" target="_blank" style="font-size:12px;color:var(--blue)">twilio.com/sms</a>
+            </td>
+            <td><span class="ptag ptag-yes">Communications</span></td>
+            <td><code>$0.0079</code> / SMS (US)<br><small style="color:var(--muted)">Pay-as-you-go</small></td>
+            <td>Full programmable Messages API. Triggered by NestJS BullMQ workers on application state changes. Same SDK and phone number as Verify. Delivery webhooks confirm receipt.</td>
+          </tr>
+          <!-- Job Alerts -->
+          <tr>
+            <td><strong>Job Alert Campaigns</strong><br><small style="color:var(--muted)">Opt-in broadcast to seekers</small></td>
+            <td>
+              <strong style="color:#f22f46">Twilio Programmable SMS</strong> +<br>
+              <strong style="color:#f22f46">Twilio Messaging Services</strong><br>
+              <a href="https://www.twilio.com/en-us/sms" target="_blank" style="font-size:12px;color:var(--blue)">twilio.com/sms</a>
+            </td>
+            <td><span class="ptag ptag-yes">Communications</span></td>
+            <td><code>$0.0079</code> / SMS (US)<br><small style="color:var(--muted)">Same rate, BullMQ batch dispatch</small></td>
+            <td>Messaging Services groups phone numbers for high-throughput sending. BullMQ queues job alert SMS batches. Opt-out (STOP) handling is automatic via Twilio's compliance layer.</td>
+          </tr>
+          <!-- Future: RCS -->
+          <tr style="opacity:.8">
+            <td><strong>Rich Notifications (future)</strong><br><small style="color:var(--muted)">Job cards with apply button</small></td>
+            <td>
+              <strong style="color:#f22f46">Twilio RCS Messaging</strong><br>
+              <a href="https://www.twilio.com/en-us/rcs" target="_blank" style="font-size:12px;color:var(--blue)">twilio.com/rcs</a>
+            </td>
+            <td><span class="ptag ptag-part">Communications</span></td>
+            <td>Higher than SMS<br><small style="color:var(--muted)">Pricing varies by carrier</small></td>
+            <td>RCS delivers rich cards with images, job title, salary, and a one-tap Apply button directly in Android Messages. Falls back to SMS on unsupported devices. Worth evaluating at Phase 3.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Phone Number types -->
+    <h3 style="font-size:15px;font-weight:700;margin:28px 0 12px">Phone Number Type to Register</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Number Type</th>
+            <th>Cost</th>
+            <th>Best For</th>
+            <th>Throughput</th>
+            <th>Recommendation</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="background:#f0fdf4">
+            <td><strong>10DLC Long Code</strong><br><small style="color:var(--muted)">e.g. +1 (214) 555-0192</small></td>
+            <td>$1.15/month<br>+ $4–$10/month A2P registration</td>
+            <td>Transactional SMS, OTPs, notifications</td>
+            <td>~1 msg/sec per number</td>
+            <td class="chk"><strong>✓ Start here</strong> — right fit for OTP and notifications at startup/growth stage</td>
+          </tr>
+          <tr>
+            <td><strong>Toll-free Number</strong><br><small style="color:var(--muted)">+1 (800) XXX-XXXX</small></td>
+            <td>$2/month<br>+ carrier verification fee</td>
+            <td>Transactional + some marketing</td>
+            <td>~3 msg/sec</td>
+            <td class="part">◑ Good fallback if 10DLC registration is delayed</td>
+          </tr>
+          <tr>
+            <td><strong>Short Code</strong><br><small style="color:var(--muted)">e.g. 74825</small></td>
+            <td>$500–$1,000/month</td>
+            <td>High-volume marketing campaigns, job alerts</td>
+            <td>~100 msg/sec</td>
+            <td class="x">✗ Skip until scale — only warranted at 500k+ SMS/month</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout yellow">
+      <span class="callout-icon">⚡</span>
+      <div class="callout-body">
+        <h4>Verify vs. Messages API — Which for OTP?</h4>
+        <p><strong>Use Twilio Verify</strong> for all authentication OTPs. It costs $0.05/verification but eliminates ~50 lines of NestJS code (code generation, Redis TTL, retry throttling, brute-force protection) and handles carrier deliverability automatically. At 10,000 OTPs/month the cost is $500 — justified by engineering time saved and reduced fraud risk.</p>
+        <p style="margin-top:6px">If cost is a priority at scale, switch OTPs to the raw <strong>Messages API</strong> ($0.0079/SMS) and implement the OTP logic yourself in NestJS with Redis. The <code>SmsService</code> example in the Integration section shows both approaches.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Provider Cards -->
+  <section class="section" id="providers">
+    <h2 class="section-title"><span class="icon">📱</span>Provider Overview</h2>
+
+    <div class="provider-grid">
+
+      <!-- Twilio -->
+      <div class="provider-card winner">
+        <span class="provider-badge badge-winner">✓ Recommended</span>
+        <div class="provider-logo" style="color:#f22f46">Twilio</div>
+        <div class="provider-tagline">Programmable communications API</div>
+        <div class="provider-price">$0.0079 <span>/ SMS (US)</span></div>
+        <div class="provider-tags">
+          <span class="ptag ptag-yes">OTP / Auth</span>
+          <span class="ptag ptag-yes">Transactional</span>
+          <span class="ptag ptag-yes">Full API</span>
+          <span class="ptag ptag-yes">Node SDK</span>
+          <span class="ptag ptag-yes">10DLC</span>
+          <span class="ptag ptag-yes">Pay-as-you-go</span>
+        </div>
+      </div>
+
+      <!-- Klaviyo -->
+      <div class="provider-card good">
+        <span class="provider-badge badge-good">Marketing focus</span>
+        <div class="provider-logo" style="color:#1a1a1a">Klaviyo SMS</div>
+        <div class="provider-tagline">Email + SMS marketing automation</div>
+        <div class="provider-price">$0.01 <span>/ SMS (overage)</span></div>
+        <div class="provider-tags">
+          <span class="ptag ptag-no">OTP / Auth ✗</span>
+          <span class="ptag ptag-part">Transactional (limited)</span>
+          <span class="ptag ptag-yes">Job Alerts</span>
+          <span class="ptag ptag-yes">Campaigns</span>
+          <span class="ptag ptag-part">REST API</span>
+        </div>
+      </div>
+
+      <!-- SimpleTexting -->
+      <div class="provider-card ok">
+        <span class="provider-badge badge-ok">Campaign SMS only</span>
+        <div class="provider-logo" style="color:#00a99d">SimpleTexting</div>
+        <div class="provider-tagline">SMS marketing for businesses</div>
+        <div class="provider-price">$39 <span>/ month (500 SMS)</span></div>
+        <div class="provider-tags">
+          <span class="ptag ptag-no">OTP / Auth ✗</span>
+          <span class="ptag ptag-no">Transactional ✗</span>
+          <span class="ptag ptag-part">Job Alerts (manual)</span>
+          <span class="ptag ptag-part">Limited API</span>
+          <span class="ptag ptag-no">Programmable ✗</span>
+        </div>
+      </div>
+
+      <!-- Postscript -->
+      <div class="provider-card bad">
+        <span class="provider-badge badge-bad">Not suitable</span>
+        <div class="provider-logo" style="color:#4e3cca">Postscript</div>
+        <div class="provider-tagline">Shopify e-commerce SMS</div>
+        <div class="provider-price">$0.015 <span>/ SMS</span></div>
+        <div class="provider-tags">
+          <span class="ptag ptag-no">OTP / Auth ✗</span>
+          <span class="ptag ptag-no">Transactional ✗</span>
+          <span class="ptag ptag-no">Non-Shopify ✗</span>
+          <span class="ptag ptag-no">General API ✗</span>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="callout red">
+      <span class="callout-icon">🚫</span>
+      <div class="callout-body">
+        <h4>Postscript — Disqualified</h4>
+        <p>Postscript is built exclusively for Shopify-powered e-commerce stores. It has no general REST API, does not support OTP/auth flows, and cannot be used outside of Shopify. <strong>Not applicable to WarehouseJobs.</strong></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Cost by Volume -->
+  <section class="section" id="cost">
+    <h2 class="section-title"><span class="icon">💰</span>Cost by Volume</h2>
+    <p class="section-desc">Three growth stages for WarehouseJobs. All figures in USD/month. Twilio includes $1.15 phone number + ~$5 A2P 10DLC registration.</p>
+
+    <h3 style="font-size:15px;font-weight:700;margin-bottom:14px;">Stage 1 — Startup (3,000 SMS/month)</h3>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">~1,000 auth OTPs + ~2,000 application notifications. No job alerts yet.</p>
+    <div class="cost-row header">
+      <span>Provider</span>
+      <span style="text-align:center">Auth + Notif<br><small>(3,000 SMS)</small></span>
+      <span style="text-align:center">Phone / Infra</span>
+      <span style="text-align:center">Total / Month</span>
+    </div>
+    <div class="cost-row winner-row">
+      <span class="provider-name" style="color:var(--green)">✓ Twilio</span>
+      <span class="cost-number cost-low">$23.70</span>
+      <span class="cost-number" style="font-size:14px;color:var(--muted)">$6.15</span>
+      <span class="cost-number cost-low">$29.85</span>
+    </div>
+    <div class="cost-row">
+      <span class="provider-name">Klaviyo SMS</span>
+      <span class="cost-number cost-mid" style="font-size:13px;text-align:center;color:var(--muted)">Not for auth/OTP.<br>Job alerts only</span>
+      <span class="cost-number" style="font-size:14px;color:var(--muted)">$0</span>
+      <span class="cost-number cost-mid">~$35<br><small style="font-size:11px;font-weight:400">marketing only</small></span>
+    </div>
+    <div class="cost-row">
+      <span class="provider-name">SimpleTexting</span>
+      <span class="cost-number cost-high" style="font-size:13px;text-align:center;color:var(--muted)">No OTP. 2,000 credits plan + 1,000 overage</span>
+      <span class="cost-number" style="font-size:14px;color:var(--muted)">—</span>
+      <span class="cost-number cost-high">$146</span>
+    </div>
+    <div class="cost-row" style="opacity:.6">
+      <span class="provider-name">Postscript</span>
+      <span class="cost-number" style="text-align:center;color:var(--muted);font-size:13px" colspan="3">N/A — Shopify only</span>
+      <span class="cost-number" style="color:var(--muted)">—</span>
+      <span class="cost-number" style="color:var(--muted)">—</span>
+    </div>
+
+    <h3 style="font-size:15px;font-weight:700;margin:32px 0 14px;">Stage 2 — Growth (30,000 SMS/month)</h3>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">~10,000 auth OTPs + ~15,000 application notifications + ~5,000 job alert SMS.</p>
+    <div class="cost-row header">
+      <span>Provider</span>
+      <span style="text-align:center">Auth + Notif<br><small>(25,000 SMS)</small></span>
+      <span style="text-align:center">Job Alerts<br><small>(5,000 SMS)</small></span>
+      <span style="text-align:center">Total / Month</span>
+    </div>
+    <div class="cost-row winner-row">
+      <span class="provider-name" style="color:var(--green)">✓ Twilio (all)</span>
+      <span class="cost-number cost-low">$197.50</span>
+      <span class="cost-number cost-low">$39.50</span>
+      <span class="cost-number cost-low">$243.15</span>
+    </div>
+    <div class="cost-row">
+      <span class="provider-name">Twilio (auth) + Klaviyo (alerts)</span>
+      <span class="cost-number cost-low">$197.50</span>
+      <span class="cost-number cost-mid">~$85<br><small style="font-size:11px;font-weight:400">Klaviyo $35 plan + overage</small></span>
+      <span class="cost-number cost-mid">~$289</span>
+    </div>
+    <div class="cost-row">
+      <span class="provider-name">Klaviyo SMS</span>
+      <span class="cost-number" style="text-align:center;color:var(--red);font-size:12px">Cannot handle auth/OTP</span>
+      <span class="cost-number cost-mid">$50</span>
+      <span class="cost-number cost-high">Not viable</span>
+    </div>
+    <div class="cost-row">
+      <span class="provider-name">SimpleTexting</span>
+      <span class="cost-number" style="text-align:center;color:var(--red);font-size:12px">No programmable API</span>
+      <span class="cost-number cost-high">$549+</span>
+      <span class="cost-number cost-high">$900+</span>
+    </div>
+
+    <h3 style="font-size:15px;font-weight:700;margin:32px 0 14px;">Stage 3 — Scale (150,000 SMS/month)</h3>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">~50,000 auth OTPs + ~75,000 notifications + ~25,000 job alert SMS. Volume discounts apply.</p>
+    <div class="cost-row header">
+      <span>Provider</span>
+      <span style="text-align:center">Auth + Notif<br><small>(125,000 SMS)</small></span>
+      <span style="text-align:center">Job Alerts<br><small>(25,000 SMS)</small></span>
+      <span style="text-align:center">Total / Month</span>
+    </div>
+    <div class="cost-row winner-row">
+      <span class="provider-name" style="color:var(--green)">✓ Twilio (committed)</span>
+      <span class="cost-number cost-low">~$730<br><small style="font-size:11px;font-weight:400">~$0.006/msg w/ volume discount</small></span>
+      <span class="cost-number cost-low">~$150</span>
+      <span class="cost-number cost-low">~$886</span>
+    </div>
+    <div class="cost-row">
+      <span class="provider-name">Twilio PAYG (no discount)</span>
+      <span class="cost-number cost-mid">$987.50</span>
+      <span class="cost-number cost-mid">$197.50</span>
+      <span class="cost-number cost-mid">$1,191</span>
+    </div>
+    <div class="cost-row">
+      <span class="provider-name">SimpleTexting</span>
+      <span class="cost-number" style="text-align:center;color:var(--red);font-size:12px">Not practical</span>
+      <span class="cost-number cost-high">N/A</span>
+      <span class="cost-number cost-high">$5,000+</span>
+    </div>
+
+    <div class="callout blue">
+      <span class="callout-icon">💡</span>
+      <div class="callout-body">
+        <h4>Twilio Volume Discounts</h4>
+        <p>At committed annual spend, Twilio offers 10–23% discounts. At 100k+ messages/month, negotiate directly with Twilio for custom CPM pricing. A committed contract for WarehouseJobs at scale could reduce per-message cost from $0.0079 to ~$0.005–$0.006.</p>
+        <p><a href="https://www.twilio.com/en-us/pricing" target="_blank" style="color:var(--blue)">twilio.com/pricing</a></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Feature Matrix -->
+  <section class="section" id="features">
+    <h2 class="section-title"><span class="icon">📊</span>Feature Comparison Matrix</h2>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="min-width:200px">Feature</th>
+            <th style="min-width:110px">Twilio</th>
+            <th style="min-width:110px">Klaviyo SMS</th>
+            <th style="min-width:130px">SimpleTexting</th>
+            <th style="min-width:120px">Postscript</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="5" style="background:#f8fafc;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)">Authentication &amp; Transactional</td></tr>
+          <tr>
+            <td>OTP / SMS verification codes</td>
+            <td class="chk">✓ Native (Verify API)</td>
+            <td class="x">✗ Not supported</td>
+            <td class="x">✗ Not supported</td>
+            <td class="x">✗ Not supported</td>
+          </tr>
+          <tr>
+            <td>Programmable transactional SMS</td>
+            <td class="chk">✓ Full REST API</td>
+            <td class="part">◑ Limited</td>
+            <td class="x">✗ No</td>
+            <td class="x">✗ No</td>
+          </tr>
+          <tr>
+            <td>NestJS / Node.js SDK</td>
+            <td class="chk">✓ Official <code>twilio</code> npm</td>
+            <td class="part">◑ REST only</td>
+            <td class="part">◑ REST only</td>
+            <td class="x">✗ Shopify only</td>
+          </tr>
+          <tr>
+            <td>Webhooks (delivery status)</td>
+            <td class="chk">✓ Yes</td>
+            <td class="chk">✓ Yes</td>
+            <td class="part">◑ Partial</td>
+            <td class="x">✗ No</td>
+          </tr>
+          <tr>
+            <td>Sub-3s delivery SLA</td>
+            <td class="chk">✓ Yes</td>
+            <td class="x">✗ No SLA</td>
+            <td class="x">✗ No SLA</td>
+            <td class="x">✗ No</td>
+          </tr>
+
+          <tr><td colspan="5" style="background:#f8fafc;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)">Marketing &amp; Job Alerts</td></tr>
+          <tr>
+            <td>Broadcast / campaign SMS</td>
+            <td class="chk">✓ Yes</td>
+            <td class="chk">✓ Yes (strong)</td>
+            <td class="chk">✓ Yes (core feature)</td>
+            <td class="x">✗ Shopify only</td>
+          </tr>
+          <tr>
+            <td>Audience segmentation</td>
+            <td class="part">◑ Manual</td>
+            <td class="chk">✓ Excellent</td>
+            <td class="part">◑ Basic</td>
+            <td class="x">✗ N/A</td>
+          </tr>
+          <tr>
+            <td>Opt-in / opt-out management</td>
+            <td class="part">◑ You build it</td>
+            <td class="chk">✓ Built-in</td>
+            <td class="chk">✓ Built-in</td>
+            <td class="x">✗ N/A</td>
+          </tr>
+          <tr>
+            <td>Email + SMS together</td>
+            <td class="x">✗ SMS only</td>
+            <td class="chk">✓ Core feature</td>
+            <td class="x">✗ SMS only</td>
+            <td class="x">✗ No</td>
+          </tr>
+
+          <tr><td colspan="5" style="background:#f8fafc;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)">Compliance &amp; Cost</td></tr>
+          <tr>
+            <td>A2P 10DLC support (US)</td>
+            <td class="chk">✓ Full support</td>
+            <td class="chk">✓ Managed</td>
+            <td class="chk">✓ Managed</td>
+            <td class="x">✗ N/A</td>
+          </tr>
+          <tr>
+            <td>TCPA compliance tools</td>
+            <td class="chk">✓ Yes</td>
+            <td class="chk">✓ Yes</td>
+            <td class="chk">✓ Yes</td>
+            <td class="x">✗ N/A</td>
+          </tr>
+          <tr>
+            <td>Pay-as-you-go pricing</td>
+            <td class="chk">✓ Yes</td>
+            <td class="x">✗ Subscription</td>
+            <td class="x">✗ Subscription</td>
+            <td class="x">✗ N/A</td>
+          </tr>
+          <tr>
+            <td>Free tier</td>
+            <td class="part">◑ Trial ($15 credit)</td>
+            <td class="chk">✓ 150 SMS free/mo</td>
+            <td class="x">✗ No</td>
+            <td class="x">✗ N/A</td>
+          </tr>
+
+          <tr><td colspan="5" style="background:#f8fafc;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)">Suitability for WarehouseJobs</td></tr>
+          <tr>
+            <td><strong>Auth OTP channel</strong></td>
+            <td class="chk"><strong>✓ Best choice</strong></td>
+            <td class="x">✗ Cannot use</td>
+            <td class="x">✗ Cannot use</td>
+            <td class="x">✗ Cannot use</td>
+          </tr>
+          <tr>
+            <td><strong>Application notifications</strong></td>
+            <td class="chk"><strong>✓ Best choice</strong></td>
+            <td class="x">✗ Not suited</td>
+            <td class="x">✗ Not suited</td>
+            <td class="x">✗ Not suited</td>
+          </tr>
+          <tr>
+            <td><strong>Job alert campaigns</strong></td>
+            <td class="chk">✓ Works well</td>
+            <td class="chk"><strong>✓ Best choice</strong></td>
+            <td class="part">◑ Could work</td>
+            <td class="x">✗ Cannot use</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Integration -->
+  <section class="section" id="integration">
+    <h2 class="section-title"><span class="icon">🔌</span>NestJS Integration</h2>
+    <p class="section-desc">Twilio integrates directly into the NestJS auth domain. Install once, use for all three SMS channels.</p>
+
+    <h3 style="font-size:14px;font-weight:700;margin-bottom:10px;">Install</h3>
+    <pre># TypeScript types are built into the twilio package — no @types/twilio needed
+bun add twilio</pre>
+
+    <h3 style="font-size:14px;font-weight:700;margin:20px 0 10px;">Module setup — SmsModule (src/core/sms/sms.module.ts)</h3>
+    <pre>import { Module } from '@nestjs/common';
+import { SmsService } from './sms.service';
+
+@Module({
+  providers: [SmsService],
+  exports: [SmsService],          // inject into AuthService, ApplicationsService, etc.
+})
+export class SmsModule {}</pre>
+
+    <h3 style="font-size:14px;font-weight:700;margin:20px 0 10px;">SmsService — full implementation (src/core/sms/sms.service.ts)</h3>
+    <pre>import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import Twilio from 'twilio';           // ← official SDK — types bundled, no @types needed
+
+@Injectable()
+export class SmsService {
+  private readonly client: Twilio.Twilio;
+  private readonly from: string;
+  private readonly verifyServiceSid: string;
+  private readonly logger = new Logger(SmsService.name);
+
+  constructor(private readonly config: ConfigService) {
+    this.client = Twilio(
+      config.getOrThrow&lt;string&gt;('TWILIO_ACCOUNT_SID'),
+      config.getOrThrow&lt;string&gt;('TWILIO_AUTH_TOKEN'),
+    );
+    this.from             = config.getOrThrow&lt;string&gt;('TWILIO_FROM_NUMBER');
+    this.verifyServiceSid = config.getOrThrow&lt;string&gt;('TWILIO_VERIFY_SERVICE_SID');
+  }
+
+  // ── Twilio Verify API ── (Authentication channel) ─────────────────────────
+  // Product: twilio.com/verify · $0.05/verification · first 100/month free
+  // Use for: register, login, password reset OTPs
+
+  /** Send a 6-digit OTP via Twilio Verify (SMS, WhatsApp, or email) */
+  async sendVerificationCode(to: string, channel: 'sms' | 'whatsapp' | 'email' = 'sms'): Promise&lt;void&gt; {
+    await this.client.verify.v2
+      .services(this.verifyServiceSid)
+      .verifications.create({ to, channel });
+    this.logger.log(`Verification code sent via ${channel} to ${to}`);
+  }
+
+  /** Check the OTP the user entered — returns true if correct */
+  async checkVerificationCode(to: string, code: string): Promise&lt;boolean&gt; {
+    const result = await this.client.verify.v2
+      .services(this.verifyServiceSid)
+      .verificationChecks.create({ to, code });
+    return result.status === 'approved';
+  }
+
+  // ── Twilio Lookup API ── (Phone validation) ────────────────────────────────
+  // Product: twilio.com/lookup · $0.005/lookup · call before sendVerificationCode
+  // Use for: validate phone on registration / quick-apply form
+
+  /** Validate a phone number. Returns false for landlines, invalid numbers. */
+  async isValidMobileNumber(phone: string): Promise&lt;boolean&gt; {
+    try {
+      const lookup = await this.client.lookups.v2.phoneNumbers(phone).fetch({
+        fields: 'line_type_intelligence',
+      });
+      const lineType = lookup.lineTypeIntelligence?.type;
+      return lineType === 'mobile' || lineType === 'nonFixedVoip';
+    } catch {
+      return false; // invalid number format
+    }
+  }
+
+  // ── Twilio Programmable SMS ── (Notifications channel) ────────────────────
+  // Product: twilio.com/sms · $0.0079/SMS (US) · pay-as-you-go
+  // Use for: application status updates, new applicant alerts, job alerts
+
+  /** Notify seeker when their application status changes */
+  async sendApplicationUpdate(
+    to: string,
+    jobTitle: string,
+    status: string,
+  ): Promise&lt;void&gt; {
+    await this.client.messages.create({
+      to,
+      from: this.from,
+      body: `WarehouseJobs: Your application for "${jobTitle}" is now ${status}. View: warehousejobs.com/applications`,
+    });
+  }
+
+  /** Notify employer of a new applicant */
+  async sendNewApplicantAlert(
+    to: string,
+    jobTitle: string,
+    applicantName: string,
+  ): Promise&lt;void&gt; {
+    await this.client.messages.create({
+      to,
+      from: this.from,
+      body: `WarehouseJobs: ${applicantName} applied for your "${jobTitle}" posting. Review: warehousejobs.com/employer/applications`,
+    });
+  }
+
+  /** Send opt-in job alert SMS (BullMQ worker calls this per seeker) */
+  async sendJobAlert(to: string, jobTitle: string, city: string, applyUrl: string): Promise&lt;void&gt; {
+    await this.client.messages.create({
+      to,
+      from: this.from,
+      body: `WarehouseJobs: New job alert — ${jobTitle} in ${city}. Apply in 60s: ${applyUrl}\nReply STOP to unsubscribe.`,
+    });
+  }
+}</pre>
+
+    <h3 style="font-size:14px;font-weight:700;margin:20px 0 10px;">Required Environment Variables</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Variable</th><th>Value / Format</th><th>Where to find it</th></tr></thead>
+        <tbody>
+          <tr style="background:#f0fdf4"><td><code>TWILIO_ACCOUNT_SID</code></td><td><code>ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</code></td><td>Twilio Console → Account Info</td></tr>
+          <tr style="background:#f0fdf4"><td><code>TWILIO_AUTH_TOKEN</code></td><td>32-char token</td><td>Twilio Console → Account Info</td></tr>
+          <tr style="background:#f0fdf4"><td><code>TWILIO_FROM_NUMBER</code></td><td><code>+1XXXXXXXXXX</code> (10DLC number)</td><td>Twilio Console → Phone Numbers → Manage</td></tr>
+          <tr><td><code>TWILIO_VERIFY_SERVICE_SID</code></td><td><code>VAxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</code></td><td>Twilio Console → Verify → Services → Create service</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout blue">
+      <span class="callout-icon">🚀</span>
+      <div class="callout-body">
+        <h4>Quick-start Checklist (Twilio Console)</h4>
+        <p>
+          1. Sign up at <a href="https://www.twilio.com" target="_blank" style="color:var(--blue)">twilio.com</a> — free trial, no credit card required<br>
+          2. Buy a 10DLC phone number (Console → Phone Numbers → Buy a Number)<br>
+          3. Register A2P 10DLC brand + campaign (Console → Messaging → Regulatory Compliance)<br>
+          4. Create a Verify Service (Console → Verify → Services) — copy the <code>VA...</code> Service SID<br>
+          5. Add all four env vars to <code>src/api/.env</code> and <code>src/api/.env.example</code>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Recommendation -->
+  <section class="section" id="recommendation">
+    <h2 class="section-title"><span class="icon">🏆</span>Recommendation</h2>
+
+    <div class="rec-box">
+      <h3>Recommended Architecture: Twilio Primary</h3>
+      <p>One provider, one SDK, all three SMS channels covered. Simple to integrate, scales linearly, pay-as-you-go with no monthly minimums.</p>
+
+      <div class="rec-grid">
+        <div class="rec-item">
+          <h4>Auth OTP</h4>
+          <p><strong>Twilio Verify API</strong> — $0.05/verification. Handles code generation, delivery, expiry, and retry limits. Removes OTP state management from NestJS. At 10,000 verifications/month = <strong>$500/month</strong>, or fall back to manual OTP via standard Twilio Messages API at $0.0079/SMS = <strong>$79/month</strong>.</p>
+        </div>
+        <div class="rec-item">
+          <h4>Application Notifications</h4>
+          <p><strong>Twilio Messages API</strong> — $0.0079/SMS via same SDK and phone number. No additional setup. BullMQ worker sends notifications asynchronously. At 20,000/month = <strong>$158/month</strong>.</p>
+        </div>
+        <div class="rec-item">
+          <h4>Job Alerts (Phase 2)</h4>
+          <p><strong>Twilio Messages API</strong> initially — same infrastructure, zero additional setup. At scale (&gt;50k alerts/month), evaluate adding <strong>Klaviyo SMS</strong> for segmentation, opt-in management, and combined email+SMS automation. Not required until late Phase 3.</p>
+        </div>
+        <div class="rec-item">
+          <h4>Total Cost Estimates</h4>
+          <p>
+            <strong>Startup:</strong> ~$30–40/month<br>
+            <strong>Growth (30k SMS):</strong> ~$243/month<br>
+            <strong>Scale (150k SMS):</strong> ~$886–$1,191/month<br>
+            <br>
+            No monthly minimums. No contract required to start.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:24px" class="callout blue">
+      <span class="callout-icon">🗓</span>
+      <div class="callout-body">
+        <h4>When to Add Klaviyo SMS</h4>
+        <p>Add Klaviyo as a secondary provider (job alerts only) when: (a) monthly job alert volume exceeds 30,000 SMS, AND (b) you need audience segmentation by job category, location, or seeker profile — which Klaviyo handles significantly better than custom Twilio logic. Until then, Twilio alone is simpler and cheaper.</p>
+      </div>
+    </div>
+
+    <div style="margin-top:16px" class="table-wrap">
+      <table>
+        <thead><tr><th>Provider</th><th>Phase 1–2 Role</th><th>Phase 3+ Role</th><th>Verdict</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Twilio</strong></td><td>All SMS (OTP + notifications + alerts)</td><td>OTP + notifications (primary)</td><td class="chk">✓ Adopt now</td></tr>
+          <tr><td><strong>Klaviyo SMS</strong></td><td>Not needed</td><td>Job alerts + marketing (secondary)</td><td class="part">◑ Evaluate at scale</td></tr>
+          <tr><td><strong>SimpleTexting</strong></td><td>—</td><td>—</td><td class="x">✗ Skip — too expensive, no API</td></tr>
+          <tr><td><strong>Postscript</strong></td><td>—</td><td>—</td><td class="x">✗ Skip — Shopify only</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<footer class="page-footer">
+  <span>WarehouseJobs.com — SMS Provider Analysis · June 2026</span>
+  <span>Pricing data: <a href="https://costbench.com/software/sms-marketing/twilio/calculator/" target="_blank" style="color:var(--blue)">CostBench</a> · Twilio.com · Klaviyo.com · SimpleTexting.com</span>
+</footer>
+
+</body>
+</html>

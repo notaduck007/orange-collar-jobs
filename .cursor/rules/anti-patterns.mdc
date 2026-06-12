@@ -1,0 +1,45 @@
+---
+description: Forbidden patterns in NestJS API code
+globs: src/api/src/**/*.ts
+alwaysApply: false
+---
+
+# Anti-Patterns — Forbidden
+
+Full standard: [docs/agent/standards/common/anti-patterns.md](../../docs/agent/standards/common/anti-patterns.md)
+
+## Fat Controllers
+❌ Business logic in controllers — validation, DB queries, transformations.
+✅ Controllers call exactly one service method and return the result.
+
+## Swallowed Errors
+❌ `catch (e) { console.log(e); }` — errors silently absorbed.
+✅ Either handle specifically (typed error) or re-throw. Always log with `requestId` context.
+
+## Any Types
+❌ `const x: any = ...` or implicit `any` parameters.
+✅ Use `unknown` + type guard, or the specific type. `eslint: @typescript-eslint/no-explicit-any` is an error.
+
+## Cross-Domain Imports
+❌ `import { JobsService } from '../jobs/JobsService'` inside the applications domain.
+✅ Import from barrels only. If you need a type from another domain, it belongs in `src/core/`.
+
+## Raw Error Strings
+❌ `throw new Error('Job not found')`
+✅ `throw new NotFoundError('Job', id)` — typed errors with structured context.
+
+## Synchronous Blocking in Async Context
+❌ `fs.readFileSync(...)` or CPU-intensive work on the event loop.
+✅ Use async I/O. Offload CPU work to BullMQ workers.
+
+## Unguarded BullMQ Workers
+❌ Workers that process without error handling — one bad job crashes the worker.
+✅ `try/catch` on every job; move to dead-letter queue on N failures.
+
+## Prisma Queries Outside Services
+❌ `prisma.job.findMany()` directly in a controller.
+✅ All Prisma calls inside service methods only.
+
+## Missing Pagination
+❌ `findAll()` returning an unbounded array.
+✅ All list methods accept a `page` + `pageSize` parameter and return `{ data, meta }`.

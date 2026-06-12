@@ -1,0 +1,32 @@
+---
+description: Canonical shared types that must be used across all domains
+globs: src/api/src/**/*.ts
+alwaysApply: false
+---
+
+# Canonical Type Reuse
+
+Full standard: [docs/agent/standards/common/canonical-types.md](../../docs/agent/standards/common/canonical-types.md)
+Skill: `.cursor/skills/canonical-type-reuse/SKILL.md`
+
+## Types that MUST come from `src/api/src/core/`
+
+| Type | Location | Use for |
+|---|---|---|
+| `PaginatedResult<T>` | `src/core/types.ts` | All `findAll()` / `search()` returns |
+| `PaginationParams` | `src/core/types.ts` | All list/search DTOs |
+| `AppError` + subclasses | `src/core/error/` | All thrown errors |
+| `AuditEntry` | `src/core/audit/` | All mutation audit records |
+| `StorageUploadResult` | `src/core/storage/` | File upload responses |
+
+## Types that MUST NOT be duplicated across domains
+
+- `UserId` — always `string` (UUID) typed alias from `src/core/types.ts`
+- `JobId`, `CompanyId`, `ApplicationId` — typed aliases, never raw `string`
+- Pagination shape: always `{ data: T[]; meta: PaginationMeta }` — never custom pagination shapes
+
+## Rules
+
+- Before defining a new type, search `src/core/` and `docs/agent/standards/common/canonical-types.md` for an existing type.
+- If a type is used in 2+ domains, it belongs in `src/core/`.
+- Typed ID aliases prevent accidentally passing a `JobId` where a `CompanyId` is expected.

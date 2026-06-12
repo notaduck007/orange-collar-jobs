@@ -1,0 +1,1608 @@
+openapi: 3.0.3
+
+info:
+  title: WarehouseJobs.com API
+  version: 1.0.1
+  description: |
+    RESTful API for the WarehouseJobs.com platform.
+
+    ## Authentication
+    Most endpoints require a `Bearer` JWT issued by the WarehouseJobs auth service
+    (`POST /api/v1/auth/login`). Pass it in the `Authorization` header:
+
+    ```
+    Authorization: Bearer <token>
+    ```
+
+    Three roles are recognised:
+    - **admin** – platform operators; full access to all resources
+    - **vendor** – authenticated employers; manage their company's jobs and applicants
+    - **seeker** – job seekers; apply to jobs, view their own applications
+
+    Batch ingestion endpoints additionally accept a long-lived `X-Api-Key` header
+    issued to trusted scrapers and feed partners.
+
+  contact:
+    name: WarehouseJobs Engineering
+    email: dev@warehousejobs.com
+  license:
+    name: Private
+
+servers:
+  - url: https://api.warehousejobs.com
+    description: Production
+  - url: http://localhost:3001
+    description: Local development
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Security schemes
+# ──────────────────────────────────────────────────────────────────────────────
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT issued by POST /api/v1/auth/login
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-Api-Key
+      description: Long-lived API key for batch ingestion (scrapers / feed partners)
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # Reusable schemas
+  # ──────────────────────────────────────────────────────────────────────────
+
+  schemas:
+
+    # ── Pagination ──────────────────────────────────────────────────────────
+    PaginationMeta:
+      type: object
+      required: [total, page, pageSize, totalPages]
+      properties:
+        total:     { type: integer, example: 342 }
+        page:      { type: integer, example: 1 }
+        pageSize:  { type: integer, example: 20 }
+        totalPages: { type: integer, example: 18 }
+
+    # ── Error ──────────────────────────────────────────────────────────────
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code:    { type: string, example: NOT_FOUND }
+        message: { type: string, example: "Job not found" }
+        details: { type: object, additionalProperties: true }
+
+    # ── Auth ───────────────────────────────────────────────────────────────
+    RegisterRequest:
+      type: object
+      required: [email, password, role]
+      properties:
+        email:
+          type: string
+          format: email
+          example: jane@example.com
+        password:
+          type: string
+          minLength: 8
+          example: "SecureP@ss1"
+        role:
+          type: string
+          enum: [seeker, vendor]
+          example: seeker
+        fullName:
+          type: string
+          example: Jane Smith
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:    { type: string, format: email, example: jane@example.com }
+        password: { type: string, example: "SecureP@ss1" }
+
+    AuthTokens:
+      type: object
+      required: [accessToken, refreshToken, expiresIn]
+      properties:
+        accessToken:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        refreshToken:
+          type: string
+          example: "def50200..."
+        expiresIn:
+          type: integer
+          description: Seconds until accessToken expires
+          example: 3600
+
+    UserProfile:
+      type: object
+      required: [id, email, role]
+      properties:
+        id:        { type: string, format: uuid }
+        email:     { type: string, format: email }
+        role:      { type: string, enum: [admin, vendor, seeker] }
+        fullName:  { type: string, nullable: true }
+        phone:     { type: string, nullable: true }
+        emailVerifiedAt: { type: string, format: date-time, nullable: true }
+        createdAt: { type: string, format: date-time }
+
+    # ── Job ────────────────────────────────────────────────────────────────
+    JobSourceType:
+      type: string
+      enum: [direct, scraped, api, syndicated]
+      description: |
+        How the job was created.
+        - `direct` – employer posted via the platform UI
+        - `scraped` – ingested by an automated scraper
+        - `api` – posted via the vendor API
+        - `syndicated` – imported from a partner XML/JSON feed
+
+    EmploymentType:
+      type: string
+      enum: [full_time, part_time, temp, temp_to_hire, contract, seasonal]
+
+    JobShift:
+      type: string
+      enum: [first, second, third, weekend, flexible]
+
+    JobStatus:
+      type: string
+      enum: [draft, active, published, closed, expired]
+
+    TemperatureEnv:
+      type: string
+      enum: [ambient, cooler, freezer]
+      nullable: true
+
+    ScreeningQuestion:
+      type: object
+      required: [prompt, type, required, sortOrder]
+      properties:
+        id:        { type: string, format: uuid }
+        prompt:    { type: string, example: "Do you have a valid forklift certification?" }
+        type:
+          type: string
+          enum: [yes_no, single, multi, number, text]
+        options:
+          type: array
+          items: { type: string }
+          nullable: true
+          description: Required when type is single or multi
+        required:  { type: boolean }
+        sortOrder: { type: integer }
+
+    JobBase:
+      type: object
+      required: [title, category, location, employmentType, shift, description]
+      properties:
+        title:
+          type: string
+          minLength: 3
+          maxLength: 120
+          example: Reach Truck Operator — 2nd Shift
+        category:
+          type: string
+          example: Forklift Operator
+        categorySlug:
+          type: string
+          example: forklift-operator
+        companyId:
+          type: string
+          format: uuid
+          description: Required for admin posts; inferred from JWT for vendor posts
+        location:
+          type: string
+          example: "Dallas, TX"
+        city:    { type: string, example: Dallas }
+        state:   { type: string, minLength: 2, maxLength: 2, example: TX }
+        zip:     { type: string, example: "75201", nullable: true }
+        lat:     { type: number, format: double, nullable: true }
+        lng:     { type: number, format: double, nullable: true }
+        employmentType: { $ref: '#/components/schemas/EmploymentType' }
+        shift:          { $ref: '#/components/schemas/JobShift' }
+        payMin:  { type: number, example: 18.00, nullable: true }
+        payMax:  { type: number, example: 22.00, nullable: true }
+        payPeriod:
+          type: string
+          enum: [hour, day, week, month, year]
+          example: hour
+          nullable: true
+        description:
+          type: string
+          minLength: 30
+          maxLength: 5000
+        requirements:
+          type: string
+          maxLength: 3000
+          nullable: true
+        temperatureEnv: { $ref: '#/components/schemas/TemperatureEnv' }
+        certificationsRequired:
+          type: array
+          items: { type: string }
+          example: [sit_down_forklift, reach_truck]
+        liftRequirementLbs:
+          type: integer
+          nullable: true
+          example: 50
+        overtimeAvailable: { type: boolean, default: false }
+        weeklyPay:         { type: boolean, default: false }
+        quickHire:         { type: boolean, default: false }
+
+    CreateJobRequest:
+      allOf:
+        - $ref: '#/components/schemas/JobBase'
+        - type: object
+          properties:
+            featured:
+              type: boolean
+              default: false
+            companyPackageId:
+              type: string
+              format: uuid
+              nullable: true
+              description: Package credit to consume; required when posting as vendor
+            screeningQuestions:
+              type: array
+              items: { $ref: '#/components/schemas/ScreeningQuestion' }
+            status:
+              $ref: '#/components/schemas/JobStatus'
+
+    UpdateJobRequest:
+      type: object
+      description: Partial update — all fields optional
+      properties:
+        title:          { type: string }
+        description:    { type: string }
+        requirements:   { type: string }
+        status:         { $ref: '#/components/schemas/JobStatus' }
+        featured:       { type: boolean }
+        featuredUntil:  { type: string, format: date-time, nullable: true }
+        expiresAt:      { type: string, format: date-time, nullable: true }
+        payMin:         { type: number }
+        payMax:         { type: number }
+        quickHire:      { type: boolean }
+        weeklyPay:      { type: boolean }
+        overtimeAvailable: { type: boolean }
+
+    Job:
+      allOf:
+        - $ref: '#/components/schemas/JobBase'
+        - type: object
+          required: [id, slug, status, postedAt, createdAt, sourceType, views]
+          properties:
+            id:         { type: string, format: uuid }
+            slug:       { type: string, example: reach-truck-operator-2nd-shift-dallas-tx }
+            status:     { $ref: '#/components/schemas/JobStatus' }
+            sourceType: { $ref: '#/components/schemas/JobSourceType' }
+            externalId: { type: string, nullable: true }
+            sourceUrl:  { type: string, format: uri, nullable: true }
+            featured:   { type: boolean }
+            featuredUntil: { type: string, format: date-time, nullable: true }
+            views:      { type: integer, default: 0 }
+            postedAt:   { type: string, format: date-time }
+            expiresAt:  { type: string, format: date-time, nullable: true }
+            createdAt:  { type: string, format: date-time }
+            company:
+              type: object
+              nullable: true
+              properties:
+                id:       { type: string, format: uuid }
+                name:     { type: string }
+                slug:     { type: string }
+                verified: { type: boolean }
+                logoUrl:  { type: string, format: uri, nullable: true }
+
+    JobSummary:
+      type: object
+      description: Compact job card representation used in search results
+      required: [id, slug, title, location, employmentType, shift, postedAt, sourceType]
+      properties:
+        id:             { type: string, format: uuid }
+        slug:           { type: string }
+        title:          { type: string }
+        location:       { type: string }
+        city:           { type: string, nullable: true }
+        state:          { type: string, nullable: true }
+        employmentType: { $ref: '#/components/schemas/EmploymentType' }
+        shift:          { $ref: '#/components/schemas/JobShift' }
+        payMin:         { type: number, nullable: true }
+        payMax:         { type: number, nullable: true }
+        payPeriod:      { type: string, nullable: true }
+        featured:       { type: boolean }
+        quickHire:      { type: boolean }
+        weeklyPay:      { type: boolean }
+        sourceType:     { $ref: '#/components/schemas/JobSourceType' }
+        postedAt:       { type: string, format: date-time }
+        company:
+          type: object
+          nullable: true
+          properties:
+            name:     { type: string }
+            slug:     { type: string }
+            verified: { type: boolean }
+
+    # ── Batch Ingestion ───────────────────────────────────────────────────
+    BatchJobItem:
+      type: object
+      required: [title, location, employmentType, shift, description, sourceType]
+      description: Single job record in a batch payload
+      properties:
+        externalId:
+          type: string
+          description: Unique identifier from the source system; used for deduplication
+          example: "ACME-12345"
+        sourceUrl:
+          type: string
+          format: uri
+          nullable: true
+          example: "https://source.com/jobs/12345"
+        companyName:
+          type: string
+          description: Company name string; matched to existing companies or created
+        title:        { type: string }
+        category:     { type: string, nullable: true }
+        location:     { type: string }
+        city:         { type: string, nullable: true }
+        state:        { type: string, nullable: true }
+        zip:          { type: string, nullable: true }
+        employmentType: { $ref: '#/components/schemas/EmploymentType' }
+        shift:          { $ref: '#/components/schemas/JobShift' }
+        payMin:         { type: number, nullable: true }
+        payMax:         { type: number, nullable: true }
+        payPeriod:      { type: string, nullable: true }
+        description:    { type: string }
+        requirements:   { type: string, nullable: true }
+        sourceType:     { $ref: '#/components/schemas/JobSourceType' }
+        expiresAt:      { type: string, format: date-time, nullable: true }
+
+    BatchRequest:
+      type: object
+      required: [jobs]
+      properties:
+        jobs:
+          type: array
+          items: { $ref: '#/components/schemas/BatchJobItem' }
+          minItems: 1
+          maxItems: 10000
+        source:
+          type: string
+          description: Human-readable label for this batch (e.g. "Acme XML feed 2026-06-12")
+          example: "acme-feed-20260612"
+
+    BatchResponse:
+      type: object
+      required: [batchId, status, count]
+      properties:
+        batchId:
+          type: string
+          format: uuid
+          description: Use this ID to poll /api/v1/jobs/batch/{batchId}/status
+        status:
+          type: string
+          enum: [queued, processing, completed, failed]
+        count:
+          type: integer
+          description: Total number of jobs submitted
+        message:
+          type: string
+          description: Human-readable status note
+
+    BatchStatus:
+      type: object
+      required: [batchId, status, total, created, updated, skipped, failed]
+      properties:
+        batchId:   { type: string, format: uuid }
+        status:    { type: string, enum: [queued, processing, completed, failed] }
+        total:     { type: integer }
+        created:   { type: integer }
+        updated:   { type: integer }
+        skipped:   { type: integer, description: Duplicate external_id, no change }
+        failed:    { type: integer }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              index:      { type: integer }
+              externalId: { type: string, nullable: true }
+              reason:     { type: string }
+        startedAt:   { type: string, format: date-time, nullable: true }
+        completedAt: { type: string, format: date-time, nullable: true }
+
+    # ── Application ───────────────────────────────────────────────────────
+    ApplicationStatus:
+      type: string
+      enum: [new, reviewing, shortlisted, interview, offer, hired, rejected, withdrawn]
+
+    ApplyRequest:
+      type: object
+      description: |
+        Quick-apply payload. Resume is optional. For unauthenticated seekers, 
+        `name` and `phone` are required. Authenticated seekers may omit them 
+        — profile values are used automatically.
+      properties:
+        name:
+          type: string
+          example: Marcus Johnson
+          description: Required if not authenticated
+        phone:
+          type: string
+          example: "+12145550192"
+          description: Required if not authenticated
+        zip:
+          type: string
+          example: "75201"
+        coverNote:
+          type: string
+          maxLength: 2000
+          description: Optional cover note (1–3 sentences recommended)
+          nullable: true
+        resumeUrl:
+          type: string
+          format: uri
+          nullable: true
+          description: Pre-signed URL of uploaded resume (upload separately to /uploads/resume)
+        interviewSlotId:
+          type: string
+          format: uuid
+          nullable: true
+          description: Selected interview slot when job has quickHire enabled
+        screeningAnswers:
+          type: array
+          nullable: true
+          items:
+            type: object
+            required: [questionId, answer]
+            properties:
+              questionId: { type: string, format: uuid }
+              answer:
+                description: Value type matches question type (boolean, string, number, string[])
+
+    Application:
+      type: object
+      required: [id, jobId, status, createdAt]
+      properties:
+        id:        { type: string, format: uuid }
+        jobId:     { type: string, format: uuid }
+        applicantId: { type: string, format: uuid, nullable: true }
+        status:    { $ref: '#/components/schemas/ApplicationStatus' }
+        applicantName:  { type: string, nullable: true }
+        applicantEmail: { type: string, nullable: true }
+        applicantPhone: { type: string, nullable: true }
+        coverLetter:    { type: string, nullable: true }
+        resumeUrl:      { type: string, format: uri, nullable: true }
+        interviewBooking:
+          type: object
+          nullable: true
+          properties:
+            slotId:   { type: string, format: uuid }
+            startsAt: { type: string, format: date-time }
+        rating:          { type: integer, minimum: 1, maximum: 5, nullable: true }
+        rejectionReason: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+        job:
+          type: object
+          nullable: true
+          properties:
+            id:    { type: string, format: uuid }
+            title: { type: string }
+            slug:  { type: string }
+
+    UpdateApplicationStatusRequest:
+      type: object
+      required: [status]
+      properties:
+        status:          { $ref: '#/components/schemas/ApplicationStatus' }
+        rejectionReason: { type: string, nullable: true }
+        rating:          { type: integer, minimum: 1, maximum: 5, nullable: true }
+        note:            { type: string, nullable: true, description: Internal employer note }
+
+    # ── Company ──────────────────────────────────────────────────────────
+    Company:
+      type: object
+      required: [id, name, slug, status]
+      properties:
+        id:          { type: string, format: uuid }
+        name:        { type: string }
+        slug:        { type: string }
+        description: { type: string, nullable: true }
+        website:     { type: string, format: uri, nullable: true }
+        logoUrl:     { type: string, format: uri, nullable: true }
+        location:    { type: string, nullable: true }
+        hqCity:      { type: string, nullable: true }
+        hqState:     { type: string, nullable: true }
+        industry:    { type: string, nullable: true }
+        verified:    { type: boolean }
+        verificationStatus:
+          type: string
+          enum: [unverified, pending, approved, rejected]
+        postingCredits: { type: integer }
+        featuredCredits: { type: integer }
+        status:
+          type: string
+          enum: [active, suspended, pending]
+        createdAt: { type: string, format: date-time }
+
+    CreateCompanyRequest:
+      type: object
+      required: [name]
+      properties:
+        name:        { type: string, minLength: 2, maxLength: 120 }
+        description: { type: string, nullable: true }
+        website:     { type: string, format: uri, nullable: true }
+        location:    { type: string, nullable: true }
+        hqCity:      { type: string, nullable: true }
+        hqState:     { type: string, nullable: true }
+        industry:    { type: string, nullable: true }
+
+    # ── Admin — Ad Campaign ──────────────────────────────────────────────
+    AdSlotPosition:
+      type: string
+      enum:
+        - hero_banner
+        - sidebar_top
+        - sidebar_bottom
+        - job_list_inline
+        - job_detail_top
+        - job_detail_bottom
+        - category_banner
+        - footer_strip
+
+    CreateAdCampaignRequest:
+      type: object
+      required: [title, imageUrl, targetUrl, slot, startDate, endDate]
+      properties:
+        title:      { type: string }
+        imageUrl:   { type: string, format: uri }
+        targetUrl:  { type: string, format: uri }
+        slot:       { $ref: '#/components/schemas/AdSlotPosition' }
+        companyId:  { type: string, format: uuid, nullable: true }
+        startDate:  { type: string, format: date }
+        endDate:    { type: string, format: date }
+        dailyBudgetCents: { type: integer, nullable: true }
+        targetCategories:
+          type: array
+          items: { type: string }
+          nullable: true
+        targetStates:
+          type: array
+          items: { type: string }
+          nullable: true
+
+    Advertisement:
+      type: object
+      required: [id, title, imageUrl, targetUrl, slot, status, startDate, endDate]
+      properties:
+        id:         { type: string, format: uuid }
+        title:      { type: string }
+        imageUrl:   { type: string, format: uri }
+        targetUrl:  { type: string, format: uri }
+        slot:       { $ref: '#/components/schemas/AdSlotPosition' }
+        status:     { type: string, enum: [active, paused, ended] }
+        impressions: { type: integer }
+        clicks:      { type: integer }
+        startDate:  { type: string, format: date }
+        endDate:    { type: string, format: date }
+        createdAt:  { type: string, format: date-time }
+
+    # ── Admin Stats ──────────────────────────────────────────────────────
+    PlatformStats:
+      type: object
+      properties:
+        jobs:
+          type: object
+          properties:
+            total:     { type: integer }
+            active:    { type: integer }
+            featured:  { type: integer }
+            direct:    { type: integer, description: Company-posted }
+            scraped:   { type: integer }
+        applications:
+          type: object
+          properties:
+            total:       { type: integer }
+            last30Days:  { type: integer }
+            hired:       { type: integer }
+        users:
+          type: object
+          properties:
+            seekers: { type: integer }
+            vendors: { type: integer }
+        revenue:
+          type: object
+          properties:
+            mtdCents: { type: integer }
+            ytdCents: { type: integer }
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # Reusable responses
+  # ──────────────────────────────────────────────────────────────────────────
+
+  responses:
+    Unauthorized:
+      description: Missing or invalid JWT
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example: { code: UNAUTHORIZED, message: "Invalid or expired token" }
+    Forbidden:
+      description: Authenticated but insufficient role
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example: { code: FORBIDDEN, message: "Admin role required" }
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example: { code: NOT_FOUND, message: "Job not found" }
+    UnprocessableEntity:
+      description: Validation failed
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example:
+            code: VALIDATION_ERROR
+            message: "title must be at least 3 characters"
+            details: { field: title }
+    TooManyRequests:
+      description: Rate limit exceeded
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example: { code: RATE_LIMITED, message: "Too many requests; retry after 60 seconds" }
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # Reusable parameters
+  # ──────────────────────────────────────────────────────────────────────────
+
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      schema: { type: integer, minimum: 1, default: 1 }
+    PageSizeParam:
+      name: pageSize
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Tags
+# ──────────────────────────────────────────────────────────────────────────────
+
+tags:
+  - name: System
+    description: Health checks and system information
+  - name: Auth
+    description: Registration, login, token refresh, email verification, password reset
+  - name: Jobs
+    description: Job posting, search, and management
+  - name: Batch
+    description: Bulk job ingestion for scrapers and feed partners
+  - name: Applications
+    description: Job application submission and pipeline management
+  - name: Companies
+    description: Employer company profiles
+  - name: Admin — Jobs
+    description: Administrative job moderation and featuring
+  - name: Admin — Ads
+    description: Advertising campaign management (admin only)
+  - name: Admin — Stats
+    description: Platform analytics and reporting (admin only)
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Paths
+# ──────────────────────────────────────────────────────────────────────────────
+
+paths:
+
+  # ── System ────────────────────────────────────────────────────────────────
+
+  /api/health:
+    get:
+      tags: [System]
+      summary: Health check
+      description: |
+        Returns the liveness status of the API and its dependencies 
+        (PostgreSQL, Redis, MinIO/R2). Used by load balancers and uptime monitors.
+      operationId: getHealth
+      responses:
+        '200':
+          description: All systems healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:   { type: string, example: ok }
+                  db:       { type: string, example: up }
+                  redis:    { type: string, example: up }
+                  storage:  { type: string, example: up }
+                  version:  { type: string, example: "1.0.0" }
+        '503':
+          description: One or more dependencies are unhealthy
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /api/v1/me:
+    get:
+      tags: [Auth]
+      summary: Get current user
+      description: Returns the authenticated user's profile and role.
+      operationId: getMe
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Current user profile
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UserProfile' }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ── Auth ──────────────────────────────────────────────────────────────────
+
+  /api/v1/auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a new account
+      description: |
+        Creates a new seeker or vendor account and sends an email verification link.
+        The account is not fully active until the email is verified.
+      operationId: register
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RegisterRequest' }
+      responses:
+        '201':
+          description: Account created; verification email sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "Account created. Check your email to verify." }
+                  userId:  { type: string, format: uuid }
+        '409':
+          description: Email already registered
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example: { code: CONFLICT, message: "Email already registered" }
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /api/v1/auth/login:
+    post:
+      tags: [Auth]
+      summary: Login
+      description: Authenticates with email + password and returns access and refresh tokens.
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginRequest' }
+      responses:
+        '200':
+          description: Authenticated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthTokens' }
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example: { code: INVALID_CREDENTIALS, message: "Email or password incorrect" }
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /api/v1/auth/logout:
+    post:
+      tags: [Auth]
+      summary: Logout
+      description: Revokes the current refresh token. The access token expires naturally (TTL).
+      operationId: logout
+      security:
+        - BearerAuth: []
+      responses:
+        '204':
+          description: Logged out
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v1/auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Refresh access token
+      description: Exchanges a valid refresh token for a new access + refresh token pair.
+      operationId: refreshToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refreshToken]
+              properties:
+                refreshToken: { type: string }
+      responses:
+        '200':
+          description: New token pair issued
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthTokens' }
+        '401':
+          description: Invalid or expired refresh token
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /api/v1/auth/verify-email:
+    post:
+      tags: [Auth]
+      summary: Verify email address
+      description: |
+        Confirms the email address using the token sent in the verification email.
+        Tokens expire after 24 hours.
+      operationId: verifyEmail
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token: { type: string, description: Token from the verification email link }
+      responses:
+        '200':
+          description: Email verified
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "Email verified successfully" }
+        '400':
+          description: Token invalid or expired
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /api/v1/auth/forgot-password:
+    post:
+      tags: [Auth]
+      summary: Request password reset
+      description: Sends a password-reset email if the address is registered.
+      operationId: forgotPassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email: { type: string, format: email }
+      responses:
+        '200':
+          description: Reset email sent (always 200 to prevent email enumeration)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "If that email is registered, a reset link has been sent." }
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /api/v1/auth/reset-password:
+    post:
+      tags: [Auth]
+      summary: Reset password
+      description: Sets a new password using the token from the reset email. Tokens expire after 1 hour.
+      operationId: resetPassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, password]
+              properties:
+                token:    { type: string }
+                password: { type: string, minLength: 8 }
+      responses:
+        '200':
+          description: Password updated; all existing refresh tokens revoked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "Password updated. Please log in again." }
+        '400':
+          description: Token invalid or expired
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  # ── Jobs ──────────────────────────────────────────────────────────────────
+
+  /api/v1/jobs:
+    post:
+      tags: [Jobs]
+      summary: Post a job
+      description: |
+        Creates a new job posting. Behaviour differs by caller role:
+
+        - **admin**: may specify any `companyId`; status defaults to `published`
+        - **vendor**: `companyId` is inferred from the caller's company; must supply 
+          `companyPackageId` to consume a posting credit; status defaults to `draft`
+
+        Screening questions (if provided) are created atomically with the job.
+      operationId: createJob
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateJobRequest' }
+      responses:
+        '201':
+          description: Job created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Job' }
+        '400':
+          description: Insufficient posting credits (vendor) or invalid companyPackageId
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+
+    get:
+      tags: [Jobs]
+      summary: Search jobs
+      description: |
+        Full-text search and filtered listing of active jobs.
+        Results are sorted: featured WJ-direct jobs first, then by recency.
+        Scraped jobs always rank below direct/api/syndicated posts.
+      operationId: searchJobs
+      parameters:
+        - name: q
+          in: query
+          schema: { type: string }
+          description: Full-text query
+        - name: category
+          in: query
+          schema: { type: string }
+        - name: city
+          in: query
+          schema: { type: string }
+        - name: state
+          in: query
+          schema: { type: string }
+        - name: zip
+          in: query
+          schema: { type: string }
+        - name: radius
+          in: query
+          schema: { type: integer, default: 25 }
+          description: Radius in miles (requires zip)
+        - name: shift
+          in: query
+          schema: { $ref: '#/components/schemas/JobShift' }
+        - name: employmentType
+          in: query
+          schema: { $ref: '#/components/schemas/EmploymentType' }
+        - name: payMin
+          in: query
+          schema: { type: number }
+        - name: featured
+          in: query
+          schema: { type: boolean }
+        - name: quickHire
+          in: query
+          schema: { type: boolean }
+        - name: temperatureEnv
+          in: query
+          schema: { $ref: '#/components/schemas/TemperatureEnv' }
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+      responses:
+        '200':
+          description: Paginated job listing
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, meta]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/JobSummary' }
+                  meta: { $ref: '#/components/schemas/PaginationMeta' }
+
+  /api/v1/jobs/{slug}:
+    get:
+      tags: [Jobs]
+      summary: Get job detail
+      description: Returns a single active job by its URL slug, including company info and screening questions.
+      operationId: getJob
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Job detail
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Job'
+                  - type: object
+                    properties:
+                      screeningQuestions:
+                        type: array
+                        items: { $ref: '#/components/schemas/ScreeningQuestion' }
+                      interviewSlots:
+                        type: array
+                        description: Available interview slots (when quickHire = true)
+                        items:
+                          type: object
+                          properties:
+                            id:         { type: string, format: uuid }
+                            startsAt:   { type: string, format: date-time }
+                            capacity:   { type: integer }
+                            remaining:  { type: integer }
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v1/jobs/{id}:
+    patch:
+      tags: [Jobs]
+      summary: Update job
+      description: Partial update of a job. Vendor callers may only update their own company's jobs.
+      operationId: updateJob
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateJobRequest' }
+      responses:
+        '200':
+          description: Updated job
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Job' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+    delete:
+      tags: [Jobs]
+      summary: Close / delete job
+      description: Soft-deletes the job (status → closed). Only admins or the owning vendor.
+      operationId: deleteJob
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '204':
+          description: Job closed
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  # ── Batch ─────────────────────────────────────────────────────────────────
+
+  /api/v1/jobs/batch:
+    post:
+      tags: [Batch]
+      summary: Ingest a batch of jobs
+      description: |
+        Accepts a batch of job records from scrapers or feed partners.
+
+        **Sync mode** (≤100 jobs): processed inline; result returned immediately.
+        **Async mode** (>100 jobs): enqueued via BullMQ; returns a `batchId` to poll.
+
+        Supports two content types:
+        - `application/json` — JSON payload with a `jobs` array
+        - `multipart/form-data` — CSV file upload (one row per job, header required)
+
+        **Deduplication**: jobs are matched by `externalId`. If a match is found
+        and the content differs, the record is updated (`updated` counter). If
+        identical, it is skipped (`skipped` counter).
+
+        **Priority**: batch-ingested jobs rank below direct/vendor/api posts in
+        search results (`sourceType` field controls ordering).
+      operationId: ingestBatch
+      security:
+        - ApiKeyAuth: []
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/BatchRequest' }
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: CSV file (UTF-8, header row required)
+                source:
+                  type: string
+                  description: Human-readable batch label
+      responses:
+        '200':
+          description: Sync result (batch ≤100 jobs, processed immediately)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BatchStatus' }
+        '202':
+          description: Async result (batch >100 jobs, queued for processing)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BatchResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+
+  /api/v1/jobs/batch/{batchId}/status:
+    get:
+      tags: [Batch]
+      summary: Poll batch status
+      description: Returns processing progress for an async batch job.
+      operationId: getBatchStatus
+      security:
+        - ApiKeyAuth: []
+        - BearerAuth: []
+      parameters:
+        - name: batchId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Batch status
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BatchStatus' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  # ── Applications ──────────────────────────────────────────────────────────
+
+  /api/v1/jobs/{jobId}/apply:
+    post:
+      tags: [Applications]
+      summary: Apply to a job (Quick Apply)
+      description: |
+        Submits a job application. Designed for a ≤60-second mobile flow.
+
+        **Unauthenticated** seekers must supply `name` and `phone`.
+        **Authenticated** seekers have their profile snapshot applied automatically;
+        `name` and `phone` can be omitted.
+
+        Resume upload is always optional. If the seeker has a stored default resume
+        it is attached automatically (authenticated only) unless overridden.
+
+        If the job has `quickHire = true` and interview slots are available,
+        `interviewSlotId` should be provided to book a slot atomically.
+
+        Rate limited: 10 applications per seeker per hour.
+      operationId: applyToJob
+      security:
+        - BearerAuth: []
+        - {}  # Allow unauthenticated
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ApplyRequest' }
+      responses:
+        '201':
+          description: Application submitted
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [applicationId]
+                properties:
+                  applicationId:  { type: string, format: uuid }
+                  interviewBooked: { type: boolean }
+                  interviewStartsAt: { type: string, format: date-time, nullable: true }
+                  message:        { type: string, example: "Application sent!" }
+        '409':
+          description: Already applied to this job
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+
+  /api/v1/applications:
+    get:
+      tags: [Applications]
+      summary: List seeker's applications
+      description: Returns the authenticated seeker's own applications with current status and job detail.
+      operationId: listMyApplications
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema: { $ref: '#/components/schemas/ApplicationStatus' }
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+      responses:
+        '200':
+          description: Paginated application list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Application' }
+                  meta: { $ref: '#/components/schemas/PaginationMeta' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/v1/employer/applications:
+    get:
+      tags: [Applications]
+      summary: List applicants (employer pipeline)
+      description: |
+        Returns applications for all jobs owned by the vendor's company.
+        Supports filtering by job, status, and date range.
+      operationId: listEmployerApplications
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: jobId
+          in: query
+          schema: { type: string, format: uuid }
+        - name: status
+          in: query
+          schema: { $ref: '#/components/schemas/ApplicationStatus' }
+        - name: since
+          in: query
+          schema: { type: string, format: date }
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+      responses:
+        '200':
+          description: Paginated applicant list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Application' }
+                  meta: { $ref: '#/components/schemas/PaginationMeta' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /api/v1/applications/{id}/status:
+    patch:
+      tags: [Applications]
+      summary: Update application status
+      description: |
+        Moves an applicant through the pipeline stages.
+        Only the owning employer or an admin may call this endpoint.
+
+        Valid transitions:
+        - `new → reviewing → shortlisted → interview → offer → hired`
+        - `any → rejected` or `any → withdrawn` (terminal states)
+      operationId: updateApplicationStatus
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateApplicationStatusRequest' }
+      responses:
+        '200':
+          description: Updated application
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Application' }
+        '400':
+          description: Invalid state transition
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  # ── Companies ─────────────────────────────────────────────────────────────
+
+  /api/v1/companies:
+    post:
+      tags: [Companies]
+      summary: Create company
+      description: Registers a new employer company. The authenticated vendor becomes the owner.
+      operationId: createCompany
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateCompanyRequest' }
+      responses:
+        '201':
+          description: Company created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Company' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /api/v1/companies/{slug}:
+    get:
+      tags: [Companies]
+      summary: Get company profile
+      description: Public company profile with active job listings.
+      operationId: getCompany
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Company profile
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Company'
+                  - type: object
+                    properties:
+                      activeJobs:
+                        type: array
+                        items: { $ref: '#/components/schemas/JobSummary' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/v1/companies/{id}:
+    patch:
+      tags: [Companies]
+      summary: Update company
+      description: Updates company profile. Only the owner or an admin may call this.
+      operationId: updateCompany
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:        { type: string }
+                description: { type: string }
+                website:     { type: string, format: uri }
+                location:    { type: string }
+                hqCity:      { type: string }
+                hqState:     { type: string }
+                industry:    { type: string }
+      responses:
+        '200':
+          description: Updated company
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Company' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  # ── Admin — Jobs ──────────────────────────────────────────────────────────
+
+  /api/v1/admin/jobs:
+    get:
+      tags: [Admin — Jobs]
+      summary: List all jobs (admin)
+      description: Returns all jobs across all statuses for moderation. Admin only.
+      operationId: adminListJobs
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema: { $ref: '#/components/schemas/JobStatus' }
+        - name: sourceType
+          in: query
+          schema: { $ref: '#/components/schemas/JobSourceType' }
+        - name: companyId
+          in: query
+          schema: { type: string, format: uuid }
+        - name: q
+          in: query
+          schema: { type: string }
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+      responses:
+        '200':
+          description: Paginated jobs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Job' }
+                  meta: { $ref: '#/components/schemas/PaginationMeta' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /api/v1/admin/jobs/{id}/feature:
+    patch:
+      tags: [Admin — Jobs]
+      summary: Toggle featured status
+      description: Sets or clears the featured flag on a job, with an optional expiry date. Admin only.
+      operationId: adminFeatureJob
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [featured]
+              properties:
+                featured:      { type: boolean }
+                featuredUntil: { type: string, format: date-time, nullable: true }
+      responses:
+        '200':
+          description: Updated job
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Job' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  # ── Admin — Ads ───────────────────────────────────────────────────────────
+
+  /api/v1/admin/ads:
+    post:
+      tags: [Admin — Ads]
+      summary: Create ad campaign
+      description: |
+        Creates a new banner advertising campaign. Admin only.
+
+        Slot positions map to specific UI locations (hero banner, sidebar, 
+        inline in job lists, category pages, etc.). Campaigns are activated
+        automatically on `startDate` and deactivated on `endDate`.
+      operationId: createAdCampaign
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateAdCampaignRequest' }
+      responses:
+        '201':
+          description: Campaign created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Advertisement' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+    get:
+      tags: [Admin — Ads]
+      summary: List ad campaigns
+      description: Lists all advertising campaigns with impression and click metrics. Admin only.
+      operationId: listAdCampaigns
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema: { type: string, enum: [active, paused, ended] }
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+      responses:
+        '200':
+          description: Paginated campaigns
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Advertisement' }
+                  meta: { $ref: '#/components/schemas/PaginationMeta' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  # ── Admin — Stats ─────────────────────────────────────────────────────────
+
+  /api/v1/admin/stats:
+    get:
+      tags: [Admin — Stats]
+      summary: Platform statistics
+      description: Returns aggregate platform metrics — jobs, applications, users, and revenue. Admin only.
+      operationId: getPlatformStats
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Platform statistics
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PlatformStats' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }

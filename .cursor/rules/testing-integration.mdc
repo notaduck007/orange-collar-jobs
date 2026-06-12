@@ -1,0 +1,18 @@
+---
+description: Integration test standard for test/integration/**/*.spec.ts files
+globs: src/api/test/integration/**/*.spec.ts
+alwaysApply: false
+---
+
+# Integration Testing Standard
+
+Full standard: [docs/agent/standards/testing/integration.md](../../docs/agent/standards/testing/integration.md)
+
+- Integration tests run against real Postgres + Redis via Docker Compose. **Do not mock Prisma.**
+- Truncate all tables in `beforeEach` — use `prisma.$executeRaw` or a helper that truncates in FK-safe order.
+- Use a dedicated `TEST_DATABASE_URL` pointing to the Docker Compose Postgres DB.
+- No live HTTP calls to external services (use `nock` or environment flags to disable outbound requests).
+- Test file naming: `{domain}.integration.spec.ts` in `test/integration/`.
+- Each test file sets up its own `NestJS TestingModule` with real providers (no mocks for DB/Redis).
+- Redis: flush with `redis.flushdb()` in `beforeEach`.
+- MinIO: use the Docker Compose MinIO instance with a dedicated test bucket.
