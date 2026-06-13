@@ -38,12 +38,5 @@ for i in $(seq 1 "$MAX_ATTEMPTS"); do
   sleep 2
 done
 
-echo "Creating MinIO buckets..."
-# minio/mc entrypoint is `mc` — override to sh so alias + mb run in one shell session.
-docker run --rm --network host --entrypoint /bin/sh minio/mc:latest -c "
-  mc alias set local ${MINIO_ENDPOINT} ${MINIO_USER} ${MINIO_PASS} &&
-  mc mb --ignore-existing local/resumes &&
-  mc mb --ignore-existing local/company-logos &&
-  mc mb --ignore-existing local/ad-assets &&
-  echo 'MinIO buckets ready'
-"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+bash "${SCRIPT_DIR}/minio-create-buckets.sh"

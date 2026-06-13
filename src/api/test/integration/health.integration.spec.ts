@@ -2,8 +2,9 @@
  * Integration smoke test — verifies the health endpoint wires up correctly
  * against real Postgres + Redis + MinIO containers.
  *
- * Prerequisites: `docker compose up -d postgres redis minio`
- * The beforeAll hook ensures MinIO buckets exist via ensure-minio-buckets.sh.
+ * Prerequisites:
+ * - Local: `docker compose up -d postgres redis minio` (buckets via compose minio-init)
+ * - CI: workflow runs `scripts/ci-minio-up.sh` before tests (sets CI_MINIO_READY)
  */
 import { execSync } from 'node:child_process';
 import { resolve } from 'node:path';
@@ -14,23 +15,28 @@ import { createTestApp, type TestApp } from '../helpers/create-test-app.js';
 const REPO_ROOT = resolve(__dirname, '../../../../');
 
 describe('GET /api/health (integration)', () => {
-  let testApp: TestApp;
+  let testApp: TestApp | undefined;
 
   beforeAll(async () => {
-    execSync('bash scripts/ensure-minio-buckets.sh', {
-      cwd: REPO_ROOT,
-      stdio: 'pipe',
-    });
+    // CI already started MinIO + buckets via ci-minio-up.sh — do not run compose/mc again.
+    if (process.env.CI_MINIO_READY !== 'true') {
+      execSync('bash scripts/ensure-minio-buckets.sh', {
+        cwd: REPO_ROOT,
+        stdio: 'inherit',
+      });
+    }
 
     testApp = await createTestApp(AppModule, 60_000);
   }, 70_000);
 
   afterAll(async () => {
-    await testApp.close();
+    if (testApp) {
+      await testApp.close();
+    }
   });
 
   it('returns 200 with status ok when all dependencies are healthy', async () => {
-    const res = await request(testApp.app.getHttpServer())
+    const res = await request(testApp!.app.getHttpServer())
       .get('/api/health')
       .expect(200);
 
@@ -38,7 +44,7 @@ describe('GET /api/health (integration)', () => {
   });
 
   it('reports db, redis, and storage as up', async () => {
-    const res = await request(testApp.app.getHttpServer())
+    const res = await request(testApp!.app.getHttpServer())
       .get('/api/health')
       .expect(200);
 

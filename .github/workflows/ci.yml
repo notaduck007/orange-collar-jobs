@@ -140,6 +140,7 @@ jobs:
       - name: Run integration tests
         working-directory: ${{ env.WORKING_DIR }}
         env:
+          CI_MINIO_READY: 'true'
           NODE_ENV: test
           PORT: '3001'
           CORS_ORIGIN: http://localhost:5173
@@ -212,6 +213,7 @@ jobs:
       - name: Run E2E tests
         working-directory: ${{ env.WORKING_DIR }}
         env:
+          CI_MINIO_READY: 'true'
           NODE_ENV: test
           PORT: '3001'
           CORS_ORIGIN: http://localhost:5173
