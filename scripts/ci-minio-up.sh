@@ -7,7 +7,8 @@ MINIO_USER="${MINIO_ROOT_USER:-wj_minio_user}"
 MINIO_PASS="${MINIO_ROOT_PASSWORD:-wj_minio_dev_password}"
 MINIO_PORT="${MINIO_PORT:-9000}"
 CONTAINER_NAME="${MINIO_CI_CONTAINER:-minio-ci}"
-MAX_ATTEMPTS="${MINIO_CI_MAX_ATTEMPTS:-45}"
+MAX_ATTEMPTS="${MINIO_CI_MAX_ATTEMPTS:-60}"
+MINIO_ENDPOINT="http://127.0.0.1:${MINIO_PORT}"
 
 if docker ps --format '{{.Names}}' | grep -qx "$CONTAINER_NAME"; then
   echo "MinIO container $CONTAINER_NAME already running"
@@ -21,14 +22,10 @@ else
     minio/minio:latest server /data --console-address ":9001"
 fi
 
-echo "Waiting for MinIO (mc ready)..."
+echo "Waiting for MinIO at ${MINIO_ENDPOINT}..."
 for i in $(seq 1 "$MAX_ATTEMPTS"); do
-  if docker run --rm --network host minio/mc:latest \
-    /bin/sh -c "
-      mc alias set local http://localhost:${MINIO_PORT} ${MINIO_USER} ${MINIO_PASS} &&
-      mc ready local
-    " 2>/dev/null; then
-    echo "MinIO is ready"
+  if curl -sf "${MINIO_ENDPOINT}/minio/health/live" > /dev/null; then
+    echo "MinIO is ready (attempt $i)"
     break
   fi
   if [[ "$i" -eq "$MAX_ATTEMPTS" ]]; then
@@ -42,11 +39,11 @@ for i in $(seq 1 "$MAX_ATTEMPTS"); do
 done
 
 echo "Creating MinIO buckets..."
-docker run --rm --network host minio/mc:latest \
-  /bin/sh -c "
-    mc alias set local http://localhost:${MINIO_PORT} ${MINIO_USER} ${MINIO_PASS} &&
-    mc mb --ignore-existing local/resumes &&
-    mc mb --ignore-existing local/company-logos &&
-    mc mb --ignore-existing local/ad-assets &&
-    echo 'MinIO buckets ready'
-  "
+# minio/mc entrypoint is `mc` — override to sh so alias + mb run in one shell session.
+docker run --rm --network host --entrypoint /bin/sh minio/mc:latest -c "
+  mc alias set local ${MINIO_ENDPOINT} ${MINIO_USER} ${MINIO_PASS} &&
+  mc mb --ignore-existing local/resumes &&
+  mc mb --ignore-existing local/company-logos &&
+  mc mb --ignore-existing local/ad-assets &&
+  echo 'MinIO buckets ready'
+"

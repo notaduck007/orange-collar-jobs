@@ -40,6 +40,7 @@ import { Route as EmployerCandidatesRouteImport } from './routes/employer.candid
 import { Route as EmployerBillingRouteImport } from './routes/employer.billing'
 import { Route as EmployerAnalyticsRouteImport } from './routes/employer.analytics'
 import { Route as EmployerAdsRouteImport } from './routes/employer.ads'
+import { Route as DevDiagnosticsRouteImport } from './routes/dev.diagnostics'
 import { Route as CompaniesSlugRouteImport } from './routes/companies.$slug'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminSupportRouteImport } from './routes/admin.support'
@@ -215,6 +216,11 @@ const EmployerAdsRoute = EmployerAdsRouteImport.update({
   path: '/ads',
   getParentRoute: () => EmployerRoute,
 } as any)
+const DevDiagnosticsRoute = DevDiagnosticsRouteImport.update({
+  id: '/dev/diagnostics',
+  path: '/dev/diagnostics',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CompaniesSlugRoute = CompaniesSlugRouteImport.update({
   id: '/companies/$slug',
   path: '/companies/$slug',
@@ -343,6 +349,7 @@ export interface FileRoutesByFullPath {
   '/admin/support': typeof AdminSupportRoute
   '/admin/users': typeof AdminUsersRoute
   '/companies/$slug': typeof CompaniesSlugRoute
+  '/dev/diagnostics': typeof DevDiagnosticsRoute
   '/employer/ads': typeof EmployerAdsRoute
   '/employer/analytics': typeof EmployerAnalyticsRoute
   '/employer/billing': typeof EmployerBillingRoute
@@ -392,6 +399,7 @@ export interface FileRoutesByTo {
   '/admin/support': typeof AdminSupportRoute
   '/admin/users': typeof AdminUsersRoute
   '/companies/$slug': typeof CompaniesSlugRoute
+  '/dev/diagnostics': typeof DevDiagnosticsRoute
   '/employer/ads': typeof EmployerAdsRoute
   '/employer/analytics': typeof EmployerAnalyticsRoute
   '/employer/billing': typeof EmployerBillingRoute
@@ -445,6 +453,7 @@ export interface FileRoutesById {
   '/admin/support': typeof AdminSupportRoute
   '/admin/users': typeof AdminUsersRoute
   '/companies/$slug': typeof CompaniesSlugRoute
+  '/dev/diagnostics': typeof DevDiagnosticsRoute
   '/employer/ads': typeof EmployerAdsRoute
   '/employer/analytics': typeof EmployerAnalyticsRoute
   '/employer/billing': typeof EmployerBillingRoute
@@ -499,6 +508,7 @@ export interface FileRouteTypes {
     | '/admin/support'
     | '/admin/users'
     | '/companies/$slug'
+    | '/dev/diagnostics'
     | '/employer/ads'
     | '/employer/analytics'
     | '/employer/billing'
@@ -548,6 +558,7 @@ export interface FileRouteTypes {
     | '/admin/support'
     | '/admin/users'
     | '/companies/$slug'
+    | '/dev/diagnostics'
     | '/employer/ads'
     | '/employer/analytics'
     | '/employer/billing'
@@ -600,6 +611,7 @@ export interface FileRouteTypes {
     | '/admin/support'
     | '/admin/users'
     | '/companies/$slug'
+    | '/dev/diagnostics'
     | '/employer/ads'
     | '/employer/analytics'
     | '/employer/billing'
@@ -640,6 +652,7 @@ export interface RootRouteChildren {
   SeekerRoute: typeof SeekerRouteWithChildren
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   CompaniesSlugRoute: typeof CompaniesSlugRoute
+  DevDiagnosticsRoute: typeof DevDiagnosticsRoute
   WarehouseJobsCitySlugRoute: typeof WarehouseJobsCitySlugRoute
   BillingReceiptOrderIdRoute: typeof BillingReceiptOrderIdRoute
 }
@@ -862,6 +875,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/employer/ads'
       preLoaderRoute: typeof EmployerAdsRouteImport
       parentRoute: typeof EmployerRoute
+    }
+    '/dev/diagnostics': {
+      id: '/dev/diagnostics'
+      path: '/dev/diagnostics'
+      fullPath: '/dev/diagnostics'
+      preLoaderRoute: typeof DevDiagnosticsRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/companies/$slug': {
       id: '/companies/$slug'
@@ -1115,9 +1135,20 @@ const rootRouteChildren: RootRouteChildren = {
   SeekerRoute: SeekerRouteWithChildren,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   CompaniesSlugRoute: CompaniesSlugRoute,
+  DevDiagnosticsRoute: DevDiagnosticsRoute,
   WarehouseJobsCitySlugRoute: WarehouseJobsCitySlugRoute,
   BillingReceiptOrderIdRoute: BillingReceiptOrderIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
