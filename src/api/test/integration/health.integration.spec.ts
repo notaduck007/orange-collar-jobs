@@ -36,7 +36,10 @@ describe('GET /api/health (integration)', () => {
   });
 
   it('returns 200 with status ok when all dependencies are healthy', async () => {
-    const res = await request(testApp!.app.getHttpServer())
+    if (!testApp) {
+      throw new Error('testApp is not defined');
+    }
+    const res = await request(testApp.app.getHttpServer())
       .get('/api/health')
       .expect(200);
 
@@ -44,7 +47,10 @@ describe('GET /api/health (integration)', () => {
   });
 
   it('reports db, redis, and storage as up', async () => {
-    const res = await request(testApp!.app.getHttpServer())
+    if (!testApp) {
+      throw new Error('testApp is not defined');
+    }
+    const res = await request(testApp.app.getHttpServer())
       .get('/api/health')
       .expect(200);
 
