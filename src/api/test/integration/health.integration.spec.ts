@@ -1,31 +1,50 @@
 /**
- * Integration smoke test — verifies the health endpoint wires up correctly.
- * Requires: postgres + redis + minio running (docker compose up -d)
+ * Integration smoke test — verifies the health endpoint wires up correctly
+ * against real Postgres + Redis + MinIO containers.
+ *
+ * Prerequisites: `docker compose up -d postgres redis minio`
+ * The beforeAll hook ensures MinIO buckets exist via ensure-minio-buckets.sh.
  */
-import { Test, type TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { execSync } from 'node:child_process';
+import { resolve } from 'node:path';
 import request from 'supertest';
 import { AppModule } from '../../src/app.module.js';
+import { createTestApp, type TestApp } from '../helpers/create-test-app.js';
+
+const REPO_ROOT = resolve(__dirname, '../../../../');
 
 describe('GET /api/health (integration)', () => {
-  let app: INestApplication;
+  let testApp: TestApp;
 
   beforeAll(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
+    execSync('bash scripts/ensure-minio-buckets.sh', {
+      cwd: REPO_ROOT,
+      stdio: 'pipe',
+    });
 
-    app = module.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
-    await app.init();
-  }, 30_000);
+    testApp = await createTestApp(AppModule, 60_000);
+  }, 70_000);
 
   afterAll(async () => {
-    await app.close();
+    await testApp.close();
   });
 
-  it('returns 200 when all dependencies are healthy', async () => {
-    const res = await request(app.getHttpServer()).get('/api/health').expect(200);
+  it('returns 200 with status ok when all dependencies are healthy', async () => {
+    const res = await request(testApp.app.getHttpServer())
+      .get('/api/health')
+      .expect(200);
+
     expect(res.body).toMatchObject({ status: 'ok' });
+  });
+
+  it('reports db, redis, and storage as up', async () => {
+    const res = await request(testApp.app.getHttpServer())
+      .get('/api/health')
+      .expect(200);
+
+    const info = res.body as { info?: Record<string, { status: string }> };
+    expect(info.info?.['db']?.status).toBe('up');
+    expect(info.info?.['redis']?.status).toBe('up');
+    expect(info.info?.['storage']?.status).toBe('up');
   });
 });

@@ -1,6 +1,6 @@
 # WarehouseJobs.com — Platform API Overview
 
-> **Version**: 1.0.0 &nbsp;|&nbsp; **Date**: 2026-06-12 &nbsp;|&nbsp; **Status**: Phase 0 Complete — Phase 1 Ready
+> **Version**: 1.0.1 &nbsp;|&nbsp; **Date**: 2026-06-13 &nbsp;|&nbsp; **Status**: Phase 1 Complete — Phase 2 Pending Approval
 >
 > **SwaggerHub**: [redbonzai/warehousejobs-api](https://app.swaggerhub.com/apis/redbonzai/warehousejobs-api/1.0.0)
 
@@ -56,7 +56,7 @@ WarehouseJobs.com is a **mobile-first job marketplace** for warehouse, logistics
 | Layer | Technology |
 |---|---|
 | **Frontend** | React 19, TanStack Start (SSR), Vite, Tailwind CSS |
-| **Backend** | NestJS 10, TypeScript, Prisma 5 ORM |
+| **Backend** | NestJS 10, TypeScript, Prisma 6 ORM |
 | **Database** | PostgreSQL 16 (self-hosted, containerized) |
 | **Queues / Cache** | Redis 7 + BullMQ |
 | **File Storage** | MinIO (local) → Cloudflare R2 (production) |
@@ -76,7 +76,7 @@ WarehouseJobs.com is a **mobile-first job marketplace** for warehouse, logistics
 | **Storage** | MinIO → Cloudflare R2 | S3-compatible; R2 has zero egress fees; enterprise-scale |
 | **Batch ingest** | Sync ≤100 / BullMQ async >100 | Avoids HTTP timeouts on large feeds; reliable retry |
 | **Frontend migration** | Big bang (Phase 7) | Avoids auth session split-brain between Supabase and NestJS |
-| **ORM** | Prisma 5 | Type-safe schema; migration history; excellent TS integration |
+| **ORM** | Prisma 6 | Type-safe schema; migration history; excellent TS integration |
 | **Monorepo** | Bun workspaces (`src/api/`) | Self-contained; extractable at any time with no repo-wide consequences |
 
 ---
@@ -237,7 +237,7 @@ batch_jobs (async ingestion status)
 
 | Type | Location | Tooling | Threshold |
 |---|---|---|---|
-| **Unit** | `src/**/*.spec.ts` | Jest + `jest-mock-extended` | ≥90% per service |
+| **Unit** | `test/unit/**/*.spec.ts` (mirrors `src/`) | Jest + `jest-mock-extended` | ≥90% per service |
 | **Integration** | `test/integration/` | Jest + real Docker Compose DB | ≥85% overall |
 | **E2E** | `test/e2e/` | Jest + Supertest | Every endpoint × 3 auth cases |
 

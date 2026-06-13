@@ -2,12 +2,14 @@
 
 ## Rules
 
-- Co-locate `*.spec.ts` with the source file
+- **Unit tests live in `src/api/test/unit/**` and mirror the `src/` tree** (`core/`, `domains/`, `scripts/`). Do **not** co-locate `*.spec.ts` next to source files.
+- Import the unit under test via path aliases (`@core/*`, `@domains/*`) so the spec is independent of its physical location.
+- Run with `bun run test` (config: `test/jest-unit.json`, `testMatch: test/unit/**/*.spec.ts`).
 - Mock ALL external dependencies — no real DB, no real Redis, no real HTTP
 - Use `jest-mock-extended` for typed Prisma and service mocks
 - Reset mocks in `afterEach(() => jest.clearAllMocks())`
 - Use deterministic fixtures via factories in `src/api/test/helpers/factories/`
-- Coverage target: ≥ 90% lines/branches/functions per service
+- Coverage target: ≥ 90% lines/branches/functions per service (enforced globally in `test/jest-unit.json`)
 
 ## Four Required Test Categories
 
@@ -21,8 +23,9 @@ For each public method, write at least one test per category:
 ## Template
 
 ```typescript
+// test/unit/domains/jobs/jobs.service.spec.ts
 import { createMock } from 'jest-mock-extended';
-import { JobsService } from './JobsService';
+import { JobsService } from '@domains/jobs/jobs.service';
 import { PrismaService } from '@core/database';
 import { NotFoundError, ConflictError } from '@core/error';
 import { makeJob, makeCreateJobDto, makeUser } from 'test/helpers/factories';

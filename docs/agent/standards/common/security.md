@@ -4,7 +4,7 @@
 
 - Never commit API keys, tokens, or connection strings to the repository
 - All credentials via `ConfigService` / environment variables only
-- `.env.example` documents every required variable — never copy actual values
+- `.env.example` at the **repository root** documents every variable (frontend + API) — never copy actual values; never nest `.env` under `src/api/`
 - Batch API keys: stored as `bcryptjs` hash in `api_keys` table; never log the plaintext
 
 ## Authentication

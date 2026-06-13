@@ -1,0 +1,317 @@
+{
+  "info": {
+    "_postman_id": "wj-collection-v1",
+    "name": "WarehouseJobs API v1",
+    "description": "Complete Postman collection for the WarehouseJobs.com REST API.\n\n## Quick Start\n1. Import this collection AND the `warehousejobs.postman_environment.json` environment.\n2. Select the **WarehouseJobs — Local Dev** environment.\n3. Start the stack: `docker compose up -d && bun run --cwd src/api start:dev`\n4. Run the **System / Health Check** request — expect `200 OK { status: 'ok' }`.\n5. Once the Auth domain is implemented, run **Auth / Login** — the test script auto-saves the JWT to `bearerToken`.\n\n## Authorization\nAll protected endpoints use the `bearerToken` environment variable via the collection-level Bearer auth.\nBatch ingestion endpoints additionally require the `X-Api-Key` header (see `swaggerApiKey`).\n\n## OpenAPI Contract\nThe authoritative spec is at `docs/api/openapi.yaml`.\nSwagger UI: http://localhost:3001/api/docs (dev only).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{bearerToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [],
+  "item": [
+    {
+      "name": "System",
+      "description": "Infrastructure endpoints — no auth required.",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "health"]
+            },
+            "description": "GET /api/health — version-neutral liveness check.\n\nExpected: 200 `{ status: 'ok', info: { db, redis, storage } }`\n503 if any dependency is down."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('status is ok', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.status).to.equal('ok');",
+                  "});",
+                  "pm.test('db, redis, storage reported', () => {",
+                  "  const info = pm.response.json().info ?? {};",
+                  "  pm.expect(info).to.have.property('db');",
+                  "  pm.expect(info).to.have.property('redis');",
+                  "  pm.expect(info).to.have.property('storage');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "200 All healthy",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"status\": \"ok\",\n  \"info\": {\n    \"db\": { \"status\": \"up\" },\n    \"redis\": { \"status\": \"up\" },\n    \"storage\": { \"status\": \"up\" }\n  },\n  \"error\": {},\n  \"details\": {\n    \"db\": { \"status\": \"up\" },\n    \"redis\": { \"status\": \"up\" },\n    \"storage\": { \"status\": \"up\" }\n  }\n}"
+            },
+            {
+              "name": "503 Storage down",
+              "status": "Service Unavailable",
+              "code": 503,
+              "body": "{\n  \"status\": \"error\",\n  \"info\": { \"db\": { \"status\": \"up\" }, \"redis\": { \"status\": \"up\" } },\n  \"error\": { \"storage\": { \"status\": \"down\", \"message\": \"..." } }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Swagger UI",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/docs",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "docs"]
+            },
+            "description": "OpenAPI Swagger UI — only available when NODE_ENV != production."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Auth — Core",
+      "description": "JWT identity endpoints backed by core/auth. Business-logic auth (register/login/refresh) will be added in Phase 2 under Auth — Domain.",
+      "item": [
+        {
+          "name": "GET /api/v1/me — Get current user",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me"]
+            },
+            "description": "Returns the caller's identity decoded from the Bearer JWT.\n\nRequires: valid Bearer token in `bearerToken` env variable.\n\nExpected 200:\n```json\n{ \"id\": \"uuid\", \"email\": \"user@example.com\", \"role\": \"WORKER\" }\n```\n\nExpected 401 if no/invalid token."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  pm.test('returns id, email, role', () => {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property('id');",
+                  "    pm.expect(body).to.have.property('email');",
+                  "    pm.expect(body).to.have.property('role');",
+                  "  });",
+                  "} else {",
+                  "  pm.test('401 when no/bad token', () => pm.response.to.have.status(401));",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "200 Authenticated",
+              "status": "OK",
+              "code": 200,
+              "body": "{ \"id\": \"3f2504e0-4f89-11d3-9a0c-0305e82c3301\", \"email\": \"worker@example.com\", \"role\": \"WORKER\" }"
+            },
+            {
+              "name": "401 No token",
+              "status": "Unauthorized",
+              "code": 401,
+              "body": "{ \"statusCode\": 401, \"message\": \"Unauthorized\", \"error\": \"Unauthorized\" }"
+            },
+            {
+              "name": "401 Expired token",
+              "status": "Unauthorized",
+              "code": 401,
+              "body": "{ \"statusCode\": 401, \"message\": \"Unauthorized\", \"error\": \"Unauthorized\" }"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Auth — Domain (Phase 2)",
+      "description": "Authentication domain endpoints (register, login, logout, refresh, password reset). Scaffolded here to document the planned API surface; these endpoints will return 404 until Phase 2 is implemented.",
+      "item": [
+        {
+          "name": "POST /api/v1/auth/register",
+          "request": {
+            "method": "POST",
+            "auth": { "type": "noauth" },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"{{testPassword}}\",\n  \"role\": \"WORKER\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "register"]
+            },
+            "description": "Phase 2. Creates a new user and sends verification email.\n\nExpected 201: `{ accessToken, refreshToken, user }`"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/v1/auth/login",
+          "request": {
+            "method": "POST",
+            "auth": { "type": "noauth" },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"{{testPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "login"]
+            },
+            "description": "Phase 2. Authenticates a user and returns a JWT pair.\n\nThe test script auto-saves the accessToken to `bearerToken`."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201 || pm.response.code === 200) {",
+                  "  const body = pm.response.json();",
+                  "  if (body.accessToken) {",
+                  "    pm.environment.set('bearerToken', body.accessToken);",
+                  "    console.log('bearerToken saved to environment');",
+                  "  }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "POST /api/v1/auth/refresh",
+          "request": {
+            "method": "POST",
+            "auth": { "type": "noauth" },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"<paste refresh token here>\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "refresh"]
+            },
+            "description": "Phase 2. Exchange a refresh token for a new access + refresh token pair."
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/v1/auth/logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "logout"]
+            },
+            "description": "Phase 2. Revokes the refresh token (invalidates the session)."
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/v1/auth/forgot-password",
+          "request": {
+            "method": "POST",
+            "auth": { "type": "noauth" },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"email\": \"{{testEmail}}\" }"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/forgot-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "forgot-password"]
+            },
+            "description": "Phase 2. Sends a password-reset email."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Jobs (Phase 3)",
+      "description": "Job listing endpoints — Phase 3. All return 404 until implemented.",
+      "item": [
+        {
+          "name": "GET /api/v1/jobs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/jobs?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "jobs"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            },
+            "description": "Phase 3. Paginated job listing."
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/v1/jobs/batch — Batch ingest",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Api-Key", "value": "{{swaggerApiKey}}" }
+            ],
+            "auth": { "type": "noauth" },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jobs\": [\n    {\n      \"title\": \"Forklift Operator\",\n      \"company\": \"Acme Logistics\",\n      \"location\": \"Chicago, IL\",\n      \"description\": \"...\",\n      \"sourceId\": \"ext-001\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/jobs/batch",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "jobs", "batch"]
+            },
+            "description": "Phase 3. Batch ingest up to 1,000 jobs. Requires X-Api-Key header."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

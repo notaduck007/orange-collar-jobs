@@ -5,7 +5,7 @@ description: Write and review unit, integration, and E2E tests for the NestJS AP
 
 # Skill: Testing
 
-**Applicable Personas**: QA Tester (primary), Mid Engineer (unit co-location)
+**Applicable Personas**: QA Tester (primary), Mid Engineer (unit tests under test/unit/)
 
 ---
 
@@ -13,7 +13,7 @@ description: Write and review unit, integration, and E2E tests for the NestJS AP
 
 ```
 Is the test verifying logic in isolation (no real I/O)?
-  → Unit test (.spec.ts co-located with source)
+  → Unit test (test/unit/**/*.spec.ts — mirrors the src/ tree)
 
 Is the test verifying behaviour against real Postgres + Redis?
   → Integration test (test/integration/*.integration.spec.ts)

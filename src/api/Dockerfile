@@ -1,47 +1,49 @@
 # ─── Build stage ──────────────────────────────────────────────────────────────
-# Build context is the repo ROOT so the shared tsconfig.base.json is available.
-# We replicate the monorepo layout (/repo + /repo/src/api) so the API's
-# `extends: ../../tsconfig.base.json` resolves exactly as it does locally.
-FROM node:24-slim AS builder
+# Monorepo build context = repo ROOT. Uses Bun (same as local dev / CI — not npm).
+# Layout mirrors the workspace: /repo + /repo/src/api.
+FROM oven/bun:1.2 AS builder
 
 WORKDIR /repo
 
-# Shared strict TypeScript base (consumed by src/api/tsconfig.json)
-COPY tsconfig.base.json ./
+COPY package.json bun.lock tsconfig.base.json ./
+COPY src/api/package.json ./src/api/
+COPY src/api/prisma ./src/api/prisma/
+
+RUN bun install --frozen-lockfile
 
 WORKDIR /repo/src/api
 
-# Copy package files and install all deps (including devDeps for build)
-COPY src/api/package*.json ./
-COPY src/api/prisma ./prisma/
-RUN npm ci
+COPY src/api/nest-cli.json src/api/tsconfig.json src/api/tsconfig.build.json ./
 
-# Generate Prisma client before build
-RUN npx prisma generate
+RUN bun run db:generate
 
-# Copy source and build
-COPY src/api/ ./
-RUN npm run build
+COPY src/api/src ./src
+
+RUN bun run build
 
 # ─── Production stage ─────────────────────────────────────────────────────────
-FROM node:24-slim AS production
+FROM oven/bun:1.2-slim AS production
 
 WORKDIR /repo/src/api
 
 ENV NODE_ENV=production
 
-# Copy only production deps
-COPY src/api/package*.json ./
-RUN apt-get update -y && apt-get install -y openssl && npm ci --omit=dev
+# OpenSSL for Prisma query engine on Debian slim
+RUN apt-get update -y && apt-get install -y --no-install-recommends openssl ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
 
-# Copy Prisma client + migrations
-COPY --from=builder /repo/src/api/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /repo/src/api/prisma ./prisma
+# Production deps — skip postinstall (Prisma client copied from builder)
+COPY package.json bun.lock /repo/
+COPY src/api/package.json /repo/src/api/
+WORKDIR /repo
+RUN bun install --frozen-lockfile --production --ignore-scripts
 
-# Copy compiled output
+WORKDIR /repo/src/api
+
 COPY --from=builder /repo/src/api/dist ./dist
+COPY --from=builder /repo/src/api/prisma ./prisma
+COPY --from=builder /repo/node_modules/.prisma /repo/node_modules/.prisma
 
-# Non-root user
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nestjs && \
     chown -R nestjs:nodejs /repo
@@ -50,7 +52,7 @@ USER nestjs
 
 EXPOSE 3001
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3001/api/health', r => process.exit(r.statusCode === 200 ? 0 : 1))"
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+  CMD bun -e "fetch('http://localhost:3001/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 
-CMD ["node", "dist/main"]
+CMD ["bun", "dist/main.js"]

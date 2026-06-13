@@ -62,7 +62,7 @@ jobs:
 
       - name: Run unit tests with coverage
         working-directory: ${{ env.WORKING_DIR }}
-        run: bun run test:cov --selectProjects unit
+        run: bun run test:cov
 
       - name: Upload coverage
         uses: actions/upload-artifact@v4

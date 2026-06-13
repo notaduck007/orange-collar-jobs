@@ -1,0 +1,74 @@
+# Semantic versioning — runs on push to main (typically right after a PR merge).
+#
+# Uses RELEASE_PAT (a GitHub Personal Access Token stored as a repo secret — you create it;
+# there is no default value in the repo). RELEASE_PAT lets @semantic-release/git push the
+# chore(release) commit + tag back to main when branch protection blocks GITHUB_TOKEN.
+#
+# Setup RELEASE_PAT:
+#   1. GitHub → Settings → Developer settings → Fine-grained tokens (or classic PAT)
+#   2. Repository access: this repo only
+#   3. Permissions: Contents (Read and write) — required; Metadata (Read) — automatic
+#   4. If main is protected: allow this token's user to bypass protection, or add as bypass actor
+#   5. Repo → Settings → Secrets and variables → Actions → New secret: RELEASE_PAT = token value
+#
+# Version updated by this workflow (see release.config.cjs):
+#   - Root package.json (monorepo version — source of truth with git tags)
+#   - CHANGELOG.md
+#   NOT updated: src/api/package.json, docs/api/openapi.yaml (use api:bump:* / publish-swagger.yml)
+#
+# Requires releasable conventional commits on main since the last tag (feat:, fix:, etc.).
+name: Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+concurrency:
+  group: release-${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    name: Semantic Release
+    # Skip the follow-up push from chore(release) — no new releasable commits on that commit.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.head_commit != null &&
+        !contains(github.event.head_commit.message, 'chore(release)'))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          token: ${{ secrets.RELEASE_PAT }}
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Verify RELEASE_PAT secret
+        run: |
+          if [[ -z "${{ secrets.RELEASE_PAT }}" ]]; then
+            echo "::error::RELEASE_PAT is not set. Add a PAT with Contents: Read and write under repo Settings → Secrets."
+            exit 1
+          fi
+
+      - name: Semantic Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_PAT }}
+          GH_TOKEN: ${{ secrets.RELEASE_PAT }}
+        run: bun run release

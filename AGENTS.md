@@ -78,7 +78,7 @@ Agent 1 (Architecture & Contracts)
   → Handoff → Agent 2
 
 Agent 2 (Backend Implementation)
-  → Output: Service, controller, DTOs, co-located unit tests
+  → Output: Service, controller, DTOs, unit tests in test/unit/ (mirroring src/)
   → Validates implementation against OpenAPI spec
   → Handoff → Agent 3
 
@@ -112,7 +112,7 @@ Agent 1
 
 Agent 2
   → Implement: register, login, logout, refresh, verify-email, forgot-password, reset-password
-  → Co-locate unit tests
+  → Add unit tests in test/unit/ (mirroring src/)
   → Handoff → Agent 3
 
 Agent 3
@@ -164,13 +164,13 @@ Design stable module boundaries, service contracts, and adapter interfaces **bef
 
 ### Purpose
 
-Implement NestJS services, controllers, DTOs, Prisma operations, and co-located unit tests from approved contracts.
+Implement NestJS services, controllers, DTOs, Prisma operations, and unit tests (in `test/unit/` mirroring `src/`) from approved contracts.
 
 ### Responsibilities
 
 - Implement against the approved YAML contract (from Agent 1)
 - Validate that the implementation matches `docs/api/openapi.yaml` for the target endpoints
-- Co-locate `*.spec.ts` unit tests with every service method
+- Write `*.spec.ts` unit tests under `test/unit/` (mirroring `src/`) for every service method
 - Run `npm run lint`, `npm run type-check`, `npm run test` before marking a task done
 
 ### Skills (in order)
@@ -252,7 +252,7 @@ Review a PR for contract compliance, quality gate adherence, and code quality.
 ### Checklist
 
 1. Does the implementation match `docs/api/openapi.yaml` for all modified endpoints?
-2. Are there co-located unit tests for every new public service method?
+2. Are there unit tests (in `test/unit/`, mirroring `src/`) for every new public service method?
 3. Does `npm run lint && npm run type-check && npm run test` pass?
 4. Is test coverage ≥ 85% for changed services?
 5. Are DTOs validated with `class-validator`?

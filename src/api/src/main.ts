@@ -1,47 +1,33 @@
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module.js';
-import { GlobalExceptionFilter } from './core/error/global-exception.filter.js';
+import { configureApp } from './app.factory.js';
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
 
-  // ── Structured logging (Pino) ────────────────────────────────────────────
+  // Structured logging (Pino) — must be set before configureApp logs anything
   app.useLogger(app.get(Logger));
 
-  // ── Global pipes ─────────────────────────────────────────────────────────
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-      transformOptions: { enableImplicitConversion: false },
-    }),
-  );
-
-  // ── Global exception filter ──────────────────────────────────────────────
-  app.useGlobalFilters(new GlobalExceptionFilter());
-
-  // ── CORS ─────────────────────────────────────────────────────────────────
+  // CORS — allow the frontend origin set in .env
   app.enableCors({
     origin: process.env['CORS_ORIGIN'] ?? 'http://localhost:5173',
     credentials: true,
   });
 
-  // ── API prefix ───────────────────────────────────────────────────────────
-  app.setGlobalPrefix('api', { exclude: ['api/health'] });
+  // Shared pipeline: validation, exception filter, prefix, URI versioning
+  configureApp(app);
 
-  // ── Versioning ───────────────────────────────────────────────────────────
-  app.enableVersioning({ type: VersioningType.URI, defaultVersion: '1' });
-
-  // ── Swagger UI (dev only) ─────────────────────────────────────────────────
+  // Swagger UI (dev only) — reflects the live route tree after configureApp
   if (process.env['NODE_ENV'] !== 'production') {
     const swaggerConfig = new DocumentBuilder()
       .setTitle('WarehouseJobs.com API')
-      .setDescription('REST API — see docs/api/openapi.yaml for the authoritative contract')
+      .setDescription(
+        'REST API — see docs/api/openapi.yaml for the authoritative contract.\n\n' +
+          'All endpoints live under `/api/v1/` (URI versioning). Health is at `/api/health`.',
+      )
       .setVersion('1.0.1')
       .addBearerAuth()
       .addApiKey({ type: 'apiKey', in: 'header', name: 'X-Api-Key' }, 'ApiKeyAuth')
@@ -52,7 +38,9 @@ async function bootstrap(): Promise<void> {
 
   const port = parseInt(process.env['PORT'] ?? '3001', 10);
   await app.listen(port);
-  app.get(Logger).log(`API running on http://localhost:${port}/api/health`);
+  app
+    .get(Logger)
+    .log(`API running on http://localhost:${port} — health: /api/health  docs: /api/docs`);
 }
 
 void bootstrap();
