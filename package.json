@@ -1,8 +1,10 @@
 {
   "name": "warehousejobs",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "private": true,
-  "workspaces": ["src/api"],
+  "workspaces": [
+    "src/api"
+  ],
   "sideEffects": false,
   "type": "module",
   "scripts": {
