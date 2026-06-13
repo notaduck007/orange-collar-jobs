@@ -1,0 +1,16 @@
+---
+description: Monorepo layout — nested package.json, root env, test/unit mirror, script delegation
+globs: package.json,src/api/package.json,.env.example,docker-compose.yml
+alwaysApply: false
+---
+
+# Monorepo Standard
+
+Full standard: [docs/agent/standards/common/monorepo.md](../../docs/agent/standards/common/monorepo.md)
+Repository setup & README: [docs/agent/standards/common/repository-setup.md](../../docs/agent/standards/common/repository-setup.md)
+
+- **One root `.env.example`** — frontend + API + tooling; no full nested `src/api/.env.example`.
+- **Root `package.json`** delegates to API via `api:*` / `bun --cwd src/api`; API keeps its own deps in `src/api/package.json`.
+- **Bun workspaces** — `"workspaces": ["src/api"]`; single `bun install` at root.
+- **Unit tests** — `src/api/test/unit/{core,domain,scripts}/**` mirroring `src/`; never co-located `*.spec.ts`.
+- **semantic-release** — root `release.yml` runs from repo root; `@semantic-release/*` also listed in `src/api` for extractability.

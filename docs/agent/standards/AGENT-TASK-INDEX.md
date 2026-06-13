@@ -173,6 +173,22 @@
 
 ---
 
+## Task: Monorepo / Repository Setup
+
+**Persona**: Any engineer or agent touching root layout
+**Read Order**:
+1. `docs/agent/standards/common/monorepo.md` — **PRIMARY**: workspaces, scripts, env, tests
+2. `docs/agent/standards/common/repository-setup.md` — **REQUIRED**: root README + `.env.example`
+3. [`README.md`](../../../README.md) — **REFERENCE**: canonical onboarding doc
+
+**Key Decision Points**:
+- Single `bun install` at repo root (workspaces)
+- Root `.env` only — no `src/api/.env.example`
+- API scripts in `src/api/package.json`; root `api:*` delegates only
+- semantic-release at root for CI; `@semantic-release/*` also in `src/api` for extractability
+
+---
+
 ## Task: Quick Apply Feature
 
 **Persona**: Mid Engineer → QA Tester

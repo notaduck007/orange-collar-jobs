@@ -1,0 +1,2 @@
+# Unit specs for `src/domains/**` — mirror the domain tree here.
+# Example: src/domains/jobs/jobs.service.ts → test/unit/domains/jobs/jobs.service.spec.ts

@@ -1,6 +1,6 @@
 ---
-description: Integration test standard for test/integration/**/*.spec.ts files
-globs: src/api/test/integration/**/*.spec.ts
+description: Integration test standard for test/integration/**/*.integration.spec.ts files
+globs: src/api/test/integration/**/*.integration.spec.ts
 alwaysApply: false
 ---
 

@@ -101,6 +101,7 @@ PostgreSQL + Redis + MinIO/R2
 |---|---|---|
 | `src/api/src/core/` | Canonical cross-cutting modules | Domain business rules |
 | `src/api/src/domains/{context}/` | One bounded context per folder | Direct imports from another domain's internals |
+| `test/unit/` | Unit specs mirroring `src/` (mocked I/O) | Real DB/Redis/HTTP; co-located specs in `src/` |
 | `test/integration/` | Real DB + Redis tests | Live external API calls |
 | `test/e2e/` | Supertest HTTP tests | Unguarded data mutations |
 
@@ -133,7 +134,7 @@ Testing is mandatory before merge and before phase quality gates.
 
 | Layer | Location | Standard |
 |---|---|---|
-| Unit | `src/api/src/**/*.spec.ts` (co-located) | [`docs/agent/standards/testing/unit.md`](./docs/agent/standards/testing/unit.md) |
+| Unit | `src/api/test/unit/**/*.spec.ts` (mirrors `src/`) | [`docs/agent/standards/testing/unit.md`](./docs/agent/standards/testing/unit.md) |
 | Integration | `src/api/test/integration/**` | [`docs/agent/standards/testing/integration.md`](./docs/agent/standards/testing/integration.md) |
 | E2E | `src/api/test/e2e/**` | [`docs/agent/standards/testing/e2e.md`](./docs/agent/standards/testing/e2e.md) |
 
@@ -215,7 +216,7 @@ Agents may **not** skip gates, bypass CI, or merge with known failures.
 
 The `src/api/` directory is a **self-contained NestJS application**:
 
-- It has its own `package.json`, `tsconfig.json`, `nest-cli.json`, `jest.config.ts`, and `.env.example`
+- It has its own `package.json`, `tsconfig.json`, `nest-cli.json`, `jest.config.js` (+ `test/jest-*.json`); env vars load from the **repo root** `.env` (see `docs/agent/standards/common/monorepo.md`)
 - It can be copied to a standalone repository at any time with no consequence to the monorepo
 - It does **not** import from the frontend (`src/`) and the frontend does **not** import from `src/api/`
 - Shared configuration only: `tsconfig.base.json` at the root (strict TypeScript base)

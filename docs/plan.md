@@ -28,7 +28,7 @@ No phase begins until the prior phase's quality gate is cleared.
 | Persona | Responsibility |
 |---|---|
 | **Senior Engineer** | Architecture, contracts (YAML), module design, complex orchestration, security |
-| **Mid Engineer** | CRUD services, DTOs, Prisma models, controllers, co-located unit tests |
+| **Mid Engineer** | CRUD services, DTOs, Prisma models, controllers, unit tests in test/unit/ (mirroring src/) |
 | **QA Tester** | Integration tests, E2E tests, coverage reports, phase gate sign-off |
 
 Full persona definitions: `docs/agent/personas/`
@@ -74,16 +74,21 @@ src/api/
 │       ├── companies/                 # Employer company CRUD
 │       └── admin/                     # Moderation, ads, stats, RBAC enforcement
 ├── test/
-│   ├── unit/                          # Mirrors src/ — additional unit test files
+│   ├── unit/                          # All unit specs — mirrors src/ (NOT co-located)
 │   ├── integration/                   # Real DB + Redis (Docker Compose required)
-│   └── e2e/                           # Supertest HTTP tests
+│   ├── e2e/                           # Supertest HTTP tests
+│   ├── helpers/                       # Factories + Prisma test helpers
+│   ├── jest-setup.ts                  # reflect-metadata + .env loader
+│   ├── jest-unit.json                 # Unit Jest config (testMatch test/unit/**)
+│   ├── jest-integration.json          # Integration Jest config
+│   └── jest-e2e.json                  # E2E Jest config
 ├── prisma/
 │   ├── schema.prisma                  # Source of truth for DB schema
 │   ├── migrations/                    # Prisma migration history
 │   └── seeds/                         # Deterministic seed data
 ├── package.json                       # Self-contained; no shared deps with frontend
 ├── nest-cli.json
-├── jest.config.ts
+├── jest.config.js                     # Defaults to test/jest-unit.json
 ├── tsconfig.json                      # Extends ../../tsconfig.base.json
 └── .env.example                       # All env vars documented
 ```
@@ -194,8 +199,8 @@ Establish the full documentation foundation: engineering constitution, agent orc
 5. Create `src/api/.env.example` with all required variables documented
 6. Create directory skeleton per the Repository Structure above
 7. Install base dependencies: `@nestjs/config`, `@nestjs/schedule`, `@nestjs/terminus`, `@nestjs/jwt`, `@nestjs/throttler`, `prisma`, `@prisma/client`, `ioredis`, `bullmq`, `@nestjs/bull`, `class-validator`, `class-transformer`, `pino`, `nestjs-pino`, `zod`, `@aws-sdk/client-s3`, `bcryptjs`, `uuid`
-8. Configure ESLint for NestJS at `src/api/.eslintrc.js` (extends root, drops React plugins)
-9. Configure Jest at `src/api/jest.config.ts`
+8. Configure ESLint for NestJS at `src/api/eslint.config.mjs` (flat config; ESLint 9)
+9. Configure Jest at `src/api/jest.config.js` (+ `test/jest-unit.json`, `jest-integration.json`, `jest-e2e.json`); unit specs live in `test/unit/**` mirroring `src/`
 
 **Acceptance Criteria**:
 - `npm run start:dev` starts without errors

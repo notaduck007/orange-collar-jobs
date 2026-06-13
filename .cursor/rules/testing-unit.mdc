@@ -1,6 +1,6 @@
 ---
-description: Unit test standard for co-located *.spec.ts files in the NestJS API
-globs: src/api/src/**/*.spec.ts
+description: Unit test standard for NestJS API specs in test/unit (mirroring src)
+globs: src/api/test/unit/**/*.spec.ts
 alwaysApply: false
 ---
 
@@ -9,7 +9,8 @@ alwaysApply: false
 Full standard: [docs/agent/standards/testing/unit.md](../../docs/agent/standards/testing/unit.md)
 Workflow + templates: `.cursor/skills/testing/SKILL.md`
 
-- Co-locate `*.spec.ts` with the source file. Mock all deps — no real I/O, no real DB, no real Redis.
+- Unit specs live in `src/api/test/unit/**` and mirror the `src/` tree (e.g. `src/core/auth/roles.guard.ts` → `test/unit/core/auth/roles.guard.spec.ts`). Do NOT co-locate specs with source.
+- Import the unit under test via `@core/*` / `@domains/*` aliases (location-independent). Mock all deps — no real I/O, no real DB, no real Redis.
 - Cover four categories per public method: happy path, validation errors, edge cases, error conditions.
 - Reset mocks in `afterEach(() => jest.clearAllMocks())`. No shared state between tests.
 - Deterministic fixtures via factories in `src/api/test/helpers/factories/` (fixed UUIDs and dates).
