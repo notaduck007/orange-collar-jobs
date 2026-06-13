@@ -49,6 +49,22 @@ jobs:
     name: Unit Tests
     runs-on: ubuntu-latest
     needs: lint-type-check
+    env:
+      NODE_ENV: test
+      PORT: '3001'
+      CORS_ORIGIN: http://localhost:5173
+      DATABASE_URL: postgresql://wj_user:wj_dev_password@localhost:5432/warehousejobs_test
+      REDIS_URL: redis://localhost:6379
+      JWT_SECRET: ci_jwt_secret_min_32_chars_for_testing
+      JWT_REFRESH_SECRET: ci_refresh_secret_min_32_chars_testing
+      STORAGE_ENDPOINT: http://localhost:9000
+      STORAGE_ACCESS_KEY: wj_minio_user
+      STORAGE_SECRET_KEY: wj_minio_dev_password
+      STORAGE_FORCE_PATH_STYLE: 'true'
+      EMAIL_API_KEY: test_email_key
+      EMAIL_FROM: noreply@test.com
+      API_KEY_HASH: local_dev_placeholder_batch_api_key_hash
+      LOG_LEVEL: debug
     steps:
       - uses: actions/checkout@v5
 
@@ -86,7 +102,7 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd pg_isready
+          --health-cmd "pg_isready -U wj_user -d warehousejobs_test"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 5
@@ -108,11 +124,6 @@ jobs:
           MINIO_ROOT_PASSWORD: wj_minio_dev_password
         ports:
           - 9000:9000
-        options: >-
-          --health-cmd "curl -f http://localhost:9000/minio/health/live"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
 
     steps:
       - uses: actions/checkout@v4
@@ -131,6 +142,19 @@ jobs:
           DATABASE_URL: postgresql://wj_user:wj_dev_password@localhost:5432/warehousejobs_test
         run: bun run db:migrate:deploy
 
+      - name: Wait for MinIO
+        run: |
+          echo "Waiting for MinIO..."
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:9000/minio/health/live > /dev/null; then
+              echo "MinIO is ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error::MinIO did not become ready within 60s"
+          exit 1
+
       - name: Create MinIO test buckets
         run: |
           docker run --rm --network host minio/mc:latest \
@@ -144,6 +168,9 @@ jobs:
       - name: Run integration tests
         working-directory: ${{ env.WORKING_DIR }}
         env:
+          NODE_ENV: test
+          PORT: '3001'
+          CORS_ORIGIN: http://localhost:5173
           DATABASE_URL: postgresql://wj_user:wj_dev_password@localhost:5432/warehousejobs_test
           TEST_DATABASE_URL: postgresql://wj_user:wj_dev_password@localhost:5432/warehousejobs_test
           REDIS_URL: redis://localhost:6379
@@ -156,6 +183,7 @@ jobs:
           EMAIL_API_KEY: test_email_key
           EMAIL_FROM: noreply@test.com
           API_KEY_HASH: $2b$12$placeholder_hash_for_ci_testing
+          LOG_LEVEL: debug
         run: bun run test:integration
 
   # ────────────────────────────────────────────────────────────────────────────
@@ -174,7 +202,7 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd pg_isready
+          --health-cmd "pg_isready -U wj_user -d warehousejobs_e2e"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 5
@@ -188,6 +216,14 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 5
+
+      minio:
+        image: minio/minio:latest
+        env:
+          MINIO_ROOT_USER: wj_minio_user
+          MINIO_ROOT_PASSWORD: wj_minio_dev_password
+        ports:
+          - 9000:9000
 
     steps:
       - uses: actions/checkout@v4
@@ -206,9 +242,35 @@ jobs:
           DATABASE_URL: postgresql://wj_user:wj_dev_password@localhost:5432/warehousejobs_e2e
         run: bun run db:migrate:deploy
 
+      - name: Wait for MinIO
+        run: |
+          echo "Waiting for MinIO..."
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:9000/minio/health/live > /dev/null; then
+              echo "MinIO is ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error::MinIO did not become ready within 60s"
+          exit 1
+
+      - name: Create MinIO test buckets
+        run: |
+          docker run --rm --network host minio/mc:latest \
+            /bin/sh -c "
+              mc alias set local http://localhost:9000 wj_minio_user wj_minio_dev_password &&
+              mc mb --ignore-existing local/resumes &&
+              mc mb --ignore-existing local/company-logos &&
+              mc mb --ignore-existing local/ad-assets
+            "
+
       - name: Run E2E tests
         working-directory: ${{ env.WORKING_DIR }}
         env:
+          NODE_ENV: test
+          PORT: '3001'
+          CORS_ORIGIN: http://localhost:5173
           DATABASE_URL: postgresql://wj_user:wj_dev_password@localhost:5432/warehousejobs_e2e
           TEST_DATABASE_URL: postgresql://wj_user:wj_dev_password@localhost:5432/warehousejobs_e2e
           REDIS_URL: redis://localhost:6379
@@ -221,6 +283,7 @@ jobs:
           EMAIL_API_KEY: test_email_key
           EMAIL_FROM: noreply@test.com
           API_KEY_HASH: $2b$12$placeholder_hash_for_ci_testing
+          LOG_LEVEL: debug
         run: bun run test:e2e
 
   # ────────────────────────────────────────────────────────────────────────────
