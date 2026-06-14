@@ -65,7 +65,7 @@
               "name": "503 Storage down",
               "status": "Service Unavailable",
               "code": 503,
-              "body": "{\n  \"status\": \"error\",\n  \"info\": { \"db\": { \"status\": \"up\" }, \"redis\": { \"status\": \"up\" } },\n  \"error\": { \"storage\": { \"status\": \"down\", \"message\": \"..." } }\n}"
+              "body": "{\n  \"status\": \"error\",\n  \"info\": {\n    \"db\": { \"status\": \"up\" },\n    \"redis\": { \"status\": \"up\" }\n  },\n  \"error\": {\n    \"storage\": {\n      \"status\": \"down\",\n      \"message\": \"Storage service unreachable\"\n    }\n  }\n}"
             }
           ]
         },
