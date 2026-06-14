@@ -51,7 +51,7 @@ Dev JWT without register flow: `bun run dev:token`
 | `verificationToken` | _(empty)_                | Email verification opaque token |
 | `resetToken`        | _(empty)_                | Password reset opaque token     |
 | `testEmail`         | `test@warehousejobs.com` | Register/login email            |
-| `testPassword`      | `Test1234!`              | Password (min 8 chars)          |
+| `testPassword`      | `Test1234!` (Postman UI) | Password; CI uses `SecureP@ss1` (no `!` in bash curl) |
 | `swaggerApiKey`     | _(empty)_                | Batch API key                   |
 
 ## Phase backwards compatibility
@@ -87,6 +87,8 @@ A Postman mock URL (e.g. `https://….mock.pstmn.io`) returns **canned examples*
 docker compose up -d postgres redis minio
 export DATABASE_URL=postgresql://wj_user:wj_dev_password@localhost:5433/warehousejobs
 export JWT_SECRET=local_dev_jwt_secret_min_32_chars_long
+export JWT_REFRESH_SECRET=local_dev_refresh_secret_min_32_chars_long
+export POSTMAN_PG_PORT=5433
 bash scripts/ci-minio-up.sh   # if MinIO not via compose
 bash scripts/ci-api-up.sh
 bash scripts/ci-postman.sh
