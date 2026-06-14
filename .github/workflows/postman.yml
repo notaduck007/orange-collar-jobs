@@ -1,17 +1,106 @@
-name: Automated API tests using Postman CLI
+name: Postman API Tests
 
-on: push
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'src/api/**'
+      - 'scripts/ci-postman.sh'
+      - 'scripts/ci-api-up.sh'
+      - '.github/workflows/postman.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'src/api/**'
+      - 'scripts/ci-postman.sh'
+      - 'scripts/ci-api-up.sh'
+
+concurrency:
+  group: postman-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '24'
+  WORKING_DIR: src/api
 
 jobs:
-  automated-api-tests:
+  postman:
+    name: Newman (local collection vs live API)
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: warehousejobs_postman
+          POSTGRES_USER: wj_user
+          POSTGRES_PASSWORD: wj_dev_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U wj_user -d warehousejobs_postman"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@v5
-      - name: Install Postman CLI
-        run: |
-          curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
-      - name: Login to Postman CLI
-        run: postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}
-      - name: Run API tests
-        run: |
-          postman collection run "2382474-b3f22238-a21c-4c20-911b-969042ef2d9f" -e "2382474-f77142b1-f129-487b-aadd-a6e9132d067a"
+
+      - uses: oven-sh/setup-bun@v2.2.0
+        with:
+          bun-version: latest
+
+      - name: Install PostgreSQL client (token queries for auth smoke)
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Install dependencies
+        working-directory: ${{ env.WORKING_DIR }}
+        run: bun install --frozen-lockfile
+
+      - name: Run Prisma migrations
+        working-directory: ${{ env.WORKING_DIR }}
+        env:
+          DATABASE_URL: postgresql://wj_user:wj_dev_password@localhost:5432/warehousejobs_postman
+        run: bun run db:migrate:deploy
+
+      - name: Start MinIO and create buckets
+        run: bash scripts/ci-minio-up.sh
+
+      - name: Start API server
+        env:
+          DATABASE_URL: postgresql://wj_user:wj_dev_password@localhost:5432/warehousejobs_postman
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: ci_jwt_secret_min_32_chars_for_testing
+          JWT_REFRESH_SECRET: ci_refresh_secret_min_32_chars_testing
+          STORAGE_ENDPOINT: http://localhost:9000
+          STORAGE_ACCESS_KEY: wj_minio_user
+          STORAGE_SECRET_KEY: wj_minio_dev_password
+          STORAGE_FORCE_PATH_STYLE: 'true'
+          EMAIL_API_KEY: test_email_key
+          EMAIL_FROM: noreply@test.com
+          API_KEY_HASH: $2b$12$placeholder_hash_for_ci_testing
+          NODE_ENV: development
+          PORT: '3001'
+          CORS_ORIGIN: http://localhost:5173
+          LOG_LEVEL: info
+        run: bash scripts/ci-api-up.sh
+
+      - name: Run Postman collection (Newman)
+        env:
+          POSTMAN_TEST_EMAIL: postman-ci-${{ github.run_id }}@warehousejobs.test
+          POSTMAN_PG_DATABASE: warehousejobs_postman
+        run: bash scripts/ci-postman.sh
+
+      - name: API log on failure
+        if: failure()
+        run: cat /tmp/warehousejobs-api-ci.log || true

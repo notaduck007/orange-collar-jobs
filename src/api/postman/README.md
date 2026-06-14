@@ -58,7 +58,41 @@ Dev JWT without register flow: `bun run dev:token`
 
 Phase 1 requests (**System / Health Check**, **Auth — Core / GET /me**) must remain valid after every phase. See [`docs/agent/standards/common/backwards-compatibility.md`](../../../docs/agent/standards/common/backwards-compatibility.md).
 
-## Running as a CI test suite (Newman)
+## CI (GitHub Actions)
+
+Workflow: `.github/workflows/postman.yml`
+
+- Starts Postgres, Redis, MinIO, migrates DB, **starts the real NestJS API** on `:3001`
+- Runs `scripts/ci-postman.sh` (Newman + auth curl smoke)
+- **No** `POSTMAN_API_KEY` required — uses committed JSON files, not Postman Cloud
+
+Folders exercised in CI:
+
+| Folder | Purpose |
+|--------|---------|
+| System | `GET /api/health` assertions |
+| Auth — Core | `GET /api/v1/me` → 401 without token |
+| Jobs (Phase 3) | `404` until Phase 3 ships |
+| Auth smoke (curl) | Full Phase 2 register → verify → login → reset flow |
+
+The **Phase 2 — Walkthrough** folder is for manual Postman desktop use (token paste steps 3 & 9). CI uses the curl smoke in `ci-postman.sh` instead.
+
+### Postman Mock Server
+
+A Postman mock URL (e.g. `https://….mock.pstmn.io`) returns **canned examples** — it does **not** run this codebase. Use it for frontend prototyping only. CI validates the **real API** built from this repo.
+
+## Running locally
+
+```bash
+docker compose up -d postgres redis minio
+export DATABASE_URL=postgresql://wj_user:wj_dev_password@localhost:5433/warehousejobs
+export JWT_SECRET=local_dev_jwt_secret_min_32_chars_long
+bash scripts/ci-minio-up.sh   # if MinIO not via compose
+bash scripts/ci-api-up.sh
+bash scripts/ci-postman.sh
+```
+
+## Running as Newman only (manual)
 
 ```bash
 newman run src/api/postman/warehousejobs.postman_collection.json \

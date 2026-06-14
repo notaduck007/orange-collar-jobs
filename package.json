@@ -18,6 +18,7 @@
     "dev:token": "bun --env-file=.env run scripts/gen-dev-token.ts",
     "demo:phase1": "bash scripts/phase1-demo.sh",
     "demo:phase2": "bash scripts/phase2-demo.sh",
+    "api:postman:ci": "bash scripts/ci-postman.sh",
     "api:dev": "bun --env-file=.env run --cwd src/api start:dev",
     "api:migrate:dev": "bun --env-file=.env run --cwd src/api db:migrate:dev",
     "api:build": "bun run --cwd src/api build",
