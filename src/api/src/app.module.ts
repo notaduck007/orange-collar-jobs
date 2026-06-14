@@ -11,6 +11,8 @@ import { QueueModule } from './core/queue/queue.module.js';
 import { StorageModule } from './core/storage/storage.module.js';
 import { AuthCoreModule } from './core/auth/auth-core.module.js';
 import { SmsModule } from './core/sms/sms.module.js';
+import { EmailModule } from './core/email/email.module.js';
+import { AuthModule } from './domains/auth/auth.module.js';
 
 @Module({
   imports: [
@@ -19,6 +21,7 @@ import { SmsModule } from './core/sms/sms.module.js';
     LoggingModule,
     DatabaseModule,
     ErrorModule,
+    EmailModule,
     AuthCoreModule,
     QueueModule,
     StorageModule,
@@ -37,7 +40,7 @@ import { SmsModule } from './core/sms/sms.module.js';
     HealthModule,
 
     // ── Domain modules (added as phases are implemented) ─────────────────
-    // Phase 2: AuthModule
+    AuthModule,
     // Phase 3: JobsModule
     // Phase 4: BatchModule
     // Phase 5: ApplicationsModule

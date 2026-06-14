@@ -395,6 +395,12 @@ Before Phase 2 begins:
 - [ ] Email verification flow: unverified user cannot access protected endpoints
 - [ ] All auth unit + integration + E2E tests pass
 - [ ] Coverage ≥ 85% for `AuthService` and `AuthController`
+- [ ] Phase 1 backwards-compat tests pass (`phase1-backwards-compat` E2E + integration)
+- [ ] `./scripts/phase2-demo.sh` passes; Phase 1 `GET /api/health` smoke included
+- [ ] `docs/demo/phase2-demo.md` Postman + frontend walkthrough complete
+- [ ] `bun run api:validate` passes
+
+See [`docs/agent/standards/common/backwards-compatibility.md`](./agent/standards/common/backwards-compatibility.md).
 
 ---
 

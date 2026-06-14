@@ -15,7 +15,7 @@ Always start with the [AGENT-TASK-INDEX.md](./AGENT-TASK-INDEX.md) to find the r
 | [`common/anti-patterns.md`](./common/anti-patterns.md) | Forbidden code patterns |
 | [`common/naming.md`](./common/naming.md) | File, class, method, and route naming |
 | [`common/modules.md`](./common/modules.md) | Module structure and barrel imports |
-| [`common/canonical-types.md`](./common/canonical-types.md) | Types that must come from `src/core/` |
+| [`common/backwards-compatibility.md`](./common/backwards-compatibility.md) | **Mandatory** phase additive changes; prior endpoints/tests/demos must pass |
 | [`common/monorepo.md`](./common/monorepo.md) | Monorepo layout, nested `package.json`, env, `test/unit/` |
 | [`common/repository-setup.md`](./common/repository-setup.md) | Root README, `.env.example`, onboarding requirements |
 | [`common/monorepo.md`](./common/monorepo.md) | Workspaces, scripts, root `.env`, test layout |

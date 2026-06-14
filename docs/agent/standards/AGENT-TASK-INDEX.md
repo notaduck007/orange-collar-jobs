@@ -67,6 +67,24 @@
 
 ---
 
+## Task: Complete a Phase Quality Gate
+
+**Persona**: QA Tester + Mid Engineer
+**Read Order**:
+1. `docs/plan.md` (active phase quality gate section) — **PRIMARY**
+2. `docs/agent/standards/common/backwards-compatibility.md` — **REQUIRED**
+3. `docs/demo/phase{N}-demo.md` — **REQUIRED**: verify walkthrough matches implementation
+4. `.cursor/skills/testing/SKILL.md` — **REQUIRED**: full test pyramid
+
+**Key Decision Points**:
+- Do Phase N unit + integration + E2E tests cover all new endpoints?
+- Does `phase1-backwards-compat` (or cumulative compat suite) pass?
+- Does `./scripts/phase{N}-demo.sh` pass including prior-phase smoke?
+- Does Postman walkthrough folder match live API behaviour?
+- `bun run api:validate` green?
+
+---
+
 ## Task: Write Tests
 
 **Persona**: QA Tester

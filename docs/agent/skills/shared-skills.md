@@ -14,7 +14,7 @@ knowledge and stay in this repository:
 
 - `domain-driven-design`, `interface-designer`, `canonical-type-reuse`,
   `module-design-pattern`, `coding-conventions`, `testing`,
-  `ci-monitoring-subagents`, `deployments-github-actions`, `create-pr`
+  `ci-monitoring-subagents`, `deployments-github-actions`, `create-pr`, `api-versioning`
 
 ### Tier 2 — Shared/common skills (candidates for promotion)
 

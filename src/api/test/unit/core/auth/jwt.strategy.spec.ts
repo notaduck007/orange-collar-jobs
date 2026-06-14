@@ -16,15 +16,35 @@ describe('JwtStrategy', () => {
   const payload: JwtPayload = { sub: 'u1', email: 'a@b.c', role: 'seeker' };
 
   it('returns the user when found', async () => {
-    const user = { id: 'u1', email: 'a@b.c', role: 'seeker' as const };
+    const user = {
+      id: 'u1',
+      email: 'a@b.c',
+      role: 'seeker' as const,
+      emailVerifiedAt: new Date(),
+    };
     const findUnique = jest.fn().mockResolvedValue(user);
     const strategy = buildStrategy(findUnique);
 
-    await expect(strategy.validate(payload)).resolves.toEqual(user);
+    await expect(strategy.validate(payload)).resolves.toEqual({
+      id: 'u1',
+      email: 'a@b.c',
+      role: 'seeker',
+    });
     expect(findUnique).toHaveBeenCalledWith({
       where: { id: 'u1' },
-      select: { id: true, email: true, role: true },
+      select: { id: true, email: true, role: true, emailVerifiedAt: true },
     });
+  });
+
+  it('throws when email is not verified', async () => {
+    const user = {
+      id: 'u1',
+      email: 'a@b.c',
+      role: 'seeker' as const,
+      emailVerifiedAt: null,
+    };
+    const strategy = buildStrategy(jest.fn().mockResolvedValue(user));
+    await expect(strategy.validate(payload)).rejects.toThrow(UnauthorizedException);
   });
 
   it('throws UnauthorizedException when the user does not exist', async () => {

@@ -4,11 +4,12 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { HardHat } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { supabase } from "@/integrations/supabase/client";
+import { apiClient, ApiError } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useSiteSettings } from "@/lib/site-settings";
+import { useAuth } from "@/lib/auth";
 
 const searchSchema = z.object({
   mode: z.enum(["login", "signup"]).default("login").catch("login"),
@@ -57,38 +58,37 @@ function AuthPage() {
   const [displayName, setDisplayName] = useState("");
   const [selectedRole, setSelectedRole] = useState<"job_seeker" | "employer">(role ?? "job_seeker");
   const [loading, setLoading] = useState(false);
+  const { refreshSession } = useAuth();
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
+      const fallback = selectedRole === "employer" ? "/employer" : "/seeker";
+      const dest = safeNext(next) === "/" ? fallback : safeNext(next);
+
       if (isSignup) {
-        const { data, error } = await supabase.auth.signUp({
+        await apiClient.register({
           email,
           password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/`,
-            data: { display_name: displayName, role: selectedRole },
-          },
+          role: selectedRole === "employer" ? "vendor" : "seeker",
+          fullName: displayName || undefined,
         });
-        if (error) throw error;
-        const fallback = selectedRole === "employer" ? "/employer" : "/seeker";
-        const dest = safeNext(next) === "/" ? fallback : safeNext(next);
-        if (data.session) {
-          toast.success("Account created.");
-          navigate({ to: dest as never });
-        } else {
-          toast.success("Account created! Check your inbox to confirm your email, then sign in.");
-          navigate({ to: "/auth", search: { mode: "login", next: dest } as never });
-        }
+        toast.success("Account created! Check your inbox to verify your email, then sign in.");
+        navigate({ to: "/auth", search: { mode: "login", next: dest } as never });
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        await apiClient.loginAndStore(email, password);
+        await refreshSession();
         toast.success("Signed in.");
-        navigate({ to: safeNext(next) as never });
+        navigate({ to: dest as never });
       }
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Something went wrong";
+      const msg =
+        err instanceof ApiError
+          ? err.message
+          : err instanceof Error
+            ? err.message
+            : "Something went wrong";
       toast.error(msg);
     } finally {
       setLoading(false);
@@ -187,10 +187,18 @@ function AuthPage() {
                 id="password"
                 type="password"
                 required
-                minLength={6}
+                minLength={8}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
+              {!isSignup && (
+                <Link
+                  to="/forgot-password"
+                  className="text-xs text-primary hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              )}
             </div>
 
             <Button type="submit" disabled={loading} className="btn-primary w-full">

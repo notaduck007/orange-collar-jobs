@@ -258,6 +258,7 @@ Review a PR for contract compliance, quality gate adherence, and code quality.
 5. Are DTOs validated with `class-validator`?
 6. Are typed error classes used (no raw `new Error()`)?
 7. Are secrets in env vars only (no hardcoded credentials)?
+8. **Backwards compatibility**: do `phase1-backwards-compat` tests and prior-phase demo smoke still pass? ([`docs/agent/standards/common/backwards-compatibility.md`](./docs/agent/standards/common/backwards-compatibility.md))
 
 ### Skills
 

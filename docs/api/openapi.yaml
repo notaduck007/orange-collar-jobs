@@ -400,9 +400,13 @@ components:
         status:    { type: string, enum: [queued, processing, completed, failed] }
         total:     { type: integer }
         created:   { type: integer }
-        updated:   { type: integer }
-        skipped:   { type: integer, description: Duplicate external_id, no change }
-        failed:    { type: integer }
+        updated:
+          type: integer
+        skipped:
+          type: integer
+          description: Duplicate external_id, no change
+        failed:
+          type: integer
         errors:
           type: array
           items:

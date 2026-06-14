@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1781372050406" clover="3.2.0">
-  <project timestamp="1781372050406" name="All files">
-    <metrics statements="245" coveredstatements="245" conditionals="84" coveredconditionals="84" methods="53" coveredmethods="52" elements="382" coveredelements="381" complexity="0" loc="245" ncloc="245" packages="9" files="18" classes="18"/>
+<coverage generated="1781455956954" clover="3.2.0">
+  <project timestamp="1781455956954" name="All files">
+    <metrics statements="357" coveredstatements="357" conditionals="117" coveredconditionals="108" methods="75" coveredmethods="75" elements="549" coveredelements="540" complexity="0" loc="357" ncloc="357" packages="10" files="20" classes="20"/>
     <package name="src">
       <metrics statements="7" coveredstatements="7" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
       <file name="app.factory.ts" path="/Users/christian/Code/orange-collar-jobs/src/api/src/app.factory.ts">
@@ -16,14 +16,14 @@
       </file>
     </package>
     <package name="src.core.auth">
-      <metrics statements="53" coveredstatements="53" conditionals="7" coveredconditionals="7" methods="10" coveredmethods="10"/>
+      <metrics statements="55" coveredstatements="55" conditionals="8" coveredconditionals="8" methods="10" coveredmethods="10"/>
       <file name="current-user.decorator.ts" path="/Users/christian/Code/orange-collar-jobs/src/api/src/core/auth/current-user.decorator.ts">
         <metrics statements="5" coveredstatements="5" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
-        <line num="1" count="3" type="stmt"/>
-        <line num="5" count="3" type="stmt"/>
+        <line num="1" count="4" type="stmt"/>
+        <line num="5" count="4" type="stmt"/>
         <line num="6" count="1" type="stmt"/>
         <line num="7" count="1" type="stmt"/>
-        <line num="10" count="3" type="stmt"/>
+        <line num="10" count="4" type="stmt"/>
       </file>
       <file name="jwt-auth.guard.ts" path="/Users/christian/Code/orange-collar-jobs/src/api/src/core/auth/jwt-auth.guard.ts">
         <metrics statements="10" coveredstatements="10" conditionals="1" coveredconditionals="1" methods="2" coveredmethods="2"/>
@@ -39,18 +39,20 @@
         <line num="18" count="1" type="stmt"/>
       </file>
       <file name="jwt.strategy.ts" path="/Users/christian/Code/orange-collar-jobs/src/api/src/core/auth/jwt.strategy.ts">
-        <metrics statements="11" coveredstatements="11" conditionals="1" coveredconditionals="1" methods="2" coveredmethods="2"/>
+        <metrics statements="13" coveredstatements="13" conditionals="2" coveredconditionals="2" methods="2" coveredmethods="2"/>
         <line num="1" count="2" type="stmt"/>
         <line num="2" count="2" type="stmt"/>
         <line num="3" count="2" type="stmt"/>
         <line num="4" count="2" type="stmt"/>
         <line num="5" count="2" type="stmt"/>
         <line num="24" count="2" type="stmt"/>
-        <line num="27" count="3" type="stmt"/>
-        <line num="29" count="3" type="stmt"/>
-        <line num="37" count="2" type="stmt"/>
-        <line num="41" count="2" type="cond" truecount="1" falsecount="0"/>
-        <line num="42" count="1" type="stmt"/>
+        <line num="27" count="4" type="stmt"/>
+        <line num="29" count="4" type="stmt"/>
+        <line num="37" count="3" type="stmt"/>
+        <line num="41" count="3" type="cond" truecount="1" falsecount="0"/>
+        <line num="42" count="2" type="cond" truecount="1" falsecount="0"/>
+        <line num="43" count="1" type="stmt"/>
+        <line num="45" count="1" type="stmt"/>
       </file>
       <file name="me.controller.ts" path="/Users/christian/Code/orange-collar-jobs/src/api/src/core/auth/me.controller.ts">
         <metrics statements="6" coveredstatements="6" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
@@ -63,9 +65,9 @@
       </file>
       <file name="public.decorator.ts" path="/Users/christian/Code/orange-collar-jobs/src/api/src/core/auth/public.decorator.ts">
         <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
-        <line num="1" count="4" type="stmt"/>
-        <line num="3" count="4" type="stmt"/>
-        <line num="4" count="4" type="stmt"/>
+        <line num="1" count="5" type="stmt"/>
+        <line num="3" count="5" type="stmt"/>
+        <line num="4" count="15" type="stmt"/>
       </file>
       <file name="roles.decorator.ts" path="/Users/christian/Code/orange-collar-jobs/src/api/src/core/auth/roles.decorator.ts">
         <metrics statements="4" coveredstatements="4" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
@@ -98,19 +100,19 @@
         <metrics statements="6" coveredstatements="6" conditionals="8" coveredconditionals="8" methods="4" coveredmethods="4"/>
         <line num="1" count="5" type="stmt"/>
         <line num="3" count="5" type="stmt"/>
-        <line num="10" count="15" type="cond" truecount="2" falsecount="0"/>
-        <line num="15" count="7" type="cond" truecount="2" falsecount="0"/>
-        <line num="20" count="16" type="cond" truecount="2" falsecount="0"/>
-        <line num="29" count="16" type="cond" truecount="2" falsecount="0"/>
+        <line num="10" count="16" type="cond" truecount="2" falsecount="0"/>
+        <line num="15" count="8" type="cond" truecount="2" falsecount="0"/>
+        <line num="20" count="17" type="cond" truecount="2" falsecount="0"/>
+        <line num="29" count="17" type="cond" truecount="2" falsecount="0"/>
       </file>
     </package>
     <package name="src.core.database">
       <metrics statements="8" coveredstatements="8" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="2"/>
       <file name="prisma.service.ts" path="/Users/christian/Code/orange-collar-jobs/src/api/src/core/database/prisma.service.ts">
         <metrics statements="8" coveredstatements="8" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="2"/>
-        <line num="1" count="4" type="stmt"/>
-        <line num="2" count="4" type="stmt"/>
-        <line num="5" count="4" type="stmt"/>
+        <line num="1" count="6" type="stmt"/>
+        <line num="2" count="6" type="stmt"/>
+        <line num="5" count="6" type="stmt"/>
         <line num="6" count="5" type="stmt"/>
         <line num="9" count="1" type="stmt"/>
         <line num="10" count="1" type="stmt"/>
@@ -122,14 +124,14 @@
       <metrics statements="20" coveredstatements="20" conditionals="10" coveredconditionals="10" methods="4" coveredmethods="4"/>
       <file name="email.service.ts" path="/Users/christian/Code/orange-collar-jobs/src/api/src/core/email/email.service.ts">
         <metrics statements="20" coveredstatements="20" conditionals="10" coveredconditionals="10" methods="4" coveredmethods="4"/>
-        <line num="1" count="1" type="stmt"/>
-        <line num="2" count="1" type="stmt"/>
-        <line num="17" count="1" type="stmt"/>
-        <line num="18" count="10" type="stmt"/>
-        <line num="25" count="10" type="stmt"/>
-        <line num="26" count="10" type="cond" truecount="2" falsecount="0"/>
-        <line num="27" count="10" type="cond" truecount="2" falsecount="0"/>
-        <line num="28" count="10" type="cond" truecount="2" falsecount="0"/>
+        <line num="1" count="4" type="stmt"/>
+        <line num="2" count="4" type="stmt"/>
+        <line num="17" count="4" type="stmt"/>
+        <line num="18" count="11" type="stmt"/>
+        <line num="25" count="11" type="stmt"/>
+        <line num="26" count="11" type="cond" truecount="2" falsecount="0"/>
+        <line num="27" count="11" type="cond" truecount="2" falsecount="0"/>
+        <line num="28" count="11" type="cond" truecount="2" falsecount="0"/>
         <line num="32" count="10" type="cond" truecount="1" falsecount="0"/>
         <line num="33" count="4" type="stmt"/>
         <line num="36" count="4" type="stmt"/>
@@ -145,29 +147,33 @@
       </file>
     </package>
     <package name="src.core.error">
-      <metrics statements="42" coveredstatements="42" conditionals="18" coveredconditionals="18" methods="9" coveredmethods="9"/>
+      <metrics statements="46" coveredstatements="46" conditionals="19" coveredconditionals="19" methods="11" coveredmethods="11"/>
       <file name="errors.ts" path="/Users/christian/Code/orange-collar-jobs/src/api/src/core/error/errors.ts">
-        <metrics statements="20" coveredstatements="20" conditionals="5" coveredconditionals="5" methods="8" coveredmethods="8"/>
-        <line num="1" count="5" type="stmt"/>
-        <line num="4" count="19" type="stmt"/>
-        <line num="5" count="19" type="stmt"/>
-        <line num="6" count="19" type="stmt"/>
-        <line num="8" count="19" type="stmt"/>
-        <line num="9" count="19" type="stmt"/>
-        <line num="13" count="5" type="stmt"/>
+        <metrics statements="24" coveredstatements="24" conditionals="6" coveredconditionals="6" methods="10" coveredmethods="10"/>
+        <line num="1" count="7" type="stmt"/>
+        <line num="4" count="28" type="stmt"/>
+        <line num="5" count="28" type="stmt"/>
+        <line num="6" count="28" type="stmt"/>
+        <line num="8" count="28" type="stmt"/>
+        <line num="9" count="28" type="stmt"/>
+        <line num="13" count="7" type="stmt"/>
         <line num="15" count="3" type="stmt"/>
-        <line num="23" count="5" type="stmt"/>
-        <line num="25" count="1" type="stmt"/>
-        <line num="29" count="5" type="stmt"/>
+        <line num="23" count="7" type="stmt"/>
+        <line num="25" count="2" type="stmt"/>
+        <line num="29" count="7" type="stmt"/>
         <line num="31" count="2" type="stmt"/>
-        <line num="35" count="5" type="stmt"/>
-        <line num="37" count="2" type="stmt"/>
-        <line num="41" count="5" type="stmt"/>
+        <line num="35" count="7" type="stmt"/>
+        <line num="37" count="5" type="stmt"/>
+        <line num="41" count="7" type="stmt"/>
         <line num="43" count="5" type="stmt"/>
-        <line num="47" count="5" type="stmt"/>
+        <line num="47" count="7" type="stmt"/>
         <line num="49" count="1" type="stmt"/>
-        <line num="58" count="5" type="stmt"/>
+        <line num="58" count="7" type="stmt"/>
         <line num="60" count="1" type="stmt"/>
+        <line num="64" count="7" type="stmt"/>
+        <line num="66" count="2" type="stmt"/>
+        <line num="70" count="7" type="stmt"/>
+        <line num="72" count="3" type="stmt"/>
       </file>
       <file name="global-exception.filter.ts" path="/Users/christian/Code/orange-collar-jobs/src/api/src/core/error/global-exception.filter.ts">
         <metrics statements="22" coveredstatements="22" conditionals="13" coveredconditionals="13" methods="1" coveredmethods="1"/>
@@ -196,7 +202,7 @@
       </file>
     </package>
     <package name="src.core.health">
-      <metrics statements="49" coveredstatements="49" conditionals="1" coveredconditionals="1" methods="11" coveredmethods="10"/>
+      <metrics statements="49" coveredstatements="49" conditionals="1" coveredconditionals="1" methods="11" coveredmethods="11"/>
       <file name="health.controller.ts" path="/Users/christian/Code/orange-collar-jobs/src/api/src/core/health/health.controller.ts">
         <metrics statements="25" coveredstatements="25" conditionals="1" coveredconditionals="1" methods="6" coveredmethods="6"/>
         <line num="1" count="2" type="stmt"/>
@@ -226,21 +232,21 @@
         <line num="53" count="2" type="stmt"/>
       </file>
       <file name="redis-health.indicator.ts" path="/Users/christian/Code/orange-collar-jobs/src/api/src/core/health/redis-health.indicator.ts">
-        <metrics statements="14" coveredstatements="14" conditionals="0" coveredconditionals="0" methods="3" coveredmethods="2"/>
+        <metrics statements="14" coveredstatements="14" conditionals="0" coveredconditionals="0" methods="3" coveredmethods="3"/>
         <line num="1" count="3" type="stmt"/>
         <line num="2" count="3" type="stmt"/>
         <line num="3" count="3" type="stmt"/>
         <line num="4" count="3" type="stmt"/>
         <line num="8" count="3" type="stmt"/>
-        <line num="9" count="3" type="stmt"/>
-        <line num="10" count="3" type="stmt"/>
-        <line num="14" count="2" type="stmt"/>
-        <line num="19" count="2" type="stmt"/>
-        <line num="20" count="2" type="stmt"/>
+        <line num="9" count="4" type="stmt"/>
+        <line num="10" count="4" type="stmt"/>
+        <line num="14" count="3" type="stmt"/>
+        <line num="19" count="3" type="stmt"/>
+        <line num="20" count="3" type="stmt"/>
         <line num="21" count="1" type="stmt"/>
         <line num="22" count="1" type="stmt"/>
-        <line num="24" count="1" type="stmt"/>
-        <line num="25" count="1" type="stmt"/>
+        <line num="24" count="2" type="stmt"/>
+        <line num="25" count="2" type="stmt"/>
       </file>
       <file name="storage-health.indicator.ts" path="/Users/christian/Code/orange-collar-jobs/src/api/src/core/health/storage-health.indicator.ts">
         <metrics statements="10" coveredstatements="10" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="2"/>
@@ -326,6 +332,121 @@
         <line num="75" count="1" type="stmt"/>
         <line num="79" count="1" type="stmt"/>
         <line num="85" count="3" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.domains.auth">
+      <metrics statements="106" coveredstatements="106" conditionals="31" coveredconditionals="22" methods="20" coveredmethods="20"/>
+      <file name="auth.controller.ts" path="/Users/christian/Code/orange-collar-jobs/src/api/src/domains/auth/auth.controller.ts">
+        <metrics statements="28" coveredstatements="28" conditionals="0" coveredconditionals="0" methods="8" coveredmethods="8"/>
+        <line num="1" count="2" type="stmt"/>
+        <line num="8" count="2" type="stmt"/>
+        <line num="14" count="2" type="stmt"/>
+        <line num="15" count="2" type="stmt"/>
+        <line num="16" count="2" type="stmt"/>
+        <line num="18" count="2" type="stmt"/>
+        <line num="19" count="2" type="stmt"/>
+        <line num="20" count="2" type="stmt"/>
+        <line num="21" count="2" type="stmt"/>
+        <line num="22" count="2" type="stmt"/>
+        <line num="23" count="2" type="stmt"/>
+        <line num="24" count="2" type="stmt"/>
+        <line num="29" count="2" type="stmt"/>
+        <line num="30" count="8" type="stmt"/>
+        <line num="39" count="2" type="stmt"/>
+        <line num="40" count="1" type="stmt"/>
+        <line num="50" count="2" type="stmt"/>
+        <line num="51" count="1" type="stmt"/>
+        <line num="59" count="2" type="stmt"/>
+        <line num="60" count="1" type="stmt"/>
+        <line num="69" count="2" type="stmt"/>
+        <line num="70" count="1" type="stmt"/>
+        <line num="79" count="2" type="stmt"/>
+        <line num="80" count="1" type="stmt"/>
+        <line num="89" count="2" type="stmt"/>
+        <line num="90" count="1" type="stmt"/>
+        <line num="99" count="2" type="stmt"/>
+        <line num="100" count="1" type="stmt"/>
+      </file>
+      <file name="auth.service.ts" path="/Users/christian/Code/orange-collar-jobs/src/api/src/domains/auth/auth.service.ts">
+        <metrics statements="78" coveredstatements="78" conditionals="31" coveredconditionals="22" methods="12" coveredmethods="12"/>
+        <line num="1" count="3" type="stmt"/>
+        <line num="2" count="3" type="stmt"/>
+        <line num="3" count="3" type="stmt"/>
+        <line num="4" count="3" type="stmt"/>
+        <line num="5" count="3" type="stmt"/>
+        <line num="8" count="3" type="stmt"/>
+        <line num="9" count="3" type="stmt"/>
+        <line num="10" count="3" type="stmt"/>
+        <line num="21" count="3" type="stmt"/>
+        <line num="22" count="3" type="stmt"/>
+        <line num="23" count="3" type="stmt"/>
+        <line num="26" count="2" type="stmt"/>
+        <line num="27" count="2" type="cond" truecount="0" falsecount="1"/>
+        <line num="28" count="2" type="stmt"/>
+        <line num="29" count="2" type="stmt"/>
+        <line num="35" count="2" type="cond" truecount="1" falsecount="1"/>
+        <line num="39" count="5" type="stmt"/>
+        <line num="43" count="4" type="stmt"/>
+        <line num="47" count="3" type="stmt"/>
+        <line num="49" count="18" type="stmt"/>
+        <line num="50" count="18" type="stmt"/>
+        <line num="51" count="18" type="stmt"/>
+        <line num="52" count="18" type="stmt"/>
+        <line num="56" count="2" type="stmt"/>
+        <line num="57" count="2" type="stmt"/>
+        <line num="58" count="2" type="cond" truecount="1" falsecount="0"/>
+        <line num="59" count="1" type="stmt"/>
+        <line num="62" count="1" type="stmt"/>
+        <line num="63" count="1" type="stmt"/>
+        <line num="72" count="1" type="stmt"/>
+        <line num="73" count="1" type="stmt"/>
+        <line num="81" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="82" count="1" type="stmt"/>
+        <line num="84" count="1" type="stmt"/>
+        <line num="91" count="4" type="stmt"/>
+        <line num="92" count="4" type="stmt"/>
+        <line num="93" count="4" type="cond" truecount="1" falsecount="0"/>
+        <line num="94" count="1" type="stmt"/>
+        <line num="97" count="3" type="stmt"/>
+        <line num="98" count="3" type="cond" truecount="1" falsecount="0"/>
+        <line num="99" count="1" type="stmt"/>
+        <line num="102" count="2" type="cond" truecount="1" falsecount="0"/>
+        <line num="103" count="1" type="stmt"/>
+        <line num="106" count="1" type="stmt"/>
+        <line num="110" count="1" type="stmt"/>
+        <line num="117" count="3" type="stmt"/>
+        <line num="118" count="3" type="stmt"/>
+        <line num="123" count="3" type="cond" truecount="3" falsecount="0"/>
+        <line num="124" count="2" type="stmt"/>
+        <line num="127" count="1" type="stmt"/>
+        <line num="132" count="1" type="stmt"/>
+        <line num="136" count="3" type="stmt"/>
+        <line num="141" count="3" type="cond" truecount="4" falsecount="0"/>
+        <line num="142" count="2" type="stmt"/>
+        <line num="145" count="1" type="stmt"/>
+        <line num="156" count="1" type="stmt"/>
+        <line num="160" count="2" type="stmt"/>
+        <line num="161" count="2" type="stmt"/>
+        <line num="163" count="2" type="cond" truecount="1" falsecount="0"/>
+        <line num="164" count="1" type="stmt"/>
+        <line num="165" count="1" type="stmt"/>
+        <line num="172" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="173" count="1" type="stmt"/>
+        <line num="176" count="2" type="stmt"/>
+        <line num="182" count="2" type="stmt"/>
+        <line num="187" count="2" type="cond" truecount="4" falsecount="0"/>
+        <line num="188" count="1" type="stmt"/>
+        <line num="191" count="1" type="stmt"/>
+        <line num="193" count="1" type="stmt"/>
+        <line num="208" count="1" type="stmt"/>
+        <line num="212" count="2" type="stmt"/>
+        <line num="218" count="2" type="stmt"/>
+        <line num="219" count="2" type="stmt"/>
+        <line num="221" count="2" type="cond" truecount="1" falsecount="1"/>
+        <line num="225" count="2" type="stmt"/>
+        <line num="227" count="2" type="cond" truecount="1" falsecount="1"/>
+        <line num="229" count="2" type="stmt"/>
+        <line num="237" count="2" type="stmt"/>
       </file>
     </package>
   </project>

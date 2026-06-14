@@ -60,3 +60,15 @@ export class TooManyRequestsError extends AppError {
     super(message, 'TOO_MANY_REQUESTS', 429);
   }
 }
+
+export class InvalidCredentialsError extends AppError {
+  constructor(message = 'Email or password incorrect') {
+    super(message, 'INVALID_CREDENTIALS', 401);
+  }
+}
+
+export class BadRequestError extends AppError {
+  constructor(message: string) {
+    super(message, 'BAD_REQUEST', 400);
+  }
+}

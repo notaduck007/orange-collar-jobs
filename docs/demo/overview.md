@@ -1,6 +1,6 @@
 # WarehouseJobs.com — Platform API Overview
 
-> **Version**: 1.0.1 &nbsp;|&nbsp; **Date**: 2026-06-13 &nbsp;|&nbsp; **Status**: Phase 1 Complete — Phase 2 Pending Approval
+> **Version**: 1.0.1 &nbsp;|&nbsp; **Date**: 2026-06-13 &nbsp;|&nbsp; **Status**: Phase 1 complete · Phase 2 complete · Phase 3 pending
 >
 > **SwaggerHub**: [redbonzai/warehousejobs-api](https://app.swaggerhub.com/apis/redbonzai/warehousejobs-api/1.0.0)
 

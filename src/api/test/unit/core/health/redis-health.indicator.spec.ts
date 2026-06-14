@@ -33,4 +33,12 @@ describe('RedisHealthIndicator', () => {
     await expect(indicator.isHealthy('redis')).rejects.toThrow();
     expect(quit).toHaveBeenCalled();
   });
+
+  it('throws when PING fails even if quit fails on cleanup', async () => {
+    ping.mockRejectedValue(new Error('connection refused'));
+    quit.mockRejectedValue(new Error('quit failed'));
+    const indicator = new RedisHealthIndicator(config);
+    await expect(indicator.isHealthy('redis')).rejects.toThrow();
+    expect(quit).toHaveBeenCalled();
+  });
 });

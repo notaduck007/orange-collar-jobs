@@ -146,8 +146,23 @@ Testing is mandatory before merge and before phase quality gates.
 - Coverage ≥ **85%** line coverage for services before phase gate sign-off
 - Never commit with failing tests
 - No real external HTTP calls in unit or integration tests (use typed mocks)
+- **Phase backwards compatibility**: prior phase endpoints, tests, and demo scripts must keep passing — see [`docs/agent/standards/common/backwards-compatibility.md`](./docs/agent/standards/common/backwards-compatibility.md)
 
 Skill workflow: [`.cursor/skills/testing/SKILL.md`](./.cursor/skills/testing/SKILL.md)
+
+---
+
+## Phase Backwards Compatibility (Hard Rule)
+
+Each phase is **additive**. Deliverables from prior phases must continue to work unless an approved, versioned deprecation is documented in OpenAPI.
+
+Standards: [`docs/agent/standards/common/backwards-compatibility.md`](./docs/agent/standards/common/backwards-compatibility.md)
+
+**Mandatory for every phase**:
+- Automated `phase1-backwards-compat` (or cumulative) E2E tests pass
+- `./scripts/phase{N}-demo.sh` includes prior-phase smoke (e.g. `GET /api/health`)
+- `docs/demo/phase{N}-demo.md` documents Postman + frontend visual inspection
+- `bun run api:validate` passes
 
 ---
 
@@ -206,6 +221,7 @@ Agents may **not** skip gates, bypass CI, or merge with known failures.
 |---|---|
 | Module layout & barrels | [`.cursor/skills/module-design-pattern/SKILL.md`](./.cursor/skills/module-design-pattern/SKILL.md) |
 | Canonical types | [`docs/agent/standards/common/canonical-types.md`](./docs/agent/standards/common/canonical-types.md) |
+| Phase backwards compatibility | [`docs/agent/standards/common/backwards-compatibility.md`](./docs/agent/standards/common/backwards-compatibility.md) |
 | TypeScript rules | [`docs/agent/standards/common/typescript.md`](./docs/agent/standards/common/typescript.md) |
 | Naming conventions | [`docs/agent/standards/common/naming.md`](./docs/agent/standards/common/naming.md) |
 | Anti-patterns | [`docs/agent/standards/common/anti-patterns.md`](./docs/agent/standards/common/anti-patterns.md) |

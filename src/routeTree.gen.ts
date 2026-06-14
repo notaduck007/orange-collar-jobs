@@ -9,14 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VerifyEmailRouteImport } from './routes/verify-email'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SeekerRouteImport } from './routes/seeker'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as MissionRouteImport } from './routes/mission'
 import { Route as LlmsDottxtRouteImport } from './routes/llms[.]txt'
 import { Route as JobsDotjsonRouteImport } from './routes/jobs[.]json'
 import { Route as JobsRouteImport } from './routes/jobs'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as EmployerRouteImport } from './routes/employer'
 import { Route as ContactRouteImport } from './routes/contact'
@@ -61,6 +64,11 @@ import { Route as BillingReceiptOrderIdRouteImport } from './routes/billing.rece
 import { Route as EmployerJobsIdEditRouteImport } from './routes/employer.jobs.$id.edit'
 import { Route as EmployerJobsIdApplicantsRouteImport } from './routes/employer.jobs.$id.applicants'
 
+const VerifyEmailRoute = VerifyEmailRouteImport.update({
+  id: '/verify-email',
+  path: '/verify-email',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
@@ -69,6 +77,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const SeekerRoute = SeekerRouteImport.update({
   id: '/seeker',
   path: '/seeker',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -99,6 +112,11 @@ const JobsDotjsonRoute = JobsDotjsonRouteImport.update({
 const JobsRoute = JobsRouteImport.update({
   id: '/jobs',
   path: '/jobs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FaqRoute = FaqRouteImport.update({
@@ -327,14 +345,17 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/employer': typeof EmployerRouteWithChildren
   '/faq': typeof FaqRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/jobs': typeof JobsRouteWithChildren
   '/jobs.json': typeof JobsDotjsonRoute
   '/llms.txt': typeof LlmsDottxtRoute
   '/mission': typeof MissionRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/seeker': typeof SeekerRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/verify-email': typeof VerifyEmailRoute
   '/admin/ads': typeof AdminAdsRoute
   '/admin/billing': typeof AdminBillingRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -378,13 +399,16 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/jobs': typeof JobsRouteWithChildren
   '/jobs.json': typeof JobsDotjsonRoute
   '/llms.txt': typeof LlmsDottxtRoute
   '/mission': typeof MissionRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/verify-email': typeof VerifyEmailRoute
   '/admin/ads': typeof AdminAdsRoute
   '/admin/billing': typeof AdminBillingRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -431,14 +455,17 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/employer': typeof EmployerRouteWithChildren
   '/faq': typeof FaqRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/jobs': typeof JobsRouteWithChildren
   '/jobs.json': typeof JobsDotjsonRoute
   '/llms.txt': typeof LlmsDottxtRoute
   '/mission': typeof MissionRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/seeker': typeof SeekerRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/verify-email': typeof VerifyEmailRoute
   '/admin/ads': typeof AdminAdsRoute
   '/admin/billing': typeof AdminBillingRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -486,14 +513,17 @@ export interface FileRouteTypes {
     | '/contact'
     | '/employer'
     | '/faq'
+    | '/forgot-password'
     | '/jobs'
     | '/jobs.json'
     | '/llms.txt'
     | '/mission'
     | '/pricing'
     | '/privacy'
+    | '/reset-password'
     | '/seeker'
     | '/sitemap.xml'
+    | '/verify-email'
     | '/admin/ads'
     | '/admin/billing'
     | '/admin/categories'
@@ -537,13 +567,16 @@ export interface FileRouteTypes {
     | '/auth'
     | '/contact'
     | '/faq'
+    | '/forgot-password'
     | '/jobs'
     | '/jobs.json'
     | '/llms.txt'
     | '/mission'
     | '/pricing'
     | '/privacy'
+    | '/reset-password'
     | '/sitemap.xml'
+    | '/verify-email'
     | '/admin/ads'
     | '/admin/billing'
     | '/admin/categories'
@@ -589,14 +622,17 @@ export interface FileRouteTypes {
     | '/contact'
     | '/employer'
     | '/faq'
+    | '/forgot-password'
     | '/jobs'
     | '/jobs.json'
     | '/llms.txt'
     | '/mission'
     | '/pricing'
     | '/privacy'
+    | '/reset-password'
     | '/seeker'
     | '/sitemap.xml'
+    | '/verify-email'
     | '/admin/ads'
     | '/admin/billing'
     | '/admin/categories'
@@ -643,14 +679,17 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   EmployerRoute: typeof EmployerRouteWithChildren
   FaqRoute: typeof FaqRoute
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
   JobsRoute: typeof JobsRouteWithChildren
   JobsDotjsonRoute: typeof JobsDotjsonRoute
   LlmsDottxtRoute: typeof LlmsDottxtRoute
   MissionRoute: typeof MissionRoute
   PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   SeekerRoute: typeof SeekerRouteWithChildren
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  VerifyEmailRoute: typeof VerifyEmailRoute
   CompaniesSlugRoute: typeof CompaniesSlugRoute
   DevDiagnosticsRoute: typeof DevDiagnosticsRoute
   WarehouseJobsCitySlugRoute: typeof WarehouseJobsCitySlugRoute
@@ -659,6 +698,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/verify-email': {
+      id: '/verify-email'
+      path: '/verify-email'
+      fullPath: '/verify-email'
+      preLoaderRoute: typeof VerifyEmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
@@ -671,6 +717,13 @@ declare module '@tanstack/react-router' {
       path: '/seeker'
       fullPath: '/seeker'
       preLoaderRoute: typeof SeekerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -713,6 +766,13 @@ declare module '@tanstack/react-router' {
       path: '/jobs'
       fullPath: '/jobs'
       preLoaderRoute: typeof JobsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/faq': {
@@ -1126,14 +1186,17 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   EmployerRoute: EmployerRouteWithChildren,
   FaqRoute: FaqRoute,
+  ForgotPasswordRoute: ForgotPasswordRoute,
   JobsRoute: JobsRouteWithChildren,
   JobsDotjsonRoute: JobsDotjsonRoute,
   LlmsDottxtRoute: LlmsDottxtRoute,
   MissionRoute: MissionRoute,
   PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   SeekerRoute: SeekerRouteWithChildren,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  VerifyEmailRoute: VerifyEmailRoute,
   CompaniesSlugRoute: CompaniesSlugRoute,
   DevDiagnosticsRoute: DevDiagnosticsRoute,
   WarehouseJobsCitySlugRoute: WarehouseJobsCitySlugRoute,
