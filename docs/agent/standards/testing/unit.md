@@ -2,7 +2,7 @@
 
 ## Rules
 
-- **Unit tests live in `src/api/test/unit/**` and mirror the `src/` tree** (`core/`, `domains/`, `scripts/`). Do **not** co-locate `*.spec.ts` next to source files.
+- **Unit tests live in `src/api/test/unit/**`and mirror the`src/` tree** (`core/`, `domains/`, `scripts/`). Do **not** co-locate `\*.spec.ts` next to source files.
 - Import the unit under test via path aliases (`@core/*`, `@domains/*`) so the spec is independent of its physical location.
 - Run with `bun run test` (config: `test/jest-unit.json`, `testMatch: test/unit/**/*.spec.ts`).
 - Mock ALL external dependencies — no real DB, no real Redis, no real HTTP
@@ -24,13 +24,13 @@ For each public method, write at least one test per category:
 
 ```typescript
 // test/unit/domains/jobs/jobs.service.spec.ts
-import { createMock } from 'jest-mock-extended';
-import { JobsService } from '@domains/jobs/jobs.service';
-import { PrismaService } from '@core/database';
-import { NotFoundError, ConflictError } from '@core/error';
-import { makeJob, makeCreateJobDto, makeUser } from 'test/helpers/factories';
+import { createMock } from "jest-mock-extended";
+import { JobsService } from "@domains/jobs/jobs.service";
+import { PrismaService } from "@core/database";
+import { NotFoundError, ConflictError } from "@core/error";
+import { makeJob, makeCreateJobDto, makeUser } from "test/helpers/factories";
 
-describe('JobsService', () => {
+describe("JobsService", () => {
   let service: JobsService;
   let prisma: ReturnType<typeof createMock<PrismaService>>;
 
@@ -41,10 +41,10 @@ describe('JobsService', () => {
 
   afterEach(() => jest.clearAllMocks());
 
-  describe('create', () => {
-    it('creates a job and returns it', async () => {
+  describe("create", () => {
+    it("creates a job and returns it", async () => {
       const dto = makeCreateJobDto();
-      const user = makeUser({ role: 'admin' });
+      const user = makeUser({ role: "admin" });
       const expected = makeJob({ title: dto.title });
       prisma.job.create.mockResolvedValue(expected);
 
@@ -56,9 +56,9 @@ describe('JobsService', () => {
       );
     });
 
-    it('throws ForbiddenError when vendor tries to post for another company', async () => {
-      const dto = makeCreateJobDto({ companyId: 'other-company-id' });
-      const user = makeUser({ role: 'vendor', companyId: 'my-company-id' });
+    it("throws ForbiddenError when vendor tries to post for another company", async () => {
+      const dto = makeCreateJobDto({ companyId: "other-company-id" });
+      const user = makeUser({ role: "vendor", companyId: "my-company-id" });
 
       await expect(service.create(dto, user)).rejects.toBeInstanceOf(ForbiddenError);
     });
@@ -70,16 +70,16 @@ describe('JobsService', () => {
 
 ```typescript
 // test/helpers/factories/job.factory.ts
-import { v4 as uuid } from 'uuid';
-import type { Job } from '@domains/jobs';
+import { v4 as uuid } from "uuid";
+import type { Job } from "@domains/jobs";
 
 export function makeJob(overrides: Partial<Job> = {}): Job {
   return {
-    id: 'job-00000000-0000-0000-0000-000000000001',
-    title: 'Test Forklift Operator',
-    slug: 'test-forklift-operator-dallas-tx',
-    status: 'active',
-    sourceType: 'direct',
+    id: "job-00000000-0000-0000-0000-000000000001",
+    title: "Test Forklift Operator",
+    slug: "test-forklift-operator-dallas-tx",
+    status: "active",
+    sourceType: "direct",
     // ... all required fields with stable defaults
     ...overrides,
   };

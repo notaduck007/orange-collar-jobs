@@ -39,10 +39,10 @@ src/api/src/core/{capability}/
 
 ```typescript
 @Module({
-  imports: [DatabaseModule, ConfigModule],  // only what this module needs
+  imports: [DatabaseModule, ConfigModule], // only what this module needs
   providers: [JobsService, JobSlugService],
   controllers: [JobsController],
-  exports: [JobsService],                    // only what other modules need
+  exports: [JobsService], // only what other modules need
 })
 export class JobsModule {}
 ```
@@ -51,8 +51,8 @@ export class JobsModule {}
 
 ```typescript
 // index.ts — export only what other modules may import
-export { JobsService } from './JobsService';
-export type { Job, JobSummary } from './types';
+export { JobsService } from "./JobsService";
+export type { Job, JobSummary } from "./types";
 // Do NOT export: DTOs, internal helpers, controller
 ```
 

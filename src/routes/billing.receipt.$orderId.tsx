@@ -80,7 +80,9 @@ function ReceiptPage() {
       <div className="mb-6 flex items-start justify-between border-b border-border pb-4">
         <div>
           <p className="text-xs uppercase tracking-widest text-muted-foreground">Receipt</p>
-          <h1 className="mt-1 text-2xl font-bold">Warehouse<span className="text-primary">jobs.com</span></h1>
+          <h1 className="mt-1 text-2xl font-bold">
+            Warehouse<span className="text-primary">jobs.com</span>
+          </h1>
         </div>
         <div className="text-right">
           <p className="text-xs uppercase tracking-widest text-muted-foreground">Invoice</p>

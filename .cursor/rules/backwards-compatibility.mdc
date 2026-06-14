@@ -1,0 +1,21 @@
+---
+description: Mandatory phase backwards compatibility — prior endpoints, tests, and demos must keep working
+alwaysApply: true
+---
+
+# Phase Backwards Compatibility (mandatory)
+
+Every phase must **not break** prior phase deliverables. Full standard: [`docs/agent/standards/common/backwards-compatibility.md`](../../docs/agent/standards/common/backwards-compatibility.md).
+
+## Hard requirements
+
+- **API**: Additive changes only at `/api/v1/*`; `GET /api/health` and `GET /api/v1/me` (Phase 1) must keep working.
+- **Tests**: New phase tests + update `test/e2e/phase1-backwards-compat.e2e-spec.ts` (or phase-specific compat suite).
+- **Demos**: `scripts/phase{N}-demo.sh` must include Phase 1 health smoke; `docs/demo/phase{N}-demo.md` must cover Postman + frontend inspection.
+- **OpenAPI**: `bun run api:validate` must pass before phase sign-off.
+
+## STOP if
+
+- A prior-phase endpoint returns unexpected status or shape without approved deprecation.
+- Phase demo script passes but Phase 1 smoke fails.
+- Postman Phase 1 requests break.

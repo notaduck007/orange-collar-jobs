@@ -6,20 +6,20 @@ on:
   push:
     branches: [main]
     paths:
-      - 'docs/api/openapi.yaml'
+      - "docs/api/openapi.yaml"
   workflow_dispatch:
     inputs:
       bump:
-        description: 'Auto-bump version before publishing (leave blank to use version already in YAML)'
+        description: "Auto-bump version before publishing (leave blank to use version already in YAML)"
         type: choice
-        options: ['', patch, minor, major]
-        default: ''
+        options: ["", patch, minor, major]
+        default: ""
       version:
-        description: 'Explicit version override (e.g. 1.2.0). Ignored when bump is set.'
+        description: "Explicit version override (e.g. 1.2.0). Ignored when bump is set."
         required: false
-        default: ''
+        default: ""
       dry_run:
-        description: 'Dry run — validate and print curl command, but do not push'
+        description: "Dry run — validate and print curl command, but do not push"
         type: boolean
         default: false
 

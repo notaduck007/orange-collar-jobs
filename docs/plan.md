@@ -10,6 +10,7 @@
 ## How to Read This Document
 
 Each phase contains:
+
 - **Objective** — what the phase achieves
 - **Deliverable** — the demo-ready or gate artifact
 - **Tasks** — fully specified implementation units, each with:
@@ -25,11 +26,11 @@ No phase begins until the prior phase's quality gate is cleared.
 
 ## Personas
 
-| Persona | Responsibility |
-|---|---|
-| **Senior Engineer** | Architecture, contracts (YAML), module design, complex orchestration, security |
-| **Mid Engineer** | CRUD services, DTOs, Prisma models, controllers, unit tests in test/unit/ (mirroring src/) |
-| **QA Tester** | Integration tests, E2E tests, coverage reports, phase gate sign-off |
+| Persona             | Responsibility                                                                             |
+| ------------------- | ------------------------------------------------------------------------------------------ |
+| **Senior Engineer** | Architecture, contracts (YAML), module design, complex orchestration, security             |
+| **Mid Engineer**    | CRUD services, DTOs, Prisma models, controllers, unit tests in test/unit/ (mirroring src/) |
+| **QA Tester**       | Integration tests, E2E tests, coverage reports, phase gate sign-off                        |
 
 Full persona definitions: `docs/agent/personas/`
 
@@ -37,16 +38,16 @@ Full persona definitions: `docs/agent/personas/`
 
 ## Skills Reference
 
-| Skill | File |
-|---|---|
-| Coding Conventions | `.cursor/skills/coding-conventions/SKILL.md` |
-| Module Design Pattern | `.cursor/skills/module-design-pattern/SKILL.md` |
-| Interface Designer | `.cursor/skills/interface-designer/SKILL.md` |
-| Domain-Driven Design | `.cursor/skills/domain-driven-design/SKILL.md` |
-| Canonical Type Reuse | `.cursor/skills/canonical-type-reuse/SKILL.md` |
-| Testing | `.cursor/skills/testing/SKILL.md` |
-| Create PR | `.cursor/skills/create-pr/SKILL.md` |
-| CI Monitoring | `.cursor/skills/ci-monitoring-subagents/SKILL.md` |
+| Skill                 | File                                              |
+| --------------------- | ------------------------------------------------- |
+| Coding Conventions    | `.cursor/skills/coding-conventions/SKILL.md`      |
+| Module Design Pattern | `.cursor/skills/module-design-pattern/SKILL.md`   |
+| Interface Designer    | `.cursor/skills/interface-designer/SKILL.md`      |
+| Domain-Driven Design  | `.cursor/skills/domain-driven-design/SKILL.md`    |
+| Canonical Type Reuse  | `.cursor/skills/canonical-type-reuse/SKILL.md`    |
+| Testing               | `.cursor/skills/testing/SKILL.md`                 |
+| Create PR             | `.cursor/skills/create-pr/SKILL.md`               |
+| CI Monitoring         | `.cursor/skills/ci-monitoring-subagents/SKILL.md` |
 
 ---
 
@@ -113,6 +114,7 @@ Establish the full documentation foundation: engineering constitution, agent orc
 **Description**: Adapt the openclaw-pilot documentation structure to the WarehouseJobs use-case.
 
 **Files to create**:
+
 - `CLAUDE.md` — engineering constitution
 - `AGENTS.md` — agent orchestration model
 - `docs/plan.md` — this document
@@ -123,6 +125,7 @@ Establish the full documentation foundation: engineering constitution, agent orc
 - `docs/agent/analysis/architecture.md` — WJ architecture
 
 **Acceptance Criteria**:
+
 - All source-precedence references in `CLAUDE.md` resolve to existing files
 - Agent task index covers all task types expected during implementation phases
 - `AGENTS.md` specifies all 5 agent roles with skills and collaboration patterns
@@ -139,6 +142,7 @@ Establish the full documentation foundation: engineering constitution, agent orc
 **SwaggerHub**: `https://app.swaggerhub.com/apis/redbonzai/warehousejobs-api/1.0.0`
 
 **Endpoints covered** (27 total):
+
 - System: `GET /api/health`, `GET /api/v1/me`
 - Auth: register, login, logout, refresh, verify-email, forgot-password, reset-password (7)
 - Jobs: POST, GET (search), GET /:slug, PATCH /:id, DELETE /:id (5)
@@ -148,6 +152,7 @@ Establish the full documentation foundation: engineering constitution, agent orc
 - Admin: GET jobs, PATCH feature, POST ads, GET ads, GET stats (5)
 
 **Acceptance Criteria**:
+
 - YAML validates with no errors against OpenAPI 3.0.3 schema
 - Spec published to SwaggerHub under `redbonzai` org
 - All schemas include examples
@@ -162,7 +167,7 @@ Establish the full documentation foundation: engineering constitution, agent orc
 - [x] `CLAUDE.md`, `AGENTS.md`, `docs/plan.md` created and interconnected
 - [x] `.cursor/rules/` — 10 rule files (`constitution-core`, `typescript`, `testing-unit`, `testing-integration`, `testing-e2e`, `modules`, `security`, `anti-patterns`, `naming`, `canonical-types`)
 - [x] `.cursor/skills/` — 9 skill files (`coding-conventions`, `module-design-pattern`, `testing`, `interface-designer`, `domain-driven-design`, `canonical-type-reuse`, `create-pr`, `ci-monitoring-subagents`, `deployments-github-actions`)
-- [x] `docs/agent/standards/` — AGENT-TASK-INDEX + 8 standards docs (common/*, testing/*)
+- [x] `docs/agent/standards/` — AGENT-TASK-INDEX + 8 standards docs (common/_, testing/_)
 - [x] `docs/agent/personas/` — 3 personas (api-architect, backend-engineer, quality-sentinel)
 - [x] `docs/agent/analysis/architecture.md` — full WJ architecture doc
 - [x] `docs/api/openapi.yaml` — 27 endpoints, OpenAPI 3.0.3, 1,609 lines
@@ -185,6 +190,7 @@ Establish the full documentation foundation: engineering constitution, agent orc
 **Skills**: Module Design Pattern, Coding Conventions
 
 **Detailed Steps**:
+
 1. Initialize `src/api/` as a self-contained NestJS app:
    - `nest new warehousejobs-api --package-manager npm` (or bun equivalent)
    - Move output into `src/api/`
@@ -203,6 +209,7 @@ Establish the full documentation foundation: engineering constitution, agent orc
 9. Configure Jest at `src/api/jest.config.js` (+ `test/jest-unit.json`, `jest-integration.json`, `jest-e2e.json`); unit specs live in `test/unit/**` mirroring `src/`
 
 **Acceptance Criteria**:
+
 - `npm run start:dev` starts without errors
 - ESLint passes with zero violations
 - `docker-compose up` starts Postgres, Redis, MinIO with health checks passing
@@ -217,6 +224,7 @@ Establish the full documentation foundation: engineering constitution, agent orc
 **Skills**: Module Design Pattern, Canonical Type Reuse
 
 **Detailed Steps**:
+
 1. Initialize Prisma: `npx prisma init` inside `src/api/`
 2. Write `prisma/schema.prisma` — full schema matching existing Supabase tables + new fields:
    - Add to `jobs`: `sourceType JobSourceType`, `externalId String?`, `sourceUrl String?`
@@ -230,6 +238,7 @@ Establish the full documentation foundation: engineering constitution, agent orc
 5. Run initial migration: `npx prisma migrate dev --name init`
 
 **Acceptance Criteria**:
+
 - `PrismaService` connects to Docker Compose Postgres
 - All migrations apply cleanly
 - `PrismaService` injectable without re-importing `DatabaseModule`
@@ -243,6 +252,7 @@ Establish the full documentation foundation: engineering constitution, agent orc
 **Skills**: Coding Conventions, Module Design Pattern
 
 **Modules to create**:
+
 1. **ConfigModule** (`src/core/config/`) — Zod schema, validates all env vars on boot
 2. **LoggingModule** (`src/core/logging/`) — Pino JSON in prod, pretty-print in dev, `requestId` on every request
 3. **ErrorModule** (`src/core/error/`) — `AppError`, `NotFoundError`, `ValidationError`, `UnauthorizedError`, `ForbiddenError`, `ConflictError`; `GlobalExceptionFilter` maps to HTTP codes
@@ -251,6 +261,7 @@ Establish the full documentation foundation: engineering constitution, agent orc
 6. **QueueModule** (`src/core/queue/`) — BullMQ connection via Redis
 
 **Acceptance Criteria**:
+
 - `GET /api/health` returns `{ status: "ok", db: "up", redis: "up", storage: "up" }`
 - Throwing `NotFoundError` returns HTTP 404 with `{ code: "NOT_FOUND", message: "..." }`
 - All request logs include `requestId`, method, path, status, duration
@@ -266,6 +277,7 @@ Establish the full documentation foundation: engineering constitution, agent orc
 **File**: `.github/workflows/ci.yml`
 
 **Workflow steps**:
+
 1. Checkout
 2. Setup Node 24
 3. Install dependencies (`npm ci` in `src/api/`)
@@ -279,6 +291,7 @@ Establish the full documentation foundation: engineering constitution, agent orc
 11. `npm run test:cov` — fail if < 85% line coverage
 
 **Acceptance Criteria**:
+
 - CI passes green on the main branch
 - Integration and E2E tests run against the Docker Compose services in CI
 - Coverage report uploaded as a CI artifact
@@ -291,6 +304,7 @@ Establish the full documentation foundation: engineering constitution, agent orc
 **Skills**: Testing
 
 **Tests to write**:
+
 - Unit: `PrismaService` mock connection lifecycle
 - Unit: `GlobalExceptionFilter` maps all error types to correct HTTP status
 - Unit: `StorageService` upload / signed-URL generation (mocked S3 client)
@@ -298,6 +312,7 @@ Establish the full documentation foundation: engineering constitution, agent orc
 - Integration: Config validation fails on missing required env vars
 
 **Acceptance Criteria**:
+
 - All tests pass
 - `GET /api/health` integration test confirms all three dependency checks
 
@@ -306,6 +321,7 @@ Establish the full documentation foundation: engineering constitution, agent orc
 ### Phase 1 Quality Gate
 
 Before Phase 2 begins:
+
 - [ ] `npm run start:dev` starts without errors or warnings
 - [ ] `npm run lint` passes with zero violations
 - [ ] `GET /api/health` returns 200 with all dependencies healthy
@@ -329,6 +345,7 @@ Before Phase 2 begins:
 **Endpoints**: `POST /auth/register`, `POST /auth/login`, `POST /auth/logout`, `POST /auth/refresh`
 
 **Detailed Steps**:
+
 1. Create `src/domains/auth/dtos/RegisterDto.ts`, `LoginDto.ts`, `RefreshTokenDto.ts`
 2. Create `src/domains/auth/AuthService.ts`:
    - `register(dto)` — hashes password with `bcryptjs`, inserts `users` row, queues verification email
@@ -340,6 +357,7 @@ Before Phase 2 begins:
 5. Create `src/domains/auth/AuthController.ts`
 
 **Acceptance Criteria**:
+
 - `POST /auth/register` creates user, returns 201 with `userId`
 - `POST /auth/login` returns `accessToken`, `refreshToken`, `expiresIn`
 - `POST /auth/refresh` rotates tokens correctly
@@ -356,6 +374,7 @@ Before Phase 2 begins:
 **Endpoints**: `POST /auth/verify-email`, `POST /auth/forgot-password`, `POST /auth/reset-password`
 
 **Detailed Steps**:
+
 1. Create `EmailService` in `src/core/` — wraps Resend (or SendGrid) via env `EMAIL_PROVIDER`
 2. Verification flow:
    - On register: insert `email_verifications` row with 24h expiry, send link
@@ -365,6 +384,7 @@ Before Phase 2 begins:
    - `reset-password`: validate token, hash new password, revoke all refresh tokens
 
 **Acceptance Criteria**:
+
 - Verification token expires after 24h; expired token returns 400
 - `forgot-password` returns 200 even for unregistered emails (prevents enumeration)
 - Password reset revokes all existing refresh tokens for the user
@@ -377,6 +397,7 @@ Before Phase 2 begins:
 **Owner**: QA Tester
 
 **Tests**:
+
 - Unit: `AuthService.register()` — happy path, duplicate email, password hashing
 - Unit: `AuthService.login()` — valid credentials, invalid credentials, unverified email
 - Unit: token refresh rotation, revocation
@@ -395,6 +416,12 @@ Before Phase 2 begins:
 - [ ] Email verification flow: unverified user cannot access protected endpoints
 - [ ] All auth unit + integration + E2E tests pass
 - [ ] Coverage ≥ 85% for `AuthService` and `AuthController`
+- [ ] Phase 1 backwards-compat tests pass (`phase1-backwards-compat` E2E + integration)
+- [ ] `./scripts/phase2-demo.sh` passes; Phase 1 `GET /api/health` smoke included
+- [ ] `docs/demo/phase2-demo.md` Postman + frontend walkthrough complete
+- [ ] `bun run api:validate` passes
+
+See [`docs/agent/standards/common/backwards-compatibility.md`](./agent/standards/common/backwards-compatibility.md).
 
 ---
 
@@ -411,6 +438,7 @@ Before Phase 2 begins:
 **Endpoints**: `POST /jobs`, `GET /jobs`, `GET /jobs/:slug`, `PATCH /jobs/:id`, `DELETE /jobs/:id`
 
 **Detailed Steps**:
+
 1. Create DTOs: `CreateJobDto`, `UpdateJobDto`, `JobSearchDto`
 2. Create `JobsService`:
    - `create(dto, user)` — role-gated: admin can specify any `companyId`; vendor uses their company
@@ -424,6 +452,7 @@ Before Phase 2 begins:
 4. Handle screening questions atomically on create
 
 **Acceptance Criteria**:
+
 - Vendor cannot post without a valid `companyPackageId` with remaining credits
 - Slug is URL-safe and unique
 - Search results: `direct`/`api` posts rank above `scraped` at same recency
@@ -436,6 +465,7 @@ Before Phase 2 begins:
 **Owner**: QA Tester
 
 **Tests**:
+
 - Unit: `JobsService.create()` — happy path (admin), happy path (vendor), insufficient credits
 - Unit: `JobsService.search()` — priority ordering, filters, pagination
 - Unit: slug generation uniqueness
@@ -468,12 +498,13 @@ Before Phase 2 begins:
 **Endpoints**: `POST /jobs/batch`, `GET /jobs/batch/:batchId/status`
 
 **Detailed Steps**:
+
 1. Create `BatchJobItemDto` — mirrors `BatchJobItem` schema in OpenAPI spec
 2. Create `BatchService`:
    - Parse JSON array or CSV (using `csv-parse`)
    - Validate each item with `class-validator`
    - ≤100 items: process synchronously, return `BatchStatus`
-   - >100 items: enqueue BullMQ job, return `BatchResponse` with `batchId` (202)
+   - > 100 items: enqueue BullMQ job, return `BatchResponse` with `batchId` (202)
 3. Create `BatchWorker` (BullMQ processor):
    - Process in chunks of 50
    - Dedup by `externalId`: skip if unchanged, update if content differs
@@ -483,6 +514,7 @@ Before Phase 2 begins:
 5. Add `batch_jobs` table to Prisma schema
 
 **Acceptance Criteria**:
+
 - 100-job JSON batch processed synchronously < 5 s
 - 1,000-job batch queued, processed < 30 s, status correctly polled
 - `externalId` deduplication: unchanged jobs counted as `skipped`, changed jobs as `updated`
@@ -496,6 +528,7 @@ Before Phase 2 begins:
 **Owner**: QA Tester
 
 **Tests**:
+
 - Unit: deduplication logic (same `externalId`, changed content)
 - Unit: CSV parsing — valid file, missing header, malformed row
 - Unit: BullMQ worker chunking and error collection
@@ -528,6 +561,7 @@ Before Phase 2 begins:
 **Endpoint**: `POST /jobs/:jobId/apply`
 
 **Detailed Steps**:
+
 1. Create `ApplyDto` — mirrors OpenAPI `ApplyRequest` schema
 2. `ApplicationsService.apply(jobId, dto, user?)`:
    - Unauthenticated: require `name` + `phone` in body
@@ -539,6 +573,7 @@ Before Phase 2 begins:
 3. Optional resume: if `resumeUrl` provided, store reference; no upload in apply path (upload handled separately via `POST /uploads/resume`)
 
 **Acceptance Criteria**:
+
 - Unauthenticated apply with name + phone + ZIP → 201 in < 3 s server time
 - Authenticated apply with missing required screening answers → 422
 - Duplicate apply → 409
@@ -554,12 +589,14 @@ Before Phase 2 begins:
 **Endpoints**: `GET /applications`, `GET /employer/applications`, `PATCH /applications/:id/status`
 
 **State machine**:
+
 - `new → reviewing → shortlisted → interview → offer → hired` (happy path)
 - `any → rejected` (employer action)
 - `any → withdrawn` (seeker action)
 - Invalid transitions → 400
 
 **Acceptance Criteria**:
+
 - Seeker sees only their own applications with correct status (fixes Blocker B2)
 - Employer sees only applications for their company's jobs
 - Status update writes an audit log entry
@@ -572,6 +609,7 @@ Before Phase 2 begins:
 **Owner**: QA Tester
 
 **Tests**:
+
 - Unit: `apply()` — unauthenticated, authenticated, duplicate, rate limit, screening validation
 - Unit: state machine — all valid transitions, all invalid transitions
 - Integration: full apply → view in seeker list → update status → view in employer pipeline
@@ -600,6 +638,7 @@ Before Phase 2 begins:
 **Endpoints**: `GET /admin/jobs`, `PATCH /admin/jobs/:id/feature`, `POST /admin/ads`, `GET /admin/ads`, `GET /admin/stats`
 
 **Detailed Steps**:
+
 1. `AdminJobsService`: paginated moderation queue, status filter, bulk status update
 2. `AdminFeatureService`: toggle featured flag + `featuredUntil` date
 3. `AdvertisementsService`: create campaign with slot + schedule + targeting; `status` lifecycle (active/paused/ended)
@@ -607,6 +646,7 @@ Before Phase 2 begins:
 5. Enforce `@Roles('admin')` on all admin routes
 
 **Acceptance Criteria**:
+
 - Non-admin JWT → 403 on all admin endpoints
 - `GET /admin/stats` returns accurate counts (verified by seeding test data)
 - Ad campaign creation with past `endDate` → 422
@@ -620,6 +660,7 @@ Before Phase 2 begins:
 **Endpoints**: `POST /companies`, `GET /companies/:slug`, `PATCH /companies/:id`
 
 **Acceptance Criteria**:
+
 - Vendor cannot update another company's profile → 403
 - Company slug is URL-safe and unique
 - Active job listings included in `GET /companies/:slug` response
@@ -631,6 +672,7 @@ Before Phase 2 begins:
 **Owner**: QA Tester
 
 **Tests**:
+
 - Unit + integration + E2E for all admin and company endpoints
 - RBAC: seeker and vendor tokens rejected on admin routes (403)
 - E2E: create company → post job as vendor → admin features it → admin sees in stats
@@ -656,6 +698,7 @@ Before Phase 2 begins:
 **Owner**: Senior Engineer
 
 **Steps**:
+
 1. Export all data from Supabase (users, companies, jobs, applications, etc.)
 2. Write `prisma/seeds/migrate-from-supabase.ts` — idempotent migration script
 3. Migrate users: create `users` rows from Supabase `auth.users` export; mark passwords as `REQUIRES_RESET`; set `migrationSource = supabase`
@@ -664,6 +707,7 @@ Before Phase 2 begins:
 6. Validate row counts match
 
 **Acceptance Criteria**:
+
 - Migration script is idempotent (safe to run multiple times)
 - All foreign key relationships preserved
 - User count in own DB matches Supabase export count
@@ -676,6 +720,7 @@ Before Phase 2 begins:
 **Owner**: Senior Engineer + Mid Engineer
 
 **Steps**:
+
 1. Replace all direct Supabase data calls in `src/` routes with NestJS API calls (fetch / axios)
 2. Replace Supabase auth (`@supabase/supabase-js`) with NestJS auth endpoints
 3. Replace `useAuth` hook — now reads JWT from localStorage, calls `/api/v1/me`
@@ -683,6 +728,7 @@ Before Phase 2 begins:
 5. Remove Supabase client dependencies from `src/` (keep if needed for auth only during transition)
 
 **Acceptance Criteria**:
+
 - Frontend makes zero direct Supabase Postgres calls
 - All existing frontend functionality works via NestJS API
 - E2E smoke test: register → verify → login → post job → apply → see applications
@@ -703,23 +749,23 @@ Before Phase 2 begins:
 
 All environment variables required by `src/api/`:
 
-| Variable | Description | Required |
-|---|---|---|
-| `DATABASE_URL` | PostgreSQL connection string | Yes |
-| `REDIS_URL` | Redis connection string | Yes |
-| `JWT_SECRET` | HS256 secret for access tokens | Yes |
-| `JWT_REFRESH_SECRET` | HS256 secret for refresh tokens | Yes |
-| `JWT_ACCESS_EXPIRES_IN` | Access token TTL (e.g. `15m`) | Yes |
-| `JWT_REFRESH_EXPIRES_IN` | Refresh token TTL (e.g. `30d`) | Yes |
-| `STORAGE_ENDPOINT` | MinIO or R2 endpoint URL | Yes |
-| `STORAGE_BUCKET` | Storage bucket name | Yes |
-| `STORAGE_ACCESS_KEY` | S3-compatible access key | Yes |
-| `STORAGE_SECRET_KEY` | S3-compatible secret key | Yes |
-| `EMAIL_PROVIDER` | `resend` or `sendgrid` | Yes |
-| `EMAIL_API_KEY` | Email provider API key | Yes |
-| `EMAIL_FROM` | Sender address | Yes |
-| `API_KEY_HASH` | bcrypt hash of the batch ingestion API key | Yes |
-| `LOG_LEVEL` | `debug`, `info`, `warn`, `error` | No (default: `info`) |
-| `NODE_ENV` | `development`, `test`, `production` | Yes |
-| `PORT` | NestJS listen port | No (default: `3001`) |
-| `SWAGGER_API_KEY` | SwaggerHub API key for spec publishing | No (CI only) |
+| Variable                 | Description                                | Required             |
+| ------------------------ | ------------------------------------------ | -------------------- |
+| `DATABASE_URL`           | PostgreSQL connection string               | Yes                  |
+| `REDIS_URL`              | Redis connection string                    | Yes                  |
+| `JWT_SECRET`             | HS256 secret for access tokens             | Yes                  |
+| `JWT_REFRESH_SECRET`     | HS256 secret for refresh tokens            | Yes                  |
+| `JWT_ACCESS_EXPIRES_IN`  | Access token TTL (e.g. `15m`)              | Yes                  |
+| `JWT_REFRESH_EXPIRES_IN` | Refresh token TTL (e.g. `30d`)             | Yes                  |
+| `STORAGE_ENDPOINT`       | MinIO or R2 endpoint URL                   | Yes                  |
+| `STORAGE_BUCKET`         | Storage bucket name                        | Yes                  |
+| `STORAGE_ACCESS_KEY`     | S3-compatible access key                   | Yes                  |
+| `STORAGE_SECRET_KEY`     | S3-compatible secret key                   | Yes                  |
+| `EMAIL_PROVIDER`         | `resend` or `sendgrid`                     | Yes                  |
+| `EMAIL_API_KEY`          | Email provider API key                     | Yes                  |
+| `EMAIL_FROM`             | Sender address                             | Yes                  |
+| `API_KEY_HASH`           | bcrypt hash of the batch ingestion API key | Yes                  |
+| `LOG_LEVEL`              | `debug`, `info`, `warn`, `error`           | No (default: `info`) |
+| `NODE_ENV`               | `development`, `test`, `production`        | Yes                  |
+| `PORT`                   | NestJS listen port                         | No (default: `3001`) |
+| `SWAGGER_API_KEY`        | SwaggerHub API key for spec publishing     | No (CI only)         |

@@ -20,15 +20,15 @@ You operate as **Agent 1: Architecture & Contracts Agent** per `AGENTS.md`.
 
 ## Professional Profile
 
-| Attribute | Standard |
-|---|---|
-| Experience | 10+ years in backend and distributed systems engineering |
-| Frameworks | NestJS (expert), Express, Fastify, gRPC |
-| Languages | TypeScript (expert), Go, Python |
-| Databases | PostgreSQL (expert), Redis, MongoDB, DynamoDB |
-| Patterns | DDD, CQRS, Clean Architecture, Hexagonal Architecture, Event Sourcing |
-| Testing | Knows where integration-level contracts belong vs. unit-level isolation |
-| Mentorship | Routinely reviews mid-level PRs; explains "why," not just "what" |
+| Attribute  | Standard                                                                |
+| ---------- | ----------------------------------------------------------------------- |
+| Experience | 10+ years in backend and distributed systems engineering                |
+| Frameworks | NestJS (expert), Express, Fastify, gRPC                                 |
+| Languages  | TypeScript (expert), Go, Python                                         |
+| Databases  | PostgreSQL (expert), Redis, MongoDB, DynamoDB                           |
+| Patterns   | DDD, CQRS, Clean Architecture, Hexagonal Architecture, Event Sourcing   |
+| Testing    | Knows where integration-level contracts belong vs. unit-level isolation |
+| Mentorship | Routinely reviews mid-level PRs; explains "why," not just "what"        |
 
 ---
 
@@ -92,15 +92,15 @@ When faced with an architectural decision, apply this sequence:
 
 ## Anti-Patterns to Reject in Any Review
 
-| Anti-Pattern | Correct Approach |
-|---|---|
-| Business logic in a controller | Move to the domain service |
-| Cross-domain service injection | Expose via a Core module or pub/sub event |
-| Inline `interface Foo {}` duplicating an existing canonical type | Import from `src/core/` barrel |
-| `any` type in service return signatures | Define an explicit interface |
-| `@Module` importing an internal file from another domain | Consume the domain's barrel (`index.ts`) |
-| Response shape not matching `openapi.yaml` | Fix the implementation, not the test |
-| Unbounded query without `PaginatedResult<T>` | Paginate via cursor or offset from the start |
+| Anti-Pattern                                                     | Correct Approach                             |
+| ---------------------------------------------------------------- | -------------------------------------------- |
+| Business logic in a controller                                   | Move to the domain service                   |
+| Cross-domain service injection                                   | Expose via a Core module or pub/sub event    |
+| Inline `interface Foo {}` duplicating an existing canonical type | Import from `src/core/` barrel               |
+| `any` type in service return signatures                          | Define an explicit interface                 |
+| `@Module` importing an internal file from another domain         | Consume the domain's barrel (`index.ts`)     |
+| Response shape not matching `openapi.yaml`                       | Fix the implementation, not the test         |
+| Unbounded query without `PaginatedResult<T>`                     | Paginate via cursor or offset from the start |
 
 ---
 
@@ -115,14 +115,14 @@ When faced with an architectural decision, apply this sequence:
 
 ## Key References
 
-| Topic | Location |
-|---|---|
-| Constitution | `CLAUDE.md` |
-| Orchestration | `AGENTS.md` |
-| Phase plan | `docs/plan.md` |
-| API contract | `docs/api/openapi.yaml` |
-| Architecture standard | `docs/agent/standards/common/architecture.md` |
-| Domain-Driven Design | `.cursor/skills/domain-driven-design/SKILL.md` |
-| Interface Designer | `.cursor/skills/interface-designer/SKILL.md` |
-| Canonical types | `.cursor/skills/canonical-type-reuse/SKILL.md` |
-| Module patterns | `.cursor/skills/module-design-pattern/SKILL.md` |
+| Topic                 | Location                                        |
+| --------------------- | ----------------------------------------------- |
+| Constitution          | `CLAUDE.md`                                     |
+| Orchestration         | `AGENTS.md`                                     |
+| Phase plan            | `docs/plan.md`                                  |
+| API contract          | `docs/api/openapi.yaml`                         |
+| Architecture standard | `docs/agent/standards/common/architecture.md`   |
+| Domain-Driven Design  | `.cursor/skills/domain-driven-design/SKILL.md`  |
+| Interface Designer    | `.cursor/skills/interface-designer/SKILL.md`    |
+| Canonical types       | `.cursor/skills/canonical-type-reuse/SKILL.md`  |
+| Module patterns       | `.cursor/skills/module-design-pattern/SKILL.md` |

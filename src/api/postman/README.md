@@ -2,48 +2,105 @@
 
 ## Files
 
-| File | Purpose |
-|---|---|
-| `warehousejobs.postman_collection.json` | All API requests, organised by domain |
-| `warehousejobs.postman_environment.json` | Environment variables for local dev |
+| File                                     | Purpose                               |
+| ---------------------------------------- | ------------------------------------- |
+| `warehousejobs.postman_collection.json`  | All API requests, organised by domain |
+| `warehousejobs.postman_environment.json` | Environment variables for local dev   |
 
 ## Setup
 
 1. Open Postman → **Import** → select both files above.
 2. Select the **WarehouseJobs — Local Dev** environment (top-right dropdown).
-3. Ensure the stack is running: `docker compose up -d && bun run --cwd src/api start:dev`
+3. Ensure the stack is running: `docker compose up -d && bun run api:dev`
 4. Run **System / Health Check** → expect `200 { status: 'ok' }`.
+
+## Phase 2 guided walkthrough
+
+Use folder **Phase 2 — Walkthrough (run in order)** — steps 1–9 with automated tests.
+
+Before step **3** (verify) and **9** (reset), set environment variables from API logs or Postgres:
+
+| Variable            | Source                                                          |
+| ------------------- | --------------------------------------------------------------- |
+| `verificationToken` | `[DEV EMAIL]` after Register, or `email_verifications.token`    |
+| `resetToken`        | `[DEV EMAIL]` after Forgot password, or `password_resets.token` |
+
+Full narrative: [`docs/demo/phase2-demo.md`](../../../docs/demo/phase2-demo.md)
 
 ## Authentication
 
-The collection uses a Bearer token stored in the `bearerToken` environment variable.
+The collection uses Bearer auth via `bearerToken` (set automatically by Login / Refresh test scripts).
 
-Once Phase 2 (Auth Domain) is implemented:
-1. Run **Auth — Domain / POST /api/v1/auth/login** with valid credentials.
-2. The test script automatically saves the `accessToken` to `bearerToken`.
-3. All subsequent requests will use it automatically.
+| Variable            | Set by                                        |
+| ------------------- | --------------------------------------------- |
+| `bearerToken`       | Login, Refresh                                |
+| `refreshToken`      | Login, Refresh                                |
+| `testEmail`         | Walkthrough Register (unique timestamp email) |
+| `verificationToken` | Manual — from email log or DB                 |
+| `resetToken`        | Manual — from email log or DB                 |
 
-Until then, you can manually paste a JWT (e.g. generated from `bun run --cwd src/api ts-node` + `JwtService.sign()`) into the `bearerToken` variable.
+Dev JWT without register flow: `bun run dev:token`
 
 ## Environment Variables
 
-| Variable | Default | Description |
-|---|---|---|
-| `baseUrl` | `http://localhost:3001` | API base. Change for staging/production. |
-| `bearerToken` | *(empty)* | JWT access token. Set by Login request or manually. |
-| `swaggerApiKey` | *(empty)* | `X-Api-Key` for batch ingestion. Match `SWAGGER_API_KEY` in `.env`. |
-| `testEmail` | `test@warehousejobs.com` | Seed email for register/login requests. |
-| `testPassword` | `Test1234!` | Seed password. |
+| Variable            | Default                  | Description                     |
+| ------------------- | ------------------------ | ------------------------------- |
+| `baseUrl`           | `http://localhost:3001`  | API base                        |
+| `bearerToken`       | _(empty)_                | JWT access token                |
+| `refreshToken`      | _(empty)_                | Refresh token                   |
+| `verificationToken` | _(empty)_                | Email verification opaque token |
+| `resetToken`        | _(empty)_                | Password reset opaque token     |
+| `testEmail`         | `test@warehousejobs.com` | Register/login email            |
+| `testPassword`      | `Test1234!` (Postman UI) | Password; CI uses `SecureP@ss1` (no `!` in bash curl) |
+| `swaggerApiKey`     | _(empty)_                | Batch API key                   |
 
-## Running as a CI test suite (Newman)
+## Phase backwards compatibility
+
+Phase 1 requests (**System / Health Check**, **Auth — Core / GET /me**) must remain valid after every phase. See [`docs/agent/standards/common/backwards-compatibility.md`](../../../docs/agent/standards/common/backwards-compatibility.md).
+
+## CI (GitHub Actions)
+
+Workflow: `.github/workflows/postman.yml`
+
+- Starts Postgres, Redis, MinIO, migrates DB, **starts the real NestJS API** on `:3001`
+- Runs `scripts/ci-postman.sh` (Newman + auth curl smoke)
+- **No** `POSTMAN_API_KEY` required — uses committed JSON files, not Postman Cloud
+
+Folders exercised in CI:
+
+| Folder            | Purpose                                             |
+| ----------------- | --------------------------------------------------- |
+| System            | `GET /api/health` assertions                        |
+| Auth — Core       | `GET /api/v1/me` → 401 without token                |
+| Jobs (Phase 3)    | `404` until Phase 3 ships                           |
+| Auth smoke (curl) | Full Phase 2 register → verify → login → reset flow |
+
+The **Phase 2 — Walkthrough** folder is for manual Postman desktop use (token paste steps 3 & 9). CI uses the curl smoke in `ci-postman.sh` instead.
+
+### Postman Mock Server
+
+A Postman mock URL (e.g. `https://….mock.pstmn.io`) returns **canned examples** — it does **not** run this codebase. Use it for frontend prototyping only. CI validates the **real API** built from this repo.
+
+## Running locally
 
 ```bash
-# Install Newman
-bun add -g newman
+docker compose up -d postgres redis minio
+export DATABASE_URL=postgresql://wj_user:wj_dev_password@localhost:5433/warehousejobs
+export JWT_SECRET=local_dev_jwt_secret_min_32_chars_long
+export JWT_REFRESH_SECRET=local_dev_refresh_secret_min_32_chars_long
+export POSTMAN_PG_PORT=5433
+bash scripts/ci-minio-up.sh   # if MinIO not via compose
+bash scripts/ci-api-up.sh
+bash scripts/ci-postman.sh
+```
 
-# Run the collection against local dev
+## Running as Newman only (manual)
+
+```bash
 newman run src/api/postman/warehousejobs.postman_collection.json \
   --environment src/api/postman/warehousejobs.postman_environment.json \
-  --reporters cli,json \
-  --reporter-json-export newman-results.json
+  --folder "Phase 2 — Walkthrough (run in order)" \
+  --reporters cli
 ```
+
+Note: steps 3 and 9 require `verificationToken` / `resetToken` in the environment for a full green run.

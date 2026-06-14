@@ -65,7 +65,7 @@
               "name": "503 Storage down",
               "status": "Service Unavailable",
               "code": 503,
-              "body": "{\n  \"status\": \"error\",\n  \"info\": { \"db\": { \"status\": \"up\" }, \"redis\": { \"status\": \"up\" } },\n  \"error\": { \"storage\": { \"status\": \"down\", \"message\": \"..." } }\n}"
+              "body": "{\n  \"status\": \"error\",\n  \"info\": {\n    \"db\": { \"status\": \"up\" },\n    \"redis\": { \"status\": \"up\" }\n  },\n  \"error\": {\n    \"storage\": {\n      \"status\": \"down\",\n      \"message\": \"Storage service unreachable\"\n    }\n  }\n}"
             }
           ]
         },
@@ -109,7 +109,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "me"]
             },
-            "description": "Returns the caller's identity decoded from the Bearer JWT.\n\nRequires: valid Bearer token in `bearerToken` env variable.\n\nExpected 200:\n```json\n{ \"id\": \"uuid\", \"email\": \"user@example.com\", \"role\": \"WORKER\" }\n```\n\nExpected 401 if no/invalid token."
+            "description": "Returns the caller's identity from Bearer JWT.\n\nExpected 200: `{ id, email, role }` where role is `admin`, `vendor`, or `seeker`.\n\nExpected 401 if no/invalid/unverified token."
           },
           "event": [
             {
@@ -136,7 +136,7 @@
               "name": "200 Authenticated",
               "status": "OK",
               "code": 200,
-              "body": "{ \"id\": \"3f2504e0-4f89-11d3-9a0c-0305e82c3301\", \"email\": \"worker@example.com\", \"role\": \"WORKER\" }"
+              "body": "{ \"id\": \"3f2504e0-4f89-11d3-9a0c-0305e82c3301\", \"email\": \"worker@example.com\", \"role\": \"seeker\" }"
             },
             {
               "name": "401 No token",
@@ -155,8 +155,230 @@
       ]
     },
     {
+      "name": "Phase 2 — Walkthrough (run in order)",
+      "description": "Guided auth flow for manual testing. Run requests 1→9 in order. Step 3 requires pasting `verificationToken` from API logs or Postgres (see docs/demo/phase2-demo.md).",
+      "item": [
+        {
+          "name": "1. Health (Phase 1 compat)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/health"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 ok', () => pm.response.to.have.status(200));",
+                  "pm.test('status ok', () => pm.expect(pm.response.json().status).to.equal('ok'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "2. Register (unique email)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.environment.set('testEmail', `postman-${Date.now()}@warehousejobs.test`);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('201 created', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "if (body.userId) pm.environment.set('registeredUserId', body.userId);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": { "type": "noauth" },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"{{testPassword}}\",\n  \"role\": \"seeker\",\n  \"fullName\": \"Postman User\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/auth/register"
+          }
+        },
+        {
+          "name": "3. Verify email",
+          "request": {
+            "method": "POST",
+            "auth": { "type": "noauth" },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{verificationToken}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/auth/verify-email",
+            "description": "Set `verificationToken` from API [DEV EMAIL] log or Postgres before running."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 verified', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "4. Login",
+          "request": {
+            "method": "POST",
+            "auth": { "type": "noauth" },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"{{testPassword}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/auth/login"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 login', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "if (body.accessToken) pm.environment.set('bearerToken', body.accessToken);",
+                  "if (body.refreshToken) pm.environment.set('refreshToken', body.refreshToken);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "5. GET /me (Phase 1 compat)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/me"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 me', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.expect(body).to.have.property('id');",
+                  "pm.expect(body).to.have.property('email');",
+                  "pm.expect(body).to.have.property('role');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "6. Refresh tokens",
+          "request": {
+            "method": "POST",
+            "auth": { "type": "noauth" },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/auth/refresh"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 refresh', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "if (body.accessToken) pm.environment.set('bearerToken', body.accessToken);",
+                  "if (body.refreshToken) pm.environment.set('refreshToken', body.refreshToken);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "7. Logout",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/auth/logout"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": ["pm.test('204 logout', () => pm.response.to.have.status(204));"],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "8. Forgot password",
+          "request": {
+            "method": "POST",
+            "auth": { "type": "noauth" },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"email\": \"{{testEmail}}\" }"
+            },
+            "url": "{{baseUrl}}/api/v1/auth/forgot-password"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": ["pm.test('200 forgot', () => pm.response.to.have.status(200));"],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "9. Reset password",
+          "request": {
+            "method": "POST",
+            "auth": { "type": "noauth" },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{resetToken}}\",\n  \"password\": \"NewSecure2!\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/auth/reset-password",
+            "description": "Set `resetToken` from [DEV EMAIL] log or Postgres after step 8."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": ["pm.test('200 reset', () => pm.response.to.have.status(200));"],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "Auth — Domain (Phase 2)",
-      "description": "Authentication domain endpoints (register, login, logout, refresh, password reset). Scaffolded here to document the planned API surface; these endpoints will return 404 until Phase 2 is implemented.",
+      "description": "Authentication domain — register, login, logout, refresh, verify-email, forgot/reset password. All implemented in Phase 2.",
       "item": [
         {
           "name": "POST /api/v1/auth/register",
@@ -166,14 +388,14 @@
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"{{testPassword}}\",\n  \"role\": \"WORKER\"\n}"
+              "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"{{testPassword}}\",\n  \"role\": \"seeker\",\n  \"fullName\": \"Test User\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/auth/register",
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "auth", "register"]
             },
-            "description": "Phase 2. Creates a new user and sends verification email.\n\nExpected 201: `{ accessToken, refreshToken, user }`"
+            "description": "Creates a new user and sends verification email.\n\nExpected 201: `{ message, userId }`"
           },
           "response": []
         },
@@ -205,6 +427,9 @@
                   "    pm.environment.set('bearerToken', body.accessToken);",
                   "    console.log('bearerToken saved to environment');",
                   "  }",
+                  "  if (body.refreshToken) {",
+                  "    pm.environment.set('refreshToken', body.refreshToken);",
+                  "  }",
                   "}"
                 ],
                 "type": "text/javascript"
@@ -221,7 +446,7 @@
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"refreshToken\": \"<paste refresh token here>\"\n}"
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/auth/refresh",
@@ -261,7 +486,45 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "auth", "forgot-password"]
             },
-            "description": "Phase 2. Sends a password-reset email."
+            "description": "Phase 2. Sends a password-reset email (always 200)."
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/v1/auth/verify-email",
+          "request": {
+            "method": "POST",
+            "auth": { "type": "noauth" },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{verificationToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/verify-email",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "verify-email"]
+            },
+            "description": "Confirms email using opaque token from register email or DB."
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/v1/auth/reset-password",
+          "request": {
+            "method": "POST",
+            "auth": { "type": "noauth" },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{resetToken}}\",\n  \"password\": \"NewSecure2!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/reset-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "reset-password"]
+            },
+            "description": "Sets new password; revokes all refresh tokens for user."
           },
           "response": []
         }
@@ -273,6 +536,17 @@
       "item": [
         {
           "name": "GET /api/v1/jobs",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('404 until Phase 3', () => pm.response.to.have.status(404));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [],
@@ -291,6 +565,17 @@
         },
         {
           "name": "POST /api/v1/jobs/batch — Batch ingest",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('404 until Phase 3', () => pm.response.to.have.status(404));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [

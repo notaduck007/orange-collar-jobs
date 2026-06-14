@@ -38,6 +38,10 @@ npm run test:cov           # >= 85% line coverage for changed services
 
 Do not skip gates, bypass CI, or merge with known failures.
 
+## Phase Backwards Compatibility (mandatory)
+
+Prior phase endpoints, tests, and demo scripts must keep working. See [`docs/agent/standards/common/backwards-compatibility.md`](../../docs/agent/standards/common/backwards-compatibility.md).
+
 ## Source Precedence (highest wins)
 
 1. `CLAUDE.md` (constitution) 2. `AGENTS.md` (orchestration) 3. `docs/plan.md` (tasks/gates)

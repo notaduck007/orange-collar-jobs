@@ -139,13 +139,25 @@ function displayName(a: Applicant): string {
 
 function formatShift(s: string | null): string | null {
   if (!s) return null;
-  const map: Record<string, string> = { first: "1st shift", second: "2nd shift", third: "3rd shift", weekend: "Weekends", any: "Any shift" };
+  const map: Record<string, string> = {
+    first: "1st shift",
+    second: "2nd shift",
+    third: "3rd shift",
+    weekend: "Weekends",
+    any: "Any shift",
+  };
   return map[s] ?? s.charAt(0).toUpperCase() + s.slice(1);
 }
 
 function formatEmploymentType(s: string | null): string | null {
   if (!s) return null;
-  const map: Record<string, string> = { full_time: "Full-time", part_time: "Part-time", contract: "Contract", temporary: "Temporary", seasonal: "Seasonal" };
+  const map: Record<string, string> = {
+    full_time: "Full-time",
+    part_time: "Part-time",
+    contract: "Contract",
+    temporary: "Temporary",
+    seasonal: "Seasonal",
+  };
   return map[s] ?? s.replace(/_/g, " ");
 }
 
@@ -244,7 +256,9 @@ function ApplicantsPage() {
           supabase.from("profiles").select("id, display_name, phone").in("id", ids),
           supabase
             .from("seeker_profiles")
-            .select("user_id, headline, skills, certifications, desired_shift, desired_employment_type, willing_to_relocate")
+            .select(
+              "user_id, headline, skills, certifications, desired_shift, desired_employment_type, willing_to_relocate",
+            )
             .in("user_id", ids),
         ]);
         profilesById = (profs ?? []).reduce<typeof profilesById>((acc, p) => {
@@ -700,8 +714,7 @@ function ApplicantCard({
         const shift = formatShift(info.shift);
         const et = formatEmploymentType(info.employmentType);
         const availability = [shift, et].filter(Boolean).join(" · ");
-        const hasDetails =
-          info.certifications.length > 0 || availability || info.willingToRelocate;
+        const hasDetails = info.certifications.length > 0 || availability || info.willingToRelocate;
         if (!hasDetails) return null;
         return (
           <div className="mt-2 flex flex-wrap gap-1">
@@ -805,7 +818,9 @@ function TableView({
                   </Badge>
                 )}
                 {(a.applicant_phone || a.profile?.phone) && (
-                  <p className="text-xs text-muted-foreground">{a.applicant_phone || a.profile?.phone}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {a.applicant_phone || a.profile?.phone}
+                  </p>
                 )}
               </td>
               <td className="px-4 py-3 text-muted-foreground">
@@ -1156,9 +1171,7 @@ function CandidateDetails({ app }: { app: Applicant }) {
     <section className="rounded-md border border-border bg-muted/30 p-3">
       <p className="label-caps mb-2">Candidate details</p>
       <dl className="space-y-1.5 text-sm">
-        {info.headline && (
-          <div className="text-foreground">{info.headline}</div>
-        )}
+        {info.headline && <div className="text-foreground">{info.headline}</div>}
         {info.email && (
           <div className="flex items-center gap-1.5">
             <Mail className="h-3.5 w-3.5 text-muted-foreground" />
@@ -1170,7 +1183,9 @@ function CandidateDetails({ app }: { app: Applicant }) {
         {phone && (
           <div className="flex items-center gap-1.5 text-foreground">
             <Phone className="h-3.5 w-3.5 text-muted-foreground" />
-            <a href={`tel:${phone}`} className="hover:underline">{phone}</a>
+            <a href={`tel:${phone}`} className="hover:underline">
+              {phone}
+            </a>
           </div>
         )}
         {availability && (
@@ -1181,7 +1196,10 @@ function CandidateDetails({ app }: { app: Applicant }) {
         )}
         {info.willingToRelocate && (
           <div>
-            <Badge variant="outline" className="border-emerald-300 bg-emerald-50 text-[10px] font-semibold uppercase text-emerald-700">
+            <Badge
+              variant="outline"
+              className="border-emerald-300 bg-emerald-50 text-[10px] font-semibold uppercase text-emerald-700"
+            >
               Open to relocate
             </Badge>
           </div>

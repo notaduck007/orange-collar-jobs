@@ -100,8 +100,8 @@ function LocationPage() {
               No openings in {loc} right now. Try{" "}
               <Link to="/jobs" className="text-primary hover:underline">
                 all jobs
-              </Link>
-              {" "}or browse by role below.
+              </Link>{" "}
+              or browse by role below.
             </p>
           </div>
         ) : (

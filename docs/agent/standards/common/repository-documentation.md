@@ -7,19 +7,19 @@ onboards a new developer without opening other docs first.
 
 ## Required: root `README.md`
 
-| Section | Required content |
-|---|---|
-| **Title + one-liner** | What the product is |
-| **Monorepo overview** | If applicable: packages, workspaces, what lives where |
-| **Prerequisites** | Bun, Node, Docker versions with links |
-| **Quick start** | Copy-paste commands to run the app in &lt;10 minutes |
+| Section               | Required content                                                 |
+| --------------------- | ---------------------------------------------------------------- |
+| **Title + one-liner** | What the product is                                              |
+| **Monorepo overview** | If applicable: packages, workspaces, what lives where            |
+| **Prerequisites**     | Bun, Node, Docker versions with links                            |
+| **Quick start**       | Copy-paste commands to run the app in &lt;10 minutes             |
 | **Per-surface setup** | Separate sections for **frontend** and **API** (when both exist) |
-| **Environment** | Point to root `.env.example`; `bun run setup:env` |
-| **Testing** | Commands for unit / integration / E2E; coverage gate |
-| **Quality gates** | lint, type-check, test, build before PR |
-| **Project structure** | Directory tree with one-line descriptions |
-| **CI/CD** | Workflows table; release process if applicable |
-| **Documentation map** | Links to `CLAUDE.md`, `AGENTS.md`, `docs/plan.md`, standards |
+| **Environment**       | Point to root `.env.example`; `bun run setup:env`                |
+| **Testing**           | Commands for unit / integration / E2E; coverage gate             |
+| **Quality gates**     | lint, type-check, test, build before PR                          |
+| **Project structure** | Directory tree with one-line descriptions                        |
+| **CI/CD**             | Workflows table; release process if applicable                   |
+| **Documentation map** | Links to `CLAUDE.md`, `AGENTS.md`, `docs/plan.md`, standards     |
 
 ### Monorepo README additions
 
@@ -39,11 +39,11 @@ This repository's [`README.md`](../../../README.md) is the canonical example.
 
 ## Agent / standards docs
 
-| Path | Role |
-|---|---|
-| `docs/agent/standards/` | Coding and process standards (human + agent readable) |
-| `.cursor/rules/*.mdc` | Glob-attached editor rules linking to standards |
-| `.cursor/skills/*/SKILL.md` | Auto-discovered agent workflows |
+| Path                        | Role                                                  |
+| --------------------------- | ----------------------------------------------------- |
+| `docs/agent/standards/`     | Coding and process standards (human + agent readable) |
+| `.cursor/rules/*.mdc`       | Glob-attached editor rules linking to standards       |
+| `.cursor/skills/*/SKILL.md` | Auto-discovered agent workflows                       |
 
 New standards must be added to [`standards/README.md`](../README.md) and linked from
 [`AGENT-TASK-INDEX.md`](../AGENT-TASK-INDEX.md) when they affect common tasks.

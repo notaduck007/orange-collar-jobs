@@ -1,38 +1,41 @@
 /**
- * WarehouseJobs NestJS API client
- *
- * Typed fetch wrapper for the REST API at VITE_API_BASE_URL (defaults to
- * http://localhost:3001 in development). All methods are async and throw
- * ApiError on non-2xx responses.
- *
- * Usage:
- *   import { apiClient } from '@/lib/api-client';
- *
- *   // Public — no token needed
- *   const health = await apiClient.health();
- *
- *   // Authenticated — pass the access token from the auth store
- *   const me = await apiClient.me(accessToken);
+ * Typed fetch wrapper for the NestJS API at VITE_API_BASE_URL.
  */
+import { getAuthSession, storeTokens, clearAuthSession } from "@/lib/auth-session";
 
 const BASE_URL =
-  (typeof import.meta !== 'undefined' && (import.meta as Record<string, unknown>).env
-    ? (import.meta as { env: Record<string, string> }).env['VITE_API_BASE_URL']
-    : undefined) ?? 'http://localhost:3001';
+  (typeof import.meta !== "undefined" && (import.meta as Record<string, unknown>).env
+    ? (import.meta as { env: Record<string, string> }).env["VITE_API_BASE_URL"]
+    : undefined) ?? "http://localhost:3001";
 
-// ── Types ────────────────────────────────────────────────────────────────────
+export type ApiUserRole = "admin" | "vendor" | "seeker";
 
 export interface HealthResponse {
-  status: 'ok' | 'error';
-  info: Record<string, { status: 'up' | 'down'; message?: string }>;
-  error: Record<string, { status: 'up' | 'down'; message?: string }>;
-  details: Record<string, { status: 'up' | 'down'; message?: string }>;
+  status: "ok" | "error";
+  info: Record<string, { status: "up" | "down"; message?: string }>;
+  error: Record<string, { status: "up" | "down"; message?: string }>;
+  details: Record<string, { status: "up" | "down"; message?: string }>;
 }
 
 export interface MeResponse {
   id: string;
   email: string;
-  role: 'ADMIN' | 'EMPLOYER' | 'WORKER';
+  role: ApiUserRole;
+}
+
+export interface AuthTokensResponse {
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
+}
+
+export interface RegisterResponse {
+  message: string;
+  userId: string;
+}
+
+export interface MessageResponse {
+  message: string;
 }
 
 export class ApiError extends Error {
@@ -42,11 +45,16 @@ export class ApiError extends Error {
     message?: string,
   ) {
     super(message ?? `API error ${statusCode}`);
-    this.name = 'ApiError';
+    this.name = "ApiError";
+  }
+
+  get code(): string | undefined {
+    if (this.body && typeof this.body === "object" && "code" in this.body) {
+      return String((this.body as { code: string }).code);
+    }
+    return undefined;
   }
 }
-
-// ── Internal helpers ─────────────────────────────────────────────────────────
 
 async function apiFetch<T>(
   path: string,
@@ -54,38 +62,119 @@ async function apiFetch<T>(
 ): Promise<T> {
   const { token, ...init } = options;
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
     ...(init.headers as Record<string, string>),
   };
-  if (token) headers['Authorization'] = `Bearer ${token}`;
+  if (token) headers["Authorization"] = `Bearer ${token}`;
 
   const res = await fetch(`${BASE_URL}${path}`, { ...init, headers });
 
   if (!res.ok) {
     let body: unknown;
-    try { body = await res.json(); } catch { body = null; }
-    throw new ApiError(res.status, body);
+    try {
+      body = await res.json();
+    } catch {
+      body = null;
+    }
+    const message =
+      body && typeof body === "object" && "message" in body
+        ? String((body as { message: string }).message)
+        : undefined;
+    throw new ApiError(res.status, body, message);
   }
 
-  // No content
   if (res.status === 204) return undefined as unknown as T;
   return res.json() as Promise<T>;
 }
 
-// ── Public API client ────────────────────────────────────────────────────────
-
 export const apiClient = {
-  /**
-   * GET /api/health — version-neutral liveness check (public)
-   */
   health(): Promise<HealthResponse> {
-    return apiFetch<HealthResponse>('/api/health');
+    return apiFetch<HealthResponse>("/api/health");
   },
 
-  /**
-   * GET /api/v1/me — return the caller's JWT identity (requires Bearer token)
-   */
   me(token: string): Promise<MeResponse> {
-    return apiFetch<MeResponse>('/api/v1/me', { token });
+    return apiFetch<MeResponse>("/api/v1/me", { token });
+  },
+
+  register(body: {
+    email: string;
+    password: string;
+    role: "seeker" | "vendor";
+    fullName?: string;
+  }): Promise<RegisterResponse> {
+    return apiFetch<RegisterResponse>("/api/v1/auth/register", {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+  },
+
+  login(email: string, password: string): Promise<AuthTokensResponse> {
+    return apiFetch<AuthTokensResponse>("/api/v1/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+    });
+  },
+
+  async loginAndStore(email: string, password: string): Promise<AuthTokensResponse> {
+    const tokens = await apiClient.login(email, password);
+    storeTokens(tokens.accessToken, tokens.refreshToken, tokens.expiresIn);
+    return tokens;
+  },
+
+  logout(token: string): Promise<void> {
+    return apiFetch<void>("/api/v1/auth/logout", { method: "POST", token });
+  },
+
+  async logoutAndClear(token: string): Promise<void> {
+    try {
+      await apiClient.logout(token);
+    } finally {
+      clearAuthSession();
+    }
+  },
+
+  refresh(refreshToken: string): Promise<AuthTokensResponse> {
+    return apiFetch<AuthTokensResponse>("/api/v1/auth/refresh", {
+      method: "POST",
+      body: JSON.stringify({ refreshToken }),
+    });
+  },
+
+  async refreshStoredSession(): Promise<AuthTokensResponse | null> {
+    const session = getAuthSession();
+    if (!session?.refreshToken) return null;
+    try {
+      const tokens = await apiClient.refresh(session.refreshToken);
+      storeTokens(tokens.accessToken, tokens.refreshToken, tokens.expiresIn);
+      return tokens;
+    } catch {
+      clearAuthSession();
+      return null;
+    }
+  },
+
+  verifyEmail(token: string): Promise<MessageResponse> {
+    return apiFetch<MessageResponse>("/api/v1/auth/verify-email", {
+      method: "POST",
+      body: JSON.stringify({ token }),
+    });
+  },
+
+  forgotPassword(email: string): Promise<MessageResponse> {
+    return apiFetch<MessageResponse>("/api/v1/auth/forgot-password", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    });
+  },
+
+  resetPassword(token: string, password: string): Promise<MessageResponse> {
+    return apiFetch<MessageResponse>("/api/v1/auth/reset-password", {
+      method: "POST",
+      body: JSON.stringify({ token, password }),
+    });
   },
 };
+
+export function getApiBaseUrl(): string {
+  return BASE_URL;
+}

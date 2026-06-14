@@ -1,6 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import type { Env } from '../config/env.schema.js';
+import { Injectable, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import type { Env } from "../config/env.schema.js";
 
 export interface SendEmailOptions {
   to: string;
@@ -22,10 +22,10 @@ export class EmailService {
   private readonly apiKey: string;
 
   constructor(config: ConfigService<Env>) {
-    this.isDev = config.get('NODE_ENV', { infer: true }) !== 'production';
-    this.fromAddress = config.get('EMAIL_FROM', { infer: true }) ?? 'noreply@warehousejobs.com';
-    this.fromName = config.get('EMAIL_FROM_NAME', { infer: true }) ?? 'WarehouseJobs';
-    this.apiKey = config.get('EMAIL_API_KEY', { infer: true }) ?? '';
+    this.isDev = config.get("NODE_ENV", { infer: true }) !== "production";
+    this.fromAddress = config.get("EMAIL_FROM", { infer: true }) ?? "noreply@warehousejobs.com";
+    this.fromName = config.get("EMAIL_FROM_NAME", { infer: true }) ?? "WarehouseJobs";
+    this.apiKey = config.get("EMAIL_API_KEY", { infer: true }) ?? "";
   }
 
   async send(options: SendEmailOptions): Promise<void> {
@@ -36,11 +36,11 @@ export class EmailService {
       return;
     }
 
-    const res = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${this.apiKey}`,
-        'Content-Type': 'application/json',
+        Authorization: `Bearer ${this.apiKey}`,
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         from: `${this.fromName} <${this.fromAddress}>`,
@@ -62,7 +62,7 @@ export class EmailService {
     const link = `${baseUrl}/verify-email?token=${token}`;
     return this.send({
       to,
-      subject: 'Verify your WarehouseJobs email',
+      subject: "Verify your WarehouseJobs email",
       html: `<p>Click the link below to verify your email:</p><p><a href="${link}">${link}</a></p><p>This link expires in 24 hours.</p>`,
       text: `Verify your email: ${link}\n\nThis link expires in 24 hours.`,
     });
@@ -72,7 +72,7 @@ export class EmailService {
     const link = `${baseUrl}/reset-password?token=${token}`;
     return this.send({
       to,
-      subject: 'Reset your WarehouseJobs password',
+      subject: "Reset your WarehouseJobs password",
       html: `<p>Click the link below to reset your password:</p><p><a href="${link}">${link}</a></p><p>This link expires in 1 hour.</p>`,
       text: `Reset your password: ${link}\n\nThis link expires in 1 hour.`,
     });

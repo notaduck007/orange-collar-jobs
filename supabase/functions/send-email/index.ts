@@ -81,7 +81,10 @@ serve(async (req) => {
     }
 
     const payload = await req.json();
-    const { to, subject, body, from, language, subject_es, body_es } = payload as Record<string, unknown>;
+    const { to, subject, body, from, language, subject_es, body_es } = payload as Record<
+      string,
+      unknown
+    >;
     if (!to || !subject) {
       return new Response(JSON.stringify({ error: "missing to/subject" }), {
         status: 400,
@@ -99,7 +102,8 @@ serve(async (req) => {
 
     // Resolve target language: explicit "language" wins; otherwise pull from the
     // recipient's profile when "to" is a user UUID.
-    let lang = (typeof language === "string" && (language === "es" || language === "en")) ? language : "en";
+    let lang =
+      typeof language === "string" && (language === "es" || language === "en") ? language : "en";
     if (!language && UUID_RE.test(String(to)) && supabaseUrl && serviceKey) {
       const admin = createClient(supabaseUrl, serviceKey);
       const { data: prof } = await admin
@@ -114,12 +118,16 @@ serve(async (req) => {
     const resendKey = Deno.env.get("RESEND_API_KEY");
 
     // Pick ES variants when target lang is Spanish and they were provided
-    const finalSubject = lang === "es" && typeof subject_es === "string" && subject_es.length
-      ? subject_es
-      : String(subject);
-    const finalBodyRaw = lang === "es" && typeof body_es === "string" && body_es.length
-      ? body_es
-      : (typeof body === "string" ? body : "");
+    const finalSubject =
+      lang === "es" && typeof subject_es === "string" && subject_es.length
+        ? subject_es
+        : String(subject);
+    const finalBodyRaw =
+      lang === "es" && typeof body_es === "string" && body_es.length
+        ? body_es
+        : typeof body === "string"
+          ? body
+          : "";
 
     if (!resendKey) {
       console.log("[send-email] RESEND_API_KEY not set; skipping send", {

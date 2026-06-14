@@ -7,15 +7,15 @@ Employers post jobs; workers apply via a fast mobile-first flow; admins manage c
 
 ## Technology Stack
 
-| Layer | Technology |
-|---|---|
-| **Frontend** | React 19 · TanStack Start (SSR) · Vite · Tailwind CSS · Supabase Auth |
-| **API** | NestJS 10 · TypeScript 5 · Prisma 6 · PostgreSQL 16 |
-| **Queue** | BullMQ + Redis 7 |
-| **Storage** | MinIO (local) → Cloudflare R2 (production) |
-| **Auth** | NestJS JWT (HS256) |
-| **Testing** | Jest · Supertest · ts-jest |
-| **Package manager** | Bun (workspace root + `src/api/`) |
+| Layer               | Technology                                                            |
+| ------------------- | --------------------------------------------------------------------- |
+| **Frontend**        | React 19 · TanStack Start (SSR) · Vite · Tailwind CSS · Supabase Auth |
+| **API**             | NestJS 10 · TypeScript 5 · Prisma 6 · PostgreSQL 16                   |
+| **Queue**           | BullMQ + Redis 7                                                      |
+| **Storage**         | MinIO (local) → Cloudflare R2 (production)                            |
+| **Auth**            | NestJS JWT (HS256)                                                    |
+| **Testing**         | Jest · Supertest · ts-jest                                            |
+| **Package manager** | Bun (workspace root + `src/api/`)                                     |
 
 ---
 
@@ -100,13 +100,13 @@ orange-collar-jobs/
 
 ## API URL Conventions
 
-| Path | Description |
-|---|---|
-| `GET /api/health` | Liveness check — no version segment (VERSION_NEUTRAL) |
-| `GET /api/v1/me` | Return the caller's JWT identity |
-| `GET /api/docs` | Swagger UI (dev only) |
-| `POST /api/v1/auth/login` | Phase 2 |
-| `GET /api/v1/jobs` | Phase 3 |
+| Path                      | Description                                           |
+| ------------------------- | ----------------------------------------------------- |
+| `GET /api/health`         | Liveness check — no version segment (VERSION_NEUTRAL) |
+| `GET /api/v1/me`          | Return the caller's JWT identity                      |
+| `GET /api/docs`           | Swagger UI (dev only)                                 |
+| `POST /api/v1/auth/login` | Phase 2                                               |
+| `GET /api/v1/jobs`        | Phase 3                                               |
 
 All endpoints use URI versioning: `/api/v{N}/…`.  
 Versioning rules: see `.cursor/skills/api-versioning/SKILL.md`.
@@ -157,7 +157,7 @@ bun run api:dev                # NestJS with hot reload — http://localhost:300
 ```
 
 - Health check: http://localhost:3001/api/health
-- Swagger UI:   http://localhost:3001/api/docs
+- Swagger UI: http://localhost:3001/api/docs
 
 ### 6. Start the frontend (optional)
 
@@ -220,22 +220,22 @@ NestJS E2E tests that bootstrap `AppModule` manually miss `enableVersioning()`, 
 
 ```typescript
 // correct ✓
-import { createTestApp } from '../helpers/create-test-app.js';
+import { createTestApp } from "../helpers/create-test-app.js";
 const { app, close } = await createTestApp(AppModule);
 
 // wrong ✗ — skips versioning, pipes, and exception filter
 const app = module.createNestApplication();
-app.setGlobalPrefix('api');   // enableVersioning() is missing!
+app.setGlobalPrefix("api"); // enableVersioning() is missing!
 ```
 
 ### Coverage thresholds
 
-| Metric | Threshold |
-|---|---|
-| Lines | ≥ 90% |
-| Statements | ≥ 90% |
-| Branches | ≥ 90% |
-| Functions | ≥ 90% |
+| Metric     | Threshold |
+| ---------- | --------- |
+| Lines      | ≥ 90%     |
+| Statements | ≥ 90%     |
+| Branches   | ≥ 90%     |
+| Functions  | ≥ 90%     |
 
 ---
 
@@ -294,18 +294,18 @@ All configuration lives in a **single root `.env`** (see `.env.example`). The AP
 
 Key variables:
 
-| Variable | Description |
-|---|---|
-| `DATABASE_URL` | PostgreSQL connection string |
-| `TEST_DATABASE_URL` | Separate DB for integration tests |
-| `REDIS_URL` | Redis connection string |
-| `JWT_SECRET` | HS256 signing key (min 32 chars) |
+| Variable             | Description                              |
+| -------------------- | ---------------------------------------- |
+| `DATABASE_URL`       | PostgreSQL connection string             |
+| `TEST_DATABASE_URL`  | Separate DB for integration tests        |
+| `REDIS_URL`          | Redis connection string                  |
+| `JWT_SECRET`         | HS256 signing key (min 32 chars)         |
 | `JWT_REFRESH_SECRET` | Refresh token signing key (min 32 chars) |
-| `STORAGE_ENDPOINT` | MinIO/R2 endpoint |
-| `STORAGE_ACCESS_KEY` | S3 access key |
-| `STORAGE_SECRET_KEY` | S3 secret key |
-| `SWAGGER_API_KEY` | X-Api-Key for batch ingestion endpoints |
-| `NODE_ENV` | `development` · `test` · `production` |
+| `STORAGE_ENDPOINT`   | MinIO/R2 endpoint                        |
+| `STORAGE_ACCESS_KEY` | S3 access key                            |
+| `STORAGE_SECRET_KEY` | S3 secret key                            |
+| `SWAGGER_API_KEY`    | X-Api-Key for batch ingestion endpoints  |
+| `NODE_ENV`           | `development` · `test` · `production`    |
 
 ---
 
@@ -360,11 +360,11 @@ See `docs/agent/standards/common/architecture.md` for the definitive answer to "
 
 ## Planned Phases
 
-| Phase | Feature |
-|---|---|
-| 1 ✅ | Infrastructure: config, DB, auth guards, health, logging, queue, storage, SMS |
-| 2 | Auth domain: register, login, logout, refresh, email verification, password reset |
-| 3 | Jobs domain: CRUD, batch ingestion, deduplication, search |
-| 4 | Batch API: partner feed ingestion, API key auth, status polling |
-| 5 | Applications domain: apply, track, employer review |
-| 6 | Companies & Admin: profiles, moderation, advertising |
+| Phase | Feature                                                                           |
+| ----- | --------------------------------------------------------------------------------- |
+| 1 ✅  | Infrastructure: config, DB, auth guards, health, logging, queue, storage, SMS     |
+| 2     | Auth domain: register, login, logout, refresh, email verification, password reset |
+| 3     | Jobs domain: CRUD, batch ingestion, deduplication, search                         |
+| 4     | Batch API: partner feed ingestion, API key auth, status polling                   |
+| 5     | Applications domain: apply, track, employer review                                |
+| 6     | Companies & Admin: profiles, moderation, advertising                              |

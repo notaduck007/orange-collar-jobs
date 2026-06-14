@@ -7,15 +7,15 @@
  * Only accessible in development (NODE_ENV !== 'production').
  * Removed from the router in production builds via the route guard below.
  */
-import { createFileRoute, redirect } from '@tanstack/react-router';
-import { useState } from 'react';
-import { useApiHealth } from '@/hooks/use-api-health';
-import { apiClient, ApiError } from '@/lib/api-client';
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { useState } from "react";
+import { useApiHealth } from "@/hooks/use-api-health";
+import { apiClient, ApiError } from "@/lib/api-client";
 
-export const Route = createFileRoute('/dev/diagnostics')({
+export const Route = createFileRoute("/dev/diagnostics")({
   beforeLoad: () => {
     if (import.meta.env.PROD) {
-      throw redirect({ to: '/', replace: true });
+      throw redirect({ to: "/", replace: true });
     }
   },
   component: DiagnosticsPage,
@@ -23,16 +23,18 @@ export const Route = createFileRoute('/dev/diagnostics')({
 
 // ── Shared UI primitives ─────────────────────────────────────────────────────
 
-function StatusBadge({ status }: { status: 'up' | 'down' | 'unknown' | 'ok' | 'error' }) {
-  const isGood = status === 'up' || status === 'ok';
+function StatusBadge({ status }: { status: "up" | "down" | "unknown" | "ok" | "error" }) {
+  const isGood = status === "up" || status === "ok";
   return (
     <span
       className={[
-        'inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold',
-        isGood ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800',
-      ].join(' ')}
+        "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold",
+        isGood ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800",
+      ].join(" ")}
     >
-      <span className={['h-1.5 w-1.5 rounded-full', isGood ? 'bg-green-500' : 'bg-red-500'].join(' ')} />
+      <span
+        className={["h-1.5 w-1.5 rounded-full", isGood ? "bg-green-500" : "bg-red-500"].join(" ")}
+      />
       {status}
     </span>
   );
@@ -77,7 +79,7 @@ function HealthPanel() {
 
       {isError && (
         <p className="mt-3 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-          {error?.message ?? 'Could not reach the API. Is `bun run api:dev` running?'}
+          {error?.message ?? "Could not reach the API. Is `bun run api:dev` running?"}
         </p>
       )}
 
@@ -98,24 +100,24 @@ function HealthPanel() {
 // ── Manual request tester ────────────────────────────────────────────────────
 
 function MePanel() {
-  const [token, setToken] = useState('');
+  const [token, setToken] = useState("");
   const [result, setResult] = useState<string | null>(null);
-  const [status, setStatus] = useState<'idle' | 'ok' | 'error'>('idle');
+  const [status, setStatus] = useState<"idle" | "ok" | "error">("idle");
 
   const runRequest = async () => {
     setResult(null);
-    setStatus('idle');
+    setStatus("idle");
     try {
       const data = await apiClient.me(token);
       setResult(JSON.stringify(data, null, 2));
-      setStatus('ok');
+      setStatus("ok");
     } catch (err) {
       if (err instanceof ApiError) {
         setResult(`HTTP ${err.statusCode}\n${JSON.stringify(err.body, null, 2)}`);
       } else {
         setResult(String(err));
       }
-      setStatus('error');
+      setStatus("error");
     }
   };
 
@@ -142,12 +144,12 @@ function MePanel() {
       {result && (
         <div
           className={[
-            'mt-3 rounded-md p-3',
-            status === 'ok' ? 'bg-green-50 text-green-900' : 'bg-red-50 text-red-900',
-          ].join(' ')}
+            "mt-3 rounded-md p-3",
+            status === "ok" ? "bg-green-50 text-green-900" : "bg-red-50 text-red-900",
+          ].join(" ")}
         >
           <p className="mb-1 text-xs font-semibold uppercase">
-            {status === 'ok' ? '200 OK' : 'Error'}
+            {status === "ok" ? "200 OK" : "Error"}
           </p>
           <pre className="overflow-x-auto whitespace-pre-wrap font-mono text-xs">{result}</pre>
         </div>
@@ -159,7 +161,7 @@ function MePanel() {
 // ── Main page ────────────────────────────────────────────────────────────────
 
 function DiagnosticsPage() {
-  const apiBase = import.meta.env['VITE_API_BASE_URL'] ?? 'http://localhost:3001';
+  const apiBase = import.meta.env["VITE_API_BASE_URL"] ?? "http://localhost:3001";
 
   return (
     <main className="mx-auto max-w-2xl space-y-6 px-4 py-10">
@@ -167,11 +169,11 @@ function DiagnosticsPage() {
         <p className="label-caps text-muted-foreground">Dev only</p>
         <h1 className="mt-1 text-2xl font-bold text-foreground">API Diagnostics</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Visual integration tests for the NestJS API at{' '}
+          Visual integration tests for the NestJS API at{" "}
           <code className="rounded bg-muted px-1 py-0.5 text-xs">{apiBase}</code>
         </p>
         <p className="mt-1 text-xs text-muted-foreground">
-          Set <code className="rounded bg-muted px-1 py-0.5">VITE_API_BASE_URL</code> in{' '}
+          Set <code className="rounded bg-muted px-1 py-0.5">VITE_API_BASE_URL</code> in{" "}
           <code className="rounded bg-muted px-1 py-0.5">.env</code> to change the target.
         </p>
       </div>

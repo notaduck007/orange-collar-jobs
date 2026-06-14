@@ -35,25 +35,31 @@ If any command fails: fix before creating the PR.
 
 ```markdown
 ## What
+
 Brief description of the change.
 
 ## Why
+
 The business / technical reason.
 
 ## How
+
 Key implementation decisions.
 
 ## Testing
+
 - Unit: [describe tests added]
-- Integration: [describe tests added]  
+- Integration: [describe tests added]
 - E2E: [describe tests added]
 - Coverage: [X]% for changed services
 
 ## OpenAPI
+
 [ ] No endpoints changed
 [ ] `docs/api/openapi.yaml` updated; SwaggerHub publishing via CI
 
 ## Checklist
+
 - [ ] lint passes
 - [ ] type-check passes
 - [ ] all tests pass

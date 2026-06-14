@@ -195,7 +195,10 @@ function Pricing() {
                 </div>
               </div>
               {user ? (
-                <Link to="/employer/jobs/new" className="btn-primary inline-flex items-center gap-1.5">
+                <Link
+                  to="/employer/jobs/new"
+                  className="btn-primary inline-flex items-center gap-1.5"
+                >
                   Post your free job <ArrowRight className="h-4 w-4" />
                 </Link>
               ) : (
@@ -272,15 +275,12 @@ function Pricing() {
           })}
         </div>
 
-
-
         <p className="mt-6 text-center text-xs text-muted-foreground sm:text-sm">
           🔒 Secure checkout via Stripe · No contracts, cancel anytime · Questions?{" "}
           <a href={`mailto:${supportEmail}`} className="underline hover:text-primary">
             {supportEmail}
           </a>
         </p>
-
 
         <div className="mx-auto mt-16 max-w-2xl text-center">
           <p className="label-caps">Volume hiring?</p>

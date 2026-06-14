@@ -34,7 +34,9 @@ export const Route = createFileRoute("/companies/$slug")({
   },
   head: ({ params, loaderData }) => {
     const m = loaderData?.company;
-    const title = m ? `${m.name} — Warehouse jobs | WarehouseJobs.com` : "Company | WarehouseJobs.com";
+    const title = m
+      ? `${m.name} — Warehouse jobs | WarehouseJobs.com`
+      : "Company | WarehouseJobs.com";
     const desc = m
       ? (m.description ?? "").slice(0, 155).replace(/\s+/g, " ").trim() ||
         `Open warehouse roles at ${m.name}${m.location ? ` in ${m.location}` : ""}.`

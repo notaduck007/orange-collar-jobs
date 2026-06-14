@@ -20,19 +20,19 @@ description: Check whether a type belongs in src/core/ before defining it in a d
 
 ## Canonical Types (already defined in `src/core/`)
 
-| Type | Location | Use for |
-|---|---|---|
-| `PaginatedResult<T>` | `src/core/types.ts` | All list/search returns |
-| `PaginationParams` | `src/core/types.ts` | All search/filter DTOs |
-| `AppError` | `src/core/error/` | Base error class |
-| `NotFoundError` | `src/core/error/` | 404 errors |
-| `ConflictError` | `src/core/error/` | 409 errors |
-| `ValidationError` | `src/core/error/` | 422 errors |
-| `UnauthorizedError` | `src/core/error/` | 401 errors |
-| `ForbiddenError` | `src/core/error/` | 403 errors |
-| `AuditEntry` | `src/core/audit/` | Mutation audit records |
-| `StorageUploadResult` | `src/core/storage/` | File upload responses |
-| `UserId` | `src/core/types.ts` | User UUID typed alias |
+| Type                  | Location            | Use for                 |
+| --------------------- | ------------------- | ----------------------- |
+| `PaginatedResult<T>`  | `src/core/types.ts` | All list/search returns |
+| `PaginationParams`    | `src/core/types.ts` | All search/filter DTOs  |
+| `AppError`            | `src/core/error/`   | Base error class        |
+| `NotFoundError`       | `src/core/error/`   | 404 errors              |
+| `ConflictError`       | `src/core/error/`   | 409 errors              |
+| `ValidationError`     | `src/core/error/`   | 422 errors              |
+| `UnauthorizedError`   | `src/core/error/`   | 401 errors              |
+| `ForbiddenError`      | `src/core/error/`   | 403 errors              |
+| `AuditEntry`          | `src/core/audit/`   | Mutation audit records  |
+| `StorageUploadResult` | `src/core/storage/` | File upload responses   |
+| `UserId`              | `src/core/types.ts` | User UUID typed alias   |
 
 ## Domain-Specific Types (defined in domain `types.ts`)
 

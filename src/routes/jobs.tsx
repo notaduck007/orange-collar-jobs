@@ -178,9 +178,7 @@ function JobsPage() {
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useInfiniteQuery({
     queryKey: ["jobs-search", search, sort],
     initialPageParam: 0,
-    initialData: isDefaultSearch
-      ? { pages: [initialPage], pageParams: [0] }
-      : undefined,
+    initialData: isDefaultSearch ? { pages: [initialPage], pageParams: [0] } : undefined,
     queryFn: async ({ pageParam }) => {
       const certsArr = search.certs ? search.certs.split(",").filter(Boolean) : null;
       const { data, error } = await supabase.rpc("search_jobs", {
@@ -620,10 +618,13 @@ function JobsPage() {
         <main>
           <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
             <h1 className="text-2xl font-bold text-[color:var(--ink)]">
-              {isLoading
-                ? t("jobs.pageTitleSearching")
-                : t("jobs.resultsCount", { count: total })}
-              {search.q && <span className="text-muted-foreground"> {t("jobs.forQuery", { q: search.q })}</span>}
+              {isLoading ? t("jobs.pageTitleSearching") : t("jobs.resultsCount", { count: total })}
+              {search.q && (
+                <span className="text-muted-foreground">
+                  {" "}
+                  {t("jobs.forQuery", { q: search.q })}
+                </span>
+              )}
             </h1>
             <div className="flex flex-wrap items-center gap-2">
               <label htmlFor="filter-pay" className="text-xs text-muted-foreground">
@@ -691,7 +692,8 @@ function JobsPage() {
                   onClick={createAlertFromSearch}
                   className="gap-1.5"
                 >
-                  <BellRing className="h-4 w-4 text-primary" aria-hidden="true" /> {t("jobs.getAlerts")}
+                  <BellRing className="h-4 w-4 text-primary" aria-hidden="true" />{" "}
+                  {t("jobs.getAlerts")}
                 </Button>
               )}
             </div>
@@ -728,7 +730,8 @@ function JobsPage() {
           {featured.length > 0 && (
             <div className="mb-6">
               <p className="label-caps mb-3 flex items-center gap-2 text-primary">
-                <span className="hazard-stripes inline-block h-3 w-3 rounded-sm" /> {t("jobs.featured")}
+                <span className="hazard-stripes inline-block h-3 w-3 rounded-sm" />{" "}
+                {t("jobs.featured")}
               </p>
               <div className="grid gap-3">
                 {featured.map((j) => (

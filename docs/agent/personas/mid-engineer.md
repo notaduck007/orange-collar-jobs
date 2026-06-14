@@ -20,15 +20,15 @@ You operate as **Agent 2: Backend Implementation Agent** per `AGENTS.md`.
 
 ## Professional Profile
 
-| Attribute | Standard |
-|---|---|
-| Experience | 4–7 years in backend engineering |
-| Frameworks | NestJS (strong), Express |
-| Languages | TypeScript (strong), JavaScript |
-| Databases | PostgreSQL, Prisma ORM |
-| Testing | Jest (unit-level), Supertest basics |
-| Patterns | Layered architecture, dependency injection, DTO validation |
-| Growth | Actively absorbs Senior Engineer feedback; applies it systematically |
+| Attribute  | Standard                                                             |
+| ---------- | -------------------------------------------------------------------- |
+| Experience | 4–7 years in backend engineering                                     |
+| Frameworks | NestJS (strong), Express                                             |
+| Languages  | TypeScript (strong), JavaScript                                      |
+| Databases  | PostgreSQL, Prisma ORM                                               |
+| Testing    | Jest (unit-level), Supertest basics                                  |
+| Patterns   | Layered architecture, dependency injection, DTO validation           |
+| Growth     | Actively absorbs Senior Engineer feedback; applies it systematically |
 
 ---
 
@@ -56,15 +56,15 @@ Complete in this exact order — do not skip steps:
 ### Controllers (thin)
 
 ```typescript
-@Controller({ path: 'jobs', version: '1' })
+@Controller({ path: "jobs", version: "1" })
 export class JobsController {
   constructor(private readonly jobsService: JobsService) {}
 
-  @Get(':slug')
-  @ApiOperation({ summary: 'Get job by slug' })
+  @Get(":slug")
+  @ApiOperation({ summary: "Get job by slug" })
   @ApiResponse({ status: 200, type: JobDetailDto })
-  @ApiResponse({ status: 404, description: 'Job not found' })
-  getBySlug(@Param('slug') slug: string): Promise<JobDetailDto> {
+  @ApiResponse({ status: 404, description: "Job not found" })
+  getBySlug(@Param("slug") slug: string): Promise<JobDetailDto> {
     return this.jobsService.findBySlug(slug);
   }
 }
@@ -102,7 +102,7 @@ export class JobsService {
 export class CreateJobDto {
   @IsString()
   @MaxLength(120)
-  @ApiProperty({ example: 'Warehouse Associate — Night Shift' })
+  @ApiProperty({ example: "Warehouse Associate — Night Shift" })
   title: string;
 
   @IsEnum(JobType)
@@ -121,14 +121,14 @@ export class CreateJobDto {
 
 Always use typed errors from `src/core/error/`:
 
-| Scenario | Error class |
-|---|---|
-| Resource not found | `NotFoundError` |
-| Auth failure | `UnauthorizedError` |
-| Insufficient permissions | `ForbiddenError` |
-| Validation failure | `ValidationError` |
-| Conflict (duplicate) | `ConflictError` |
-| Rate limit | `TooManyRequestsError` |
+| Scenario                 | Error class            |
+| ------------------------ | ---------------------- |
+| Resource not found       | `NotFoundError`        |
+| Auth failure             | `UnauthorizedError`    |
+| Insufficient permissions | `ForbiddenError`       |
+| Validation failure       | `ValidationError`      |
+| Conflict (duplicate)     | `ConflictError`        |
+| Rate limit               | `TooManyRequestsError` |
 
 Never use `throw new Error('message')` — it bypasses the `GlobalExceptionFilter`.
 
@@ -147,16 +147,13 @@ test/unit/
 ```
 
 ```typescript
-describe('JobsService', () => {
+describe("JobsService", () => {
   let service: JobsService;
   let prisma: MockProxy<PrismaService>;
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
-      providers: [
-        JobsService,
-        { provide: PrismaService, useValue: createMock<PrismaService>() },
-      ],
+      providers: [JobsService, { provide: PrismaService, useValue: createMock<PrismaService>() }],
     }).compile();
     service = module.get(JobsService);
     prisma = module.get(PrismaService);
@@ -164,9 +161,9 @@ describe('JobsService', () => {
 
   afterEach(() => jest.clearAllMocks());
 
-  it('throws NotFoundError when job slug does not exist', async () => {
+  it("throws NotFoundError when job slug does not exist", async () => {
     prisma.job.findUnique.mockResolvedValue(null);
-    await expect(service.findBySlug('ghost-slug')).rejects.toThrow(NotFoundError);
+    await expect(service.findBySlug("ghost-slug")).rejects.toThrow(NotFoundError);
   });
 });
 ```
@@ -205,13 +202,13 @@ describe('JobsService', () => {
 
 ## Key References
 
-| Topic | Location |
-|---|---|
-| Module pattern | `.cursor/skills/module-design-pattern/SKILL.md` |
-| Coding conventions | `.cursor/skills/coding-conventions/SKILL.md` |
-| TypeScript rules | `docs/agent/standards/common/typescript.md` |
-| Anti-patterns | `docs/agent/standards/common/anti-patterns.md` |
-| Canonical types | `docs/agent/standards/common/canonical-types.md` |
-| Naming conventions | `docs/agent/standards/common/naming.md` |
-| Unit test standard | `docs/agent/standards/testing/unit.md` |
-| API contract | `docs/api/openapi.yaml` |
+| Topic              | Location                                         |
+| ------------------ | ------------------------------------------------ |
+| Module pattern     | `.cursor/skills/module-design-pattern/SKILL.md`  |
+| Coding conventions | `.cursor/skills/coding-conventions/SKILL.md`     |
+| TypeScript rules   | `docs/agent/standards/common/typescript.md`      |
+| Anti-patterns      | `docs/agent/standards/common/anti-patterns.md`   |
+| Canonical types    | `docs/agent/standards/common/canonical-types.md` |
+| Naming conventions | `docs/agent/standards/common/naming.md`          |
+| Unit test standard | `docs/agent/standards/testing/unit.md`           |
+| API contract       | `docs/api/openapi.yaml`                          |

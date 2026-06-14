@@ -1,6 +1,6 @@
-import type { INestApplication } from '@nestjs/common';
-import { ValidationPipe, VersioningType } from '@nestjs/common';
-import { GlobalExceptionFilter } from './core/error/global-exception.filter.js';
+import type { INestApplication } from "@nestjs/common";
+import { ValidationPipe, VersioningType } from "@nestjs/common";
+import { GlobalExceptionFilter } from "./core/error/global-exception.filter.js";
 
 /**
  * Applies the canonical NestJS application configuration shared by main.ts and
@@ -33,9 +33,9 @@ export function configureApp(app: INestApplication): void {
   // All routes share the /api prefix. Health's VERSION_NEUTRAL attribute keeps
   // it at /api/health — no version segment is inserted. No need to exclude health
   // from the prefix; the version-neutral attribute is sufficient.
-  app.setGlobalPrefix('api');
+  app.setGlobalPrefix("api");
 
   // URI versioning: bump defaultVersion to '2' when introducing a breaking
   // change — v1 consumers continue to work without any changes on their side.
-  app.enableVersioning({ type: VersioningType.URI, defaultVersion: '1' });
+  app.enableVersioning({ type: VersioningType.URI, defaultVersion: "1" });
 }
