@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/notaduck007/orange-collar-jobs/compare/v1.1.0...v1.1.1) (2026-06-14)
+
+
+### Bug Fixes
+
+* **version:** bump api version from 1.0.0 to 1.1.0 ([b8ffd4e](https://github.com/notaduck007/orange-collar-jobs/commit/b8ffd4e449a0633ea027dc4e26a585b1e7d4ec8f))
+
 # [1.1.0](https://github.com/notaduck007/orange-collar-jobs/compare/v1.0.0...v1.1.0) (2026-06-14)
 
 
