@@ -28,12 +28,12 @@ Every CI run must execute in this order:
 
 ## Secrets Required in GitHub
 
-| Secret | Description |
-|---|---|
-| `TEST_DATABASE_URL` | Postgres connection string for CI |
-| `TEST_REDIS_URL` | Redis connection string for CI |
-| `TEST_STORAGE_ENDPOINT` | MinIO endpoint for CI |
-| `SWAGGER_API_KEY` | For publishing OpenAPI spec on merge to main |
+| Secret                  | Description                                  |
+| ----------------------- | -------------------------------------------- |
+| `TEST_DATABASE_URL`     | Postgres connection string for CI            |
+| `TEST_REDIS_URL`        | Redis connection string for CI               |
+| `TEST_STORAGE_ENDPOINT` | MinIO endpoint for CI                        |
+| `SWAGGER_API_KEY`       | For publishing OpenAPI spec on merge to main |
 
 ## CI Rules
 
@@ -45,6 +45,7 @@ Every CI run must execute in this order:
 ## Optional: Deploy Workflow (`deploy.yml`)
 
 Triggers only after CI passes (`workflow_run`):
+
 - Build Docker image for `src/api/`
 - Push to container registry
 - Deploy to target platform (Railway / Fly.io / AWS ECS)

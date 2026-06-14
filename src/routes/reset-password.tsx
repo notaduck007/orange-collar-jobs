@@ -36,7 +36,9 @@ function ResetPasswordPage() {
       navigate({ to: "/auth", search: { mode: "login" } });
     } catch (err) {
       toast.error(
-        err instanceof ApiError ? err.message : "Could not reset password. The link may have expired.",
+        err instanceof ApiError
+          ? err.message
+          : "Could not reset password. The link may have expired.",
       );
     } finally {
       setLoading(false);
@@ -63,7 +65,9 @@ function ResetPasswordPage() {
     <div className="flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <h1 className="text-2xl font-bold">Set a new password</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Choose a strong password for your account.</p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Choose a strong password for your account.
+        </p>
         <form onSubmit={submit} className="mt-6 space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="password">New password</Label>
@@ -80,7 +84,11 @@ function ResetPasswordPage() {
             {loading ? "Saving…" : "Update password"}
           </Button>
         </form>
-        <Link to="/auth" search={{ mode: "login" }} className="mt-6 block text-center text-sm text-primary underline">
+        <Link
+          to="/auth"
+          search={{ mode: "login" }}
+          className="mt-6 block text-center text-sm text-primary underline"
+        >
           Back to sign in
         </Link>
       </div>

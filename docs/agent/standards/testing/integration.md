@@ -12,7 +12,7 @@
 
 ```typescript
 // test/helpers/truncate.ts
-import { PrismaService } from '@core/database';
+import { PrismaService } from "@core/database";
 
 export async function truncateAllTables(prisma: PrismaService): Promise<void> {
   // Truncate in FK-safe reverse dependency order
@@ -27,12 +27,12 @@ export async function truncateAllTables(prisma: PrismaService): Promise<void> {
 ## Template
 
 ```typescript
-import { Test, TestingModule } from '@nestjs/testing';
-import { AppModule } from '../../src/app.module';
-import { PrismaService } from '@core/database';
-import { truncateAllTables, seedCompany, seedVendorUser } from '../helpers';
+import { Test, TestingModule } from "@nestjs/testing";
+import { AppModule } from "../../src/app.module";
+import { PrismaService } from "@core/database";
+import { truncateAllTables, seedCompany, seedVendorUser } from "../helpers";
 
-describe('JobsService (integration)', () => {
+describe("JobsService (integration)", () => {
   let app: TestingModule;
   let service: JobsService;
   let prisma: PrismaService;
@@ -51,14 +51,14 @@ describe('JobsService (integration)', () => {
     await app.close();
   });
 
-  it('creates a job and it appears in search results', async () => {
+  it("creates a job and it appears in search results", async () => {
     const { company, user } = await seedVendorUser(prisma);
     const dto = makeCreateJobDto({ companyId: company.id });
 
     const job = await service.create(dto, user);
     const results = await service.search({ q: dto.title, page: 1, pageSize: 10 });
 
-    expect(results.data.some(j => j.id === job.id)).toBe(true);
+    expect(results.data.some((j) => j.id === job.id)).toBe(true);
   });
 });
 ```

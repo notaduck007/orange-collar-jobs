@@ -1,7 +1,7 @@
-import { Injectable, Logger, Optional } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import Twilio from 'twilio';
-import type { Env } from '../config/env.schema.js';
+import { Injectable, Logger, Optional } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import Twilio from "twilio";
+import type { Env } from "../config/env.schema.js";
 
 @Injectable()
 export class SmsService {
@@ -11,25 +11,25 @@ export class SmsService {
   private readonly logger = new Logger(SmsService.name);
 
   constructor(@Optional() config?: ConfigService<Env>) {
-    const accountSid = config?.get('TWILIO_ACCOUNT_SID', { infer: true });
-    const authToken = config?.get('TWILIO_AUTH_TOKEN', { infer: true });
+    const accountSid = config?.get("TWILIO_ACCOUNT_SID", { infer: true });
+    const authToken = config?.get("TWILIO_AUTH_TOKEN", { infer: true });
 
     if (accountSid && authToken) {
       this.client = Twilio(accountSid, authToken);
-      this.from = config?.get('TWILIO_FROM_NUMBER', { infer: true }) ?? null;
-      this.verifyServiceSid = config?.get('TWILIO_VERIFY_SERVICE_SID', { infer: true }) ?? null;
+      this.from = config?.get("TWILIO_FROM_NUMBER", { infer: true }) ?? null;
+      this.verifyServiceSid = config?.get("TWILIO_VERIFY_SERVICE_SID", { infer: true }) ?? null;
     } else {
-      this.logger.warn('Twilio credentials not configured — SMS features disabled');
+      this.logger.warn("Twilio credentials not configured — SMS features disabled");
     }
   }
 
   // ── Twilio Verify API ────────────────────────────────────────────────────
   async sendVerificationCode(
     to: string,
-    channel: 'sms' | 'whatsapp' | 'email' = 'sms',
+    channel: "sms" | "whatsapp" | "email" = "sms",
   ): Promise<void> {
     if (!this.client || !this.verifyServiceSid) {
-      this.logger.warn('Twilio Verify not configured — skipping OTP');
+      this.logger.warn("Twilio Verify not configured — skipping OTP");
       return;
     }
     await this.client.verify.v2
@@ -40,13 +40,13 @@ export class SmsService {
 
   async checkVerificationCode(to: string, code: string): Promise<boolean> {
     if (!this.client || !this.verifyServiceSid) {
-      this.logger.warn('Twilio Verify not configured — skipping check');
+      this.logger.warn("Twilio Verify not configured — skipping check");
       return false;
     }
     const result = await this.client.verify.v2
       .services(this.verifyServiceSid)
       .verificationChecks.create({ to, code });
-    return result.status === 'approved';
+    return result.status === "approved";
   }
 
   // ── Twilio Lookup API ────────────────────────────────────────────────────
@@ -54,10 +54,10 @@ export class SmsService {
     if (!this.client) return true; // permissive when not configured
     try {
       const lookup = await this.client.lookups.v2.phoneNumbers(phone).fetch({
-        fields: 'line_type_intelligence',
+        fields: "line_type_intelligence",
       });
       const lineType = (lookup.lineTypeIntelligence as { type?: string } | undefined)?.type;
-      return lineType === 'mobile' || lineType === 'nonFixedVoip';
+      return lineType === "mobile" || lineType === "nonFixedVoip";
     } catch {
       return false;
     }
@@ -73,11 +73,7 @@ export class SmsService {
     });
   }
 
-  async sendNewApplicantAlert(
-    to: string,
-    jobTitle: string,
-    applicantName: string,
-  ): Promise<void> {
+  async sendNewApplicantAlert(to: string, jobTitle: string, applicantName: string): Promise<void> {
     if (!this.client || !this.from) return;
     await this.client.messages.create({
       to,
@@ -86,12 +82,7 @@ export class SmsService {
     });
   }
 
-  async sendJobAlert(
-    to: string,
-    jobTitle: string,
-    city: string,
-    applyUrl: string,
-  ): Promise<void> {
+  async sendJobAlert(to: string, jobTitle: string, city: string, applyUrl: string): Promise<void> {
     if (!this.client || !this.from) return;
     await this.client.messages.create({
       to,

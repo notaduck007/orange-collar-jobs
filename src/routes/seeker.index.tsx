@@ -105,9 +105,7 @@ function SeekerOverview() {
           <h1 className="mt-1 text-3xl font-bold tracking-tight text-[color:var(--ink)]">
             {t("seeker.welcome")}
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {t("seeker.sub")}
-          </p>
+          <p className="mt-1 text-sm text-muted-foreground">{t("seeker.sub")}</p>
         </div>
       </div>
 
@@ -124,7 +122,12 @@ function SeekerOverview() {
           icon={FileText}
           to="/seeker/applications"
         />
-        <StatCard label={t("seeker.saved")} value={stats?.saved ?? 0} icon={Bookmark} to="/seeker/saved" />
+        <StatCard
+          label={t("seeker.saved")}
+          value={stats?.saved ?? 0}
+          icon={Bookmark}
+          to="/seeker/saved"
+        />
         <StatCard
           label={t("seeker.alerts")}
           value={stats?.alerts ?? 0}
@@ -146,9 +149,7 @@ function SeekerOverview() {
               {t("seeker.tunePrefs")} <ArrowRight className="ml-0.5 inline h-3 w-3" />
             </Link>
           </div>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {t("seeker.recommendedSub")}
-          </p>
+          <p className="mt-1 text-xs text-muted-foreground">{t("seeker.recommendedSub")}</p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {recommended.map((job) => (
               <JobCard key={job.id} job={job} />
@@ -159,7 +160,9 @@ function SeekerOverview() {
 
       <div className="rounded-xl border border-border bg-card p-5">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-[color:var(--ink)]">{t("seeker.recentApps")}</h2>
+          <h2 className="text-lg font-semibold text-[color:var(--ink)]">
+            {t("seeker.recentApps")}
+          </h2>
           <Link
             to="/seeker/applications"
             className="text-xs font-semibold text-primary hover:underline"
@@ -239,7 +242,10 @@ export function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { labelKey: string; cls: string }> = {
     submitted: { labelKey: "seeker.status_submitted", cls: "bg-muted text-foreground" },
     reviewed: { labelKey: "seeker.status_reviewed", cls: "bg-blue-100 text-blue-900" },
-    shortlisted: { labelKey: "seeker.status_shortlisted", cls: "bg-[color:var(--primary-tint)] text-primary" },
+    shortlisted: {
+      labelKey: "seeker.status_shortlisted",
+      cls: "bg-[color:var(--primary-tint)] text-primary",
+    },
     hired: { labelKey: "seeker.status_hired", cls: "bg-emerald-100 text-emerald-900" },
     rejected: { labelKey: "seeker.status_rejected", cls: "bg-rose-100 text-rose-900" },
   };

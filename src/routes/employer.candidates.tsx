@@ -157,9 +157,7 @@ function CandidatesPage() {
 
       const ids = new Set(profilesRaw.map((p) => p.user_id));
       // Public candidate directory: phone-free RPC (replaces direct profiles read).
-      const { data: profsRaw } = await supabase.rpc(
-        "list_discoverable_candidates" as never,
-      );
+      const { data: profsRaw } = await supabase.rpc("list_discoverable_candidates" as never);
       const profs = (profsRaw ?? []) as unknown as Array<{
         id: string;
         display_name: string | null;

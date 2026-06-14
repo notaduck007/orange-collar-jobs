@@ -1,8 +1,8 @@
-import { Injectable } from '@nestjs/common';
-import { HealthIndicator, HealthIndicatorResult, HealthCheckError } from '@nestjs/terminus';
-import { ConfigService } from '@nestjs/config';
-import Redis from 'ioredis';
-import type { Env } from '../config/env.schema.js';
+import { Injectable } from "@nestjs/common";
+import { HealthIndicator, HealthIndicatorResult, HealthCheckError } from "@nestjs/terminus";
+import { ConfigService } from "@nestjs/config";
+import Redis from "ioredis";
+import type { Env } from "../config/env.schema.js";
 
 @Injectable()
 export class RedisHealthIndicator extends HealthIndicator {
@@ -11,7 +11,7 @@ export class RedisHealthIndicator extends HealthIndicator {
   }
 
   async isHealthy(key: string): Promise<HealthIndicatorResult> {
-    const client = new Redis(this.config.getOrThrow('REDIS_URL', { infer: true }), {
+    const client = new Redis(this.config.getOrThrow("REDIS_URL", { infer: true }), {
       lazyConnect: true,
       connectTimeout: 3000,
     });
@@ -22,7 +22,7 @@ export class RedisHealthIndicator extends HealthIndicator {
       return this.getStatus(key, true);
     } catch (err) {
       await client.quit().catch(() => undefined);
-      throw new HealthCheckError('Redis check failed', this.getStatus(key, false, { err }));
+      throw new HealthCheckError("Redis check failed", this.getStatus(key, false, { err }));
     }
   }
 }

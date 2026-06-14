@@ -13,15 +13,15 @@ This document walks through what Phase 1 built and how to demonstrate it. For an
 
 ## What Phase 1 delivers
 
-| Component | Location | Demo signal |
-|---|---|---|
-| NestJS scaffold | `src/api/` | `bun run api:dev` starts on :3001 |
-| Prisma + Postgres | `src/api/prisma/` | migrations apply cleanly |
-| Core modules | `src/api/src/core/*` | health, auth guards, storage, SMS, queue |
-| Docker Compose | `docker-compose.yml` | Postgres :5433, Redis :6380, MinIO :9000 |
-| OpenAPI contract | `docs/api/openapi.yaml` | 27 endpoints (design-first) |
-| CI | `.github/workflows/ci.yml` | lint, test, integration, e2e, build |
-| Tests | `src/api/test/unit/**` | ≥ 90% line coverage on core services |
+| Component         | Location                   | Demo signal                              |
+| ----------------- | -------------------------- | ---------------------------------------- |
+| NestJS scaffold   | `src/api/`                 | `bun run api:dev` starts on :3001        |
+| Prisma + Postgres | `src/api/prisma/`          | migrations apply cleanly                 |
+| Core modules      | `src/api/src/core/*`       | health, auth guards, storage, SMS, queue |
+| Docker Compose    | `docker-compose.yml`       | Postgres :5433, Redis :6380, MinIO :9000 |
+| OpenAPI contract  | `docs/api/openapi.yaml`    | 27 endpoints (design-first)              |
+| CI                | `.github/workflows/ci.yml` | lint, test, integration, e2e, build      |
+| Tests             | `src/api/test/unit/**`     | ≥ 90% line coverage on core services     |
 
 ---
 
@@ -93,12 +93,12 @@ Options:
 
 ## Package manager: Bun (not npm)
 
-| Context | Tool |
-|---|---|
-| Local dev | **Bun** (`bun install`, `bun run api:*`) |
-| CI (`.github/workflows/ci.yml`) | **Bun** |
-| Docker image build | **Bun** (`oven/bun` in `src/api/Dockerfile`) |
-| Lockfile | **Root `bun.lock`** only (Bun workspaces) |
+| Context                         | Tool                                         |
+| ------------------------------- | -------------------------------------------- |
+| Local dev                       | **Bun** (`bun install`, `bun run api:*`)     |
+| CI (`.github/workflows/ci.yml`) | **Bun**                                      |
+| Docker image build              | **Bun** (`oven/bun` in `src/api/Dockerfile`) |
+| Lockfile                        | **Root `bun.lock`** only (Bun workspaces)    |
 
 Do **not** run `npm ci` in this repo — there is no root `package-lock.json`. Nested `package-lock.json` / `bun.lock` under `src/api/` are removed to avoid confusion.
 

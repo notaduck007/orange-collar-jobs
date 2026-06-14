@@ -36,13 +36,13 @@ WarehouseJobs.com is a job marketplace connecting warehouse, logistics, and ligh
 
 ## Runtime Containers (Docker Compose — local dev)
 
-| Container | Image | Purpose | Port |
-|---|---|---|---|
-| `api` | `node:24-slim` (NestJS) | REST API | 3001 |
-| `postgres` | `postgres:16` | Primary data | 5432 |
-| `redis` | `redis:7-alpine` | Cache + queues | 6379 |
-| `minio` | `minio/minio` | S3-compatible local object store | 9000 / 9001 |
-| `web` (optional) | Vite dev server | SSR frontend | 5173 |
+| Container        | Image                   | Purpose                          | Port        |
+| ---------------- | ----------------------- | -------------------------------- | ----------- |
+| `api`            | `node:24-slim` (NestJS) | REST API                         | 3001        |
+| `postgres`       | `postgres:16`           | Primary data                     | 5432        |
+| `redis`          | `redis:7-alpine`        | Cache + queues                   | 6379        |
+| `minio`          | `minio/minio`           | S3-compatible local object store | 9000 / 9001 |
+| `web` (optional) | Vite dev server         | SSR frontend                     | 5173        |
 
 ---
 
@@ -82,6 +82,7 @@ api_keys (batch ingestion auth)
 ### Migration from Supabase
 
 The original frontend used Supabase-managed PostgreSQL directly. Migration strategy:
+
 1. Export Supabase schema → adapt to Prisma schema (`prisma/schema.prisma`)
 2. Export Supabase data → import via seeder scripts (`prisma/seeds/`)
 3. Export Supabase Auth users → import to `users` table with hashed placeholder passwords
@@ -111,11 +112,11 @@ Client                          API
 
 ### Roles
 
-| Role | Capabilities |
-|---|---|
-| `admin` | Full access; post jobs for any company; manage all users and ads |
-| `vendor` | Post/manage jobs for their own company; view own applications |
-| `seeker` | Apply to jobs; manage own profile and applications |
+| Role     | Capabilities                                                     |
+| -------- | ---------------------------------------------------------------- |
+| `admin`  | Full access; post jobs for any company; manage all users and ads |
+| `vendor` | Post/manage jobs for their own company; view own applications    |
+| `seeker` | Apply to jobs; manage own profile and applications               |
 
 ### Guards
 
@@ -129,9 +130,9 @@ Client                          API
 
 ### Decision: Hybrid (Sync + Async)
 
-| Batch Size | Strategy | Response |
-|---|---|---|
-| ≤ 100 jobs | Synchronous | 201 with all results |
+| Batch Size      | Strategy             | Response               |
+| --------------- | -------------------- | ---------------------- |
+| ≤ 100 jobs      | Synchronous          | 201 with all results   |
 | 101–10,000 jobs | BullMQ queue (async) | 202 with `{ batchId }` |
 
 ### Formats Supported
@@ -172,11 +173,11 @@ Cloudflare R2 is S3-compatible and supports enterprise-level throughput. The sam
 
 ### Use Cases
 
-| Bucket | Contents |
-|---|---|
-| `resumes` | Seeker resume uploads (PDF, DOCX) |
-| `company-logos` | Employer brand logos |
-| `ad-assets` | Banner creative assets |
+| Bucket          | Contents                          |
+| --------------- | --------------------------------- |
+| `resumes`       | Seeker resume uploads (PDF, DOCX) |
+| `company-logos` | Employer brand logos              |
+| `ad-assets`     | Banner creative assets            |
 
 ---
 
@@ -236,12 +237,12 @@ All routes migrate together in Phase 3 of the plan. No hybrid period where some 
 
 ## Key Technical Decisions
 
-| Decision | Choice | Rationale |
-|---|---|---|
-| Database | Self-hosted PostgreSQL 16 (containerized) | Portability; full Prisma ORM control; no Supabase vendor lock-in |
-| Auth | Custom NestJS JWT (HS256) | Full control over tokens, roles, refresh flow |
-| Storage | MinIO → Cloudflare R2 | S3-compatible; R2 has zero egress fees; enterprise-scale |
-| Batch ingest | BullMQ (async) for >100 jobs | Avoids HTTP timeout on large batches; reliable retry |
-| Frontend migration | Big bang | Avoids auth session fragmentation; simpler mental model |
-| ORM | Prisma 5 | Type-safe; migration management; excellent TS integration |
-| Monorepo | Bun workspaces | Single repo; independent extraction possible at any time |
+| Decision           | Choice                                    | Rationale                                                        |
+| ------------------ | ----------------------------------------- | ---------------------------------------------------------------- |
+| Database           | Self-hosted PostgreSQL 16 (containerized) | Portability; full Prisma ORM control; no Supabase vendor lock-in |
+| Auth               | Custom NestJS JWT (HS256)                 | Full control over tokens, roles, refresh flow                    |
+| Storage            | MinIO → Cloudflare R2                     | S3-compatible; R2 has zero egress fees; enterprise-scale         |
+| Batch ingest       | BullMQ (async) for >100 jobs              | Avoids HTTP timeout on large batches; reliable retry             |
+| Frontend migration | Big bang                                  | Avoids auth session fragmentation; simpler mental model          |
+| ORM                | Prisma 5                                  | Type-safe; migration management; excellent TS integration        |
+| Monorepo           | Bun workspaces                            | Single repo; independent extraction possible at any time         |

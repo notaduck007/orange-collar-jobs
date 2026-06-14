@@ -1,22 +1,22 @@
-import { createHash, randomBytes } from 'node:crypto';
-import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcryptjs';
-import type { User } from '@prisma/client';
-import type { Env } from '../../core/config/env.schema.js';
-import { PrismaService } from '../../core/database/prisma.service.js';
-import { EmailService } from '../../core/email/email.service.js';
+import { createHash, randomBytes } from "node:crypto";
+import { Injectable } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { JwtService } from "@nestjs/jwt";
+import * as bcrypt from "bcryptjs";
+import type { User } from "@prisma/client";
+import type { Env } from "../../core/config/env.schema.js";
+import { PrismaService } from "../../core/database/prisma.service.js";
+import { EmailService } from "../../core/email/email.service.js";
 import {
   BadRequestError,
   ConflictError,
   InvalidCredentialsError,
   UnauthorizedError,
-} from '../../core/error/errors.js';
-import type { JwtPayload } from '../../core/auth/jwt.strategy.js';
-import type { LoginDto } from './dto/login.dto.js';
-import type { RegisterDto } from './dto/register.dto.js';
-import type { AuthTokensResponse, MessageResponse, RegisterResponse } from './types.js';
+} from "../../core/error/errors.js";
+import type { JwtPayload } from "../../core/auth/jwt.strategy.js";
+import type { LoginDto } from "./dto/login.dto.js";
+import type { RegisterDto } from "./dto/register.dto.js";
+import type { AuthTokensResponse, MessageResponse, RegisterResponse } from "./types.js";
 
 const BCRYPT_ROUNDS = 12;
 const VERIFICATION_TTL_MS = 24 * 60 * 60 * 1000;
@@ -36,11 +36,11 @@ function parseDurationMs(value: string): number {
 }
 
 function hashToken(token: string): string {
-  return createHash('sha256').update(token).digest('hex');
+  return createHash("sha256").update(token).digest("hex");
 }
 
 function generateOpaqueToken(): string {
-  return randomBytes(32).toString('base64url');
+  return randomBytes(32).toString("base64url");
 }
 
 @Injectable()
@@ -56,7 +56,7 @@ export class AuthService {
     const email = dto.email.trim().toLowerCase();
     const existing = await this.prisma.user.findUnique({ where: { email } });
     if (existing) {
-      throw new ConflictError('Email already registered');
+      throw new ConflictError("Email already registered");
     }
 
     const passwordHash = await bcrypt.hash(dto.password, BCRYPT_ROUNDS);
@@ -78,11 +78,11 @@ export class AuthService {
       },
     });
 
-    const baseUrl = this.config.get('CORS_ORIGIN', { infer: true }) ?? 'http://localhost:5173';
+    const baseUrl = this.config.get("CORS_ORIGIN", { infer: true }) ?? "http://localhost:5173";
     await this.email.sendVerificationEmail(email, token, baseUrl);
 
     return {
-      message: 'Account created. Check your email to verify.',
+      message: "Account created. Check your email to verify.",
       userId: user.id,
     };
   }
@@ -100,7 +100,7 @@ export class AuthService {
     }
 
     if (!user.emailVerifiedAt) {
-      throw new UnauthorizedError('Email not confirmed');
+      throw new UnauthorizedError("Email not confirmed");
     }
 
     return this.issueTokenPair(user);
@@ -121,7 +121,7 @@ export class AuthService {
     });
 
     if (!stored || stored.expiresAt < new Date()) {
-      throw new UnauthorizedError('Invalid or expired refresh token');
+      throw new UnauthorizedError("Invalid or expired refresh token");
     }
 
     await this.prisma.refreshToken.update({
@@ -139,7 +139,7 @@ export class AuthService {
     });
 
     if (!record || record.usedAt || record.expiresAt < new Date()) {
-      throw new BadRequestError('Token invalid or expired');
+      throw new BadRequestError("Token invalid or expired");
     }
 
     await this.prisma.$transaction([
@@ -153,7 +153,7 @@ export class AuthService {
       }),
     ]);
 
-    return { message: 'Email verified successfully' };
+    return { message: "Email verified successfully" };
   }
 
   async forgotPassword(emailInput: string): Promise<MessageResponse> {
@@ -169,12 +169,12 @@ export class AuthService {
           expiresAt: new Date(Date.now() + RESET_TTL_MS),
         },
       });
-      const baseUrl = this.config.get('CORS_ORIGIN', { infer: true }) ?? 'http://localhost:5173';
+      const baseUrl = this.config.get("CORS_ORIGIN", { infer: true }) ?? "http://localhost:5173";
       await this.email.sendPasswordResetEmail(email, token, baseUrl);
     }
 
     return {
-      message: 'If that email is registered, a reset link has been sent.',
+      message: "If that email is registered, a reset link has been sent.",
     };
   }
 
@@ -185,7 +185,7 @@ export class AuthService {
     });
 
     if (!record || record.usedAt || record.expiresAt < new Date()) {
-      throw new BadRequestError('Token invalid or expired');
+      throw new BadRequestError("Token invalid or expired");
     }
 
     const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
@@ -205,7 +205,7 @@ export class AuthService {
       }),
     ]);
 
-    return { message: 'Password updated. Please log in again.' };
+    return { message: "Password updated. Please log in again." };
   }
 
   private async issueTokenPair(user: User): Promise<AuthTokensResponse> {
@@ -220,11 +220,10 @@ export class AuthService {
     const expiresIn =
       decoded?.exp != null
         ? decoded.exp - Math.floor(Date.now() / 1000)
-        : parseDurationMs(this.config.get('JWT_ACCESS_EXPIRES_IN', { infer: true }) ?? '15m');
+        : parseDurationMs(this.config.get("JWT_ACCESS_EXPIRES_IN", { infer: true }) ?? "15m");
 
     const refreshToken = generateOpaqueToken();
-    const refreshTtl =
-      this.config.get('JWT_REFRESH_EXPIRES_IN', { infer: true }) ?? '30d';
+    const refreshTtl = this.config.get("JWT_REFRESH_EXPIRES_IN", { infer: true }) ?? "30d";
 
     await this.prisma.refreshToken.create({
       data: {

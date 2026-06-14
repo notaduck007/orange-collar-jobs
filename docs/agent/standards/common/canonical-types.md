@@ -7,8 +7,8 @@ Types that MUST come from `src/api/src/core/` and must not be redefined in any d
 ```typescript
 // src/core/types.ts
 export interface PaginationParams {
-  readonly page: number;      // default: 1
-  readonly pageSize: number;  // default: 20, max: 100
+  readonly page: number; // default: 1
+  readonly pageSize: number; // default: 20, max: 100
 }
 
 export interface PaginationMeta {
@@ -28,9 +28,9 @@ export interface PaginatedResult<T> {
 
 ```typescript
 // src/core/types.ts
-export type UserId = string;       // UUID — never accept raw string where UserId expected
-export type JobId = string;        // UUID
-export type CompanyId = string;    // UUID
+export type UserId = string; // UUID — never accept raw string where UserId expected
+export type JobId = string; // UUID
+export type CompanyId = string; // UUID
 export type ApplicationId = string; // UUID
 ```
 
@@ -75,6 +75,7 @@ export interface AuditEntry {
 ## Rule: New Cross-Cutting Types
 
 Before defining a new type, check whether it:
+
 1. Is used in 2+ domains → belongs in `src/core/types.ts`
 2. Is an error variant → belongs in `src/core/error/`
 3. Is domain-specific (only used in one domain) → belongs in `src/domains/{name}/types.ts`

@@ -44,6 +44,7 @@ npm run test:cov -- --collectCoverageFrom="src/domains/jobs/**"
 ### Step 3 — Report
 
 Return a summary:
+
 - **Failure type**: lint / type-check / unit / integration / e2e / coverage
 - **Root cause**: the specific error message and file/line
 - **Likely fix**: one-sentence description (do not implement)

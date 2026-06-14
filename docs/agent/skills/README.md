@@ -31,27 +31,27 @@ Cross-repo sharing is described in [`shared-skills.md`](./shared-skills.md).
 
 ### Design & Architecture
 
-| Skill | Canonical File | Invoked By |
-|---|---|---|
-| **Domain-Driven Design** | [`.cursor/skills/domain-driven-design/SKILL.md`](../../../.cursor/skills/domain-driven-design/SKILL.md) | Architecture & Contracts Agent |
-| **Interface Designer** | [`.cursor/skills/interface-designer/SKILL.md`](../../../.cursor/skills/interface-designer/SKILL.md) | Architecture & Contracts Agent |
-| **Canonical Type Reuse** | [`.cursor/skills/canonical-type-reuse/SKILL.md`](../../../.cursor/skills/canonical-type-reuse/SKILL.md) | Architecture & Contracts Agent, Backend Agent |
+| Skill                     | Canonical File                                                                                            | Invoked By                                    |
+| ------------------------- | --------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| **Domain-Driven Design**  | [`.cursor/skills/domain-driven-design/SKILL.md`](../../../.cursor/skills/domain-driven-design/SKILL.md)   | Architecture & Contracts Agent                |
+| **Interface Designer**    | [`.cursor/skills/interface-designer/SKILL.md`](../../../.cursor/skills/interface-designer/SKILL.md)       | Architecture & Contracts Agent                |
+| **Canonical Type Reuse**  | [`.cursor/skills/canonical-type-reuse/SKILL.md`](../../../.cursor/skills/canonical-type-reuse/SKILL.md)   | Architecture & Contracts Agent, Backend Agent |
 | **Module Design Pattern** | [`.cursor/skills/module-design-pattern/SKILL.md`](../../../.cursor/skills/module-design-pattern/SKILL.md) | Architecture & Contracts Agent, Backend Agent |
 
 ### Implementation
 
-| Skill | Canonical File | Invoked By |
-|---|---|---|
-| **Coding Conventions** | [`.cursor/skills/coding-conventions/SKILL.md`](../../../.cursor/skills/coding-conventions/SKILL.md) | All agents |
-| **Testing** | [`.cursor/skills/testing/SKILL.md`](../../../.cursor/skills/testing/SKILL.md) | QA & Testing Agent, Backend Agent |
+| Skill                  | Canonical File                                                                                      | Invoked By                        |
+| ---------------------- | --------------------------------------------------------------------------------------------------- | --------------------------------- |
+| **Coding Conventions** | [`.cursor/skills/coding-conventions/SKILL.md`](../../../.cursor/skills/coding-conventions/SKILL.md) | All agents                        |
+| **Testing**            | [`.cursor/skills/testing/SKILL.md`](../../../.cursor/skills/testing/SKILL.md)                       | QA & Testing Agent, Backend Agent |
 
 ### Operations & Delivery
 
-| Skill | Canonical File | Invoked By |
-|---|---|---|
-| **CI Monitoring Subagents** | [`.cursor/skills/ci-monitoring-subagents/SKILL.md`](../../../.cursor/skills/ci-monitoring-subagents/SKILL.md) | CI Monitor Subagent |
+| Skill                               | Canonical File                                                                                                      | Invoked By                     |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
+| **CI Monitoring Subagents**         | [`.cursor/skills/ci-monitoring-subagents/SKILL.md`](../../../.cursor/skills/ci-monitoring-subagents/SKILL.md)       | CI Monitor Subagent            |
 | **Deployments with GitHub Actions** | [`.cursor/skills/deployments-github-actions/SKILL.md`](../../../.cursor/skills/deployments-github-actions/SKILL.md) | Architecture & Contracts Agent |
-| **Create PR** | [`.cursor/skills/create-pr/SKILL.md`](../../../.cursor/skills/create-pr/SKILL.md) | Code Review / PR Agent |
+| **Create PR**                       | [`.cursor/skills/create-pr/SKILL.md`](../../../.cursor/skills/create-pr/SKILL.md)                                   | Code Review / PR Agent         |
 
 ---
 

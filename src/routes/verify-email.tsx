@@ -51,12 +51,19 @@ function VerifyEmailPage() {
         <h1 className="text-2xl font-bold">Email verification</h1>
         <p className="mt-3 text-muted-foreground">{message}</p>
         {status === "ok" && (
-          <Button className="mt-6" onClick={() => navigate({ to: "/auth", search: { mode: "login" } })}>
+          <Button
+            className="mt-6"
+            onClick={() => navigate({ to: "/auth", search: { mode: "login" } })}
+          >
             Sign in
           </Button>
         )}
         {status === "error" && (
-          <Link to="/auth" search={{ mode: "login" }} className="mt-6 inline-block text-primary underline">
+          <Link
+            to="/auth"
+            search={{ mode: "login" }}
+            className="mt-6 inline-block text-primary underline"
+          >
             Back to sign in
           </Link>
         )}

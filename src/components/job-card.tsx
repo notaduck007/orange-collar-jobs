@@ -15,7 +15,11 @@ import {
   Timer,
   Dumbbell,
 } from "lucide-react";
-import { useAppliedJobs, useQuickApplyReady, useSeekerMatchProfile } from "@/hooks/use-applied-jobs";
+import {
+  useAppliedJobs,
+  useQuickApplyReady,
+  useSeekerMatchProfile,
+} from "@/hooks/use-applied-jobs";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { CERT_LABEL, TEMP_LABEL } from "@/lib/warehouse-attrs";
@@ -168,144 +172,142 @@ export function JobCard({ job }: { job: JobSummary }) {
   }
   const hintsToShow = matchHints.slice(0, 2);
 
-
   return (
     <>
-    <div className="group relative rounded-lg border border-border bg-card p-5 shadow-[var(--shadow-card)] transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-[var(--shadow-card-hover)]">
-      {job.featured && (
-        <div className="absolute -top-px right-4 flex items-center gap-1 rounded-b-md bg-[color:var(--hazard)] px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[color:var(--ink)]">
-          <Zap className="h-3 w-3" fill="currentColor" aria-hidden /> Featured
-        </div>
-      )}
-      <p className="label-caps">
-        {job.category} • {shiftLabel[job.shift]}
-      </p>
-      <h3 className="mt-1.5 text-lg font-semibold leading-tight text-[color:var(--ink)] group-hover:text-primary">
-        <Link
-          to="/jobs/$slug"
-          params={{ slug: job.slug }}
-          className="before:absolute before:inset-0 before:content-['']"
-        >
-          {job.title}
-        </Link>
-      </h3>
-      {job.companies && (
-        <div className="mt-0.5 flex items-center gap-1.5">
-          {job.companies.slug ? (
-            <Link
-              to="/companies/$slug"
-              params={{ slug: job.companies.slug }}
-              className="relative z-10 text-sm font-medium text-foreground hover:text-primary hover:underline"
-            >
-              {job.companies.name}
-            </Link>
-          ) : (
-            <span className="text-sm font-medium text-foreground">{job.companies.name}</span>
-          )}
-          {job.companies.verified && (
-            <span
-              title="Verified employer"
-              className="relative z-10 inline-flex items-center text-blue-600"
-            >
-              <BadgeCheck className="h-4 w-4" aria-hidden />
-            </span>
-          )}
-        </div>
-      )}
-      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-sm text-muted-foreground">
-        <span className="inline-flex items-center gap-1">
-          <MapPin className="h-3.5 w-3.5" aria-hidden /> {job.location}
-        </span>
-        <span className="inline-flex items-center gap-1">
-          <Clock className="h-3.5 w-3.5" aria-hidden /> {typeLabel[job.employment_type]}
-        </span>
-        {pay && (
-          <span className="inline-flex items-center gap-1 font-medium text-[color:var(--ink)]">
-            <DollarSign className="h-3.5 w-3.5" aria-hidden /> {pay}
-          </span>
+      <div className="group relative rounded-lg border border-border bg-card p-5 shadow-[var(--shadow-card)] transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-[var(--shadow-card-hover)]">
+        {job.featured && (
+          <div className="absolute -top-px right-4 flex items-center gap-1 rounded-b-md bg-[color:var(--hazard)] px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[color:var(--ink)]">
+            <Zap className="h-3 w-3" fill="currentColor" aria-hidden /> Featured
+          </div>
         )}
-      </div>
-
-      {hasAttrBadges && (
-        <div className="mt-3 flex flex-wrap gap-1.5">
-          {job.quick_hire && (
-            <Badge icon={Timer} tone="fast">
-              Same-day hire
-            </Badge>
-          )}
-          {job.weekly_pay && (
-            <Badge icon={DollarSign} tone="money">
-              Weekly pay
-            </Badge>
-          )}
-          {job.temperature_env && job.temperature_env !== "ambient" && (
-            <Badge icon={Snowflake} tone="cold">
-              {TEMP_LABEL[job.temperature_env] ?? job.temperature_env}
-            </Badge>
-          )}
-          {certs.map((c) => (
-            <Badge key={c} icon={Forklift}>
-              {CERT_LABEL[c] ?? c}
-            </Badge>
-          ))}
-          {job.overtime_available && (
-            <Badge icon={CalendarClock} tone="hot">
-              OT available
-            </Badge>
-          )}
-          {(job.lift_requirement_lbs ?? 0) > 0 && (
-            <Badge icon={Dumbbell}>Lift {job.lift_requirement_lbs}+ lbs</Badge>
-          )}
-        </div>
-      )}
-
-      {hintsToShow.length > 0 && (
-        <div className="mt-2 flex flex-wrap gap-1.5">
-          {hintsToShow.map((h) => (
-            <span
-              key={h}
-              className="relative z-10 inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 ring-1 ring-emerald-200"
-            >
-              <CheckCircle2 className="h-3 w-3" aria-hidden /> {h}
+        <p className="label-caps">
+          {job.category} • {shiftLabel[job.shift]}
+        </p>
+        <h3 className="mt-1.5 text-lg font-semibold leading-tight text-[color:var(--ink)] group-hover:text-primary">
+          <Link
+            to="/jobs/$slug"
+            params={{ slug: job.slug }}
+            className="before:absolute before:inset-0 before:content-['']"
+          >
+            {job.title}
+          </Link>
+        </h3>
+        {job.companies && (
+          <div className="mt-0.5 flex items-center gap-1.5">
+            {job.companies.slug ? (
+              <Link
+                to="/companies/$slug"
+                params={{ slug: job.companies.slug }}
+                className="relative z-10 text-sm font-medium text-foreground hover:text-primary hover:underline"
+              >
+                {job.companies.name}
+              </Link>
+            ) : (
+              <span className="text-sm font-medium text-foreground">{job.companies.name}</span>
+            )}
+            {job.companies.verified && (
+              <span
+                title="Verified employer"
+                className="relative z-10 inline-flex items-center text-blue-600"
+              >
+                <BadgeCheck className="h-4 w-4" aria-hidden />
+              </span>
+            )}
+          </div>
+        )}
+        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-sm text-muted-foreground">
+          <span className="inline-flex items-center gap-1">
+            <MapPin className="h-3.5 w-3.5" aria-hidden /> {job.location}
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <Clock className="h-3.5 w-3.5" aria-hidden /> {typeLabel[job.employment_type]}
+          </span>
+          {pay && (
+            <span className="inline-flex items-center gap-1 font-medium text-[color:var(--ink)]">
+              <DollarSign className="h-3.5 w-3.5" aria-hidden /> {pay}
             </span>
-          ))}
-        </div>
-      )}
-
-
-      {applied ? (
-        <span className="relative z-10 mt-3 inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200">
-          <CheckCircle2 className="h-3 w-3" aria-hidden /> Applied
-        </span>
-      ) : showApplyControl ? (
-        <div className="relative z-10 mt-3">
-          {canQuickApply ? (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                handleQuickApply();
-              }}
-              disabled={submitting}
-              className="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 disabled:opacity-60"
-            >
-              {submitting ? "Applying…" : "Quick apply"}
-            </button>
-          ) : (
-            <Link
-              to="/jobs/$slug"
-              params={{ slug: job.slug }}
-              onClick={(e) => e.stopPropagation()}
-              className="inline-flex items-center gap-1 rounded-full border border-primary px-3 py-1 text-xs font-semibold text-primary hover:bg-primary hover:text-primary-foreground"
-            >
-              Apply
-            </Link>
           )}
         </div>
-      ) : null}
-    </div>
-    <ApplySuccessDialog open={successOpen} onOpenChange={setSuccessOpen} />
+
+        {hasAttrBadges && (
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {job.quick_hire && (
+              <Badge icon={Timer} tone="fast">
+                Same-day hire
+              </Badge>
+            )}
+            {job.weekly_pay && (
+              <Badge icon={DollarSign} tone="money">
+                Weekly pay
+              </Badge>
+            )}
+            {job.temperature_env && job.temperature_env !== "ambient" && (
+              <Badge icon={Snowflake} tone="cold">
+                {TEMP_LABEL[job.temperature_env] ?? job.temperature_env}
+              </Badge>
+            )}
+            {certs.map((c) => (
+              <Badge key={c} icon={Forklift}>
+                {CERT_LABEL[c] ?? c}
+              </Badge>
+            ))}
+            {job.overtime_available && (
+              <Badge icon={CalendarClock} tone="hot">
+                OT available
+              </Badge>
+            )}
+            {(job.lift_requirement_lbs ?? 0) > 0 && (
+              <Badge icon={Dumbbell}>Lift {job.lift_requirement_lbs}+ lbs</Badge>
+            )}
+          </div>
+        )}
+
+        {hintsToShow.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {hintsToShow.map((h) => (
+              <span
+                key={h}
+                className="relative z-10 inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 ring-1 ring-emerald-200"
+              >
+                <CheckCircle2 className="h-3 w-3" aria-hidden /> {h}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {applied ? (
+          <span className="relative z-10 mt-3 inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200">
+            <CheckCircle2 className="h-3 w-3" aria-hidden /> Applied
+          </span>
+        ) : showApplyControl ? (
+          <div className="relative z-10 mt-3">
+            {canQuickApply ? (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleQuickApply();
+                }}
+                disabled={submitting}
+                className="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 disabled:opacity-60"
+              >
+                {submitting ? "Applying…" : "Quick apply"}
+              </button>
+            ) : (
+              <Link
+                to="/jobs/$slug"
+                params={{ slug: job.slug }}
+                onClick={(e) => e.stopPropagation()}
+                className="inline-flex items-center gap-1 rounded-full border border-primary px-3 py-1 text-xs font-semibold text-primary hover:bg-primary hover:text-primary-foreground"
+              >
+                Apply
+              </Link>
+            )}
+          </div>
+        ) : null}
+      </div>
+      <ApplySuccessDialog open={successOpen} onOpenChange={setSuccessOpen} />
     </>
   );
 }

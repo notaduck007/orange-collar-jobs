@@ -2,10 +2,10 @@
 
 ## Files
 
-| File | Purpose |
-|---|---|
-| `warehousejobs.postman_collection.json` | All API requests, organised by domain |
-| `warehousejobs.postman_environment.json` | Environment variables for local dev |
+| File                                     | Purpose                               |
+| ---------------------------------------- | ------------------------------------- |
+| `warehousejobs.postman_collection.json`  | All API requests, organised by domain |
+| `warehousejobs.postman_environment.json` | Environment variables for local dev   |
 
 ## Setup
 
@@ -20,10 +20,10 @@ Use folder **Phase 2 — Walkthrough (run in order)** — steps 1–9 with autom
 
 Before step **3** (verify) and **9** (reset), set environment variables from API logs or Postgres:
 
-| Variable | Source |
-|----------|--------|
-| `verificationToken` | `[DEV EMAIL]` after Register, or `email_verifications.token` |
-| `resetToken` | `[DEV EMAIL]` after Forgot password, or `password_resets.token` |
+| Variable            | Source                                                          |
+| ------------------- | --------------------------------------------------------------- |
+| `verificationToken` | `[DEV EMAIL]` after Register, or `email_verifications.token`    |
+| `resetToken`        | `[DEV EMAIL]` after Forgot password, or `password_resets.token` |
 
 Full narrative: [`docs/demo/phase2-demo.md`](../../../docs/demo/phase2-demo.md)
 
@@ -31,28 +31,28 @@ Full narrative: [`docs/demo/phase2-demo.md`](../../../docs/demo/phase2-demo.md)
 
 The collection uses Bearer auth via `bearerToken` (set automatically by Login / Refresh test scripts).
 
-| Variable | Set by |
-|----------|--------|
-| `bearerToken` | Login, Refresh |
-| `refreshToken` | Login, Refresh |
-| `testEmail` | Walkthrough Register (unique timestamp email) |
-| `verificationToken` | Manual — from email log or DB |
-| `resetToken` | Manual — from email log or DB |
+| Variable            | Set by                                        |
+| ------------------- | --------------------------------------------- |
+| `bearerToken`       | Login, Refresh                                |
+| `refreshToken`      | Login, Refresh                                |
+| `testEmail`         | Walkthrough Register (unique timestamp email) |
+| `verificationToken` | Manual — from email log or DB                 |
+| `resetToken`        | Manual — from email log or DB                 |
 
 Dev JWT without register flow: `bun run dev:token`
 
 ## Environment Variables
 
-| Variable | Default | Description |
-|---|---|---|
-| `baseUrl` | `http://localhost:3001` | API base |
-| `bearerToken` | *(empty)* | JWT access token |
-| `refreshToken` | *(empty)* | Refresh token |
-| `verificationToken` | *(empty)* | Email verification opaque token |
-| `resetToken` | *(empty)* | Password reset opaque token |
-| `testEmail` | `test@warehousejobs.com` | Register/login email |
-| `testPassword` | `Test1234!` | Password (min 8 chars) |
-| `swaggerApiKey` | *(empty)* | Batch API key |
+| Variable            | Default                  | Description                     |
+| ------------------- | ------------------------ | ------------------------------- |
+| `baseUrl`           | `http://localhost:3001`  | API base                        |
+| `bearerToken`       | _(empty)_                | JWT access token                |
+| `refreshToken`      | _(empty)_                | Refresh token                   |
+| `verificationToken` | _(empty)_                | Email verification opaque token |
+| `resetToken`        | _(empty)_                | Password reset opaque token     |
+| `testEmail`         | `test@warehousejobs.com` | Register/login email            |
+| `testPassword`      | `Test1234!`              | Password (min 8 chars)          |
+| `swaggerApiKey`     | _(empty)_                | Batch API key                   |
 
 ## Phase backwards compatibility
 
@@ -68,11 +68,11 @@ Workflow: `.github/workflows/postman.yml`
 
 Folders exercised in CI:
 
-| Folder | Purpose |
-|--------|---------|
-| System | `GET /api/health` assertions |
-| Auth — Core | `GET /api/v1/me` → 401 without token |
-| Jobs (Phase 3) | `404` until Phase 3 ships |
+| Folder            | Purpose                                             |
+| ----------------- | --------------------------------------------------- |
+| System            | `GET /api/health` assertions                        |
+| Auth — Core       | `GET /api/v1/me` → 401 without token                |
+| Jobs (Phase 3)    | `404` until Phase 3 ships                           |
 | Auth smoke (curl) | Full Phase 2 register → verify → login → reset flow |
 
 The **Phase 2 — Walkthrough** folder is for manual Postman desktop use (token paste steps 3 & 9). CI uses the curl smoke in `ci-postman.sh` instead.

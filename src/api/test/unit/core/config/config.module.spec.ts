@@ -1,11 +1,11 @@
-import { Test } from '@nestjs/testing';
-import { ConfigModule as NestConfigModule } from '@nestjs/config';
-import { ConfigModule } from '@core/config/config.module';
-import { envSchema } from '@core/config/env.schema';
-import { validTestEnv } from '../../../helpers/test-env';
+import { Test } from "@nestjs/testing";
+import { ConfigModule as NestConfigModule } from "@nestjs/config";
+import { ConfigModule } from "@core/config/config.module";
+import { envSchema } from "@core/config/env.schema";
+import { validTestEnv } from "../../../helpers/test-env";
 
-describe('ConfigModule', () => {
-  it('compiles and validates environment when env vars are provided', async () => {
+describe("ConfigModule", () => {
+  it("compiles and validates environment when env vars are provided", async () => {
     const module = await Test.createTestingModule({
       imports: [
         NestConfigModule.forRoot({
@@ -21,7 +21,7 @@ describe('ConfigModule', () => {
     await module.close();
   });
 
-  it('exports ConfigModule for app wiring', async () => {
+  it("exports ConfigModule for app wiring", async () => {
     const module = await Test.createTestingModule({
       imports: [ConfigModule],
     }).compile();

@@ -11,27 +11,27 @@ description: Establish bounded contexts and aggregate roots for a new domain. Us
 
 ## WarehouseJobs Domain Map
 
-| Domain | Bounded Context | Aggregate Root | Module Path |
-|---|---|---|---|
-| Auth | User identity, sessions, tokens | `User` | `src/domains/auth/` |
-| Jobs | Job lifecycle — create, publish, search, close | `Job` | `src/domains/jobs/` |
-| Batch | Bulk job ingestion, deduplication | `BatchJob` | `src/domains/batch/` |
-| Applications | Application submission and pipeline | `Application` | `src/domains/applications/` |
-| Companies | Employer company profile | `Company` | `src/domains/companies/` |
-| Admin | Platform moderation, advertising, stats | `Advertisement` | `src/domains/admin/` |
+| Domain       | Bounded Context                                | Aggregate Root  | Module Path                 |
+| ------------ | ---------------------------------------------- | --------------- | --------------------------- |
+| Auth         | User identity, sessions, tokens                | `User`          | `src/domains/auth/`         |
+| Jobs         | Job lifecycle — create, publish, search, close | `Job`           | `src/domains/jobs/`         |
+| Batch        | Bulk job ingestion, deduplication              | `BatchJob`      | `src/domains/batch/`        |
+| Applications | Application submission and pipeline            | `Application`   | `src/domains/applications/` |
+| Companies    | Employer company profile                       | `Company`       | `src/domains/companies/`    |
+| Admin        | Platform moderation, advertising, stats        | `Advertisement` | `src/domains/admin/`        |
 
 ## Ubiquitous Language
 
-| Term | Meaning |
-|---|---|
-| **Seeker** | A job applicant (registered or guest) |
-| **Vendor** | An authenticated employer (company owner/admin) |
-| **Direct post** | A job posted by a vendor or admin via the platform (`sourceType: direct` or `api`) |
-| **Scraped post** | A job ingested via the batch endpoint from an external source |
-| **Quick Apply** | The ≤60-second application flow (unauthenticated or authenticated) |
-| **Package** | A purchased posting credit bundle (`company_packages`) |
-| **Feature** | Paying to promote a job to the top of search results |
-| **Pipeline** | The employer's view of applicants moving through stages |
+| Term             | Meaning                                                                            |
+| ---------------- | ---------------------------------------------------------------------------------- |
+| **Seeker**       | A job applicant (registered or guest)                                              |
+| **Vendor**       | An authenticated employer (company owner/admin)                                    |
+| **Direct post**  | A job posted by a vendor or admin via the platform (`sourceType: direct` or `api`) |
+| **Scraped post** | A job ingested via the batch endpoint from an external source                      |
+| **Quick Apply**  | The ≤60-second application flow (unauthenticated or authenticated)                 |
+| **Package**      | A purchased posting credit bundle (`company_packages`)                             |
+| **Feature**      | Paying to promote a job to the top of search results                               |
+| **Pipeline**     | The employer's view of applicants moving through stages                            |
 
 ## Rules
 

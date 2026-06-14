@@ -10,10 +10,10 @@ development follows the layout below.
 
 ## Package layout
 
-| Location | Package name | Role |
-|---|---|---|
-| Repository root | `warehousejobs` | Frontend (TanStack Start / Vite), root scripts, release tooling |
-| `src/api/` | `@warehousejobs/api` | NestJS API — own `package.json`, Prisma, tests, Dockerfile |
+| Location        | Package name         | Role                                                            |
+| --------------- | -------------------- | --------------------------------------------------------------- |
+| Repository root | `warehousejobs`      | Frontend (TanStack Start / Vite), root scripts, release tooling |
+| `src/api/`      | `@warehousejobs/api` | NestJS API — own `package.json`, Prisma, tests, Dockerfile      |
 
 Bun **workspaces** (`workspaces: ["src/api"]` in root `package.json`) link the two packages.
 Run **`bun install` once at the repo root** — do not maintain a separate install workflow for
@@ -34,12 +34,12 @@ root delegates.
 Root [`package.json`](../../../package.json) scripts prefixed with `api:` **delegate** to the
 API workspace. They must not duplicate logic (no inline `jest`, `prisma`, or `nest` at root).
 
-| Root script | Delegates to |
-|---|---|
-| `api:dev` | `bun run --cwd src/api start:dev` |
-| `api:test` | `bun run --cwd src/api test` |
+| Root script       | Delegates to                           |
+| ----------------- | -------------------------------------- |
+| `api:dev`         | `bun run --cwd src/api start:dev`      |
+| `api:test`        | `bun run --cwd src/api test`           |
 | `api:migrate:dev` | `bun run --cwd src/api db:migrate:dev` |
-| `api:build` | `bun run --cwd src/api build` |
+| `api:build`       | `bun run --cwd src/api build`          |
 
 Frontend scripts (`dev`, `build`, `preview`) live at root with **no prefix**.
 
@@ -47,10 +47,10 @@ Frontend scripts (`dev`, `build`, `preview`) live at root with **no prefix**.
 
 These run from the repository root and are **never** duplicated in `src/api/package.json`:
 
-| Tool | Root script | Config |
-|---|---|---|
-| semantic-release | `release`, `api:deploy:release` | [`release.config.cjs`](../../../release.config.cjs) |
-| OpenAPI bump / SwaggerHub | `api:bump:*`, `api:publish` | `scripts/*.sh` |
+| Tool                      | Root script                     | Config                                              |
+| ------------------------- | ------------------------------- | --------------------------------------------------- |
+| semantic-release          | `release`, `api:deploy:release` | [`release.config.cjs`](../../../release.config.cjs) |
+| OpenAPI bump / SwaggerHub | `api:bump:*`, `api:publish`     | `scripts/*.sh`                                      |
 
 **semantic-release** devDependencies live in **root** `devDependencies` only. `release.yml` runs
 `bun install` at root and invokes `bun run api:deploy:release`.
@@ -66,25 +66,25 @@ workspace.
 
 ### Single root `.env` — no nested env files
 
-| Rule | Detail |
-|---|---|
-| **Location** | Repository root only: `.env` + `.env.example` |
+| Rule          | Detail                                                               |
+| ------------- | -------------------------------------------------------------------- |
+| **Location**  | Repository root only: `.env` + `.env.example`                        |
 | **Forbidden** | `src/api/.env`, `src/api/.env.example` — do not create nested copies |
-| **Setup** | `bun run setup:env` (copies root `.env.example` → `.env`) |
+| **Setup**     | `bun run setup:env` (copies root `.env.example` → `.env`)            |
 
 All variables (frontend `VITE_*`, API `DATABASE_URL`, tooling `SWAGGER_API_KEY`) live in one
 file so Docker Compose, CI, and local dev share a single source of truth.
 
 ### How each surface loads env
 
-| Consumer | Mechanism |
-|---|---|
-| NestJS API (runtime) | `ConfigModule` → `envFilePath: [../../.env, .env]` from `src/api` cwd |
-| Prisma CLI | `dotenv -e ../../.env -- prisma …` in `src/api/package.json` scripts |
-| Jest (integration/E2E) | `test/jest-setup.ts` loads `../../../.env` |
-| Vite (frontend) | Reads `VITE_*` from root `.env` automatically |
-| Docker Compose `api` service | `environment:` block (production hostnames) or `env_file: .env` |
-| CI | Workflow `env:` blocks (no committed `.env`) |
+| Consumer                     | Mechanism                                                             |
+| ---------------------------- | --------------------------------------------------------------------- |
+| NestJS API (runtime)         | `ConfigModule` → `envFilePath: [../../.env, .env]` from `src/api` cwd |
+| Prisma CLI                   | `dotenv -e ../../.env -- prisma …` in `src/api/package.json` scripts  |
+| Jest (integration/E2E)       | `test/jest-setup.ts` loads `../../../.env`                            |
+| Vite (frontend)              | Reads `VITE_*` from root `.env` automatically                         |
+| Docker Compose `api` service | `environment:` block (production hostnames) or `env_file: .env`       |
+| CI                           | Workflow `env:` blocks (no committed `.env`)                          |
 
 ---
 
@@ -113,11 +113,11 @@ Unit specs import code via `@core/*` and `@domains/*` path aliases.
 
 ## Package manager: Bun only
 
-| Context | Command | Lockfile |
-|---|---|---|
-| Local development | `bun install`, `bun run …` | Root `bun.lock` |
-| CI (`.github/workflows/ci.yml`, `release.yml`) | `oven-sh/setup-bun` + `bun install --frozen-lockfile` | Root `bun.lock` |
-| Docker (`src/api/Dockerfile`) | `oven/bun` image + `bun install` | Root `bun.lock` copied into image |
+| Context                                        | Command                                               | Lockfile                          |
+| ---------------------------------------------- | ----------------------------------------------------- | --------------------------------- |
+| Local development                              | `bun install`, `bun run …`                            | Root `bun.lock`                   |
+| CI (`.github/workflows/ci.yml`, `release.yml`) | `oven-sh/setup-bun` + `bun install --frozen-lockfile` | Root `bun.lock`                   |
+| Docker (`src/api/Dockerfile`)                  | `oven/bun` image + `bun install`                      | Root `bun.lock` copied into image |
 
 **Do not use `npm ci` or `npm install`** in this monorepo — there is no root `package-lock.json`.
 Do not keep nested `package-lock.json` or `bun.lock` under `src/api/` (the workspace uses the root lockfile).

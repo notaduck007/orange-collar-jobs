@@ -11,22 +11,19 @@ import pillarPhysicallyServing from "@/assets/mission-physically-serving.jpg";
 const pillars = [
   {
     title: "Giving Back",
-    body:
-      "Every shipment we help move is a paycheck for a family. We reinvest in the neighborhoods our workers come from — food drives, back-to-school supplies, and a hand for folks getting back on their feet.",
+    body: "Every shipment we help move is a paycheck for a family. We reinvest in the neighborhoods our workers come from — food drives, back-to-school supplies, and a hand for folks getting back on their feet.",
     image: pillarGivingBack,
     alt: "Volunteers handing out boxes of food at a community drive.",
   },
   {
     title: "Changing Lives",
-    body:
-      "A steady job changes everything. We help people find honest work, build skills on the dock, and walk through doors they didn't know were open. One shift at a time, lives turn around.",
+    body: "A steady job changes everything. We help people find honest work, build skills on the dock, and walk through doors they didn't know were open. One shift at a time, lives turn around.",
     image: pillarChangingLives,
     alt: "Close-up portrait of a warehouse worker smiling with pride on the job.",
   },
   {
     title: "Physically Serving",
-    body:
-      "We don't just write checks. We show up — boots on, sleeves rolled — building, hauling, cleaning, and serving meals right alongside the people we're here for. Real work for real neighbors.",
+    body: "We don't just write checks. We show up — boots on, sleeves rolled — building, hauling, cleaning, and serving meals right alongside the people we're here for. Real work for real neighbors.",
     image: pillarPhysicallyServing,
     alt: "A warehouse crew in work gloves building and lifting together at a service event.",
   },
@@ -90,10 +87,7 @@ function MissionPage() {
     <div className="min-h-screen bg-background">
       <SiteHeader />
       <main id="main">
-        <section
-          className="relative overflow-hidden"
-          aria-labelledby="mission-heading"
-        >
+        <section className="relative overflow-hidden" aria-labelledby="mission-heading">
           {/* TODO: replace hero image with real service-day photo */}
           <img
             src={missionHero}
@@ -117,17 +111,15 @@ function MissionPage() {
               We don't just fill shifts. We show up.
             </h1>
             <p className="mt-6 max-w-2xl text-lg text-white/85 sm:text-xl">
-              Warehouse work built this company — so we put our backs into the
-              communities that carry us. Giving back, changing lives, and
-              physically serving the people around us isn't a program. It's who
-              we are.
+              Warehouse work built this company — so we put our backs into the communities that
+              carry us. Giving back, changing lives, and physically serving the people around us
+              isn't a program. It's who we are.
             </p>
             <p className="mt-6 text-sm font-bold text-[#FF6A00] sm:text-base">
               Giving back · Changing lives · Physically serving
             </p>
           </div>
         </section>
-
 
         {/* THREE PILLARS */}
         <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20">
@@ -155,12 +147,8 @@ function MissionPage() {
                   className="h-48 w-full object-cover sm:h-56"
                 />
                 <div className="flex flex-1 flex-col border-t-2 border-primary p-6">
-                  <h3 className="text-xl font-bold text-[color:var(--ink)]">
-                    {p.title}
-                  </h3>
-                  <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                    {p.body}
-                  </p>
+                  <h3 className="text-xl font-bold text-[color:var(--ink)]">{p.title}</h3>
+                  <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{p.body}</p>
                 </div>
               </article>
             ))}
@@ -174,12 +162,11 @@ function MissionPage() {
               Why we do it
             </p>
             <blockquote className="mt-6 font-serif text-2xl leading-relaxed text-[color:var(--ink)] sm:text-3xl sm:leading-relaxed">
-              We were built by people who clock in early and work with their
-              hands. We haven't forgotten that. The warehouse taught us that
-              showing up matters — that the people beside you are worth your
-              sweat. So we carry that off the dock and into our communities,
-              giving what we have and serving where we're needed. That's the
-              whole mission.
+              We were built by people who clock in early and work with their hands. We haven't
+              forgotten that. The warehouse taught us that showing up matters — that the people
+              beside you are worth your sweat. So we carry that off the dock and into our
+              communities, giving what we have and serving where we're needed. That's the whole
+              mission.
             </blockquote>
             <p className="mt-8 text-sm text-muted-foreground">
               — The Warehouse<span className="text-primary">jobs.com</span> team
@@ -220,12 +207,8 @@ function MissionPage() {
                   />
                 </div>
                 <figcaption className="border-t border-border px-5 py-4">
-                  <p className="text-sm font-semibold text-[color:var(--ink)]">
-                    {s.name}
-                  </p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    {s.line}
-                  </p>
+                  <p className="text-sm font-semibold text-[color:var(--ink)]">{s.name}</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">{s.line}</p>
                   <blockquote className="mt-3 text-sm leading-relaxed text-[color:var(--ink)]">
                     “{s.quote}”
                   </blockquote>
@@ -233,9 +216,7 @@ function MissionPage() {
               </figure>
             ))}
           </div>
-          <p className="mt-12 text-center text-sm text-muted-foreground">
-            This is just the start.
-          </p>
+          <p className="mt-12 text-center text-sm text-muted-foreground">This is just the start.</p>
         </section>
       </main>
       <SiteFooter />

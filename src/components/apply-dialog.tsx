@@ -97,7 +97,6 @@ export function ApplyDialog({
     },
   });
 
-
   const { data: questions = [] } = useQuery({
     queryKey: ["screening-questions", jobId],
     enabled: open,
@@ -277,222 +276,223 @@ export function ApplyDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{t("apply.title", { job: jobTitle })}</DialogTitle>
-          <DialogDescription>
-            {t("apply.description")}
-          </DialogDescription>
-        </DialogHeader>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{t("apply.title", { job: jobTitle })}</DialogTitle>
+            <DialogDescription>{t("apply.description")}</DialogDescription>
+          </DialogHeader>
 
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label>{t("apply.resume")}</Label>
-            {hasDefault && (
-              <label className="flex items-start gap-3 rounded-lg border border-border bg-background p-3">
-                <input
-                  type="radio"
-                  className="mt-1 accent-[color:var(--primary)]"
-                  checked={useDefault}
-                  onChange={() => setUseDefault(true)}
-                />
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-primary" />
-                    <p className="text-sm font-semibold text-[color:var(--ink)]">
-                      {t("apply.useDefault")}
-                    </p>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>{t("apply.resume")}</Label>
+              {hasDefault && (
+                <label className="flex items-start gap-3 rounded-lg border border-border bg-background p-3">
+                  <input
+                    type="radio"
+                    className="mt-1 accent-[color:var(--primary)]"
+                    checked={useDefault}
+                    onChange={() => setUseDefault(true)}
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <FileText className="h-4 w-4 text-primary" />
+                      <p className="text-sm font-semibold text-[color:var(--ink)]">
+                        {t("apply.useDefault")}
+                      </p>
+                    </div>
+                    <p className="mt-0.5 truncate text-xs text-muted-foreground">{defaultName}</p>
                   </div>
-                  <p className="mt-0.5 truncate text-xs text-muted-foreground">{defaultName}</p>
+                </label>
+              )}
+              <label className="flex items-start gap-3 rounded-lg border border-border bg-background p-3">
+                {hasDefault && (
+                  <input
+                    type="radio"
+                    className="mt-1 accent-[color:var(--primary)]"
+                    checked={!useDefault}
+                    onChange={() => setUseDefault(false)}
+                  />
+                )}
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-[color:var(--ink)]">
+                    {hasDefault ? t("apply.uploadDifferent") : t("apply.uploadResume")}
+                  </p>
+                  <input
+                    ref={fileInput}
+                    type="file"
+                    accept=".pdf,.doc,.docx"
+                    aria-label="Upload resume file (PDF, DOC, or DOCX)"
+                    className="sr-only"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) {
+                        setFile(f);
+                        setUseDefault(false);
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="mt-2"
+                    onClick={() => fileInput.current?.click()}
+                  >
+                    <Upload className="mr-1 h-4 w-4" />
+                    {file ? file.name : t("apply.chooseFile")}
+                  </Button>
+                  <p className="mt-1 text-xs text-muted-foreground">{t("apply.fileTypes")}</p>
                 </div>
               </label>
-            )}
-            <label className="flex items-start gap-3 rounded-lg border border-border bg-background p-3">
-              {hasDefault && (
-                <input
-                  type="radio"
-                  className="mt-1 accent-[color:var(--primary)]"
-                  checked={!useDefault}
-                  onChange={() => setUseDefault(false)}
-                />
-              )}
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-[color:var(--ink)]">
-                  {hasDefault ? t("apply.uploadDifferent") : t("apply.uploadResume")}
-                </p>
-                <input
-                  ref={fileInput}
-                  type="file"
-                  accept=".pdf,.doc,.docx"
-                  aria-label="Upload resume file (PDF, DOC, or DOCX)"
-                  className="sr-only"
-                  onChange={(e) => {
-                    const f = e.target.files?.[0];
-                    if (f) {
-                      setFile(f);
-                      setUseDefault(false);
-                    }
-                  }}
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="mt-2"
-                  onClick={() => fileInput.current?.click()}
-                >
-                  <Upload className="mr-1 h-4 w-4" />
-                  {file ? file.name : t("apply.chooseFile")}
-                </Button>
-                <p className="mt-1 text-xs text-muted-foreground">{t("apply.fileTypes")}</p>
-              </div>
-            </label>
-          </div>
+            </div>
 
-          {questions.length > 0 && (
-            <div className="space-y-3 rounded-lg border border-border bg-background p-3">
-              <p className="text-sm font-semibold text-[color:var(--ink)]">{t("apply.screening")}</p>
-              {questions.map((q) => (
-                <div key={q.id} className="space-y-1.5">
-                  <Label className="text-sm">
-                    {q.prompt}
-                    {q.required && <span className="ml-1 text-rose-600">*</span>}
-                  </Label>
-                  {q.type === "yes_no" && (
-                    <div className="flex gap-3">
-                      {[true, false].map((v) => (
-                        <label key={String(v)} className="flex items-center gap-1.5 text-sm">
-                          <input
-                            type="radio"
-                            className="accent-[color:var(--primary)]"
-                            checked={answers[q.id] === v}
-                            onChange={() => setAnswer(q.id, v)}
-                          />
-                          {v ? t("apply.yes") : t("apply.no")}
-                        </label>
-                      ))}
-                    </div>
-                  )}
-                  {q.type === "single" && (
-                    <div className="space-y-1">
-                      {(q.options ?? []).map((opt) => (
-                        <label key={opt} className="flex items-center gap-1.5 text-sm">
-                          <input
-                            type="radio"
-                            className="accent-[color:var(--primary)]"
-                            checked={answers[q.id] === opt}
-                            onChange={() => setAnswer(q.id, opt)}
-                          />
-                          {opt}
-                        </label>
-                      ))}
-                    </div>
-                  )}
-                  {q.type === "multi" && (
-                    <div className="space-y-1">
-                      {(q.options ?? []).map((opt) => {
-                        const cur = Array.isArray(answers[q.id]) ? (answers[q.id] as string[]) : [];
-                        const checked = cur.includes(opt);
-                        return (
-                          <label key={opt} className="flex items-center gap-2 text-sm">
-                            <Checkbox
-                              checked={checked}
-                              onCheckedChange={(c) =>
-                                setAnswer(q.id, c ? [...cur, opt] : cur.filter((x) => x !== opt))
-                              }
+            {questions.length > 0 && (
+              <div className="space-y-3 rounded-lg border border-border bg-background p-3">
+                <p className="text-sm font-semibold text-[color:var(--ink)]">
+                  {t("apply.screening")}
+                </p>
+                {questions.map((q) => (
+                  <div key={q.id} className="space-y-1.5">
+                    <Label className="text-sm">
+                      {q.prompt}
+                      {q.required && <span className="ml-1 text-rose-600">*</span>}
+                    </Label>
+                    {q.type === "yes_no" && (
+                      <div className="flex gap-3">
+                        {[true, false].map((v) => (
+                          <label key={String(v)} className="flex items-center gap-1.5 text-sm">
+                            <input
+                              type="radio"
+                              className="accent-[color:var(--primary)]"
+                              checked={answers[q.id] === v}
+                              onChange={() => setAnswer(q.id, v)}
+                            />
+                            {v ? t("apply.yes") : t("apply.no")}
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                    {q.type === "single" && (
+                      <div className="space-y-1">
+                        {(q.options ?? []).map((opt) => (
+                          <label key={opt} className="flex items-center gap-1.5 text-sm">
+                            <input
+                              type="radio"
+                              className="accent-[color:var(--primary)]"
+                              checked={answers[q.id] === opt}
+                              onChange={() => setAnswer(q.id, opt)}
                             />
                             {opt}
                           </label>
-                        );
-                      })}
-                    </div>
-                  )}
-                  {q.type === "number" && (
-                    <Input
-                      type="number"
-                      value={(answers[q.id] as number | undefined) ?? ""}
-                      onChange={(e) =>
-                        setAnswer(q.id, e.target.value === "" ? null : Number(e.target.value))
-                      }
-                    />
-                  )}
-                  {q.type === "text" && (
-                    <Input
-                      maxLength={500}
-                      value={(answers[q.id] as string | undefined) ?? ""}
-                      onChange={(e) => setAnswer(q.id, e.target.value)}
-                    />
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-
-          {quickHire && (
-            <div className="space-y-2 rounded-lg border border-border bg-background p-3">
-              <p className="text-sm font-semibold text-[color:var(--ink)]">
-                {t("apply.pickSlot")}
-              </p>
-              {slots.length === 0 ? (
-                <p className="text-xs text-muted-foreground">
-                  {t("apply.noSlots")}
-                </p>
-              ) : (
-                <div className="space-y-1">
-                  {slots.map((s) => (
-                    <label
-                      key={s.id}
-                      className="flex items-center gap-2 rounded-md border border-border p-2 text-sm"
-                    >
-                      <input
-                        type="radio"
-                        name="slot"
-                        className="accent-[color:var(--primary)]"
-                        checked={slotId === s.id}
-                        onChange={() => setSlotId(s.id)}
-                      />
-                      <span>
-                        {new Date(s.starts_at).toLocaleString(undefined, {
-                          dateStyle: "medium",
-                          timeStyle: "short",
+                        ))}
+                      </div>
+                    )}
+                    {q.type === "multi" && (
+                      <div className="space-y-1">
+                        {(q.options ?? []).map((opt) => {
+                          const cur = Array.isArray(answers[q.id])
+                            ? (answers[q.id] as string[])
+                            : [];
+                          const checked = cur.includes(opt);
+                          return (
+                            <label key={opt} className="flex items-center gap-2 text-sm">
+                              <Checkbox
+                                checked={checked}
+                                onCheckedChange={(c) =>
+                                  setAnswer(q.id, c ? [...cur, opt] : cur.filter((x) => x !== opt))
+                                }
+                              />
+                              {opt}
+                            </label>
+                          );
                         })}
-                      </span>
-                      <span className="ml-auto text-xs text-muted-foreground">
-                        {s.capacity - (s.booked_count ?? 0)} left
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              )}
+                      </div>
+                    )}
+                    {q.type === "number" && (
+                      <Input
+                        type="number"
+                        value={(answers[q.id] as number | undefined) ?? ""}
+                        onChange={(e) =>
+                          setAnswer(q.id, e.target.value === "" ? null : Number(e.target.value))
+                        }
+                      />
+                    )}
+                    {q.type === "text" && (
+                      <Input
+                        maxLength={500}
+                        value={(answers[q.id] as string | undefined) ?? ""}
+                        onChange={(e) => setAnswer(q.id, e.target.value)}
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {quickHire && (
+              <div className="space-y-2 rounded-lg border border-border bg-background p-3">
+                <p className="text-sm font-semibold text-[color:var(--ink)]">
+                  {t("apply.pickSlot")}
+                </p>
+                {slots.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">{t("apply.noSlots")}</p>
+                ) : (
+                  <div className="space-y-1">
+                    {slots.map((s) => (
+                      <label
+                        key={s.id}
+                        className="flex items-center gap-2 rounded-md border border-border p-2 text-sm"
+                      >
+                        <input
+                          type="radio"
+                          name="slot"
+                          className="accent-[color:var(--primary)]"
+                          checked={slotId === s.id}
+                          onChange={() => setSlotId(s.id)}
+                        />
+                        <span>
+                          {new Date(s.starts_at).toLocaleString(undefined, {
+                            dateStyle: "medium",
+                            timeStyle: "short",
+                          })}
+                        </span>
+                        <span className="ml-auto text-xs text-muted-foreground">
+                          {s.capacity - (s.booked_count ?? 0)} left
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="space-y-1.5">
+              <Label htmlFor="cover">{t("apply.coverNote")}</Label>
+              <Textarea
+                id="cover"
+                rows={5}
+                maxLength={2000}
+                placeholder="Optional — but helpful. E.g. 'Forklift & reach certified, 3 yrs at a 3PL, available 2nd shift, can start immediately.'"
+                value={coverNote}
+                onChange={(e) => setCoverNote(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                A sentence on your experience, certifications, and availability helps employers
+                reach out faster.
+              </p>
+              <p className="text-xs text-muted-foreground">{coverNote.length} / 2000</p>
             </div>
-          )}
-
-          <div className="space-y-1.5">
-            <Label htmlFor="cover">{t("apply.coverNote")}</Label>
-            <Textarea
-              id="cover"
-              rows={5}
-              maxLength={2000}
-              placeholder="Optional — but helpful. E.g. 'Forklift & reach certified, 3 yrs at a 3PL, available 2nd shift, can start immediately.'"
-              value={coverNote}
-              onChange={(e) => setCoverNote(e.target.value)}
-            />
-            <p className="text-xs text-muted-foreground">
-              A sentence on your experience, certifications, and availability helps employers reach out faster.
-            </p>
-            <p className="text-xs text-muted-foreground">{coverNote.length} / 2000</p>
           </div>
-        </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            {t("apply.cancel")}
-          </Button>
-          <Button className="btn-primary" onClick={submit} disabled={submitting}>
-            {submitting ? t("apply.sending") : t("apply.submit")}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              {t("apply.cancel")}
+            </Button>
+            <Button className="btn-primary" onClick={submit} disabled={submitting}>
+              {submitting ? t("apply.sending") : t("apply.submit")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
       </Dialog>
       <ApplySuccessDialog
         open={successOpen}

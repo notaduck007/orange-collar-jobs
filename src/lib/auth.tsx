@@ -1,9 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import {
-  apiClient,
-  type MeResponse,
-  type ApiUserRole,
-} from "@/lib/api-client";
+import { apiClient, type MeResponse, type ApiUserRole } from "@/lib/api-client";
 import {
   clearAuthSession,
   getAccessToken,
@@ -31,9 +27,9 @@ interface AuthContextValue {
 }
 
 function mapApiRole(role: ApiUserRole): AppRole {
-  if (role === 'vendor') return 'employer';
-  if (role === 'admin') return 'admin';
-  return 'job_seeker';
+  if (role === "vendor") return "employer";
+  if (role === "admin") return "admin";
+  return "job_seeker";
 }
 
 function meToUser(me: MeResponse): AuthUser {
@@ -102,7 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const roles = role ? [role] : [];
-  const permissions = role === 'admin' ? ['*'] : [];
+  const permissions = role === "admin" ? ["*"] : [];
 
   const value: AuthContextValue = {
     user,

@@ -29,6 +29,7 @@ No implementation begins until the contract is reviewed and approved.
 ### Step 1 — Read the OpenAPI spec
 
 Find the relevant endpoints in `docs/api/openapi.yaml`. Extract:
+
 - Request/response schemas
 - Error codes
 - Auth requirements

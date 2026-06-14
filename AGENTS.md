@@ -9,12 +9,12 @@
 
 This document defines **approved AI agents**, their personas, allowed skills, collaboration patterns, and operational boundaries for platform delivery.
 
-| Document | Role |
-|---|---|
-| [`CLAUDE.md`](./CLAUDE.md) | **Constitution** — what is allowed |
-| **`AGENTS.md`** (this file) | **Orchestration** — how work is performed |
-| [`docs/plan.md`](./docs/plan.md) | **Work breakdown** — phases, tasks, acceptance criteria |
-| [`docs/api/openapi.yaml`](./docs/api/openapi.yaml) | **API contract** — endpoint specification |
+| Document                                           | Role                                                    |
+| -------------------------------------------------- | ------------------------------------------------------- |
+| [`CLAUDE.md`](./CLAUDE.md)                         | **Constitution** — what is allowed                      |
+| **`AGENTS.md`** (this file)                        | **Orchestration** — how work is performed               |
+| [`docs/plan.md`](./docs/plan.md)                   | **Work breakdown** — phases, tasks, acceptance criteria |
+| [`docs/api/openapi.yaml`](./docs/api/openapi.yaml) | **API contract** — endpoint specification               |
 
 If conflicts exist, **`CLAUDE.md` prevails**.
 
@@ -24,14 +24,14 @@ If conflicts exist, **`CLAUDE.md` prevails**.
 
 Agents should use these entry points before exploring the repo ad hoc:
 
-| Need | Go to |
-|---|---|
-| What task am I doing? | [`docs/agent/standards/AGENT-TASK-INDEX.md`](./docs/agent/standards/AGENT-TASK-INDEX.md) |
-| What phase/task is active? | [`docs/plan.md`](./docs/plan.md) |
-| What API endpoints exist? | [`docs/api/openapi.yaml`](./docs/api/openapi.yaml) |
-| Which skill applies? | [`.cursor/skills/README.md`](./.cursor/skills/README.md) |
-| Coding rules | [`docs/agent/standards/README.md`](./docs/agent/standards/README.md) |
-| System design | [`docs/agent/analysis/architecture.md`](./docs/agent/analysis/architecture.md) |
+| Need                       | Go to                                                                                    |
+| -------------------------- | ---------------------------------------------------------------------------------------- |
+| What task am I doing?      | [`docs/agent/standards/AGENT-TASK-INDEX.md`](./docs/agent/standards/AGENT-TASK-INDEX.md) |
+| What phase/task is active? | [`docs/plan.md`](./docs/plan.md)                                                         |
+| What API endpoints exist?  | [`docs/api/openapi.yaml`](./docs/api/openapi.yaml)                                       |
+| Which skill applies?       | [`.cursor/skills/README.md`](./.cursor/skills/README.md)                                 |
+| Coding rules               | [`docs/agent/standards/README.md`](./docs/agent/standards/README.md)                     |
+| System design              | [`docs/agent/analysis/architecture.md`](./docs/agent/analysis/architecture.md)           |
 
 ---
 

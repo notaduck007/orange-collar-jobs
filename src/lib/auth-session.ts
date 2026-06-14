@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'wj_auth_session';
+const STORAGE_KEY = "wj_auth_session";
 
 export interface AuthSession {
   accessToken: string;
@@ -7,7 +7,7 @@ export interface AuthSession {
 }
 
 export function getAuthSession(): AuthSession | null {
-  if (typeof localStorage === 'undefined') return null;
+  if (typeof localStorage === "undefined") return null;
   const raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) return null;
   try {

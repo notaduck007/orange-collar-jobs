@@ -153,7 +153,8 @@ function EmployerAds() {
           <div className="rounded-lg border border-dashed border-border bg-card p-10 text-center">
             <p className="text-base font-semibold text-[color:var(--ink)]">No ads yet.</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Create your first ad to promote your jobs across Warehouse<span className="text-primary">jobs.com</span>.
+              Create your first ad to promote your jobs across Warehouse
+              <span className="text-primary">jobs.com</span>.
             </p>
           </div>
         )}

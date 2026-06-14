@@ -60,7 +60,11 @@ function ForgotPasswordPage() {
           </form>
         )}
 
-        <Link to="/auth" search={{ mode: "login" }} className="mt-6 block text-center text-sm text-primary underline">
+        <Link
+          to="/auth"
+          search={{ mode: "login" }}
+          className="mt-6 block text-center text-sm text-primary underline"
+        >
           Back to sign in
         </Link>
       </div>

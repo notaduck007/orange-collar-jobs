@@ -5,9 +5,9 @@ import {
   HttpException,
   HttpStatus,
   Logger,
-} from '@nestjs/common';
-import type { Request, Response } from 'express';
-import { AppError } from './errors.js';
+} from "@nestjs/common";
+import type { Request, Response } from "express";
+import { AppError } from "./errors.js";
 
 interface ErrorBody {
   code: string;
@@ -34,23 +34,23 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     } else if (exception instanceof HttpException) {
       status = exception.getStatus();
       const res = exception.getResponse();
-      if (typeof res === 'string') {
-        body = { code: 'HTTP_ERROR', message: res };
+      if (typeof res === "string") {
+        body = { code: "HTTP_ERROR", message: res };
       } else {
         const r = res as Record<string, unknown>;
         body = {
-          code: (r['error'] as string | undefined) ?? 'HTTP_ERROR',
-          message: Array.isArray(r['message'])
-            ? (r['message'] as string[]).join('; ')
-            : (r['message'] as string | undefined) ?? 'An error occurred',
+          code: (r["error"] as string | undefined) ?? "HTTP_ERROR",
+          message: Array.isArray(r["message"])
+            ? (r["message"] as string[]).join("; ")
+            : ((r["message"] as string | undefined) ?? "An error occurred"),
         };
       }
     } else {
       status = HttpStatus.INTERNAL_SERVER_ERROR;
-      body = { code: 'INTERNAL_SERVER_ERROR', message: 'An unexpected error occurred' };
+      body = { code: "INTERNAL_SERVER_ERROR", message: "An unexpected error occurred" };
       this.logger.error(
         { err: exception, path: request.url, method: request.method },
-        'Unhandled exception',
+        "Unhandled exception",
       );
     }
 

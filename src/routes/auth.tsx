@@ -113,7 +113,9 @@ function AuthPage() {
             start this week.
           </p>
         </div>
-        <p className="text-xs text-white/40">© {new Date().getFullYear()} {brandName}</p>
+        <p className="text-xs text-white/40">
+          © {new Date().getFullYear()} {brandName}
+        </p>
       </div>
 
       <div className="flex items-center justify-center p-6 sm:p-12">
@@ -124,7 +126,9 @@ function AuthPage() {
           >
             ← {t("common.backHome")}
           </Link>
-          <p className="label-caps text-primary">{isSignup ? t("auth.getStarted") : t("auth.welcomeBack")}</p>
+          <p className="label-caps text-primary">
+            {isSignup ? t("auth.getStarted") : t("auth.welcomeBack")}
+          </p>
           <h1 className="mt-2 text-3xl font-bold text-[color:var(--ink)]">
             {isSignup ? t("auth.signUpTitle") : t("auth.signInTitle", { brand: brandName })}
           </h1>
@@ -192,17 +196,18 @@ function AuthPage() {
                 onChange={(e) => setPassword(e.target.value)}
               />
               {!isSignup && (
-                <Link
-                  to="/forgot-password"
-                  className="text-xs text-primary hover:underline"
-                >
+                <Link to="/forgot-password" className="text-xs text-primary hover:underline">
                   Forgot password?
                 </Link>
               )}
             </div>
 
             <Button type="submit" disabled={loading} className="btn-primary w-full">
-              {loading ? t("auth.workingBtn") : isSignup ? t("auth.createAccount") : t("auth.signIn")}
+              {loading
+                ? t("auth.workingBtn")
+                : isSignup
+                  ? t("auth.createAccount")
+                  : t("auth.signIn")}
             </Button>
           </form>
 

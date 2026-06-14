@@ -219,7 +219,6 @@ function Contact() {
 
       <div className="mx-auto max-w-[640px] px-4 py-16 sm:px-6">
         <div className="overflow-hidden rounded-xl border border-border border-t-4 border-t-primary bg-card p-6 shadow-[var(--shadow-card)] sm:p-8">
-
           {sent ? (
             <div className="py-6 text-center">
               <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
@@ -247,7 +246,10 @@ function Contact() {
           ) : (
             <form onSubmit={submit} className="space-y-4" noValidate>
               {/* Honeypot — hidden from real users */}
-              <div aria-hidden="true" className="absolute left-[-9999px] top-auto h-0 w-0 overflow-hidden">
+              <div
+                aria-hidden="true"
+                className="absolute left-[-9999px] top-auto h-0 w-0 overflow-hidden"
+              >
                 <label>
                   Website
                   <input
@@ -388,7 +390,6 @@ function Contact() {
         </div>
       </div>
 
-
       <section className="border-t border-border bg-card/40">
         <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 sm:py-20">
           <p className="label-caps text-primary">Quick answers</p>
@@ -406,9 +407,8 @@ function Contact() {
               </AccordionTrigger>
               <AccordionContent className="text-[15px] leading-relaxed text-foreground">
                 Search by job title, city, or ZIP, then click any listing to see the full
-                description, pay, and shift. Most jobs can be applied to in under a minute
-                directly on WarehouseJobs — no separate account required on the employer's
-                site.{" "}
+                description, pay, and shift. Most jobs can be applied to in under a minute directly
+                on WarehouseJobs — no separate account required on the employer's site.{" "}
                 <Link to="/jobs" className="text-primary underline-offset-4 hover:underline">
                   Browse open jobs →
                 </Link>
@@ -419,9 +419,9 @@ function Contact() {
                 How much does it cost to post a job?
               </AccordionTrigger>
               <AccordionContent className="text-[15px] leading-relaxed text-foreground">
-                WarehouseJobs is always free for job seekers. Employers pay a flat rate per
-                posting — no contracts, no per-applicant fees. Your first post is free so you
-                can try us out before paying.{" "}
+                WarehouseJobs is always free for job seekers. Employers pay a flat rate per posting
+                — no contracts, no per-applicant fees. Your first post is free so you can try us out
+                before paying.{" "}
                 <Link to="/pricing" className="text-primary underline-offset-4 hover:underline">
                   See posting packages →
                 </Link>
@@ -432,9 +432,9 @@ function Contact() {
                 How do I set up job alerts?
               </AccordionTrigger>
               <AccordionContent className="text-[15px] leading-relaxed text-foreground">
-                Create a free job seeker account and we'll email you new openings that match
-                your role and location as soon as they're posted. You can pause, edit, or
-                cancel alerts anytime from your dashboard.{" "}
+                Create a free job seeker account and we'll email you new openings that match your
+                role and location as soon as they're posted. You can pause, edit, or cancel alerts
+                anytime from your dashboard.{" "}
                 <Link
                   to="/auth"
                   search={{ mode: "signup" } as never}
@@ -449,9 +449,9 @@ function Contact() {
                 I forgot my password — what do I do?
               </AccordionTrigger>
               <AccordionContent className="text-[15px] leading-relaxed text-foreground">
-                Use the "Forgot password?" link on the sign-in page and we'll email you a
-                reset link. If it doesn't arrive within a few minutes, check your spam folder
-                or get in touch using the form above.{" "}
+                Use the "Forgot password?" link on the sign-in page and we'll email you a reset
+                link. If it doesn't arrive within a few minutes, check your spam folder or get in
+                touch using the form above.{" "}
                 <Link
                   to="/auth"
                   search={{ mode: "login" } as never}

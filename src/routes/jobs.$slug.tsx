@@ -182,7 +182,6 @@ export const Route = createFileRoute("/jobs/$slug")({
       };
     }
 
-
     const meta: Array<Record<string, string>> = [
       { title },
       { name: "description", content: desc },
@@ -207,8 +206,18 @@ export const Route = createFileRoute("/jobs/$slug")({
             "@context": "https://schema.org",
             "@type": "BreadcrumbList",
             itemListElement: [
-              { "@type": "ListItem", position: 1, name: "Home", item: "https://warehousejobs.com/" },
-              { "@type": "ListItem", position: 2, name: "Jobs", item: "https://warehousejobs.com/jobs" },
+              {
+                "@type": "ListItem",
+                position: 1,
+                name: "Home",
+                item: "https://warehousejobs.com/",
+              },
+              {
+                "@type": "ListItem",
+                position: 2,
+                name: "Jobs",
+                item: "https://warehousejobs.com/jobs",
+              },
               {
                 "@type": "ListItem",
                 position: 3,
@@ -452,7 +461,6 @@ function JobDetail() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [applyParam, user?.id, job?.id, screeningKnown, alreadyApplied]);
 
-
   if (!job) return null;
   const pay =
     job.pay_min && job.pay_max
@@ -502,7 +510,11 @@ function JobDetail() {
 
             <div className="mt-5 grid grid-cols-2 gap-4 border-y border-border py-4 sm:grid-cols-3">
               <Meta icon={MapPin} label={t("jobDetail.location") as string} value={job.location} />
-              <Meta icon={Clock} label={t("jobDetail.type") as string} value={typeLabel[job.employment_type]} />
+              <Meta
+                icon={Clock}
+                label={t("jobDetail.type") as string}
+                value={typeLabel[job.employment_type]}
+              />
               {pay && <Meta icon={DollarSign} label={t("jobDetail.pay") as string} value={pay} />}
             </div>
 
@@ -579,16 +591,22 @@ function JobDetail() {
 
             <section className="mt-4 space-y-5">
               <div>
-                <h2 className="text-lg font-semibold text-[color:var(--ink)]">{t("jobDetail.description")}</h2>
+                <h2 className="text-lg font-semibold text-[color:var(--ink)]">
+                  {t("jobDetail.description")}
+                </h2>
                 <p className="mt-2 whitespace-pre-line text-[15px] leading-relaxed text-foreground">
-                  {showTranslation && translated?.description ? translated.description : job.description}
+                  {showTranslation && translated?.description
+                    ? translated.description
+                    : job.description}
                 </p>
               </div>
               {(showTranslation && translated?.requirements
                 ? translated.requirements
                 : job.requirements) && (
                 <div>
-                  <h2 className="text-lg font-semibold text-[color:var(--ink)]">{t("jobDetail.requirements")}</h2>
+                  <h2 className="text-lg font-semibold text-[color:var(--ink)]">
+                    {t("jobDetail.requirements")}
+                  </h2>
                   <p className="mt-2 whitespace-pre-line text-[15px] leading-relaxed text-foreground">
                     {showTranslation && translated?.requirements
                       ? translated.requirements
@@ -636,7 +654,11 @@ function JobDetail() {
                       <CheckCircle2 className="h-4 w-4" /> Applied
                     </Button>
                   ) : (
-                    <Button onClick={apply} disabled={quickSubmitting} className="btn-primary !px-6">
+                    <Button
+                      onClick={apply}
+                      disabled={quickSubmitting}
+                      className="btn-primary !px-6"
+                    >
                       {quickSubmitting
                         ? t("apply.sending")
                         : user && quickApply.ready && !hasScreening

@@ -20,14 +20,14 @@ You operate as **Agent 3: QA & Testing Agent** per `AGENTS.md`.
 
 ## Professional Profile
 
-| Attribute | Standard |
-|---|---|
-| Experience | 5+ years in QA/SDET engineering |
+| Attribute       | Standard                                                            |
+| --------------- | ------------------------------------------------------------------- |
+| Experience      | 5+ years in QA/SDET engineering                                     |
 | Specializations | API testing, test automation, integration testing, contract testing |
-| Frameworks | Jest, Supertest, k6 (load testing), Postman/Newman |
-| Tools | Docker Compose (real infra for integration), GitHub Actions CI |
-| Languages | TypeScript (proficient), bash (scripting) |
-| Mindset | Adversarial — find the edge case the engineer didn't think of |
+| Frameworks      | Jest, Supertest, k6 (load testing), Postman/Newman                  |
+| Tools           | Docker Compose (real infra for integration), GitHub Actions CI      |
+| Languages       | TypeScript (proficient), bash (scripting)                           |
+| Mindset         | Adversarial — find the edge case the engineer didn't think of       |
 
 ---
 
@@ -71,7 +71,7 @@ You operate as **Agent 3: QA & Testing Agent** per `AGENTS.md`.
 ## Integration Test Template
 
 ```typescript
-describe('AuthService (integration)', () => {
+describe("AuthService (integration)", () => {
   let app: INestApplication;
   let prisma: PrismaService;
 
@@ -81,18 +81,18 @@ describe('AuthService (integration)', () => {
   });
 
   beforeEach(async () => {
-    await prisma.user.deleteMany();         // truncate relevant tables
+    await prisma.user.deleteMany(); // truncate relevant tables
   });
 
   afterAll(async () => {
     await app.close();
   });
 
-  it('registers a new user and returns tokens', async () => {
+  it("registers a new user and returns tokens", async () => {
     const result = await app.get(AuthService).register({
-      email: 'test@example.com',
-      password: 'SecurePass1!',
-      role: 'seeker',
+      email: "test@example.com",
+      password: "SecurePass1!",
+      role: "seeker",
     });
     expect(result).toMatchObject({ accessToken: expect.any(String) });
   });
@@ -100,6 +100,7 @@ describe('AuthService (integration)', () => {
 ```
 
 **Rules:**
+
 - Use real Postgres (from Docker Compose) — never `mock` the `PrismaService` in integration tests
 - Never import from another domain's internals inside test files
 - Use `app.get(ServiceClass)` to retrieve services from the NestJS DI container
@@ -109,7 +110,7 @@ describe('AuthService (integration)', () => {
 ## E2E Test Template
 
 ```typescript
-describe('POST /api/v1/auth/register (E2E)', () => {
+describe("POST /api/v1/auth/register (E2E)", () => {
   let app: INestApplication;
 
   beforeAll(async () => {
@@ -118,41 +119,39 @@ describe('POST /api/v1/auth/register (E2E)', () => {
 
   afterAll(() => app.close());
 
-  it('201 — creates user and returns tokens', async () => {
+  it("201 — creates user and returns tokens", async () => {
     await request(app.getHttpServer())
-      .post('/api/v1/auth/register')
-      .send({ email: 'new@example.com', password: 'Pass1234!', role: 'seeker' })
+      .post("/api/v1/auth/register")
+      .send({ email: "new@example.com", password: "Pass1234!", role: "seeker" })
       .expect(201)
       .expect(({ body }) => {
         expect(body).toMatchObject({ accessToken: expect.any(String) });
       });
   });
 
-  it('409 — duplicate email', async () => {
+  it("409 — duplicate email", async () => {
     await request(app.getHttpServer())
-      .post('/api/v1/auth/register')
-      .send({ email: 'existing@example.com', password: 'Pass1234!', role: 'seeker' })
+      .post("/api/v1/auth/register")
+      .send({ email: "existing@example.com", password: "Pass1234!", role: "seeker" })
       .expect(409);
   });
 
-  it('422 — missing required fields', async () => {
+  it("422 — missing required fields", async () => {
     await request(app.getHttpServer())
-      .post('/api/v1/auth/register')
-      .send({ email: 'bad@example.com' })
+      .post("/api/v1/auth/register")
+      .send({ email: "bad@example.com" })
       .expect(422);
   });
 
-  it('401 — protected route without token', async () => {
-    await request(app.getHttpServer())
-      .get('/api/v1/me')
-      .expect(401);
+  it("401 — protected route without token", async () => {
+    await request(app.getHttpServer()).get("/api/v1/me").expect(401);
   });
 
-  it('403 — seeker accessing admin route', async () => {
-    const token = signTestToken(app, { sub: 'user-id', email: 'u@test.com', role: 'seeker' });
+  it("403 — seeker accessing admin route", async () => {
+    const token = signTestToken(app, { sub: "user-id", email: "u@test.com", role: "seeker" });
     await request(app.getHttpServer())
-      .get('/api/v1/admin/stats')
-      .set('Authorization', `Bearer ${token}`)
+      .get("/api/v1/admin/stats")
+      .set("Authorization", `Bearer ${token}`)
       .expect(403);
   });
 });
@@ -238,12 +237,12 @@ Do NOT modify the service or controller to make the test pass. Return the report
 
 ## Key References
 
-| Topic | Location |
-|---|---|
-| Test skill | `.cursor/skills/testing/SKILL.md` |
-| Unit standard | `docs/agent/standards/testing/unit.md` |
+| Topic                | Location                                      |
+| -------------------- | --------------------------------------------- |
+| Test skill           | `.cursor/skills/testing/SKILL.md`             |
+| Unit standard        | `docs/agent/standards/testing/unit.md`        |
 | Integration standard | `docs/agent/standards/testing/integration.md` |
-| E2E standard | `docs/agent/standards/testing/e2e.md` |
-| Test helpers | `src/api/test/helpers/` |
-| Phase gates | `docs/plan.md` |
-| API contract | `docs/api/openapi.yaml` |
+| E2E standard         | `docs/agent/standards/testing/e2e.md`         |
+| Test helpers         | `src/api/test/helpers/`                       |
+| Phase gates          | `docs/plan.md`                                |
+| API contract         | `docs/api/openapi.yaml`                       |

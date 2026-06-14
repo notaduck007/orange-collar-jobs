@@ -47,8 +47,8 @@ export const Route = createFileRoute("/jobs.json")({
 
         const items = jobs.map((j) => {
           const company = Array.isArray(j.companies)
-            ? j.companies[0]?.name ?? null
-            : j.companies?.name ?? null;
+            ? (j.companies[0]?.name ?? null)
+            : (j.companies?.name ?? null);
           const item: Record<string, unknown> = {
             title: j.title,
             company,

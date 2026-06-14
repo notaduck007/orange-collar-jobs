@@ -37,17 +37,17 @@ HTTP (Express)
 
 `core/` modules are `@Global()`. Every domain can use them without importing them explicitly. They provide **capabilities** — not business rules.
 
-| Module | What it provides | Why it is core |
-|---|---|---|
-| `config` | Validated env vars via Zod + `ConfigService` | Needed by every other module |
-| `database` | `PrismaService` — singleton DB connection | Shared across all domains |
-| `logging` | Pino-structured request logging | Cross-cutting; applies to every request |
-| `error` | `GlobalExceptionFilter` + typed error classes | Applies to all routes globally |
-| `health` | `/api/health` liveness check | Infrastructure probe, not business logic |
-| `auth` | JWT strategy, `JwtAuthGuard`, `RolesGuard`, `@Public`, `@Roles`, `@CurrentUser` | The **infrastructure** of auth — guards applied globally to every controller |
-| `queue` | BullMQ / Redis connection setup | Infrastructure shared by any domain that queues work |
-| `storage` | `StorageService` — S3/MinIO adapter | Infrastructure shared by any domain that stores files |
-| `sms` | `SmsService` — Twilio adapter | Infrastructure shared by any domain that sends SMS |
+| Module     | What it provides                                                                | Why it is core                                                               |
+| ---------- | ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `config`   | Validated env vars via Zod + `ConfigService`                                    | Needed by every other module                                                 |
+| `database` | `PrismaService` — singleton DB connection                                       | Shared across all domains                                                    |
+| `logging`  | Pino-structured request logging                                                 | Cross-cutting; applies to every request                                      |
+| `error`    | `GlobalExceptionFilter` + typed error classes                                   | Applies to all routes globally                                               |
+| `health`   | `/api/health` liveness check                                                    | Infrastructure probe, not business logic                                     |
+| `auth`     | JWT strategy, `JwtAuthGuard`, `RolesGuard`, `@Public`, `@Roles`, `@CurrentUser` | The **infrastructure** of auth — guards applied globally to every controller |
+| `queue`    | BullMQ / Redis connection setup                                                 | Infrastructure shared by any domain that queues work                         |
+| `storage`  | `StorageService` — S3/MinIO adapter                                             | Infrastructure shared by any domain that stores files                        |
+| `sms`      | `SmsService` — Twilio adapter                                                   | Infrastructure shared by any domain that sends SMS                           |
 
 ### auth in core — rationale
 
@@ -63,15 +63,15 @@ These are **infrastructure concerns**: they apply globally, they depend only on 
 
 **Auth business logic belongs in `src/domains/auth/`**:
 
-| Feature | Location |
-|---|---|
-| `POST /api/v1/auth/register` | `src/domains/auth/` |
-| `POST /api/v1/auth/login` | `src/domains/auth/` |
-| `POST /api/v1/auth/logout` | `src/domains/auth/` |
-| `POST /api/v1/auth/refresh` | `src/domains/auth/` |
-| `POST /api/v1/auth/forgot-password` | `src/domains/auth/` |
-| `POST /api/v1/auth/reset-password` | `src/domains/auth/` |
-| `POST /api/v1/auth/verify-email` | `src/domains/auth/` |
+| Feature                                                 | Location            |
+| ------------------------------------------------------- | ------------------- |
+| `POST /api/v1/auth/register`                            | `src/domains/auth/` |
+| `POST /api/v1/auth/login`                               | `src/domains/auth/` |
+| `POST /api/v1/auth/logout`                              | `src/domains/auth/` |
+| `POST /api/v1/auth/refresh`                             | `src/domains/auth/` |
+| `POST /api/v1/auth/forgot-password`                     | `src/domains/auth/` |
+| `POST /api/v1/auth/reset-password`                      | `src/domains/auth/` |
+| `POST /api/v1/auth/verify-email`                        | `src/domains/auth/` |
 | Password hashing, token rotation, refresh-token storage | `src/domains/auth/` |
 
 ---
@@ -80,13 +80,13 @@ These are **infrastructure concerns**: they apply globally, they depend only on 
 
 Each domain is a **bounded context**: it owns a coherent slice of the product. Domains depend on core modules and on each other only through explicit interfaces (never by importing internal files of another domain).
 
-| Domain | Planned phase | Business rules it owns |
-|---|---|---|
-| `auth` | Phase 2 | Register, login, logout, token refresh, email verification, password reset |
-| `jobs` | Phase 3 | Job CRUD, batch ingestion, deduplication, search, status lifecycle |
-| `applications` | Phase 5 | Apply to a job, track application status, employer review |
-| `companies` | Phase 6 | Company profile, logo upload, billing |
-| `admin` | Phase 6 | Content moderation, ad management, user management |
+| Domain         | Planned phase | Business rules it owns                                                     |
+| -------------- | ------------- | -------------------------------------------------------------------------- |
+| `auth`         | Phase 2       | Register, login, logout, token refresh, email verification, password reset |
+| `jobs`         | Phase 3       | Job CRUD, batch ingestion, deduplication, search, status lifecycle         |
+| `applications` | Phase 5       | Apply to a job, track application status, employer review                  |
+| `companies`    | Phase 6       | Company profile, logo upload, billing                                      |
+| `admin`        | Phase 6       | Content moderation, ad management, user management                         |
 
 ### Domain structure template
 

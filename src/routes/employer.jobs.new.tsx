@@ -800,8 +800,8 @@ function NewJobPage() {
             🎉 You're live — nice work!
           </h1>
           <p className="mx-auto mt-2 max-w-md text-sm text-emerald-900/80">
-            "{success.title}" is now in front of warehouse workers in your area. We'll email you
-            the moment qualified applicants come in.
+            "{success.title}" is now in front of warehouse workers in your area. We'll email you the
+            moment qualified applicants come in.
           </p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
             {success.slug && (

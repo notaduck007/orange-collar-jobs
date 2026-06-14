@@ -68,7 +68,6 @@ const categories = [
   { name: "Warehouse Associate", slug: "warehouse-associate", icon: Warehouse },
 ];
 
-
 function Home() {
   const { featured } = Route.useLoaderData();
   const navigate = useNavigate();
@@ -113,9 +112,7 @@ function Home() {
               >
                 {t("home.headlineA")} <span className="text-primary">{t("home.headlineB")}</span>
               </h1>
-              <p className="mt-5 max-w-xl text-base text-white/80 sm:text-lg">
-                {t("home.sub")}
-              </p>
+              <p className="mt-5 max-w-xl text-base text-white/80 sm:text-lg">{t("home.sub")}</p>
 
               {/* SEARCH BAR */}
               <form
@@ -222,7 +219,6 @@ function Home() {
           </div>
         </section>
 
-
         {/* HOME BANNER AD */}
         <section className="mx-auto max-w-7xl px-4 pt-10 sm:px-6">
           <AdSlot slot="home_banner" />
@@ -263,9 +259,7 @@ function Home() {
               <h2 className="mt-1 text-2xl font-bold text-[color:var(--ink)] sm:text-3xl">
                 {t("home.realPeopleTitle")}
               </h2>
-              <p className="mt-2 text-sm text-muted-foreground">
-                {t("home.realPeopleSub")}
-              </p>
+              <p className="mt-2 text-sm text-muted-foreground">{t("home.realPeopleSub")}</p>
             </div>
             <div className="grid gap-5 sm:grid-cols-3">
               {[
@@ -365,9 +359,7 @@ function Home() {
                   {t("home.employerTitleA")}{" "}
                   <span className="text-[color:var(--hazard)]">{t("home.employerTitleB")}</span>.
                 </h2>
-                <p className="mt-3 max-w-md text-white/70">
-                  {t("home.employerSub")}
-                </p>
+                <p className="mt-3 max-w-md text-white/70">{t("home.employerSub")}</p>
                 <div className="mt-6 flex flex-wrap gap-3">
                   <Link to="/pricing">
                     <Button className="btn-primary">{t("home.seePricing")}</Button>

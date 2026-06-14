@@ -53,9 +53,7 @@ export function LanguageToggle({ variant = "header" }: Props) {
   const base = dark
     ? "border-white/15 text-white/80 hover:text-white"
     : "border-border text-[color:var(--ink)] hover:text-primary";
-  const active = dark
-    ? "bg-white text-[color:var(--ink)]"
-    : "bg-primary text-primary-foreground";
+  const active = dark ? "bg-white text-[color:var(--ink)]" : "bg-primary text-primary-foreground";
 
   return (
     <div
@@ -73,9 +71,7 @@ export function LanguageToggle({ variant = "header" }: Props) {
           type="button"
           aria-pressed={current === code}
           onClick={() => onChange(code)}
-          className={`rounded-sm px-2 py-0.5 transition-colors ${
-            current === code ? active : ""
-          }`}
+          className={`rounded-sm px-2 py-0.5 transition-colors ${current === code ? active : ""}`}
         >
           {code === "en" ? "EN" : "ES"}
         </button>

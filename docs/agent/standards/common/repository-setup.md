@@ -41,11 +41,11 @@ Optional but recommended: architecture diagram, Docker paths, SwaggerHub publish
 
 For a nested API at `src/api/`, the root `package.json` must expose delegation scripts:
 
-| Root script | Delegates to |
-|---|---|
-| `setup:env` | `cp .env.example .env` (root only) |
-| `api:install` | `bun install` in workspace (or redundant if workspaces) |
-| `api:dev`, `api:build`, `api:test`, … | matching script in `src/api/package.json` |
+| Root script                           | Delegates to                                            |
+| ------------------------------------- | ------------------------------------------------------- |
+| `setup:env`                           | `cp .env.example .env` (root only)                      |
+| `api:install`                         | `bun install` in workspace (or redundant if workspaces) |
+| `api:dev`, `api:build`, `api:test`, … | matching script in `src/api/package.json`               |
 
 See [`monorepo.md`](./monorepo.md) for the full two-`package.json` model.
 

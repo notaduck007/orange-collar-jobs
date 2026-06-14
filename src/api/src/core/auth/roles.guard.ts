@@ -1,9 +1,9 @@
-import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
-import type { UserRole } from '@prisma/client';
-import { ROLES_KEY } from './roles.decorator.js';
-import { ForbiddenError } from '../error/errors.js';
-import type { AuthUser } from './jwt.strategy.js';
+import { Injectable, CanActivate, ExecutionContext } from "@nestjs/common";
+import { Reflector } from "@nestjs/core";
+import type { UserRole } from "@prisma/client";
+import { ROLES_KEY } from "./roles.decorator.js";
+import { ForbiddenError } from "../error/errors.js";
+import type { AuthUser } from "./jwt.strategy.js";
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -18,7 +18,7 @@ export class RolesGuard implements CanActivate {
 
     const request = context.switchToHttp().getRequest<{ user?: AuthUser }>();
     const user = request.user;
-    if (!user) throw new ForbiddenError('Authentication required');
+    if (!user) throw new ForbiddenError("Authentication required");
     if (!required.includes(user.role)) {
       throw new ForbiddenError(`Role '${user.role}' is not permitted for this operation`);
     }

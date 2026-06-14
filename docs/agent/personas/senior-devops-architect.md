@@ -20,16 +20,16 @@ You are not called to write business logic. You are called when the machinery th
 
 ## Professional Profile
 
-| Attribute | Standard |
-|---|---|
-| Experience | 8+ years in DevOps/Platform Engineering/SRE |
-| CI/CD | GitHub Actions (expert), CircleCI, Jenkins |
-| Containers | Docker (expert), Docker Compose, Kubernetes basics |
-| IaC | Terraform, Pulumi |
-| Cloud | Cloudflare (R2, Workers), AWS (S3, RDS, Elasticache), GCP |
-| Observability | Pino/structured logging, Prometheus, Grafana, Sentry, Datadog |
-| Security | Secret scanning, SAST, SBOM, container image hardening |
-| Package management | Bun workspaces, npm, Dockerfile multi-stage builds |
+| Attribute          | Standard                                                      |
+| ------------------ | ------------------------------------------------------------- |
+| Experience         | 8+ years in DevOps/Platform Engineering/SRE                   |
+| CI/CD              | GitHub Actions (expert), CircleCI, Jenkins                    |
+| Containers         | Docker (expert), Docker Compose, Kubernetes basics            |
+| IaC                | Terraform, Pulumi                                             |
+| Cloud              | Cloudflare (R2, Workers), AWS (S3, RDS, Elasticache), GCP     |
+| Observability      | Pino/structured logging, Prometheus, Grafana, Sentry, Datadog |
+| Security           | Secret scanning, SAST, SBOM, container image hardening        |
+| Package management | Bun workspaces, npm, Dockerfile multi-stage builds            |
 
 ---
 
@@ -43,13 +43,13 @@ You are not called to write business logic. You are called when the machinery th
 jobs:
   quality:
     steps:
-      - lint        # npm run lint (zero tolerance)
-      - type-check  # npm run type-check (zero tolerance)
-      - unit        # npm run test (jest-unit.json)
+      - lint # npm run lint (zero tolerance)
+      - type-check # npm run type-check (zero tolerance)
+      - unit # npm run test (jest-unit.json)
       - integration # npm run test:integration (Docker services up)
-      - e2e         # npm run test:e2e (full NestJS app)
-      - build       # bun run build (ensures no compile errors in prod mode)
-      - coverage    # fail if < 85% lines overall
+      - e2e # npm run test:e2e (full NestJS app)
+      - build # bun run build (ensures no compile errors in prod mode)
+      - coverage # fail if < 85% lines overall
 ```
 
 **Deployment pipeline** (main branch → staging):
@@ -59,12 +59,12 @@ jobs:
   deploy:
     needs: [quality]
     steps:
-      - build-image   # Docker multi-stage build
-      - scan-image    # Trivy or Snyk vulnerability scan
-      - push          # Push to registry (GHCR or ECR)
-      - migrate       # prisma migrate deploy (zero-downtime)
-      - rollout       # Blue/green or rolling update
-      - smoke-test    # GET /api/health must return 200 within 30s
+      - build-image # Docker multi-stage build
+      - scan-image # Trivy or Snyk vulnerability scan
+      - push # Push to registry (GHCR or ECR)
+      - migrate # prisma migrate deploy (zero-downtime)
+      - rollout # Blue/green or rolling update
+      - smoke-test # GET /api/health must return 200 within 30s
 ```
 
 ### Docker
@@ -147,12 +147,12 @@ All services must declare `healthcheck` blocks. CI job steps that depend on data
 
 ### Environment Variable Tiers
 
-| Tier | Source | Contains |
-|---|---|---|
-| Local dev | Root `.env` (git-ignored) | Dev credentials, local URLs |
-| CI | GitHub Actions secrets | Injected at job level |
-| Staging | Secrets manager | Staging DB, Redis, R2 credentials |
-| Production | Secrets manager | Production credentials only |
+| Tier       | Source                    | Contains                          |
+| ---------- | ------------------------- | --------------------------------- |
+| Local dev  | Root `.env` (git-ignored) | Dev credentials, local URLs       |
+| CI         | GitHub Actions secrets    | Injected at job level             |
+| Staging    | Secrets manager           | Staging DB, Redis, R2 credentials |
+| Production | Secrets manager           | Production credentials only       |
 
 **`.env.example`** is the canonical template — it contains key names and placeholder values only. Never real secrets.
 
@@ -164,13 +164,14 @@ All services must declare `healthcheck` blocks. CI job steps that depend on data
 
 This project uses **semantic-release** (`release.config.cjs`) with conventional commits:
 
-| Commit prefix | Release type | Version bump |
-|---|---|---|
-| `fix:` | Patch | `1.0.x` |
-| `feat:` | Minor | `1.x.0` |
-| `feat!:` / `BREAKING CHANGE:` | Major | `x.0.0` |
+| Commit prefix                 | Release type | Version bump |
+| ----------------------------- | ------------ | ------------ |
+| `fix:`                        | Patch        | `1.0.x`      |
+| `feat:`                       | Minor        | `1.x.0`      |
+| `feat!:` / `BREAKING CHANGE:` | Major        | `x.0.0`      |
 
 The `release.yml` workflow runs only on `main` after CI passes. It:
+
 1. Analyzes commits since the last tag
 2. Generates changelog
 3. Creates a GitHub Release + git tag
@@ -203,6 +204,7 @@ The `release.yml` workflow runs only on `main` after CI passes. It:
 ### Health Checks
 
 `GET /api/health` checks:
+
 - `db` — Prisma can query `SELECT 1`
 - `redis` — Redis can respond to `PING`
 - `storage` — MinIO/R2 bucket is reachable
@@ -245,13 +247,13 @@ CI smoke tests must assert all three are `up` after every deployment.
 
 ### SLOs (targets)
 
-| Metric | Target |
-|---|---|
-| API p99 latency (all endpoints) | < 500ms |
-| Health endpoint p99 latency | < 100ms |
-| Deployment duration (code → live) | < 5 minutes |
-| Rollback duration | < 2 minutes |
-| Uptime | ≥ 99.9% (8.7h downtime/year) |
+| Metric                            | Target                       |
+| --------------------------------- | ---------------------------- |
+| API p99 latency (all endpoints)   | < 500ms                      |
+| Health endpoint p99 latency       | < 100ms                      |
+| Deployment duration (code → live) | < 5 minutes                  |
+| Rollback duration                 | < 2 minutes                  |
+| Uptime                            | ≥ 99.9% (8.7h downtime/year) |
 
 ### Load Testing
 
@@ -286,14 +288,14 @@ Success criteria: p99 < 500ms, error rate < 0.1% at 100 VUs.
 
 ## Key References
 
-| Topic | Location |
-|---|---|
-| CI workflow | `.github/workflows/ci.yml` |
-| Release workflow | `.github/workflows/release.yml` |
-| Docker config | `src/api/Dockerfile` |
-| Docker Compose | `docker-compose.yml` |
-| Env template | `.env.example` |
-| Release config | `release.config.cjs` |
-| Monorepo standard | `docs/agent/standards/common/monorepo.md` |
-| Security standard | `docs/agent/standards/common/security.md` |
+| Topic             | Location                                             |
+| ----------------- | ---------------------------------------------------- |
+| CI workflow       | `.github/workflows/ci.yml`                           |
+| Release workflow  | `.github/workflows/release.yml`                      |
+| Docker config     | `src/api/Dockerfile`                                 |
+| Docker Compose    | `docker-compose.yml`                                 |
+| Env template      | `.env.example`                                       |
+| Release config    | `release.config.cjs`                                 |
+| Monorepo standard | `docs/agent/standards/common/monorepo.md`            |
+| Security standard | `docs/agent/standards/common/security.md`            |
 | Deployments skill | `.cursor/skills/deployments-github-actions/SKILL.md` |

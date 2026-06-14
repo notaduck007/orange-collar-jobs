@@ -6,9 +6,9 @@
  * server and the test harness. This prevents "works in prod, fails in test"
  * divergence.
  */
-import type { INestApplication, Type } from '@nestjs/common';
-import { Test } from '@nestjs/testing';
-import { configureApp } from '../../src/app.factory.js';
+import type { INestApplication, Type } from "@nestjs/common";
+import { Test } from "@nestjs/testing";
+import { configureApp } from "../../src/app.factory.js";
 
 export interface TestApp {
   app: INestApplication;
@@ -21,12 +21,8 @@ export interface TestApp {
  * @param rootModule  The module to bootstrap (usually AppModule)
  * @param timeoutMs   How long to wait for app.init() — default 30 s
  */
-export async function createTestApp(
-  rootModule: Type,
-  timeoutMs = 30_000,
-): Promise<TestApp> {
-  const moduleRef = await Test.createTestingModule({ imports: [rootModule] })
-    .compile();
+export async function createTestApp(rootModule: Type, timeoutMs = 30_000): Promise<TestApp> {
+  const moduleRef = await Test.createTestingModule({ imports: [rootModule] }).compile();
 
   const app = moduleRef.createNestApplication();
 
@@ -53,8 +49,8 @@ export async function createTestApp(
  * Usage:
  *   const token = signTestToken(app, { sub: 'user-id', email: 'a@b.com', role: 'WORKER' });
  */
-import { JwtService } from '@nestjs/jwt';
-import type { JwtPayload } from '../../src/core/auth/jwt.strategy.js';
+import { JwtService } from "@nestjs/jwt";
+import type { JwtPayload } from "../../src/core/auth/jwt.strategy.js";
 
 export function signTestToken(app: INestApplication, payload: JwtPayload): string {
   const jwt = app.get(JwtService);

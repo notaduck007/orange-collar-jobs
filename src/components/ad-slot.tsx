@@ -25,7 +25,8 @@ const FALLBACKS: Record<AdSlotName, React.ReactNode> = {
         <div>
           <p className="label-caps text-white/50">Sponsored slot — yours for $299/month</p>
           <p className="mt-1 text-xl font-bold">
-            Put your warehouse brand on the Warehouse<span className="text-primary">jobs.com</span> homepage.
+            Put your warehouse brand on the Warehouse<span className="text-primary">jobs.com</span>{" "}
+            homepage.
           </p>
           <p className="mt-1 text-sm text-white/70">
             Reach thousands of forklift-certified workers each week.

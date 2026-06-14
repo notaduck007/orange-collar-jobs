@@ -126,10 +126,7 @@ function BillingPage() {
                 {new Date(confirmOrder.created_at).toLocaleString()}
               </p>
               <div className="mt-5 flex flex-wrap items-center gap-3">
-                <Link
-                  to="/employer/jobs/new"
-                  className="btn-primary text-base px-6 py-3"
-                >
+                <Link to="/employer/jobs/new" className="btn-primary text-base px-6 py-3">
                   Post a job
                 </Link>
                 <a

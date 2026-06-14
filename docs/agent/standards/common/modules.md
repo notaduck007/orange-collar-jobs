@@ -12,8 +12,8 @@
 
 ```typescript
 // src/domains/jobs/index.ts — public surface only
-export { JobsService } from './JobsService';
-export type { Job, JobSummary, JobStatus, JobSourceType } from './types';
+export { JobsService } from "./JobsService";
+export type { Job, JobSummary, JobStatus, JobSourceType } from "./types";
 
 // Do NOT export: JobsController, internal helpers, DTOs, migrations
 ```
@@ -22,10 +22,10 @@ export type { Job, JobSummary, JobStatus, JobSourceType } from './types';
 
 ```typescript
 // From within the applications domain, importing jobs service:
-import { JobsService } from '@domains/jobs';  // barrel import — correct
+import { JobsService } from "@domains/jobs"; // barrel import — correct
 
 // Never:
-import { JobsService } from '../jobs/JobsService';  // direct file — forbidden
+import { JobsService } from "../jobs/JobsService"; // direct file — forbidden
 ```
 
 ## Module Wiring
@@ -33,13 +33,13 @@ import { JobsService } from '../jobs/JobsService';  // direct file — forbidden
 ```typescript
 @Module({
   imports: [
-    DatabaseModule,     // from src/core/ — always available via @Global
-    ConfigModule,       // from src/core/ — always available via @Global
-    QueueModule,        // from src/core/ — BullMQ
+    DatabaseModule, // from src/core/ — always available via @Global
+    ConfigModule, // from src/core/ — always available via @Global
+    QueueModule, // from src/core/ — BullMQ
   ],
   providers: [JobsService, JobSlugService, JobSearchService],
   controllers: [JobsController],
-  exports: [JobsService],  // only what other modules need
+  exports: [JobsService], // only what other modules need
 })
 export class JobsModule {}
 ```

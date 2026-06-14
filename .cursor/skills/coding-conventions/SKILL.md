@@ -18,6 +18,7 @@ Produce scalable, loosely-coupled, maintainable NestJS/TypeScript code from the 
 ## Preconditions (Fail-Closed)
 
 Before writing code:
+
 1. **Interface approved** — service/adapter interface designed (see `interface-designer`)
 2. **Module boundary known** — `src/core/` or `src/domains/{name}/`
 3. **OpenAPI spec read** — endpoints you're implementing are defined in `docs/api/openapi.yaml`
@@ -86,7 +87,7 @@ export class ApplicationsService {
   async apply(jobId: string, dto: ApplyDto, user?: UserEntity): Promise<ApplicationCreatedResult> {
     await this.throttle.check(`apply:${user?.id ?? dto.ip}`, LIMITS.applyPerHour);
     const job = await this.prisma.job.findUnique({ where: { id: jobId } });
-    if (!job) throw new NotFoundError('Job', jobId);
+    if (!job) throw new NotFoundError("Job", jobId);
     // ... business logic
   }
 }
@@ -116,13 +117,13 @@ export class ApplyDto {
 
 ```typescript
 // ✅
-throw new NotFoundError('Job', jobId);
-throw new ConflictError('Already applied to this job');
-throw new ForbiddenError('Admin role required');
+throw new NotFoundError("Job", jobId);
+throw new ConflictError("Already applied to this job");
+throw new ForbiddenError("Admin role required");
 
 // ❌
-throw new Error('Job not found');
-throw new HttpException('Already applied', 409);
+throw new Error("Job not found");
+throw new HttpException("Already applied", 409);
 ```
 
 ---
@@ -144,15 +145,15 @@ Never swallow errors:
 try {
   await this.email.send(message);
 } catch (e) {
-  console.log('Email failed', e); // swallowed
+  console.log("Email failed", e); // swallowed
 }
 
 // ✅ Correct
 try {
   await this.email.send(message);
 } catch (e) {
-  this.logger.error({ err: e, message }, 'Failed to send email');
-  throw new AppError('Email delivery failed', 500);
+  this.logger.error({ err: e, message }, "Failed to send email");
+  throw new AppError("Email delivery failed", 500);
 }
 ```
 

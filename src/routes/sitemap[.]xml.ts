@@ -62,11 +62,13 @@ export const Route = createFileRoute("/sitemap.xml")({
               .in("status", ["active", "published"])
               .limit(5000);
             const slugs = new Set<string>();
-            (companyJobs ?? []).forEach((row: { companies: { slug: string } | { slug: string }[] | null }) => {
-              const c = row.companies;
-              const slug = Array.isArray(c) ? c[0]?.slug : c?.slug;
-              if (slug) slugs.add(slug);
-            });
+            (companyJobs ?? []).forEach(
+              (row: { companies: { slug: string } | { slug: string }[] | null }) => {
+                const c = row.companies;
+                const slug = Array.isArray(c) ? c[0]?.slug : c?.slug;
+                if (slug) slugs.add(slug);
+              },
+            );
             slugs.forEach((slug) => {
               entries.push({
                 path: `/companies/${slug}`,

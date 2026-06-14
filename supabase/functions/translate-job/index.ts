@@ -123,7 +123,14 @@ serve(async (req) => {
     const reqIdx = content.indexOf(REQ_MARK);
 
     const slice = (start: number, end: number) =>
-      start < 0 ? "" : content.slice(start, end < 0 ? undefined : end).split("\n").slice(1).join("\n").trim();
+      start < 0
+        ? ""
+        : content
+            .slice(start, end < 0 ? undefined : end)
+            .split("\n")
+            .slice(1)
+            .join("\n")
+            .trim();
 
     const tTitle = slice(titleIdx, descIdx);
     const tDesc = slice(descIdx, reqIdx);
@@ -138,10 +145,7 @@ serve(async (req) => {
     // Cache it
     await admin
       .from("job_translations")
-      .upsert(
-        { job_id: jobId, language: target, ...payload },
-        { onConflict: "job_id,language" },
-      );
+      .upsert({ job_id: jobId, language: target, ...payload }, { onConflict: "job_id,language" });
 
     return new Response(JSON.stringify({ cached: false, ...payload }), {
       headers: { ...cors, "Content-Type": "application/json" },

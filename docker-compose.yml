@@ -1,5 +1,4 @@
 services:
-
   # ── PostgreSQL 16 ──────────────────────────────────────────────────────────
   postgres:
     image: postgres:16-alpine
@@ -10,7 +9,7 @@ services:
       POSTGRES_USER: wj_user
       POSTGRES_PASSWORD: wj_dev_password
     ports:
-      - "5433:5432"   # host 5433 — avoids conflict with other local Postgres on 5432
+      - "5433:5432" # host 5433 — avoids conflict with other local Postgres on 5432
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -26,7 +25,7 @@ services:
     restart: unless-stopped
     command: redis-server --save 60 1 --loglevel warning
     ports:
-      - "6380:6379"   # host 6380 — avoids conflict with other local Redis on 6379
+      - "6380:6379" # host 6380 — avoids conflict with other local Redis on 6379
     volumes:
       - redis_data:/data
     healthcheck:
@@ -45,8 +44,8 @@ services:
       MINIO_ROOT_USER: wj_minio_user
       MINIO_ROOT_PASSWORD: wj_minio_dev_password
     ports:
-      - "9000:9000"   # S3 API
-      - "9001:9001"   # Web console
+      - "9000:9000" # S3 API
+      - "9001:9001" # Web console
     volumes:
       - minio_data:/data
     healthcheck:
@@ -79,8 +78,8 @@ services:
     container_name: wj_api
     depends_on:
       postgres: { condition: service_healthy }
-      redis:    { condition: service_healthy }
-      minio:    { condition: service_healthy }
+      redis: { condition: service_healthy }
+      minio: { condition: service_healthy }
     environment:
       NODE_ENV: development
       PORT: "3001"

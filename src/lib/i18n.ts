@@ -47,7 +47,8 @@ const en = {
     browseTitle: "What kind of work?",
     realPeopleEyebrow: "Real people, real shifts",
     realPeopleTitle: "The crew behind every shipment",
-    realPeopleSub: "Pickers, packers, forklift operators, dock leads — folks getting hired this month.",
+    realPeopleSub:
+      "Pickers, packers, forklift operators, dock leads — folks getting hired this month.",
     featuredEyebrow: "Featured Listings",
     featuredTitle: "Jobs hiring this week",
     viewAll: "View all",
@@ -55,7 +56,8 @@ const en = {
     employerEyebrow: "For Employers",
     employerTitleA: "Stop wasting weeks on the",
     employerTitleB: "wrong applicants",
-    employerSub: "Reach qualified warehouse workers — forklift-certified, ready to start, in your ZIP. Post in 4 minutes.",
+    employerSub:
+      "Reach qualified warehouse workers — forklift-certified, ready to start, in your ZIP. Post in 4 minutes.",
     seePricing: "See Pricing",
     talkToSales: "Talk to Sales",
   },
@@ -63,7 +65,7 @@ const en = {
     pageTitleSearching: "Searching…",
     resultsCount_one: "{{count}} warehouse job",
     resultsCount_other: "{{count}} warehouse jobs",
-    forQuery: "for \"{{q}}\"",
+    forQuery: 'for "{{q}}"',
     filters: "Filters",
     shift: "Shift",
     employmentType: "Employment Type",
@@ -123,7 +125,8 @@ const en = {
   },
   apply: {
     title: "Apply to {{job}}",
-    description: "Send your resume and an optional note. The employer will see your full name and any cover note you add.",
+    description:
+      "Send your resume and an optional note. The employer will see your full name and any cover note you add.",
     resume: "Resume (optional)",
     useDefault: "Use my default resume",
     uploadDifferent: "Upload a different resume",
@@ -132,7 +135,8 @@ const en = {
     fileTypes: "PDF / DOC / DOCX",
     screening: "Screening questions",
     pickSlot: "Pick a phone-screen time",
-    noSlots: "No interview slots are available right now. You can still apply and the employer will reach out.",
+    noSlots:
+      "No interview slots are available right now. You can still apply and the employer will reach out.",
     coverNote: "Cover note (optional)",
     cancel: "Cancel",
     submit: "Send application",
@@ -257,7 +261,8 @@ const es: typeof en = {
     browseTitle: "¿Qué tipo de trabajo?",
     realPeopleEyebrow: "Gente real, turnos reales",
     realPeopleTitle: "El equipo detrás de cada envío",
-    realPeopleSub: "Selectores, empacadores, operadores de montacargas, líderes de muelle — contratados este mes.",
+    realPeopleSub:
+      "Selectores, empacadores, operadores de montacargas, líderes de muelle — contratados este mes.",
     featuredEyebrow: "Listados destacados",
     featuredTitle: "Empleos que contratan esta semana",
     viewAll: "Ver todos",
@@ -265,7 +270,8 @@ const es: typeof en = {
     employerEyebrow: "Para empleadores",
     employerTitleA: "Deja de perder semanas con los",
     employerTitleB: "solicitantes equivocados",
-    employerSub: "Llega a trabajadores de almacén calificados — con certificación de montacargas, listos para empezar, en tu código postal. Publica en 4 minutos.",
+    employerSub:
+      "Llega a trabajadores de almacén calificados — con certificación de montacargas, listos para empezar, en tu código postal. Publica en 4 minutos.",
     seePricing: "Ver precios",
     talkToSales: "Hablar con ventas",
   },
@@ -273,7 +279,7 @@ const es: typeof en = {
     pageTitleSearching: "Buscando…",
     resultsCount_one: "{{count}} empleo de almacén",
     resultsCount_other: "{{count}} empleos de almacén",
-    forQuery: "para \"{{q}}\"",
+    forQuery: 'para "{{q}}"',
     filters: "Filtros",
     shift: "Turno",
     employmentType: "Tipo de empleo",
@@ -333,7 +339,8 @@ const es: typeof en = {
   },
   apply: {
     title: "Postularse a {{job}}",
-    description: "Envía tu currículum y una nota opcional. El empleador verá tu nombre completo y cualquier carta de presentación que agregues.",
+    description:
+      "Envía tu currículum y una nota opcional. El empleador verá tu nombre completo y cualquier carta de presentación que agregues.",
     resume: "Currículum (opcional)",
     useDefault: "Usar mi currículum predeterminado",
     uploadDifferent: "Subir un currículum diferente",
@@ -342,7 +349,8 @@ const es: typeof en = {
     fileTypes: "PDF / DOC / DOCX",
     screening: "Preguntas de evaluación",
     pickSlot: "Elige un horario para entrevista telefónica",
-    noSlots: "No hay horarios de entrevista disponibles en este momento. Aún puedes postularte y el empleador se comunicará contigo.",
+    noSlots:
+      "No hay horarios de entrevista disponibles en este momento. Aún puedes postularte y el empleador se comunicará contigo.",
     coverNote: "Carta de presentación (opcional)",
     cancel: "Cancelar",
     submit: "Enviar postulación",

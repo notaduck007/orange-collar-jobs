@@ -15,32 +15,34 @@ Versioning must be **invisible to unchanged consumers**. Upgrading from v1 to v2
 ### Setup (already configured in `src/app.factory.ts`)
 
 ```typescript
-app.setGlobalPrefix('api');
-app.enableVersioning({ type: VersioningType.URI, defaultVersion: '1' });
+app.setGlobalPrefix("api");
+app.enableVersioning({ type: VersioningType.URI, defaultVersion: "1" });
 ```
 
 This produces:
 
-| Controller decorator | Resolved URL |
-|---|---|
-| `@Controller({ path: 'me', version: '1' })` | `GET /api/v1/me` |
-| `@Controller({ path: 'jobs', version: '1' })` | `GET /api/v1/jobs` |
-| `@Controller({ path: 'jobs', version: ['1','2'] })` | `GET /api/v1/jobs` AND `GET /api/v2/jobs` |
-| `@Controller({ path: 'health', version: VERSION_NEUTRAL })` | `GET /api/health` (no version segment) |
+| Controller decorator                                        | Resolved URL                              |
+| ----------------------------------------------------------- | ----------------------------------------- |
+| `@Controller({ path: 'me', version: '1' })`                 | `GET /api/v1/me`                          |
+| `@Controller({ path: 'jobs', version: '1' })`               | `GET /api/v1/jobs`                        |
+| `@Controller({ path: 'jobs', version: ['1','2'] })`         | `GET /api/v1/jobs` AND `GET /api/v2/jobs` |
+| `@Controller({ path: 'health', version: VERSION_NEUTRAL })` | `GET /api/health` (no version segment)    |
 
 ### Rules
 
 1. **Always put `version` on the controller class**, not individual methods.
+
    ```typescript
    // CORRECT
-   @Controller({ path: 'jobs', version: '1' })
+   @Controller({ path: "jobs", version: "1" })
    export class JobsController {}
 
    // WRONG — version on method creates inconsistency within a controller
-   @Controller('jobs')
+   @Controller("jobs")
    export class JobsController {
-     @Version('1')
-     @Get() list() {}
+     @Version("1")
+     @Get()
+     list() {}
    }
    ```
 
@@ -55,15 +57,17 @@ This produces:
 ## Adding a New v1 Controller
 
 ```typescript
-@ApiTags('Jobs')
+@ApiTags("Jobs")
 @ApiBearerAuth()
-@Controller({ path: 'jobs', version: '1' })   // ← always on the class
+@Controller({ path: "jobs", version: "1" }) // ← always on the class
 export class JobsController {
   constructor(private readonly jobsService: JobsService) {}
 
   @Get()
-  @Roles('EMPLOYER', 'ADMIN')
-  list(): Promise<Job[]> { return this.jobsService.list(); }
+  @Roles("EMPLOYER", "ADMIN")
+  list(): Promise<Job[]> {
+    return this.jobsService.list();
+  }
 }
 ```
 
@@ -81,13 +85,14 @@ Backward-compatible changes (adding optional fields, new endpoints, looser valid
 
 ```typescript
 // src/domains/jobs/controllers/jobs-v2.controller.ts
-@Controller({ path: 'jobs', version: '2' })
+@Controller({ path: "jobs", version: "2" })
 export class JobsV2Controller {
   // new shape — v1 consumers are unaffected
 }
 ```
 
 **Step 3** — Register both controllers in the module. Both routes are now live:
+
 - `GET /api/v1/jobs` → `JobsController` (unchanged)
 - `GET /api/v2/jobs` → `JobsV2Controller` (new behaviour)
 
@@ -100,10 +105,12 @@ export class JobsV2Controller {
 For cases where v1 and v2 differ only slightly, a controller can handle both:
 
 ```typescript
-@Controller({ path: 'jobs', version: ['1', '2'] })
+@Controller({ path: "jobs", version: ["1", "2"] })
 export class JobsController {
   @Get()
-  list() { /* shared logic */ }
+  list() {
+    /* shared logic */
+  }
 }
 ```
 

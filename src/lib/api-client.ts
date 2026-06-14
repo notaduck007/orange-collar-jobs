@@ -1,20 +1,20 @@
 /**
  * Typed fetch wrapper for the NestJS API at VITE_API_BASE_URL.
  */
-import { getAuthSession, storeTokens, clearAuthSession } from '@/lib/auth-session';
+import { getAuthSession, storeTokens, clearAuthSession } from "@/lib/auth-session";
 
 const BASE_URL =
-  (typeof import.meta !== 'undefined' && (import.meta as Record<string, unknown>).env
-    ? (import.meta as { env: Record<string, string> }).env['VITE_API_BASE_URL']
-    : undefined) ?? 'http://localhost:3001';
+  (typeof import.meta !== "undefined" && (import.meta as Record<string, unknown>).env
+    ? (import.meta as { env: Record<string, string> }).env["VITE_API_BASE_URL"]
+    : undefined) ?? "http://localhost:3001";
 
-export type ApiUserRole = 'admin' | 'vendor' | 'seeker';
+export type ApiUserRole = "admin" | "vendor" | "seeker";
 
 export interface HealthResponse {
-  status: 'ok' | 'error';
-  info: Record<string, { status: 'up' | 'down'; message?: string }>;
-  error: Record<string, { status: 'up' | 'down'; message?: string }>;
-  details: Record<string, { status: 'up' | 'down'; message?: string }>;
+  status: "ok" | "error";
+  info: Record<string, { status: "up" | "down"; message?: string }>;
+  error: Record<string, { status: "up" | "down"; message?: string }>;
+  details: Record<string, { status: "up" | "down"; message?: string }>;
 }
 
 export interface MeResponse {
@@ -45,11 +45,11 @@ export class ApiError extends Error {
     message?: string,
   ) {
     super(message ?? `API error ${statusCode}`);
-    this.name = 'ApiError';
+    this.name = "ApiError";
   }
 
   get code(): string | undefined {
-    if (this.body && typeof this.body === 'object' && 'code' in this.body) {
+    if (this.body && typeof this.body === "object" && "code" in this.body) {
       return String((this.body as { code: string }).code);
     }
     return undefined;
@@ -62,10 +62,10 @@ async function apiFetch<T>(
 ): Promise<T> {
   const { token, ...init } = options;
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
     ...(init.headers as Record<string, string>),
   };
-  if (token) headers['Authorization'] = `Bearer ${token}`;
+  if (token) headers["Authorization"] = `Bearer ${token}`;
 
   const res = await fetch(`${BASE_URL}${path}`, { ...init, headers });
 
@@ -77,7 +77,7 @@ async function apiFetch<T>(
       body = null;
     }
     const message =
-      body && typeof body === 'object' && 'message' in body
+      body && typeof body === "object" && "message" in body
         ? String((body as { message: string }).message)
         : undefined;
     throw new ApiError(res.status, body, message);
@@ -89,28 +89,28 @@ async function apiFetch<T>(
 
 export const apiClient = {
   health(): Promise<HealthResponse> {
-    return apiFetch<HealthResponse>('/api/health');
+    return apiFetch<HealthResponse>("/api/health");
   },
 
   me(token: string): Promise<MeResponse> {
-    return apiFetch<MeResponse>('/api/v1/me', { token });
+    return apiFetch<MeResponse>("/api/v1/me", { token });
   },
 
   register(body: {
     email: string;
     password: string;
-    role: 'seeker' | 'vendor';
+    role: "seeker" | "vendor";
     fullName?: string;
   }): Promise<RegisterResponse> {
-    return apiFetch<RegisterResponse>('/api/v1/auth/register', {
-      method: 'POST',
+    return apiFetch<RegisterResponse>("/api/v1/auth/register", {
+      method: "POST",
       body: JSON.stringify(body),
     });
   },
 
   login(email: string, password: string): Promise<AuthTokensResponse> {
-    return apiFetch<AuthTokensResponse>('/api/v1/auth/login', {
-      method: 'POST',
+    return apiFetch<AuthTokensResponse>("/api/v1/auth/login", {
+      method: "POST",
       body: JSON.stringify({ email, password }),
     });
   },
@@ -122,7 +122,7 @@ export const apiClient = {
   },
 
   logout(token: string): Promise<void> {
-    return apiFetch<void>('/api/v1/auth/logout', { method: 'POST', token });
+    return apiFetch<void>("/api/v1/auth/logout", { method: "POST", token });
   },
 
   async logoutAndClear(token: string): Promise<void> {
@@ -134,8 +134,8 @@ export const apiClient = {
   },
 
   refresh(refreshToken: string): Promise<AuthTokensResponse> {
-    return apiFetch<AuthTokensResponse>('/api/v1/auth/refresh', {
-      method: 'POST',
+    return apiFetch<AuthTokensResponse>("/api/v1/auth/refresh", {
+      method: "POST",
       body: JSON.stringify({ refreshToken }),
     });
   },
@@ -154,22 +154,22 @@ export const apiClient = {
   },
 
   verifyEmail(token: string): Promise<MessageResponse> {
-    return apiFetch<MessageResponse>('/api/v1/auth/verify-email', {
-      method: 'POST',
+    return apiFetch<MessageResponse>("/api/v1/auth/verify-email", {
+      method: "POST",
       body: JSON.stringify({ token }),
     });
   },
 
   forgotPassword(email: string): Promise<MessageResponse> {
-    return apiFetch<MessageResponse>('/api/v1/auth/forgot-password', {
-      method: 'POST',
+    return apiFetch<MessageResponse>("/api/v1/auth/forgot-password", {
+      method: "POST",
       body: JSON.stringify({ email }),
     });
   },
 
   resetPassword(token: string, password: string): Promise<MessageResponse> {
-    return apiFetch<MessageResponse>('/api/v1/auth/reset-password', {
-      method: 'POST',
+    return apiFetch<MessageResponse>("/api/v1/auth/reset-password", {
+      method: "POST",
       body: JSON.stringify({ token, password }),
     });
   },
