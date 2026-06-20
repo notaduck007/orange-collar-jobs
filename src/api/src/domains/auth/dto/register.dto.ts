@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { UserRole } from "@prisma/client";
+import { UserRole } from "../../../core/database/prisma-client.js";
 import { IsEmail, IsEnum, IsOptional, IsString, MinLength } from "class-validator";
 
 const REGISTER_ROLES = [UserRole.seeker, UserRole.vendor] as const;

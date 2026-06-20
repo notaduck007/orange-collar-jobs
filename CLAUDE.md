@@ -143,7 +143,7 @@ Testing is mandatory before merge and before phase quality gates.
 **Rules**:
 
 - Integration tests use Docker Compose Postgres + Redis; truncate tables in `beforeEach`
-- Coverage ≥ **85%** line coverage for services before phase gate sign-off
+- Coverage ≥ **90%** on all global metrics (statements, branches, lines, functions) before phase gate sign-off
 - Never commit with failing tests
 - No real external HTTP calls in unit or integration tests (use typed mocks)
 - **Phase backwards compatibility**: prior phase endpoints, tests, and demo scripts must keep passing — see [`docs/agent/standards/common/backwards-compatibility.md`](./docs/agent/standards/common/backwards-compatibility.md)
@@ -195,7 +195,7 @@ npm run type-check
 npm run test
 npm run test:integration   # when DB/Redis features touched
 npm run test:e2e           # when HTTP surface touched
-npm run test:cov           # ≥ 85% line coverage for changed services
+npm run test:cov           # ≥ 90% on all global coverage metrics
 ```
 
 ### Phase Gates

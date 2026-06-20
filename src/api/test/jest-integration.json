@@ -5,7 +5,10 @@
   "testMatch": ["<rootDir>/test/integration/**/*.integration.spec.ts"],
   "testEnvironment": "node",
   "testTimeout": 30000,
-  "setupFilesAfterEnv": ["<rootDir>/test/jest-setup.ts"],
+  "setupFilesAfterEnv": [
+    "<rootDir>/test/jest-setup.ts",
+    "<rootDir>/test/jest-integration-setup.ts"
+  ],
   "maxWorkers": 1,
   "forceExit": true,
   "transform": {
@@ -14,6 +17,7 @@
   "moduleNameMapper": {
     "^(\\.{1,2}/.*)\\.js$": "$1",
     "^@core/(.*)$": "<rootDir>/src/core/$1",
-    "^@domains/(.*)$": "<rootDir>/src/domains/$1"
+    "^@domains/(.*)$": "<rootDir>/src/domains/$1",
+    "^@prisma/client$": "<rootDir>/src/core/database/prisma-client"
   }
 }

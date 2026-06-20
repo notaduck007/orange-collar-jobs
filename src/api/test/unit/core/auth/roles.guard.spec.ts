@@ -1,6 +1,6 @@
 import { Reflector } from "@nestjs/core";
 import type { ExecutionContext } from "@nestjs/common";
-import type { UserRole } from "@prisma/client";
+import type { UserRole } from "../../../../src/core/database/prisma-client.js";
 import { RolesGuard } from "@core/auth/roles.guard";
 import { ForbiddenError } from "@core/error/errors";
 import type { AuthUser } from "@core/auth/jwt.strategy";

@@ -19,7 +19,8 @@
  */
 
 // Bun loads .env via --env-file before this script runs — no dotenv import needed.
-import { PrismaClient } from "../src/api/node_modules/@prisma/client/index.js";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { PrismaClient } from "../src/api/src/core/database/prisma-client.js";
 import { createHmac } from "crypto";
 
 // ── Parse CLI args ────────────────────────────────────────────────────────────
@@ -76,7 +77,8 @@ if (!DATABASE_URL) {
   process.exit(1);
 }
 
-const prisma = new PrismaClient({ datasources: { db: { url: DATABASE_URL } } });
+const adapter = new PrismaPg({ connectionString: DATABASE_URL });
+const prisma = new PrismaClient({ adapter });
 
 try {
   let user = await prisma.user.findUnique({ where: { email } });

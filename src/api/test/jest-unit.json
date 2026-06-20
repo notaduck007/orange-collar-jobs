@@ -12,14 +12,17 @@
   "moduleNameMapper": {
     "^(\\.{1,2}/.*)\\.js$": "$1",
     "^@core/(.*)$": "<rootDir>/src/core/$1",
-    "^@domains/(.*)$": "<rootDir>/src/domains/$1"
+    "^@domains/(.*)$": "<rootDir>/src/domains/$1",
+    "^@prisma/client$": "<rootDir>/src/core/database/prisma-client"
   },
   "collectCoverageFrom": [
     "<rootDir>/src/**/*.ts",
     "!<rootDir>/src/main.ts",
     "!<rootDir>/src/**/*.module.ts",
     "!<rootDir>/src/**/index.ts",
-    "!<rootDir>/src/**/*.dto.ts"
+    "!<rootDir>/src/**/*.dto.ts",
+    "!<rootDir>/src/generated/**",
+    "!<rootDir>/src/domains/api-contract/detect-contract-drift.ts"
   ],
   "coverageDirectory": "<rootDir>/coverage",
   "coverageThreshold": {

@@ -201,7 +201,7 @@ Write integration tests, E2E tests, and validate coverage thresholds. Owns phase
 
 - Write integration tests against real Postgres + Redis (Docker Compose)
 - Write E2E tests via Supertest covering all HTTP surface defined in `openapi.yaml`
-- Verify coverage ≥ 85% for services touched in the phase
+- Verify coverage ≥ 90% on all global metrics for services touched in the phase
 - Run the full phase quality gate before sign-off
 
 ### Skills (in order)
@@ -254,7 +254,7 @@ Review a PR for contract compliance, quality gate adherence, and code quality.
 1. Does the implementation match `docs/api/openapi.yaml` for all modified endpoints?
 2. Are there unit tests (in `test/unit/`, mirroring `src/`) for every new public service method?
 3. Does `npm run lint && npm run type-check && npm run test` pass?
-4. Is test coverage ≥ 85% for changed services?
+4. Is test coverage ≥ 90% on all global metrics for changed services?
 5. Are DTOs validated with `class-validator`?
 6. Are typed error classes used (no raw `new Error()`)?
 7. Are secrets in env vars only (no hardcoded credentials)?

@@ -27,7 +27,7 @@ describe("EmailService", () => {
     jest.restoreAllMocks();
   });
 
-  describe("development mode — no external calls", () => {
+  describe("development mode — logs unless configured to send", () => {
     let svc: EmailService;
 
     beforeEach(() => {
@@ -51,6 +51,12 @@ describe("EmailService", () => {
       await expect(
         svc.sendVerificationEmail("user@test.com", "tok123", "http://localhost:3000"),
       ).resolves.toBeUndefined();
+      expect(fetchSpy).not.toHaveBeenCalled();
+    });
+
+    it("sendWelcomeEmail resolves and does not call fetch in dev", async () => {
+      const fetchSpy = jest.spyOn(global, "fetch");
+      await expect(svc.sendWelcomeEmail("user@test.com", "Jane")).resolves.toBeUndefined();
       expect(fetchSpy).not.toHaveBeenCalled();
     });
 
@@ -115,6 +121,30 @@ describe("EmailService", () => {
         unknown
       >;
       expect(body.html as string).toContain("/reset-password?token=xyz789");
+    });
+
+    it("sendWelcomeEmail calls Resend in production", async () => {
+      const fetchSpy = jest
+        .spyOn(global, "fetch")
+        .mockResolvedValue(new Response("{}", { status: 200 }));
+      await svc.sendWelcomeEmail("u@test.com", "Jane");
+      const body = JSON.parse((fetchSpy.mock.calls[0][1] as RequestInit).body as string) as Record<
+        string,
+        unknown
+      >;
+      expect(body.html as string).toContain("Hi Jane");
+    });
+
+    it("sendWelcomeEmail uses fallback greeting when name is empty", async () => {
+      const fetchSpy = jest
+        .spyOn(global, "fetch")
+        .mockResolvedValue(new Response("{}", { status: 200 }));
+      await svc.sendWelcomeEmail("u@test.com", "   ");
+      const body = JSON.parse((fetchSpy.mock.calls[0][1] as RequestInit).body as string) as Record<
+        string,
+        unknown
+      >;
+      expect(body.html as string).toContain("Hi there");
     });
   });
 

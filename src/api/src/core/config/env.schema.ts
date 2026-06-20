@@ -3,7 +3,10 @@ import { z } from "zod";
 export const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   PORT: z.coerce.number().int().min(1024).max(65535).default(3001),
+  /** Primary frontend URL — auth email links and default CORS origin. */
   CORS_ORIGIN: z.string().url().default("http://localhost:5173"),
+  /** Extra browser origins (comma-separated). Dev always allows :5173 and :8080. */
+  CORS_ALLOWED_ORIGINS: z.string().optional(),
 
   DATABASE_URL: z
     .string()
@@ -41,11 +44,21 @@ export const envSchema = z.object({
   EMAIL_API_KEY: z.string().min(1),
   EMAIL_FROM: z.string().email(),
   EMAIL_FROM_NAME: z.string().default("WarehouseJobs"),
+  /** When true, sends via Resend in development (otherwise logs to console). */
+  EMAIL_SEND_IN_DEV: z.coerce.boolean().default(false),
 
-  TWILIO_ACCOUNT_SID: z.string().startsWith("AC").optional(),
-  TWILIO_AUTH_TOKEN: z.string().optional(),
-  TWILIO_FROM_NUMBER: z.string().optional(),
-  TWILIO_VERIFY_SERVICE_SID: z.string().startsWith("VA").optional(),
+  TWILIO_ACCOUNT_SID: z.preprocess(
+    (v) => (v === "" ? undefined : v),
+    z.string().startsWith("AC").optional(),
+  ),
+  TWILIO_AUTH_TOKEN: z.preprocess((v) => (v === "" ? undefined : v), z.string().min(1).optional()),
+  TWILIO_FROM_NUMBER: z.preprocess((v) => (v === "" ? undefined : v), z.string().optional()),
+  TWILIO_VERIFY_SERVICE_SID: z.preprocess(
+    (v) => (v === "" ? undefined : v),
+    z.string().min(32).optional(),
+  ),
+  TWILIO_APP_CLIENT_ID: z.preprocess((v) => (v === "" ? undefined : v), z.string().optional()),
+  TWILIO_APP_CLIENT_SECRET: z.preprocess((v) => (v === "" ? undefined : v), z.string().optional()),
 
   API_KEY_HASH: z.string().min(1),
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),

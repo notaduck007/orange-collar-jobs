@@ -9,7 +9,7 @@
 - Use `jest-mock-extended` for typed Prisma and service mocks
 - Reset mocks in `afterEach(() => jest.clearAllMocks())`
 - Use deterministic fixtures via factories in `src/api/test/helpers/factories/`
-- Coverage target: ≥ 90% lines/branches/functions per service (enforced globally in `test/jest-unit.json`)
+- Coverage target: ≥ 90% statements/branches/lines/functions per service (enforced globally in `test/jest-unit.json`)
 
 ## Four Required Test Categories
 

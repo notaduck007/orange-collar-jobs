@@ -27,6 +27,24 @@ jobs:
   postman:
     name: Newman (local collection vs live API)
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://wj_user:wj_dev_password@localhost:5432/warehousejobs_postman
+      REDIS_URL: redis://localhost:6379
+      JWT_SECRET: ci_jwt_secret_min_32_chars_for_testing
+      JWT_REFRESH_SECRET: ci_refresh_secret_min_32_chars_testing
+      JWT_ACCESS_EXPIRES_IN: 15m
+      JWT_REFRESH_EXPIRES_IN: 30d
+      STORAGE_ENDPOINT: http://localhost:9000
+      STORAGE_ACCESS_KEY: wj_minio_user
+      STORAGE_SECRET_KEY: wj_minio_dev_password
+      STORAGE_FORCE_PATH_STYLE: "true"
+      EMAIL_API_KEY: test_email_key
+      EMAIL_FROM: noreply@warehousejobs.com
+      API_KEY_HASH: local_dev_placeholder_batch_api_key_hash
+      NODE_ENV: development
+      PORT: "3001"
+      CORS_ORIGIN: http://localhost:5173
+      LOG_LEVEL: info
 
     services:
       postgres:
@@ -67,34 +85,18 @@ jobs:
         working-directory: ${{ env.WORKING_DIR }}
         run: bun install --frozen-lockfile
 
+      - name: Generate Prisma client
+        working-directory: ${{ env.WORKING_DIR }}
+        run: bun run db:generate
+
       - name: Run Prisma migrations
         working-directory: ${{ env.WORKING_DIR }}
-        env:
-          DATABASE_URL: postgresql://wj_user:wj_dev_password@localhost:5432/warehousejobs_postman
         run: bun run db:migrate:deploy
 
       - name: Start MinIO and create buckets
         run: bash scripts/ci-minio-up.sh
 
       - name: Start API server
-        env:
-          DATABASE_URL: postgresql://wj_user:wj_dev_password@localhost:5432/warehousejobs_postman
-          REDIS_URL: redis://localhost:6379
-          JWT_SECRET: ci_jwt_secret_min_32_chars_for_testing
-          JWT_REFRESH_SECRET: ci_refresh_secret_min_32_chars_testing
-          JWT_ACCESS_EXPIRES_IN: 15m
-          JWT_REFRESH_EXPIRES_IN: 30d
-          STORAGE_ENDPOINT: http://localhost:9000
-          STORAGE_ACCESS_KEY: wj_minio_user
-          STORAGE_SECRET_KEY: wj_minio_dev_password
-          STORAGE_FORCE_PATH_STYLE: "true"
-          EMAIL_API_KEY: test_email_key
-          EMAIL_FROM: noreply@test.com
-          API_KEY_HASH: ci_placeholder_batch_api_key_hash_min_len
-          NODE_ENV: development
-          PORT: "3001"
-          CORS_ORIGIN: http://localhost:5173
-          LOG_LEVEL: info
         run: bash scripts/ci-api-up.sh
 
       - name: Run Postman collection (Newman)

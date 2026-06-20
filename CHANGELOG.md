@@ -7,18 +7,16 @@
 
 # [1.1.0](https://github.com/notaduck007/orange-collar-jobs/compare/v1.0.0...v1.1.0) (2026-06-14)
 
-
 ### Bug Fixes
 
-* **ci:** adjust postman scripts to address errors while in ci workflows ([7e8e56d](https://github.com/notaduck007/orange-collar-jobs/commit/7e8e56df779e84348bb86409aa28bb0ebe6fc647))
-* **ci:** run Newman against live API instead of Postman Cloud ([71fb2ba](https://github.com/notaduck007/orange-collar-jobs/commit/71fb2ba8641b5ae68798a53545d6eb12e8be97b3))
-* **ci:** run Newman against live API instead of Postman Cloud ([033a23c](https://github.com/notaduck007/orange-collar-jobs/commit/033a23c386325af787a0d9d46c6cc79eb36749cf))
-* **postman:** collection file was incorrectly formatted ([a7990af](https://github.com/notaduck007/orange-collar-jobs/commit/a7990af31233d00f80538bea469461056fef9a47))
-
+- **ci:** adjust postman scripts to address errors while in ci workflows ([7e8e56d](https://github.com/notaduck007/orange-collar-jobs/commit/7e8e56df779e84348bb86409aa28bb0ebe6fc647))
+- **ci:** run Newman against live API instead of Postman Cloud ([71fb2ba](https://github.com/notaduck007/orange-collar-jobs/commit/71fb2ba8641b5ae68798a53545d6eb12e8be97b3))
+- **ci:** run Newman against live API instead of Postman Cloud ([033a23c](https://github.com/notaduck007/orange-collar-jobs/commit/033a23c386325af787a0d9d46c6cc79eb36749cf))
+- **postman:** collection file was incorrectly formatted ([a7990af](https://github.com/notaduck007/orange-collar-jobs/commit/a7990af31233d00f80538bea469461056fef9a47))
 
 ### Features
 
-* **auth:** deliver Phase 2 JWT auth with frontend and compat gates, includes postman workflows and tests ([d7c6269](https://github.com/notaduck007/orange-collar-jobs/commit/d7c626977fb5b3ce029cae80e2c5e476c43efd8d))
+- **auth:** deliver Phase 2 JWT auth with frontend and compat gates, includes postman workflows and tests ([d7c6269](https://github.com/notaduck007/orange-collar-jobs/commit/d7c626977fb5b3ce029cae80e2c5e476c43efd8d))
 
 # 1.0.0 (2026-06-13)
 

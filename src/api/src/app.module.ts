@@ -13,6 +13,8 @@ import { AuthCoreModule } from "./core/auth/auth-core.module.js";
 import { SmsModule } from "./core/sms/sms.module.js";
 import { EmailModule } from "./core/email/email.module.js";
 import { AuthModule } from "./domains/auth/auth.module.js";
+import { JobsModule } from "./domains/jobs/jobs.module.js";
+import { ApiContractModule } from "./domains/api-contract/api-contract.module.js";
 
 @Module({
   imports: [
@@ -41,7 +43,8 @@ import { AuthModule } from "./domains/auth/auth.module.js";
 
     // ── Domain modules (added as phases are implemented) ─────────────────
     AuthModule,
-    // Phase 3: JobsModule
+    JobsModule,
+    ApiContractModule,
     // Phase 4: BatchModule
     // Phase 5: ApplicationsModule
     // Phase 6: CompaniesModule, AdminModule

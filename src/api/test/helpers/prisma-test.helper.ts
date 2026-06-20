@@ -1,12 +1,15 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { PrismaClient } from "../../src/core/database/prisma-client.js";
 
-const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: process.env["TEST_DATABASE_URL"] ?? process.env["DATABASE_URL"],
-    },
-  },
-});
+const connectionString =
+  process.env["TEST_DATABASE_URL"] ?? process.env["DATABASE_URL"];
+
+if (!connectionString) {
+  throw new Error("TEST_DATABASE_URL or DATABASE_URL is required for integration tests");
+}
+
+const adapter = new PrismaPg({ connectionString });
+const prisma = new PrismaClient({ adapter });
 
 export async function connectTestDb(): Promise<void> {
   await prisma.$connect();

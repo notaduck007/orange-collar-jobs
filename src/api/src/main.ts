@@ -1,9 +1,12 @@
 import "reflect-metadata";
 import { NestFactory } from "@nestjs/core";
+import { ConfigService } from "@nestjs/config";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { Logger } from "nestjs-pino";
 import { AppModule } from "./app.module.js";
 import { configureApp } from "./app.factory.js";
+import { resolveCorsAllowedOrigins } from "./core/config/cors.util.js";
+import type { Env } from "./core/config/env.schema.js";
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
@@ -11,9 +14,18 @@ async function bootstrap(): Promise<void> {
   // Structured logging (Pino) — must be set before configureApp logs anything
   app.useLogger(app.get(Logger));
 
-  // CORS — allow the frontend origin set in .env
+  const config = app.get(ConfigService<Env>);
+  const corsOrigins = resolveCorsAllowedOrigins(config);
+
   app.enableCors({
-    origin: process.env["CORS_ORIGIN"] ?? "http://localhost:5173",
+    origin: (origin, callback) => {
+      // Non-browser clients (curl, SSR without Origin) — no CORS header needed.
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+      callback(null, corsOrigins.includes(origin));
+    },
     credentials: true,
   });
 

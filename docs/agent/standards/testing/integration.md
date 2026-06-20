@@ -1,5 +1,16 @@
 # Integration Testing Standard
 
+## Jest runner
+
+Integration specs boot the full `AppModule` (real Prisma, Redis, MinIO, `@aws-sdk/client-s3`). Jest must run with Node’s ESM VM support so AWS SDK v3 loads correctly inside the test harness:
+
+```bash
+# src/api/package.json — NODE_OPTIONS is set on test:integration only
+bun run test:integration
+```
+
+Unit tests do **not** need this flag (mocks replace I/O). Do not add `--experimental-vm-modules` to unit scripts.
+
 ## Requirements
 
 - Docker Compose must be running: `docker-compose up -d postgres redis minio`

@@ -2,8 +2,8 @@
 
 **Product**: WarehouseJobs.com
 **Stack**: React 19 · TanStack Start · NestJS 10 · TypeScript · Prisma · PostgreSQL · Redis · BullMQ · MinIO → Cloudflare R2
-**API Contract**: [`docs/api/openapi.yaml`](./api/openapi.yaml) — SwaggerHub: `redbonzai/warehousejobs-api`
-**Testing**: Jest (unit · integration · E2E) — 85% line coverage threshold
+**API Contract**: `[docs/api/openapi.yaml](./api/openapi.yaml)` — SwaggerHub: `redbonzai/warehousejobs-api`
+**Testing**: Jest (unit · integration · E2E) — 90% unit coverage threshold (statements, branches, lines, functions)
 
 ---
 
@@ -26,17 +26,20 @@ No phase begins until the prior phase's quality gate is cleared.
 
 ## Personas
 
+
 | Persona             | Responsibility                                                                             |
 | ------------------- | ------------------------------------------------------------------------------------------ |
 | **Senior Engineer** | Architecture, contracts (YAML), module design, complex orchestration, security             |
 | **Mid Engineer**    | CRUD services, DTOs, Prisma models, controllers, unit tests in test/unit/ (mirroring src/) |
 | **QA Tester**       | Integration tests, E2E tests, coverage reports, phase gate sign-off                        |
 
+
 Full persona definitions: `docs/agent/personas/`
 
 ---
 
 ## Skills Reference
+
 
 | Skill                 | File                                              |
 | --------------------- | ------------------------------------------------- |
@@ -48,6 +51,7 @@ Full persona definitions: `docs/agent/personas/`
 | Testing               | `.cursor/skills/testing/SKILL.md`                 |
 | Create PR             | `.cursor/skills/create-pr/SKILL.md`               |
 | CI Monitoring         | `.cursor/skills/ci-monitoring-subagents/SKILL.md` |
+
 
 ---
 
@@ -167,14 +171,14 @@ Establish the full documentation foundation: engineering constitution, agent orc
 - [x] `CLAUDE.md`, `AGENTS.md`, `docs/plan.md` created and interconnected
 - [x] `.cursor/rules/` — 10 rule files (`constitution-core`, `typescript`, `testing-unit`, `testing-integration`, `testing-e2e`, `modules`, `security`, `anti-patterns`, `naming`, `canonical-types`)
 - [x] `.cursor/skills/` — 9 skill files (`coding-conventions`, `module-design-pattern`, `testing`, `interface-designer`, `domain-driven-design`, `canonical-type-reuse`, `create-pr`, `ci-monitoring-subagents`, `deployments-github-actions`)
-- [x] `docs/agent/standards/` — AGENT-TASK-INDEX + 8 standards docs (common/_, testing/_)
+- [x] `docs/agent/standards/` — AGENT-TASK-INDEX + 8 standards docs (common/*, testing/*)
 - [x] `docs/agent/personas/` — 3 personas (api-architect, backend-engineer, quality-sentinel)
 - [x] `docs/agent/analysis/architecture.md` — full WJ architecture doc
 - [x] `docs/api/openapi.yaml` — 27 endpoints, OpenAPI 3.0.3, 1,609 lines
 - [x] `scripts/publish-swagger.sh` + `scripts/bump-api-version.sh` — publish pipeline ready
 - [x] `docs/demo/` — `overview.html`, `overview.md`, `sms-cost-comparison.html`
 - [x] Human approval of API contract received
-- [ ] SwaggerHub live publish — run `bun run api:publish` from terminal (requires unrestricted network; sandbox blocked outbound curl)
+- [x] SwaggerHub live publish — run `bun run api:publish` from terminal (requires unrestricted network; sandbox blocked outbound curl)
 
 ---
 
@@ -192,21 +196,27 @@ Establish the full documentation foundation: engineering constitution, agent orc
 **Detailed Steps**:
 
 1. Initialize `src/api/` as a self-contained NestJS app:
-   - `nest new warehousejobs-api --package-manager npm` (or bun equivalent)
-   - Move output into `src/api/`
-2. Configure `tsconfig.json` extending `../../tsconfig.base.json`:
-   - `"paths"`: `@core/*` → `src/core/*`, `@domains/*` → `src/domains/*`
-   - `module: NodeNext`, `target: ES2022`
-3. Create root `tsconfig.base.json` with strict settings
-4. Create `docker-compose.yml` at repo root with:
-   - `postgres:16-alpine` — port 5432, persistent volume
-   - `redis:7-alpine` — port 6379, persistent volume
-   - `minio/minio` — ports 9000/9001, persistent volume
-5. Create `src/api/.env.example` with all required variables documented
-6. Create directory skeleton per the Repository Structure above
-7. Install base dependencies: `@nestjs/config`, `@nestjs/schedule`, `@nestjs/terminus`, `@nestjs/jwt`, `@nestjs/throttler`, `prisma`, `@prisma/client`, `ioredis`, `bullmq`, `@nestjs/bull`, `class-validator`, `class-transformer`, `pino`, `nestjs-pino`, `zod`, `@aws-sdk/client-s3`, `bcryptjs`, `uuid`
-8. Configure ESLint for NestJS at `src/api/eslint.config.mjs` (flat config; ESLint 9)
-9. Configure Jest at `src/api/jest.config.js` (+ `test/jest-unit.json`, `jest-integration.json`, `jest-e2e.json`); unit specs live in `test/unit/**` mirroring `src/`
+
+- `nest new warehousejobs-api --package-manager npm` (or bun equivalent)
+- Move output into `src/api/`
+
+1. Configure `tsconfig.json` extending `../../tsconfig.base.json`:
+
+- `"paths"`: `@core/`_ → `src/core/`_, `@domains/`_→`src/domains/_`
+- `module: NodeNext`, `target: ES2022`
+
+1. Create root `tsconfig.base.json` with strict settings
+2. Create `docker-compose.yml` at repo root with:
+
+- `postgres:16-alpine` — port 5432, persistent volume
+- `redis:7-alpine` — port 6379, persistent volume
+- `minio/minio` — ports 9000/9001, persistent volume
+
+1. Create `src/api/.env.example` with all required variables documented
+2. Create directory skeleton per the Repository Structure above
+3. Install base dependencies: `@nestjs/config`, `@nestjs/schedule`, `@nestjs/terminus`, `@nestjs/jwt`, `@nestjs/throttler`, `prisma`, `@prisma/client`, `ioredis`, `bullmq`, `@nestjs/bull`, `class-validator`, `class-transformer`, `pino`, `nestjs-pino`, `zod`, `@aws-sdk/client-s3`, `bcryptjs`, `uuid`
+4. Configure ESLint for NestJS at `src/api/eslint.config.mjs` (flat config; ESLint 9)
+5. Configure Jest at `src/api/jest.config.js` (+ `test/jest-unit.json`, `jest-integration.json`, `jest-e2e.json`); unit specs live in `test/unit/` mirroring `src/`
 
 **Acceptance Criteria**:
 
@@ -227,15 +237,17 @@ Establish the full documentation foundation: engineering constitution, agent orc
 
 1. Initialize Prisma: `npx prisma init` inside `src/api/`
 2. Write `prisma/schema.prisma` — full schema matching existing Supabase tables + new fields:
-   - Add to `jobs`: `sourceType JobSourceType`, `externalId String?`, `sourceUrl String?`
-   - Add `users` table (replacing Supabase auth users)
-   - Add `refresh_tokens` table
-   - Add `email_verifications` table
-   - Add `password_resets` table
-   - Preserve all existing table relationships
-3. Create `src/core/database/prisma.service.ts` — extends `PrismaClient`, `OnModuleInit/Destroy`
-4. Create `src/core/database/database.module.ts` — `@Global()` module, exports `PrismaService`
-5. Run initial migration: `npx prisma migrate dev --name init`
+
+- Add to `jobs`: `sourceType JobSourceType`, `externalId String?`, `sourceUrl String?`
+- Add `users` table (replacing Supabase auth users)
+- Add `refresh_tokens` table
+- Add `email_verifications` table
+- Add `password_resets` table
+- Preserve all existing table relationships
+
+1. Create `src/core/database/prisma.service.ts` — extends `PrismaClient`, `OnModuleInit/Destroy`
+2. Create `src/core/database/database.module.ts` — `@Global()` module, exports `PrismaService`
+3. Run initial migration: `npx prisma migrate dev --name init`
 
 **Acceptance Criteria**:
 
@@ -288,7 +300,7 @@ Establish the full documentation foundation: engineering constitution, agent orc
 8. `npm run test` (unit)
 9. `npm run test:integration`
 10. `npm run test:e2e`
-11. `npm run test:cov` — fail if < 85% line coverage
+11. `npm run test:cov` — fail if < 90% on any global coverage metric (statements, branches, lines, functions)
 
 **Acceptance Criteria**:
 
@@ -322,13 +334,13 @@ Establish the full documentation foundation: engineering constitution, agent orc
 
 Before Phase 2 begins:
 
-- [ ] `npm run start:dev` starts without errors or warnings
-- [ ] `npm run lint` passes with zero violations
-- [ ] `GET /api/health` returns 200 with all dependencies healthy
-- [ ] Prisma migrations applied cleanly
-- [ ] All core module unit tests pass
-- [ ] Integration test for `/health` passes
-- [ ] CI workflow green on main branch
+- [x] `npm run start:dev` starts without errors or warnings
+- [x] `npm run lint` passes with zero violations
+- [x] `GET /api/health` returns 200 with all dependencies healthy
+- [x] Prisma migrations applied cleanly
+- [x] All core module unit tests pass
+- [x] Integration test for `/health` passes
+- [x] CI workflow green on main branch
 
 ---
 
@@ -348,13 +360,15 @@ Before Phase 2 begins:
 
 1. Create `src/domains/auth/dtos/RegisterDto.ts`, `LoginDto.ts`, `RefreshTokenDto.ts`
 2. Create `src/domains/auth/AuthService.ts`:
-   - `register(dto)` — hashes password with `bcryptjs`, inserts `users` row, queues verification email
-   - `login(dto)` — validates credentials, issues access token (15 min) + refresh token (30 days)
-   - `logout(userId)` — revokes refresh token
-   - `refreshTokens(token)` — validates refresh token, issues new pair (rotation)
-3. Create `src/core/auth/JwtStrategy.ts` — Passport JWT strategy
-4. Create `src/core/auth/JwtAuthGuard.ts`, `RolesGuard.ts`, `@Roles()` decorator
-5. Create `src/domains/auth/AuthController.ts`
+
+- `register(dto)` — hashes password with `bcryptjs`, inserts `users` row, queues verification email
+- `login(dto)` — validates credentials, issues access token (15 min) + refresh token (30 days)
+- `logout(userId)` — revokes refresh token
+- `refreshTokens(token)` — validates refresh token, issues new pair (rotation)
+
+1. Create `src/core/auth/JwtStrategy.ts` — Passport JWT strategy
+2. Create `src/core/auth/JwtAuthGuard.ts`, `RolesGuard.ts`, `@Roles()` decorator
+3. Create `src/domains/auth/AuthController.ts`
 
 **Acceptance Criteria**:
 
@@ -377,11 +391,14 @@ Before Phase 2 begins:
 
 1. Create `EmailService` in `src/core/` — wraps Resend (or SendGrid) via env `EMAIL_PROVIDER`
 2. Verification flow:
-   - On register: insert `email_verifications` row with 24h expiry, send link
-   - `verify-email`: validate token, mark user `emailVerifiedAt = now()`
-3. Password reset flow:
-   - `forgot-password`: always return 200; if email exists, insert `password_resets` row (1h expiry) and send email
-   - `reset-password`: validate token, hash new password, revoke all refresh tokens
+
+- On register: insert `email_verifications` row with 24h expiry, send link
+- `verify-email`: validate token, mark user `emailVerifiedAt = now()`
+
+1. Password reset flow:
+
+- `forgot-password`: always return 200; if email exists, insert `password_resets` row (1h expiry) and send email
+- `reset-password`: validate token, hash new password, revoke all refresh tokens
 
 **Acceptance Criteria**:
 
@@ -405,23 +422,23 @@ Before Phase 2 begins:
 - Integration: full register → verify → login flow against real DB
 - E2E: all 7 auth endpoints via Supertest
 
-**Acceptance Criteria**: All tests pass; coverage ≥ 85% for `AuthService`
+**Acceptance Criteria**: All tests pass; coverage ≥ 90% for `AuthService`
 
 ---
 
 ### Phase 2 Quality Gate
 
-- [ ] All 7 auth endpoints return correct HTTP status codes per OpenAPI spec
-- [ ] Token rotation works (refresh revokes old token)
-- [ ] Email verification flow: unverified user cannot access protected endpoints
-- [ ] All auth unit + integration + E2E tests pass
-- [ ] Coverage ≥ 85% for `AuthService` and `AuthController`
-- [ ] Phase 1 backwards-compat tests pass (`phase1-backwards-compat` E2E + integration)
-- [ ] `./scripts/phase2-demo.sh` passes; Phase 1 `GET /api/health` smoke included
-- [ ] `docs/demo/phase2-demo.md` Postman + frontend walkthrough complete
-- [ ] `bun run api:validate` passes
+- [x] All 7 auth endpoints return correct HTTP status codes per OpenAPI spec
+- [x] Token rotation works (refresh revokes old token)
+- [x] Email verification flow: unverified user cannot access protected endpoints
+- [x] All auth unit + integration + E2E tests pass
+- [x] Coverage ≥ 90% for `AuthService` and `AuthController`
+- [x] Phase 1 backwards-compat tests pass (`phase1-backwards-compat` E2E + integration)
+- [x] `./scripts/phase2-demo.sh` passes; Phase 1 `GET /api/health` smoke included
+- [x] `docs/demo/phase2-demo.md` Postman + frontend walkthrough complete
+- [x] `bun run api:validate` passes
 
-See [`docs/agent/standards/common/backwards-compatibility.md`](./agent/standards/common/backwards-compatibility.md).
+See `[docs/agent/standards/common/backwards-compatibility.md](./agent/standards/common/backwards-compatibility.md)`.
 
 ---
 
@@ -441,15 +458,17 @@ See [`docs/agent/standards/common/backwards-compatibility.md`](./agent/standards
 
 1. Create DTOs: `CreateJobDto`, `UpdateJobDto`, `JobSearchDto`
 2. Create `JobsService`:
-   - `create(dto, user)` — role-gated: admin can specify any `companyId`; vendor uses their company
-   - For vendor: validate `companyPackageId` has remaining credits; decrement on success
-   - Generate URL slug from title + city + state (unique)
-   - `search(dto)` — full-text search + filter + pagination + priority ordering (direct/api above scraped)
-   - `findBySlug(slug)` — increments view counter
-   - `update(id, dto, user)` — ownership check for vendor
-   - `softDelete(id, user)` — sets status = closed
-3. Create `JobsController` — wire guards: `@UseGuards(JwtAuthGuard, RolesGuard)`
-4. Handle screening questions atomically on create
+
+- `create(dto, user)` — role-gated: admin can specify any `companyId`; vendor uses their company
+- For vendor: validate `companyPackageId` has remaining credits; decrement on success
+- Generate URL slug from title + city + state (unique)
+- `search(dto)` — full-text search + filter + pagination + priority ordering (direct/api above scraped)
+- `findBySlug(slug)` — increments view counter
+- `update(id, dto, user)` — ownership check for vendor
+- `softDelete(id, user)` — sets status = closed
+
+1. Create `JobsController` — wire guards: `@UseGuards(JwtAuthGuard, RolesGuard)`
+2. Handle screening questions atomically on create
 
 **Acceptance Criteria**:
 
@@ -472,16 +491,18 @@ See [`docs/agent/standards/common/backwards-compatibility.md`](./agent/standards
 - Integration: full create → search → get → update → close flow
 - E2E: all 5 Jobs endpoints via Supertest, including 403 on wrong role
 
-**Acceptance Criteria**: All tests pass; coverage ≥ 85%
+**Acceptance Criteria**: All tests pass; coverage ≥ 90%
 
 ---
 
 ### Phase 3 Quality Gate
 
-- [ ] All 5 jobs endpoints per OpenAPI spec pass E2E tests
-- [ ] Vendor credit deduction works atomically
-- [ ] Search priority ordering confirmed by integration test
-- [ ] Coverage ≥ 85% for `JobsService`
+- [x] All 5 jobs endpoints per OpenAPI spec pass E2E tests
+- [x] Vendor credit deduction works atomically
+- [x] Search priority ordering confirmed by integration test
+- [x] Coverage ≥ 90% for `JobsService`
+- [x] `bun run api:contract:check` passes (implemented routes ↔ spec)
+- [x] `docs/demo/phase3-demo.md` + `./scripts/phase3-demo.sh` complete
 
 ---
 
@@ -501,17 +522,21 @@ See [`docs/agent/standards/common/backwards-compatibility.md`](./agent/standards
 
 1. Create `BatchJobItemDto` — mirrors `BatchJobItem` schema in OpenAPI spec
 2. Create `BatchService`:
-   - Parse JSON array or CSV (using `csv-parse`)
-   - Validate each item with `class-validator`
-   - ≤100 items: process synchronously, return `BatchStatus`
-   - > 100 items: enqueue BullMQ job, return `BatchResponse` with `batchId` (202)
-3. Create `BatchWorker` (BullMQ processor):
-   - Process in chunks of 50
-   - Dedup by `externalId`: skip if unchanged, update if content differs
-   - Track: created / updated / skipped / failed counts
-   - Write status to Redis; persist final status to `batch_jobs` table
-4. Create `BatchController` — auth: `ApiKeyAuth` or `BearerAuth` (admin only)
-5. Add `batch_jobs` table to Prisma schema
+
+- Parse JSON array or CSV (using `csv-parse`)
+- Validate each item with `class-validator`
+- ≤100 items: process synchronously, return `BatchStatus`
+- > 100 items: enqueue BullMQ job, return `BatchResponse` with `batchId` (202)
+
+1. Create `BatchWorker` (BullMQ processor):
+
+- Process in chunks of 50
+- Dedup by `externalId`: skip if unchanged, update if content differs
+- Track: created / updated / skipped / failed counts
+- Write status to Redis; persist final status to `batch_jobs` table
+
+1. Create `BatchController` — auth: `ApiKeyAuth` or `BearerAuth` (admin only)
+2. Add `batch_jobs` table to Prisma schema
 
 **Acceptance Criteria**:
 
@@ -544,7 +569,7 @@ See [`docs/agent/standards/common/backwards-compatibility.md`](./agent/standards
 - [ ] 1,000-job batch ingests cleanly; all jobs appear in `GET /jobs`
 - [ ] WJ direct posts rank above scraped in search results (confirmed by test)
 - [ ] Deduplication correct (created/updated/skipped counts accurate)
-- [ ] All batch tests pass; coverage ≥ 85%
+- [ ] All batch tests pass; coverage ≥ 90%
 
 ---
 
@@ -564,13 +589,15 @@ See [`docs/agent/standards/common/backwards-compatibility.md`](./agent/standards
 
 1. Create `ApplyDto` — mirrors OpenAPI `ApplyRequest` schema
 2. `ApplicationsService.apply(jobId, dto, user?)`:
-   - Unauthenticated: require `name` + `phone` in body
-   - Authenticated: pull seeker profile snapshot (name, phone, skills, certifications)
-   - Validate required screening question answers
-   - If `interviewSlotId` provided: book slot atomically
-   - Rate limit: 10 applications per IP per hour (authenticated: per user)
-   - Duplicate check: 409 if already applied
-3. Optional resume: if `resumeUrl` provided, store reference; no upload in apply path (upload handled separately via `POST /uploads/resume`)
+
+- Unauthenticated: require `name` + `phone` in body
+- Authenticated: pull seeker profile snapshot (name, phone, skills, certifications)
+- Validate required screening question answers
+- If `interviewSlotId` provided: book slot atomically
+- Rate limit: 10 applications per IP per hour (authenticated: per user)
+- Duplicate check: 409 if already applied
+
+1. Optional resume: if `resumeUrl` provided, store reference; no upload in apply path (upload handled separately via `POST /uploads/resume`)
 
 **Acceptance Criteria**:
 
@@ -622,7 +649,7 @@ See [`docs/agent/standards/common/backwards-compatibility.md`](./agent/standards
 - [ ] Unauthenticated apply returns 201 < 3 s server time
 - [ ] Seeker `GET /applications` shows correct applications (B2 resolved)
 - [ ] Employer pipeline returns correct applicants; status transitions work
-- [ ] All application tests pass; coverage ≥ 85%
+- [ ] All application tests pass; coverage ≥ 90%
 
 ---
 
@@ -684,7 +711,7 @@ See [`docs/agent/standards/common/backwards-compatibility.md`](./agent/standards
 - [ ] All admin endpoints return 403 for non-admin roles
 - [ ] Ad campaigns activate/deactivate correctly by date
 - [ ] `GET /admin/stats` returns accurate numbers
-- [ ] All admin and company tests pass; coverage ≥ 85%
+- [ ] All admin and company tests pass; coverage ≥ 90%
 
 ---
 
@@ -749,6 +776,7 @@ See [`docs/agent/standards/common/backwards-compatibility.md`](./agent/standards
 
 All environment variables required by `src/api/`:
 
+
 | Variable                 | Description                                | Required             |
 | ------------------------ | ------------------------------------------ | -------------------- |
 | `DATABASE_URL`           | PostgreSQL connection string               | Yes                  |
@@ -769,3 +797,5 @@ All environment variables required by `src/api/`:
 | `NODE_ENV`               | `development`, `test`, `production`        | Yes                  |
 | `PORT`                   | NestJS listen port                         | No (default: `3001`) |
 | `SWAGGER_API_KEY`        | SwaggerHub API key for spec publishing     | No (CI only)         |
+
+

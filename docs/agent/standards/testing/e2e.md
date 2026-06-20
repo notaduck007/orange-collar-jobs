@@ -1,5 +1,13 @@
 # E2E Testing Standard
 
+## Jest runner
+
+E2E specs bootstrap the full Nest app (same real dependency graph as integration). Use the package script — it sets `NODE_OPTIONS='--experimental-vm-modules'` for AWS SDK ESM compatibility:
+
+```bash
+bun run test:e2e   # from src/api/
+```
+
 ## Rules
 
 - Every endpoint in `docs/api/openapi.yaml` must have at least one E2E test
