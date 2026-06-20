@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { EmploymentType, JobShift, JobStatus, PayPeriod, TemperatureEnv } from "@prisma/client";
+import { EmploymentType, JobShift, JobStatus, PayPeriod, TemperatureEnv } from "../../../core/database/prisma-client.js";
 import { Type } from "class-transformer";
 import {
   IsArray,

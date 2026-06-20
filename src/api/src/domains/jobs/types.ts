@@ -9,7 +9,7 @@ import type {
   ScreeningQuestion,
   ScreeningQuestionType,
   TemperatureEnv,
-} from "@prisma/client";
+} from "../../core/database/prisma-client.js";
 
 export interface JobCompanySummary {
   id: string;

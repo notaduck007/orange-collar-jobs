@@ -293,6 +293,10 @@ jobs:
         working-directory: ${{ env.WORKING_DIR }}
         run: bun install --frozen-lockfile
 
+      - name: Generate Prisma client
+        working-directory: ${{ env.WORKING_DIR }}
+        run: bun run db:generate
+
       - name: Build
         working-directory: ${{ env.WORKING_DIR }}
         run: bun run build

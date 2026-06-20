@@ -1,4 +1,4 @@
-import type { Job } from "@prisma/client";
+import type { Job } from "../../../../src/core/database/prisma-client.js";
 import {
   toJobDetail,
   toJobResponse,

@@ -1,4 +1,4 @@
-import type { Job, UserRole } from "@prisma/client";
+import type { Job, UserRole } from "../../../../src/core/database/prisma-client.js";
 import { JobsService } from "@domains/jobs/jobs.service";
 import type { PrismaService } from "@core/database/prisma.service";
 import type { AuthUser } from "@core/auth/jwt.strategy";

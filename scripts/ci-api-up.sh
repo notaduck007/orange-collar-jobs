@@ -44,6 +44,7 @@ if [[ ${#JWT_REFRESH_SECRET} -lt 32 ]]; then
 fi
 
 cd "$API_DIR"
+bun run db:generate
 bun run build
 
 # Export explicitly so nohup/node inherits full CI env (incl. JWT_*).

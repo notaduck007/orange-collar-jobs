@@ -6,7 +6,7 @@ jest.mock("bcryptjs", () => ({
 import * as bcrypt from "bcryptjs";
 import type { ConfigService } from "@nestjs/config";
 import type { JwtService } from "@nestjs/jwt";
-import type { User } from "@prisma/client";
+import type { User } from "../../../../src/core/database/prisma-client.js";
 import { AuthService } from "@domains/auth/auth.service";
 import type { PrismaService } from "@core/database/prisma.service";
 import type { EmailService } from "@core/email/email.service";

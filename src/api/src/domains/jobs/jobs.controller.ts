@@ -12,7 +12,7 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
-import { UserRole } from "@prisma/client";
+import { UserRole } from "../../core/database/prisma-client.js";
 import { Public } from "../../core/auth/public.decorator.js";
 import { CurrentUser } from "../../core/auth/current-user.decorator.js";
 import type { AuthUser } from "../../core/auth/jwt.strategy.js";

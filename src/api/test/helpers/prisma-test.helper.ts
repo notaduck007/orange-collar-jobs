@@ -1,5 +1,5 @@
 import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "../../src/core/database/prisma-client.js";
 
 const connectionString =
   process.env["TEST_DATABASE_URL"] ?? process.env["DATABASE_URL"];

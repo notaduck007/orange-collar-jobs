@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import type { Job, JobSourceType, Prisma } from "@prisma/client";
+import type { Job, JobSourceType, Prisma } from "../../core/database/prisma-client.js";
 import type { AuthUser } from "../../core/auth/jwt.strategy.js";
 import { PrismaService } from "../../core/database/prisma.service.js";
 import { BadRequestError, ForbiddenError, NotFoundError } from "../../core/error/errors.js";

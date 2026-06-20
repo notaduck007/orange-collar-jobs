@@ -1,4 +1,4 @@
-import type { Company, CompanyPackage, User } from "@prisma/client";
+import type { Company, CompanyPackage, User } from "../../src/core/database/prisma-client.js";
 import type { PrismaService } from "../../src/core/database/prisma.service.js";
 import * as bcrypt from "bcryptjs";
 

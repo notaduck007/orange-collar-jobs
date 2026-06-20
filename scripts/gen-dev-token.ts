@@ -20,7 +20,7 @@
 
 // Bun loads .env via --env-file before this script runs — no dotenv import needed.
 import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from "../src/api/src/generated/prisma/client.js";
+import { PrismaClient } from "../src/api/src/core/database/prisma-client.js";
 import { createHmac } from "crypto";
 
 // ── Parse CLI args ────────────────────────────────────────────────────────────

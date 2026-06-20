@@ -11,8 +11,7 @@
     "baseUrl": "./",
     "paths": {
       "@core/*": ["src/core/*"],
-      "@domains/*": ["src/domains/*"],
-      "@prisma/client": ["src/generated/prisma/client"]
+      "@domains/*": ["src/domains/*"]
     }
   },
   "include": ["src/**/*"],

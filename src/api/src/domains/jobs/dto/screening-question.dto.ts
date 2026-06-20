@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { ScreeningQuestionType } from "@prisma/client";
+import { ScreeningQuestionType } from "../../../core/database/prisma-client.js";
 import {
   IsArray,
   IsBoolean,

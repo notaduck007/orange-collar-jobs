@@ -3,7 +3,7 @@ import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import * as bcrypt from "bcryptjs";
-import type { User } from "@prisma/client";
+import type { User } from "../../core/database/prisma-client.js";
 import type { Env } from "../../core/config/env.schema.js";
 import { PrismaService } from "../../core/database/prisma.service.js";
 import { EmailService } from "../../core/email/email.service.js";

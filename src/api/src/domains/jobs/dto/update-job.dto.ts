@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
-import { JobStatus } from "@prisma/client";
+import { JobStatus } from "../../../core/database/prisma-client.js";
 import { Type } from "class-transformer";
 import {
   IsBoolean,
