@@ -530,7 +530,6 @@
         }
       ]
     },
-    },
     {
       "name": "Phase 3 — Walkthrough (run in order)",
       "description": "Jobs CRUD after Phase 2 auth (bearerToken required for mutating steps). Set companyId before admin POST. See docs/demo/phase3-demo.md.",
