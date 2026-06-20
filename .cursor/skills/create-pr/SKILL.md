@@ -18,7 +18,7 @@ npm run type-check     # no type errors
 npm run test           # unit tests pass
 npm run test:integration  # if DB/Redis touched
 npm run test:e2e          # if HTTP surface touched
-npm run test:cov       # ≥ 85% line coverage for changed services
+npm run test:cov       # ≥ 90% on all global coverage metrics
 ```
 
 If any command fails: fix before creating the PR.
@@ -63,6 +63,6 @@ Key implementation decisions.
 - [ ] lint passes
 - [ ] type-check passes
 - [ ] all tests pass
-- [ ] coverage ≥ 85% for changed services
+- [ ] coverage ≥ 90% on all global metrics for changed services
 - [ ] no hardcoded secrets
 ```

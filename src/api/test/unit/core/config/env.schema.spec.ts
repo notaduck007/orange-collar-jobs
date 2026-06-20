@@ -76,4 +76,25 @@ describe("envSchema", () => {
     const result = envSchema.safeParse({ ...validEnv, REDIS_URL: "rediss://localhost:6379" });
     expect(result.success).toBe(true);
   });
+
+  it("treats empty Twilio env strings as unset optional fields", () => {
+    const result = envSchema.safeParse({
+      ...validEnv,
+      TWILIO_ACCOUNT_SID: "",
+      TWILIO_AUTH_TOKEN: "",
+      TWILIO_FROM_NUMBER: "",
+      TWILIO_VERIFY_SERVICE_SID: "",
+      TWILIO_APP_CLIENT_ID: "",
+      TWILIO_APP_CLIENT_SECRET: "",
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.TWILIO_ACCOUNT_SID).toBeUndefined();
+      expect(result.data.TWILIO_AUTH_TOKEN).toBeUndefined();
+      expect(result.data.TWILIO_FROM_NUMBER).toBeUndefined();
+      expect(result.data.TWILIO_VERIFY_SERVICE_SID).toBeUndefined();
+      expect(result.data.TWILIO_APP_CLIENT_ID).toBeUndefined();
+      expect(result.data.TWILIO_APP_CLIENT_SECRET).toBeUndefined();
+    }
+  });
 });

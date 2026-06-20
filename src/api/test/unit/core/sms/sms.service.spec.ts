@@ -117,6 +117,22 @@ describe("SmsService", () => {
       await expect(svc.isValidMobileNumber("bad")).resolves.toBe(false);
     });
 
+    it("sendTransactional is a no-op without a from-number", async () => {
+      const svc = new SmsService(
+        makeConfig({ TWILIO_ACCOUNT_SID: "AC_test", TWILIO_AUTH_TOKEN: "token_test" }),
+      );
+      await expect(svc.sendTransactional("+15551234567", "hi")).resolves.toBeUndefined();
+      expect(messagesCreate).not.toHaveBeenCalled();
+    });
+
+    it("sendTransactional sends when from-number is configured", async () => {
+      messagesCreate.mockResolvedValue({});
+      await svc.sendTransactional("+15551234567", "Hello from WJ");
+      expect(messagesCreate).toHaveBeenCalledWith(
+        expect.objectContaining({ body: "Hello from WJ", from: "+15550000000" }),
+      );
+    });
+
     it("sendApplicationUpdate sends an SMS", async () => {
       messagesCreate.mockResolvedValue({});
       await svc.sendApplicationUpdate("+15551234567", "Forklift Operator", "shortlisted");

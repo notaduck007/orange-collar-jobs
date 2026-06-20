@@ -7,6 +7,7 @@ import type { User } from "@prisma/client";
 import type { Env } from "../../core/config/env.schema.js";
 import { PrismaService } from "../../core/database/prisma.service.js";
 import { EmailService } from "../../core/email/email.service.js";
+import { SmsService } from "../../core/sms/sms.service.js";
 import {
   BadRequestError,
   ConflictError,
@@ -50,6 +51,7 @@ export class AuthService {
     private readonly jwt: JwtService,
     private readonly config: ConfigService<Env>,
     private readonly email: EmailService,
+    private readonly sms: SmsService,
   ) {}
 
   async register(dto: RegisterDto): Promise<RegisterResponse> {
@@ -79,6 +81,7 @@ export class AuthService {
     });
 
     const baseUrl = this.config.get("CORS_ORIGIN", { infer: true }) ?? "http://localhost:5173";
+    await this.email.sendWelcomeEmail(email, dto.fullName);
     await this.email.sendVerificationEmail(email, token, baseUrl);
 
     return {
@@ -171,6 +174,12 @@ export class AuthService {
       });
       const baseUrl = this.config.get("CORS_ORIGIN", { infer: true }) ?? "http://localhost:5173";
       await this.email.sendPasswordResetEmail(email, token, baseUrl);
+      if (user.phone) {
+        await this.sms.sendTransactional(
+          user.phone,
+          "WarehouseJobs: Password reset requested. Check your email for the secure link.",
+        );
+      }
     }
 
     return {

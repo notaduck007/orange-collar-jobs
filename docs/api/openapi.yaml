@@ -160,6 +160,7 @@ components:
 
     ScreeningQuestion:
       type: object
+      description: Screening question on a job response (includes server-assigned id).
       required: [prompt, type, required, sortOrder]
       properties:
         id: { type: string, format: uuid }
@@ -172,6 +173,26 @@ components:
           items: { type: string }
           nullable: true
           description: Required when type is single or multi
+        required: { type: boolean }
+        sortOrder: { type: integer }
+
+    CreateScreeningQuestion:
+      type: object
+      description: Screening question for job create. Optional `id` is ignored if sent (e.g. copied from a GET response).
+      required: [prompt, type, required, sortOrder]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Ignored on create — server assigns the question id.
+        prompt: { type: string, example: "Do you have a valid forklift certification?" }
+        type:
+          type: string
+          enum: [yes_no, single, multi, number, text]
+        options:
+          type: array
+          items: { type: string }
+          nullable: true
         required: { type: boolean }
         sortOrder: { type: integer }
 
@@ -247,7 +268,7 @@ components:
               description: Package credit to consume; required when posting as vendor
             screeningQuestions:
               type: array
-              items: { $ref: "#/components/schemas/ScreeningQuestion" }
+              items: { $ref: "#/components/schemas/CreateScreeningQuestion" }
             status:
               $ref: "#/components/schemas/JobStatus"
 
@@ -708,6 +729,7 @@ paths:
 
   /api/health:
     get:
+      x-implemented: true
       tags: [System]
       summary: Health check
       description: |
@@ -735,6 +757,7 @@ paths:
 
   /api/v1/me:
     get:
+      x-implemented: true
       tags: [Auth]
       summary: Get current user
       description: Returns the authenticated user's profile and role.
@@ -754,6 +777,7 @@ paths:
 
   /api/v1/auth/register:
     post:
+      x-implemented: true
       tags: [Auth]
       summary: Register a new account
       description: |
@@ -788,6 +812,7 @@ paths:
 
   /api/v1/auth/login:
     post:
+      x-implemented: true
       tags: [Auth]
       summary: Login
       description: Authenticates with email + password and returns access and refresh tokens.
@@ -814,6 +839,7 @@ paths:
 
   /api/v1/auth/logout:
     post:
+      x-implemented: true
       tags: [Auth]
       summary: Logout
       description: Revokes the current refresh token. The access token expires naturally (TTL).
@@ -828,6 +854,7 @@ paths:
 
   /api/v1/auth/refresh:
     post:
+      x-implemented: true
       tags: [Auth]
       summary: Refresh access token
       description: Exchanges a valid refresh token for a new access + refresh token pair.
@@ -855,6 +882,7 @@ paths:
 
   /api/v1/auth/verify-email:
     post:
+      x-implemented: true
       tags: [Auth]
       summary: Verify email address
       description: |
@@ -887,6 +915,7 @@ paths:
 
   /api/v1/auth/forgot-password:
     post:
+      x-implemented: true
       tags: [Auth]
       summary: Request password reset
       description: Sends a password-reset email if the address is registered.
@@ -918,6 +947,7 @@ paths:
 
   /api/v1/auth/reset-password:
     post:
+      x-implemented: true
       tags: [Auth]
       summary: Reset password
       description: Sets a new password using the token from the reset email. Tokens expire after 1 hour.
@@ -951,6 +981,7 @@ paths:
 
   /api/v1/jobs:
     post:
+      x-implemented: true
       tags: [Jobs]
       summary: Post a job
       description: |
@@ -988,6 +1019,7 @@ paths:
           $ref: "#/components/responses/UnprocessableEntity"
 
     get:
+      x-implemented: true
       tags: [Jobs]
       summary: Search jobs
       description: |
@@ -1052,6 +1084,7 @@ paths:
 
   /api/v1/jobs/{slug}:
     get:
+      x-implemented: true
       tags: [Jobs]
       summary: Get job detail
       description: Returns a single active job by its URL slug, including company info and screening questions.
@@ -1089,6 +1122,7 @@ paths:
 
   /api/v1/jobs/{id}:
     patch:
+      x-implemented: true
       tags: [Jobs]
       summary: Update job
       description: Partial update of a job. Vendor callers may only update their own company's jobs.
@@ -1117,6 +1151,7 @@ paths:
         "422": { $ref: "#/components/responses/UnprocessableEntity" }
 
     delete:
+      x-implemented: true
       tags: [Jobs]
       summary: Close / delete job
       description: Soft-deletes the job (status → closed). Only admins or the owning vendor.

@@ -70,11 +70,13 @@ describe("JobsService", () => {
 - Use factories from `test/helpers/factories/` for deterministic data
 - Four categories per public method: happy path, validation, edge cases, error
 - Assert specific error classes, not raw messages
-- Coverage ≥ 90% lines/branches/functions for services
+- Coverage ≥ 90% statements/branches/lines/functions for services
 
 ---
 
 ## Integration Tests
+
+Integration and E2E suites boot `AppModule` with real `@aws-sdk/client-s3`. Jest scripts set `NODE_OPTIONS='--experimental-vm-modules'` so ESM dependencies load in the harness (see `docs/agent/standards/testing/integration.md`). Unit tests do not use this flag.
 
 ### Template
 

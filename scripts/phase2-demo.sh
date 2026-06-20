@@ -71,7 +71,7 @@ bun run api:type-check
 bun run api:validate
 ok "lint + type-check + openapi"
 
-step "6. Unit tests + coverage (≥ 90% global; AuthService ≥ 85%)"
+step "6. Unit tests + coverage (≥ 90% global)"
 bun run api:test:cov
 if [[ -f src/api/coverage/lcov.info ]]; then
   AUTH_COV="$(grep -A1 'auth.service.ts' src/api/coverage/lcov.info 2>/dev/null | tail -1 || true)"

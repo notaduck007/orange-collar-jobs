@@ -16,6 +16,7 @@ export const validTestEnv = {
   STORAGE_FORCE_PATH_STYLE: "true",
   EMAIL_API_KEY: "re_test_key",
   EMAIL_FROM: "noreply@warehousejobs.com",
+  EMAIL_SEND_IN_DEV: false,
   API_KEY_HASH: "local_dev_placeholder_batch_api_key_hash",
   LOG_LEVEL: "debug" as const,
 };

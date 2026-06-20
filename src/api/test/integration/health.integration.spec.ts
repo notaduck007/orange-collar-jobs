@@ -20,10 +20,14 @@ describe("GET /api/health (integration)", () => {
   beforeAll(async () => {
     // CI already started MinIO + buckets via ci-minio-up.sh — do not run compose/mc again.
     if (process.env.CI_MINIO_READY !== "true") {
-      execSync("bash scripts/ensure-minio-buckets.sh", {
-        cwd: REPO_ROOT,
-        stdio: "inherit",
-      });
+      try {
+        execSync("bash scripts/ensure-minio-buckets.sh", {
+          cwd: REPO_ROOT,
+          stdio: "inherit",
+        });
+      } catch {
+        // Buckets may already exist (docker compose minio-init) or Docker CLI is unavailable.
+      }
     }
 
     testApp = await createTestApp(AppModule, 60_000);

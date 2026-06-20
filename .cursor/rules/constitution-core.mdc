@@ -33,7 +33,8 @@ npm run type-check
 npm run test
 npm run test:integration   # when DB/Redis touched
 npm run test:e2e           # when HTTP surface touched
-npm run test:cov           # >= 85% line coverage for changed services
+npm run test:cov           # >= 90% on all global coverage metrics
+npm run contract:check     # route surface ↔ OpenAPI (x-implemented)
 ```
 
 Do not skip gates, bypass CI, or merge with known failures.

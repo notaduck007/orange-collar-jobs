@@ -1,6 +1,6 @@
 # WarehouseJobs.com — Platform API Overview
 
-> **Version**: 1.0.1 &nbsp;|&nbsp; **Date**: 2026-06-13 &nbsp;|&nbsp; **Status**: Phase 1 complete · Phase 2 complete · Phase 3 pending
+> **Version**: 1.0.1 &nbsp;|&nbsp; **Date**: 2026-06-13 &nbsp;|&nbsp; **Status**: Phase 1 complete · Phase 2 complete · Phase 3 complete
 >
 > **SwaggerHub**: [redbonzai/warehousejobs-api](https://app.swaggerhub.com/apis/redbonzai/warehousejobs-api/1.0.0)
 
@@ -223,7 +223,7 @@ batch_jobs (async ingestion status)
 | **0** | Documentation + OpenAPI contract (✅ Done)               | Day 1    | SwaggerHub live + human approval               |
 | **1** | NestJS scaffold + Docker Compose + CI                    | ~2 days  | `GET /health` 200, CI green                    |
 | **2** | Auth domain (JWT, register/login/verify/reset)           | ~2 days  | All 7 auth E2E tests pass                      |
-| **3** | Jobs domain (CRUD, search, vendor credits)               | ~3 days  | 5 jobs E2E tests pass; search priority correct |
+| **3** | Jobs domain (CRUD, search, vendor credits)               | ~3 days  | 5 jobs E2E pass; contract guard green          |
 | **4** | Batch ingestion (JSON/CSV + BullMQ + dedup)              | ~2 days  | 1,000-job batch ingests <30s                   |
 | **5** | Applications domain (quick apply, pipeline)              | ~2 days  | Unauthenticated apply <3s; 4 E2E pass          |
 | **6** | Admin, ads, companies, full RBAC                         | ~2 days  | All admin routes return 403 for non-admin      |
@@ -238,7 +238,7 @@ batch_jobs (async ingestion status)
 | Type            | Location                                  | Tooling                       | Threshold                     |
 | --------------- | ----------------------------------------- | ----------------------------- | ----------------------------- |
 | **Unit**        | `test/unit/**/*.spec.ts` (mirrors `src/`) | Jest + `jest-mock-extended`   | ≥90% per service              |
-| **Integration** | `test/integration/`                       | Jest + real Docker Compose DB | ≥85% overall                  |
+| **Integration** | `test/integration/`                       | Jest + real Docker Compose DB | ≥90% overall (all metrics)    |
 | **E2E**         | `test/e2e/`                               | Jest + Supertest              | Every endpoint × 3 auth cases |
 
 Every endpoint must have: happy path test, wrong-role (403) test, and no-token (401) test.

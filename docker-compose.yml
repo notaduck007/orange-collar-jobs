@@ -83,7 +83,7 @@ services:
     environment:
       NODE_ENV: development
       PORT: "3001"
-      CORS_ORIGIN: http://localhost:5173
+      CORS_ORIGIN: http://localhost:8080
       DATABASE_URL: postgresql://wj_user:wj_dev_password@postgres:5432/warehousejobs
       REDIS_URL: redis://redis:6379
       JWT_SECRET: local_dev_jwt_secret_must_be_at_least_32_characters_long

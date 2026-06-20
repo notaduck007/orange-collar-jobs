@@ -26,7 +26,7 @@ bun run demo:phase2               # same
 | 9   | OpenAPI contract                 | `docs/api/openapi.yaml`                     | `bun run api:validate`          |
 | 10  | Postman collection               | `src/api/postman/`                          | Guided walkthrough folder       |
 
-**Test coverage**: `AuthService` ≥ 85%, `AuthController` 100%, global ≥ 90% (see `bun run api:test:cov`).
+**Test coverage**: global ≥ 90% on all metrics (see `bun run api:test:cov`).
 
 ---
 
@@ -38,12 +38,12 @@ docker compose up -d postgres redis minio
 bun run api:migrate:dev
 ```
 
-| Variable            | Example                 | Purpose             |
-| ------------------- | ----------------------- | ------------------- |
-| `JWT_SECRET`        | 32+ chars               | Token signing       |
-| `CORS_ORIGIN`       | `http://localhost:8080` | Email link base URL |
-| `VITE_API_BASE_URL` | `http://localhost:3001` | Frontend → API      |
-| `DATABASE_URL`      | `localhost:5433`        | Postgres            |
+| Variable            | Example                 | Purpose                                                                       |
+| ------------------- | ----------------------- | ----------------------------------------------------------------------------- |
+| `JWT_SECRET`        | 32+ chars               | Token signing                                                                 |
+| `CORS_ORIGIN`       | `http://localhost:8080` | Primary frontend URL (email links). Dev CORS also allows `:5173` and `:8080`. |
+| `VITE_API_BASE_URL` | `http://localhost:3001` | Frontend → API                                                                |
+| `DATABASE_URL`      | `localhost:5433`        | Postgres                                                                      |
 
 Start API and frontend:
 
@@ -140,7 +140,7 @@ Use the **Auth — Domain (Phase 2)** folder for ad-hoc calls (`verify-email`, `
 Includes:
 
 - Lint, type-check, **`bun run api:validate`**
-- Unit tests + coverage (≥ 90% global, AuthService ≥ 85%)
+- Unit tests + coverage (≥ 90% global on all metrics)
 - Integration (auth + Phase 1 health + password reset)
 - E2E (all 7 auth endpoints + Phase 1 backwards compat)
 - Phase 1 live smoke when API running (`/api/health`, `/me` → 401)

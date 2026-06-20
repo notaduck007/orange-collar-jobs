@@ -18,6 +18,15 @@
 
 Use folder **Phase 2 — Walkthrough (run in order)** — steps 1–9 with automated tests.
 
+## Phase 3 guided walkthrough
+
+After Phase 2 auth (or `bun run dev:token --role admin` + verified email in DB):
+
+1. Set Postman env `companyId` from Postgres (`SELECT id FROM companies LIMIT 1`).
+2. Run folder **Phase 3 — Walkthrough (run in order)** — search → create → detail → patch → delete.
+
+Full narrative: [`docs/demo/phase3-demo.md`](../../../docs/demo/phase3-demo.md)
+
 Before step **3** (verify) and **9** (reset), set environment variables from API logs or Postgres:
 
 | Variable            | Source                                                          |
@@ -72,7 +81,7 @@ Folders exercised in CI:
 | ----------------- | --------------------------------------------------- |
 | System            | `GET /api/health` assertions                        |
 | Auth — Core       | `GET /api/v1/me` → 401 without token                |
-| Jobs (Phase 3)    | `404` until Phase 3 ships                           |
+| Jobs (Phase 3)    | `GET /api/v1/jobs` search listing                   |
 | Auth smoke (curl) | Full Phase 2 register → verify → login → reset flow |
 
 The **Phase 2 — Walkthrough** folder is for manual Postman desktop use (token paste steps 3 & 9). CI uses the curl smoke in `ci-postman.sh` instead.

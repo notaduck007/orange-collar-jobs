@@ -1,6 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import type { Env } from "../config/env.schema.js";
+import { shouldSendExternalEmail } from "../config/notification.util.js";
 
 export interface SendEmailOptions {
   to: string;
@@ -10,26 +11,25 @@ export interface SendEmailOptions {
 }
 
 /**
- * Thin email adapter — delegates to Resend in production, logs to console in
- * development so token URLs are visible without external credentials.
+ * Thin email adapter — Resend in production (or dev when configured), console log otherwise.
  */
 @Injectable()
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
-  private readonly isDev: boolean;
+  private readonly sendExternally: boolean;
   private readonly fromAddress: string;
   private readonly fromName: string;
   private readonly apiKey: string;
 
   constructor(config: ConfigService<Env>) {
-    this.isDev = config.get("NODE_ENV", { infer: true }) !== "production";
+    this.sendExternally = shouldSendExternalEmail(config);
     this.fromAddress = config.get("EMAIL_FROM", { infer: true }) ?? "noreply@warehousejobs.com";
     this.fromName = config.get("EMAIL_FROM_NAME", { infer: true }) ?? "WarehouseJobs";
     this.apiKey = config.get("EMAIL_API_KEY", { infer: true }) ?? "";
   }
 
   async send(options: SendEmailOptions): Promise<void> {
-    if (this.isDev) {
+    if (!this.sendExternally) {
       this.logger.log(
         `[DEV EMAIL] To: ${options.to} | Subject: ${options.subject}\n${options.text ?? options.html}`,
       );
@@ -56,6 +56,8 @@ export class EmailService {
       this.logger.error(`Resend error ${res.status}: ${body}`);
       throw new Error(`Email delivery failed (${res.status})`);
     }
+
+    this.logger.log(`Email sent to ${options.to}: ${options.subject}`);
   }
 
   sendVerificationEmail(to: string, token: string, baseUrl: string): Promise<void> {
@@ -75,6 +77,16 @@ export class EmailService {
       subject: "Reset your WarehouseJobs password",
       html: `<p>Click the link below to reset your password:</p><p><a href="${link}">${link}</a></p><p>This link expires in 1 hour.</p>`,
       text: `Reset your password: ${link}\n\nThis link expires in 1 hour.`,
+    });
+  }
+
+  sendWelcomeEmail(to: string, fullName?: string | null): Promise<void> {
+    const name = fullName?.trim() || "there";
+    return this.send({
+      to,
+      subject: "Welcome to WarehouseJobs",
+      html: `<p>Hi ${name},</p><p>Your account is ready. Verify your email to start applying for warehouse jobs near you.</p>`,
+      text: `Hi ${name}, your WarehouseJobs account is ready. Verify your email to start applying.`,
     });
   }
 }

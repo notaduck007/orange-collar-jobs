@@ -24,7 +24,7 @@ Every CI run must execute in this order:
 9. `npm run test` (unit only)
 10. `npm run test:integration`
 11. `npm run test:e2e`
-12. `npm run test:cov` — fail if < 85% line coverage
+12. `npm run test:cov` — fail if < 90% on any global coverage metric
 
 ## Secrets Required in GitHub
 

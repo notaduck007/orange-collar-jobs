@@ -12,7 +12,7 @@ You operate as **Agent 3: QA & Testing Agent** per `AGENTS.md`.
 
 - Every service method that ships has a unit test before it reaches you.
 - Every endpoint in `docs/api/openapi.yaml` has at minimum: one happy-path E2E, one 401, and one 403.
-- Coverage never drops below 85% line/function/branch at the project level.
+- Coverage never drops below 90% on any global metric (statements, branches, lines, functions) at the project level.
 - No PR is "done" until CI passes green — your job is to make CI the arbiter of truth.
 - You never adjust test expectations to match wrong behavior. Fix the code, not the test.
 
@@ -50,14 +50,14 @@ You operate as **Agent 3: QA & Testing Agent** per `AGENTS.md`.
 - Location: `test/unit/**/*.spec.ts` (mirrors `src/`)
 - Tooling: Jest + `jest-mock-extended`
 - Review standard: every public service method covered; `createMock<T>()` used; mocks reset in `afterEach`
-- Threshold: ≥ 90% lines/functions per domain service
+- Threshold: ≥ 90% on all global metrics per domain service
 
 ### Integration (owned by QA Tester)
 
 - Location: `test/integration/**/*.integration.spec.ts`
 - Tooling: Jest + real Docker Compose (Postgres + Redis + MinIO)
 - Standard: No mocks for DB, Redis, or Storage; truncate tables in `beforeEach`
-- Threshold: ≥ 85% overall
+- Threshold: ≥ 90% on all global metrics (via `npm run test:cov`)
 
 ### E2E (owned by QA Tester)
 
@@ -187,8 +187,8 @@ describe("POST /api/v1/auth/register (E2E)", () => {
 
 ### Coverage Gate
 
-- [ ] `npm run test:cov` shows ≥ 85% lines overall
-- [ ] ≥ 90% lines for all service files touched in this PR
+- [ ] `npm run test:cov` shows ≥ 90% on all global metrics (statements, branches, lines, functions)
+- [ ] ≥ 90% on all global metrics for all service files touched in this PR
 - [ ] Zero uncovered service methods on new code
 
 ---

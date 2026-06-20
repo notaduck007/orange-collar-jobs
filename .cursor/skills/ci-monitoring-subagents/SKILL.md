@@ -22,7 +22,7 @@ description: Diagnose a single failing CI check. Use when CI fails on a PR and y
 # - Unit test: "● JobsService › findBySlug › throws NotFoundError"
 # - Integration test: "PrismaClientKnownRequestError: Foreign key constraint"
 # - E2E test: "expected 201, got 422"
-# - Coverage: "Jest: 'global' coverage threshold for lines (85%) not met"
+# - Coverage: "Jest: 'global' coverage threshold for lines (90%) not met"
 ```
 
 ### Step 2 — Run the specific failing command locally

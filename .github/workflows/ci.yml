@@ -5,12 +5,15 @@ on:
     branches: [main, develop]
     paths:
       - "src/api/**"
+      - "docs/api/openapi.yaml"
       - "docker-compose.yml"
       - ".github/workflows/ci.yml"
   pull_request:
     branches: [main, develop]
     paths:
       - "src/api/**"
+      - "docs/api/openapi.yaml"
+      - ".github/workflows/ci.yml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -45,10 +48,50 @@ jobs:
         run: bun run type-check
 
   # ────────────────────────────────────────────────────────────────────────────
+  api-contract:
+    name: API Contract Drift Guard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: oven-sh/setup-bun@v2.2.0
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        working-directory: ${{ env.WORKING_DIR }}
+        run: bun install --frozen-lockfile
+
+      # Fail closed: spec must be valid and match implemented NestJS routes
+      # (operations marked x-implemented: true in docs/api/openapi.yaml).
+      # No database, Redis, or MinIO required — contract:check stubs Prisma.
+      - name: OpenAPI validate
+        run: bun run api:validate
+
+      - name: Contract drift guard (spec ↔ implemented routes)
+        run: bun run api:contract:check
+        env:
+          NODE_ENV: test
+          PORT: "3001"
+          CORS_ORIGIN: http://localhost:5173
+          DATABASE_URL: postgresql://contract_guard:contract_guard@localhost:5432/contract_guard
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: ci_contract_guard_jwt_secret_min_32_chars
+          JWT_REFRESH_SECRET: ci_contract_guard_refresh_secret_min_32
+          STORAGE_ENDPOINT: http://localhost:9000
+          STORAGE_ACCESS_KEY: wj_minio_user
+          STORAGE_SECRET_KEY: wj_minio_dev_password
+          STORAGE_FORCE_PATH_STYLE: "true"
+          EMAIL_API_KEY: re_contract_guard_key
+          EMAIL_FROM: noreply@warehousejobs.com
+          API_KEY_HASH: local_dev_placeholder_batch_api_key_hash
+          LOG_LEVEL: debug
+
+  # ────────────────────────────────────────────────────────────────────────────
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-latest
-    needs: lint-type-check
+    needs: [lint-type-check, api-contract]
     env:
       NODE_ENV: test
       PORT: "3001"
@@ -90,7 +133,7 @@ jobs:
   integration-tests:
     name: Integration Tests
     runs-on: ubuntu-latest
-    needs: lint-type-check
+    needs: [lint-type-check, api-contract]
 
     services:
       postgres:

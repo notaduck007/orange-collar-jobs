@@ -173,7 +173,7 @@ curl_json "$LOGIN2_BODY" LOGIN2_CODE "${API_BASE}/api/v1/auth/login" \
   exit 1
 }
 
-step "Newman: Jobs (Phase 3) — expect 404"
+step "Newman: Jobs (Phase 3)"
 run_newman "Jobs (Phase 3)"
 
 rm -rf "$TMP_DIR"

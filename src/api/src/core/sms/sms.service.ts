@@ -64,6 +64,15 @@ export class SmsService {
   }
 
   // ── Twilio Programmable SMS ──────────────────────────────────────────────
+  async sendTransactional(to: string, body: string): Promise<void> {
+    if (!this.client || !this.from) {
+      this.logger.warn("Twilio SMS not configured — skipping transactional message");
+      return;
+    }
+    await this.client.messages.create({ to, from: this.from, body });
+    this.logger.log(`Transactional SMS sent to ${to}`);
+  }
+
   async sendApplicationUpdate(to: string, jobTitle: string, status: string): Promise<void> {
     if (!this.client || !this.from) return;
     await this.client.messages.create({

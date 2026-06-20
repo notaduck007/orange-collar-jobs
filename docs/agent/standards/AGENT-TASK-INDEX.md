@@ -108,7 +108,7 @@
 - What test type? (unit → integration → E2E)
 - Is Docker Compose running for integration tests?
 - Does every E2E test check the status code per the OpenAPI spec?
-- Is coverage ≥ 85% for the touched services?
+- Is coverage ≥ 90% on all global metrics for the touched services?
 
 ---
 
@@ -142,7 +142,7 @@
 **Key Decision Points**:
 
 - Are all CI checks green?
-- Is test coverage ≥ 85% for changed services?
+- Is test coverage ≥ 90% on all global metrics for changed services?
 - Is `docs/api/openapi.yaml` updated for changed endpoints?
 
 ---

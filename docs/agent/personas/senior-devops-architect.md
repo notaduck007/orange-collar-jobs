@@ -49,7 +49,7 @@ jobs:
       - integration # npm run test:integration (Docker services up)
       - e2e # npm run test:e2e (full NestJS app)
       - build # bun run build (ensures no compile errors in prod mode)
-      - coverage # fail if < 85% lines overall
+      - coverage # fail if < 90% on any global metric
 ```
 
 **Deployment pipeline** (main branch → staging):

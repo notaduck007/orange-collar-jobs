@@ -2,18 +2,16 @@
 // WarehouseJobs Prisma Schema
 // Source of truth for the PostgreSQL database structure.
 // Run `bun run db:migrate:dev` to apply changes.
+// Connection URL: prisma.config.ts (Prisma 7)
 // ═══════════════════════════════════════════════════════════════════════════
 
 generator client {
-  provider = "prisma-client-js"
-  // "native" covers local dev (macOS/host). The linux targets cover the
-  // node:24-slim (Debian bookworm, OpenSSL 3.0) container on both arm64 and amd64.
-  binaryTargets = ["native", "linux-arm64-openssl-3.0.x", "debian-openssl-3.0.x"]
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 // ── Enums ────────────────────────────────────────────────────────────────────

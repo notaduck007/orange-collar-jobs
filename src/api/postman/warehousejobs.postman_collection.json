@@ -530,9 +530,107 @@
         }
       ]
     },
+    },
+    {
+      "name": "Phase 3 — Walkthrough (run in order)",
+      "description": "Jobs CRUD after Phase 2 auth (bearerToken required for mutating steps). Set companyId before admin POST. See docs/demo/phase3-demo.md.",
+      "item": [
+        {
+          "name": "1. GET /api/v1/jobs (search)",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/v1/jobs?page=1&pageSize=20" },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 listing', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('has data', () => pm.expect(body.data).to.be.an('array'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "2. POST /api/v1/jobs (admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Reach Truck Operator — 2nd Shift\",\n  \"category\": \"Forklift Operator\",\n  \"location\": \"Dallas, TX\",\n  \"city\": \"Dallas\",\n  \"state\": \"TX\",\n  \"zip\": \"75201\",\n  \"employmentType\": \"full_time\",\n  \"shift\": \"second\",\n  \"payMin\": 18,\n  \"payMax\": 22,\n  \"payPeriod\": \"hour\",\n  \"description\": \"Operate reach trucks in a fast-paced warehouse environment.\",\n  \"requirements\": \"1+ years experience\",\n  \"companyId\": \"{{companyId}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/jobs",
+            "description": "Requires bearerToken (admin) and companyId in environment."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('201 created', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "if (body.id) pm.environment.set('jobId', body.id);",
+                  "if (body.slug) pm.environment.set('jobSlug', body.slug);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "3. GET /api/v1/jobs/:slug",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/v1/jobs/{{jobSlug}}" },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 detail', () => pm.response.to.have.status(200));",
+                  "pm.test('views tracked', () => pm.expect(pm.response.json().views).to.be.at.least(1));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "4. PATCH /api/v1/jobs/:id",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"featured\": true\n}" },
+            "url": "{{baseUrl}}/api/v1/jobs/{{jobId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": ["pm.test('200 updated', () => pm.response.to.have.status(200));"],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "5. DELETE /api/v1/jobs/:id (soft close)",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/api/v1/jobs/{{jobId}}" },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": ["pm.test('204 closed', () => pm.response.to.have.status(204));"],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
     {
       "name": "Jobs (Phase 3)",
-      "description": "Job listing endpoints — Phase 3. All return 404 until implemented.",
+      "description": "Job search and listing — Phase 3. Batch ingest remains Phase 4.",
       "item": [
         {
           "name": "GET /api/v1/jobs",
@@ -541,7 +639,10 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('404 until Phase 3', () => pm.response.to.have.status(404));"
+                  "pm.test('200 paginated listing', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('has data array', () => pm.expect(body.data).to.be.an('array'));",
+                  "pm.test('has meta', () => pm.expect(body.meta).to.have.property('page'));"
                 ],
                 "type": "text/javascript"
               }
@@ -551,12 +652,12 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/jobs?page=1&limit=20",
+              "raw": "{{baseUrl}}/api/v1/jobs?page=1&pageSize=20",
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "jobs"],
               "query": [
                 { "key": "page", "value": "1" },
-                { "key": "limit", "value": "20" }
+                { "key": "pageSize", "value": "20" }
               ]
             },
             "description": "Phase 3. Paginated job listing."
@@ -570,7 +671,7 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('404 until Phase 3', () => pm.response.to.have.status(404));"
+                  "pm.test('404 until Phase 4 batch', () => pm.response.to.have.status(404));"
                 ],
                 "type": "text/javascript"
               }
