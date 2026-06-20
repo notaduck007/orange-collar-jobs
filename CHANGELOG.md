@@ -1,3 +1,16 @@
+# [1.2.0](https://github.com/notaduck007/orange-collar-jobs/compare/v1.1.1...v1.2.0) (2026-06-20)
+
+
+### Bug Fixes
+
+* **ci:** repair ci issues and repush ([a2dfb49](https://github.com/notaduck007/orange-collar-jobs/commit/a2dfb49188849b73d56c30e6c6417b30932c1f0c))
+* **prisma:** Prisma client needs to exist before building the application ([37808e3](https://github.com/notaduck007/orange-collar-jobs/commit/37808e341807dd07cb986e55c66cd2ac167f837a))
+
+
+### Features
+
+* **api:** phase 3 jobs, contract drift guard, and Prisma 7 upgrade ([086fff9](https://github.com/notaduck007/orange-collar-jobs/commit/086fff9b141a72679e5cdb88d3d137741b5432f0))
+
 ## [1.1.1](https://github.com/notaduck007/orange-collar-jobs/compare/v1.1.0...v1.1.1) (2026-06-14)
 
 
