@@ -37,12 +37,12 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       if (typeof res === "string") {
         body = { code: "HTTP_ERROR", message: res };
       } else {
-        const r = res as Record<string, unknown>;
+        const errorBody = res as Record<string, unknown>;
         body = {
-          code: (r["error"] as string | undefined) ?? "HTTP_ERROR",
-          message: Array.isArray(r["message"])
-            ? (r["message"] as string[]).join("; ")
-            : ((r["message"] as string | undefined) ?? "An error occurred"),
+          code: (errorBody["error"] as string | undefined) ?? "HTTP_ERROR",
+          message: Array.isArray(errorBody["message"])
+            ? (errorBody["message"] as string[]).join("; ")
+            : ((errorBody["message"] as string | undefined) ?? "An error occurred"),
         };
       }
     } else {

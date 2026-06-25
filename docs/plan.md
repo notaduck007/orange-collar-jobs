@@ -22,6 +22,37 @@ Each phase contains:
 No code is written until a task's acceptance criteria are fully understood.
 No phase begins until the prior phase's quality gate is cleared.
 
+Each **API phase** (2–6) may include parallel **Frontend Integration** tasks (`FE-*` prefix). These wire existing TanStack Start routes to the NestJS API so phase demos can be validated visually (Postman/curl **and** browser), not only via Supertest. Phase 7 remains the Supabase **data migration** and final removal of direct Postgres calls — not the first time each screen touches the API.
+
+---
+
+## Frontend Integration Track — Current Inventory
+
+**Already on NestJS API** (Phase 2 complete):
+
+| Surface | Route(s) | API client |
+| ------- | -------- | ---------- |
+| Auth session | `/auth`, `/forgot-password`, `/reset-password`, `/verify-email` | `src/lib/api-client.ts`, `src/lib/auth.tsx` |
+| Dev smoke | `/dev/diagnostics` | Health + `GET /api/v1/me` only |
+
+**Still Supabase-backed** (~55 route/component files import `@/integrations/supabase/client`):
+
+| Domain | Key routes / components | Backend phase that owns the API |
+| ------ | ------------------------- | ------------------------------- |
+| Public job board | `/jobs`, `/jobs/$slug`, `/jobs/category/*`, `/warehouse-jobs/*`, `jobs.json`, sitemap | Phase 3 |
+| Employer | `/employer/*` (post, edit, applicants, billing, team, ads, analytics) | Phase 3, 5, 6 |
+| Seeker | `/seeker/applications`, `/seeker/saved`, `/seeker/alerts`, `/seeker/profile` | Phase 5 |
+| Admin | `/admin/*` (jobs, moderation, ads, users, companies, stats, …) | Phase 3, 4.5, 6 |
+| Shared | `job-card`, `apply-dialog`, `ad-slot`, `site-settings`, checkout | Phase 3, 5, 6 |
+
+**Machine-to-machine only** (no public UI in v1):
+
+| Domain | Endpoints | Notes |
+| ------ | --------- | ----- |
+| Batch ingestion | `POST /api/v1/jobs/batch`, `GET …/status` | API-key auth; validated via Postman, curl, Swagger, and `/dev/diagnostics` dev panel |
+
+**Demo doc convention**: `docs/demo/phase{N}-demo.md` + `./scripts/phase{N}-demo.sh` (same pattern as Phases 1–3).
+
 ---
 
 ## Personas
@@ -75,6 +106,7 @@ src/api/
 │       ├── auth/                      # Register, login, refresh, verify, reset
 │       ├── jobs/                      # Admin post, vendor post, search, CRUD
 │       ├── batch/                     # Bulk ingestion (JSON + CSV + BullMQ)
+│       ├── notifications/             # Email/SMS orchestration, webhooks, campaigns, inbox
 │       ├── applications/              # Quick apply, seeker pipeline, employer pipeline
 │       ├── companies/                 # Employer company CRUD
 │       └── admin/                     # Moderation, ads, stats, RBAC enforcement
@@ -112,10 +144,10 @@ Establish the full documentation foundation: engineering constitution, agent orc
 
 ---
 
-### Task 0.1 — Replicate Documentation from openclaw-pilot
+### Task 0.1 — Establish Project Documentation
 
 **Owner**: Senior Engineer
-**Description**: Adapt the openclaw-pilot documentation structure to the WarehouseJobs use-case.
+**Description**: Establish the full documentation structure for the WarehouseJobs platform.
 
 **Files to create**:
 
@@ -495,6 +527,31 @@ See `[docs/agent/standards/common/backwards-compatibility.md](./agent/standards/
 
 ---
 
+### Task 3.3 — Frontend: Jobs API Integration (FE-3)
+
+**Owner**: Mid Engineer
+**Skills**: Coding Conventions
+**Depends on**: Task 3.2 (API tests green)
+
+**Scope** — replace Supabase job reads/writes with NestJS API in:
+
+1. `src/lib/api-client.ts` — add typed jobs methods (`search`, `getBySlug`, `create`, `update`, `delete`)
+2. Public board: `/jobs`, `/jobs/$slug`, category and city landing pages
+3. Employer: `/employer/jobs/new`, `/employer/jobs/$id/edit`, employer dashboard job list
+4. Admin: `/admin/jobs` moderation list (read + status actions that map to PATCH/DELETE)
+5. Extend `/dev/diagnostics` — jobs search + detail panels (dev-only visual gate)
+
+**Acceptance Criteria**:
+
+- `/jobs` lists jobs from `GET /api/v1/jobs` (not Supabase)
+- Admin POST from `/employer/jobs/new` hits Nest API; vendor credit error surfaces in UI
+- `/dev/diagnostics` can search and open a job slug without Postman
+- Phase 3 demo doc Part C updated: browser steps replace “still Supabase-backed” caveat
+- No new Supabase imports in touched files
+- `data-testid="jobs-from-api"` on `/jobs` list (for `scripts/validate-phase4-frontend.sh`)
+
+---
+
 ### Phase 3 Quality Gate
 
 - [x] All 5 jobs endpoints per OpenAPI spec pass E2E tests
@@ -503,6 +560,7 @@ See `[docs/agent/standards/common/backwards-compatibility.md](./agent/standards/
 - [x] Coverage ≥ 90% for `JobsService`
 - [x] `bun run api:contract:check` passes (implemented routes ↔ spec)
 - [x] `docs/demo/phase3-demo.md` + `./scripts/phase3-demo.sh` complete
+- [x] Task 3.3 (FE-3) complete — public job board and employer posting use Nest API
 
 ---
 
@@ -564,12 +622,308 @@ See `[docs/agent/standards/common/backwards-compatibility.md](./agent/standards/
 
 ---
 
+### Task 4.3 — Phase 4 Demo + Contract Artifacts
+
+**Owner**: QA Tester
+**Skills**: Testing
+
+**Deliverables**:
+
+1. `./scripts/phase4-demo.sh` — mirrors phase3-demo.sh: env, docker, migrate, lint, type-check, `api:validate`, `api:contract:check`, unit + integration + E2E, coverage ≥ 90%, live batch smoke (sync ≤100 + async poll >100), Phase 1 backwards-compat smoke
+2. `docs/demo/phase4-demo.md` — step-by-step visual validation:
+   - **Part A** Postman folder “Phase 4 — Walkthrough” (JSON batch, CSV batch, status poll, dedup re-run, invalid rows)
+   - **Part B** curl recipes (API-key header, sync vs 202 async)
+   - **Part C** Swagger UI (`/api/docs`)
+   - **Part D** Frontend: FE-3 jobs board + FE-4 batch diagnostics panel (`validate-phase4-frontend.sh`)
+   - **Part E** DB verification queries (`batch_jobs`, job counts, `external_id` dedup)
+3. Update `src/api/postman/warehousejobs.postman_collection.json` — replace Phase 4 placeholder tests
+4. Resolve OpenAPI ↔ code drift (e.g. mark implemented routes `x-implemented: true`; align CSV ingest path with spec)
+5. Root `package.json` script: `"demo:phase4": "bash scripts/phase4-demo.sh"`
+
+**Acceptance Criteria**: Demo script exits 0 on a clean checkout; human can follow the markdown doc without guessing.
+
+---
+
+### Task 4.4 — Frontend: Batch Dev Panel + Admin Source Badge (FE-4)
+
+**Owner**: Mid Engineer
+**Skills**: Coding Conventions
+**Depends on**: Task 4.3 (API demo green); FE-3 recommended for end-to-end browser proof
+
+**Scope**:
+
+1. `/dev/diagnostics` — batch ingest dev panel: paste `X-Api-Key`, submit small JSON batch (≤5 items), poll status, show counts
+2. `src/lib/api-client.ts` — `submitBatch`, `getBatchStatus` (API-key header, not JWT)
+3. After FE-3: admin/employer job lists show `source` badge (`batch` / `scraped` / `direct`) from API response
+
+**Acceptance Criteria**:
+
+- Developer can ingest and poll a batch entirely from the browser at `/dev/diagnostics`
+- No Supabase calls added; panel hidden in production builds (same guard as diagnostics route)
+- Phase 4 demo Part D passes without Postman
+
+**Demo markers** (for `scripts/validate-phase4-frontend.sh`):
+
+- `data-testid="batch-ingest-panel"` on batch panel
+- `apiClient.submitBatch` + `getBatchStatus` in `src/lib/api-client.ts`
+
+**Note**: Batch ingestion remains partner/scraper-facing in production; this UI is a **dev validation surface**, not a customer feature.
+
+---
+
 ### Phase 4 Quality Gate
 
-- [ ] 1,000-job batch ingests cleanly; all jobs appear in `GET /jobs`
-- [ ] WJ direct posts rank above scraped in search results (confirmed by test)
-- [ ] Deduplication correct (created/updated/skipped counts accurate)
-- [ ] All batch tests pass; coverage ≥ 90%
+- [x] 1,000-job batch ingests cleanly; all jobs appear in `GET /jobs`
+- [x] WJ direct posts rank above scraped in search results (confirmed by test)
+- [x] Deduplication correct (created/updated/skipped counts accurate)
+- [x] All batch tests pass; coverage ≥ 90% on all global metrics
+- [x] `bun run api:contract:check` passes
+- [x] `./scripts/phase4-demo.sh` passes; Phase 1 `GET /api/health` smoke included
+- [x] `docs/demo/phase4-demo.md` Postman + curl + browser walkthrough complete
+- [x] Task 4.4 (FE-4) complete — diagnostics batch panel works
+
+---
+
+## Phase 4.5 — Notifications Domain (Email · SMS · Webhooks · WebSockets)
+
+**Timeline**: ~4–5 days
+**Deliverable**: Notifications bounded context — Resend email + Twilio SMS outbound, inbound webhooks (SMS + email), in-app inbox with WebSocket push, phone/email OTP verification, vendor/admin 2FA, and admin marketing campaigns with full opt-in compliance.
+
+**Provider strategy** (confirmed): **Resend** for email, **Twilio** for SMS (Verify + Programmable Messaging). Existing `EmailService` / `SmsService` in `src/core/` remain thin adapters; orchestration moves to `domains/notifications/`.
+
+**Prior art** (Phase 2 partial): Auth already sends verification/reset email via `EmailService` and optional password-reset SMS via `SmsService`. Phase 4.5 refactors auth (and later domains) to call `NotificationsService` instead of adapters directly, and adds everything below.
+
+### Task 4.5.0 — OpenAPI Contract + Interface Design
+
+**Owner**: Senior Engineer
+**Skills**: Domain-Driven Design, Interface Designer, Canonical Type Reuse, Module Design Pattern
+
+**Status**: OpenAPI + YAML contract implemented; `bun run api:validate` and `bun run api:contract:check` pass.
+
+**Artifacts**:
+
+- `docs/api/openapi.yaml` — Notifications, Webhooks, Admin — Campaigns, Auth OTP/2FA paths added (`bun run api:validate` passes)
+- `docs/agent/analysis/contracts/notifications-service.yaml` — `NotificationsService`, `CampaignService`, `InboundMessageHandler`, `NotificationGateway`
+
+**OpenAPI additions** (spec-first — no implementation until approved):
+
+| Area | Endpoints |
+| ---- | --------- |
+| In-app inbox | `GET /api/v1/notifications`, `PATCH /api/v1/notifications/:id/read`, `POST /api/v1/notifications/read-all` |
+| Preferences | `GET /api/v1/notifications/preferences`, `PATCH /api/v1/notifications/preferences` |
+| OTP / 2FA | `POST /api/v1/auth/send-otp`, `POST /api/v1/auth/verify-otp`, `POST /api/v1/auth/enable-2fa`, `POST /api/v1/auth/verify-2fa` |
+| Inbound webhooks | `POST /api/v1/webhooks/twilio/sms`, `POST /api/v1/webhooks/resend/inbound` (`@Public()`, signature-validated) |
+| Admin campaigns | `POST /api/v1/admin/campaigns`, `GET /api/v1/admin/campaigns`, `GET /api/v1/admin/campaigns/:id`, `POST /api/v1/admin/campaigns/:id/send`, `GET /api/v1/admin/campaigns/:id/stats` |
+
+**YAML contract**: `NotificationsService`, `CampaignService`, `InboundMessageHandler`, `NotificationGateway` (WebSocket — documented in analysis doc + gateway README; not REST OpenAPI).
+
+**Acceptance Criteria**:
+
+- `docs/api/openapi.yaml` updated and `bun run api:validate` passes
+- Human approval on YAML contract before Task 4.5.1 begins
+- Bounded context confirmed: notifications owns delivery, preferences, campaigns, inbound routing; auth owns credentials; other domains emit events only
+
+---
+
+### Task 4.5.1 — Prisma Schema + Module Scaffold
+
+**Owner**: Senior Engineer + Mid Engineer
+**Skills**: Module Design Pattern, Coding Conventions
+
+**Tables**:
+
+- `notifications` — in-app inbox (mirrors legacy Supabase shape: `userId`, `title`, `body`, `link`, `type`, `readAt`, `senderId`)
+- `notification_preferences` — per-user channel toggles (`emailTransactional`, `emailMarketing`, `smsTransactional`, `smsMarketing`, `inApp`)
+- `notification_deliveries` — outbound audit log (`channel`, `template`, `status`, `providerId`, `error`)
+- `marketing_consents` — explicit opt-in timestamps + source (register, settings, campaign)
+- `sms_opt_outs` — STOP / unsubscribe registry (TCPA)
+- `notification_campaigns` — admin broadcasts (segment, template, schedule, status)
+- `otp_challenges` — phone/email OTP state (Twilio Verify SID or hashed email OTP)
+- `user_mfa` — TOTP or SMS second factor for vendor/admin (`enabledAt`, `method`)
+
+**Module**: `src/domains/notifications/` — barrel exports `NotificationsService` only.
+
+**Acceptance Criteria**:
+
+- Migration applies cleanly; factories in `test/helpers/`
+- `NotificationsModule` registered in `app.module.ts`
+- Auth domain refactored to inject `NotificationsService` (no direct `EmailService`/`SmsService` in domain services)
+
+---
+
+### Task 4.5.2 — Outbound Orchestration + BullMQ Worker
+
+**Owner**: Mid Engineer
+**Skills**: Coding Conventions, Module Design Pattern
+
+**Detailed Steps**:
+
+1. `NotificationsService.send(request)` — routes by `NotificationKind` (`auth`, `transactional`, `marketing`) and channel (`email`, `sms`, `in_app`)
+2. Template registry — auth (verify, reset, welcome), transactional placeholders for Phase 5
+3. `NotificationWorker` on `QUEUE_NOTIFICATIONS` — async delivery, retry with backoff, dead-letter after N failures
+4. Marketing sends blocked unless `marketing_consents` + preference allow; transactional/auth exempt from marketing opt-out where legally required
+5. Idempotency key on delivery records to prevent duplicate sends
+
+**Acceptance Criteria**:
+
+- Register → verification email queued and delivered (or dev console log)
+- Password reset email + optional SMS alert via orchestrator
+- Failed Resend/Twilio calls retried; permanent failures logged in `notification_deliveries`
+- Unit tests for routing, consent gates, idempotency
+
+---
+
+### Task 4.5.3 — Phone/Email OTP + Vendor/Admin 2FA
+
+**Owner**: Mid Engineer
+**Skills**: Coding Conventions, security standard
+
+**Flows**:
+
+- **Register/login verification**: Twilio Verify OTP for phone; email OTP via Resend (6-digit, short TTL) as alternative or complement to link-based verify
+- **Vendor/admin 2FA**: strongly recommended at onboarding; enforceable flag `requireMfaForRole` in config; SMS or email OTP step after password on login
+- OTP endpoints match OpenAPI; rate-limited (`5/minute/IP`)
+
+**Acceptance Criteria**:
+
+- Unverified phone/email blocks protected endpoints per product rule
+- Vendor login with MFA enabled requires second step
+- Brute-force protection on OTP verify (lockout after N failures)
+- No OTP codes logged or returned in API responses
+
+---
+
+### Task 4.5.4 — Inbound Webhooks (SMS + Email)
+
+**Owner**: Senior Engineer + Mid Engineer
+**Skills**: Coding Conventions, security standard
+
+**Twilio SMS webhook** (`POST /webhooks/twilio/sms`):
+
+- Validate `X-Twilio-Signature`
+- Handle `STOP` / `UNSUBSCRIBE` → `sms_opt_outs`; auto-reply confirmation
+- Handle `HELP` → compliance auto-reply
+- Route conversational replies (e.g. reply-to-apply) to `InboundMessageHandler` — persist thread, emit in-app notification
+
+**Resend inbound webhook** (`POST /webhooks/resend/inbound`):
+
+- Validate webhook signature
+- Parse reply-to addresses or inbound parse payload
+- Route to same `InboundMessageHandler`
+
+**Acceptance Criteria**:
+
+- Invalid signatures → 403
+- STOP on marketing number suppresses future marketing SMS for that E.164
+- Inbound message creates in-app notification + optional WebSocket push
+- Integration tests with fixture payloads (no live Twilio/Resend in CI)
+
+---
+
+### Task 4.5.5 — In-App Inbox + WebSocket Gateway
+
+**Owner**: Mid Engineer
+**Skills**: Module Design Pattern, Coding Conventions
+
+**REST**: paginated `GET /notifications`, mark read, read-all.
+
+**WebSocket** (`NotificationGateway`):
+
+- JWT on connection (`WsJwtGuard`)
+- Room per `userId`
+- Push `{ type: 'notification.created', payload }` on new inbox row or inbound message
+- Reconnect-safe: client syncs via REST on connect, then listens for deltas
+
+**Acceptance Criteria**:
+
+- Authenticated user receives WebSocket event within 1 s of outbound/inbound trigger (integration test with mocked gateway broadcast)
+- Unauthenticated WebSocket connection rejected
+- Phase 1 backwards-compat unaffected (no change to `/api/health`, `/api/v1/me`)
+
+---
+
+### Task 4.5.6 — Admin Marketing Campaign Platform
+
+**Owner**: Senior Engineer + Mid Engineer
+**Skills**: Interface Designer, Coding Conventions
+
+**Capabilities**:
+
+- Create campaign: name, channel(s), segment (role, geo, job category, custom filter), HTML/text template, schedule (immediate or scheduled via BullMQ)
+- Preview + test send to admin
+- Send: chunked through `NotificationWorker`; track sent/delivered/bounced/opt-out counts
+- CAN-SPAM: physical address footer in marketing email templates; unsubscribe link
+- TCPA: SMS marketing only to opted-in numbers; STOP honored within webhook handler
+
+**Acceptance Criteria**:
+
+- Admin creates email campaign → segment of opted-in seekers receives email
+- Campaign stats reflect delivery log counts
+- Non-opted-in users excluded; opt-out users never receive marketing
+- `@Roles('admin')` on all campaign endpoints
+
+---
+
+### Task 4.5.7 — Notifications Tests + Demo
+
+**Owner**: QA Tester
+**Skills**: Testing
+
+**Tests**:
+
+- Unit: template rendering, consent gates, OTP flows, webhook signature validation
+- Unit: `NotificationWorker` retry/dead-letter
+- Integration: outbound email/SMS (mocked providers), inbound webhook → inbox row
+- Integration: WebSocket connect + receive push (test gateway)
+- E2E: preferences update, inbox CRUD, OTP verify, admin campaign create/send (mocked delivery)
+- E2E: `phase1-backwards-compat` still passes
+
+**Demo**: `./scripts/phase4.5-demo.sh` + `docs/demo/phase4.5-demo.md` (Postman webhooks + WebSocket client snippet)
+
+**Acceptance Criteria**: Coverage ≥ 90% for `NotificationsService`, `CampaignService`, webhook controllers; all tests pass
+
+---
+
+### Task 4.5.8 — Frontend: Notifications Inbox + Preferences (FE-4.5)
+
+**Owner**: Mid Engineer
+**Skills**: Coding Conventions
+**Depends on**: Task 4.5.5 (REST inbox + WebSocket gateway)
+
+**Scope**:
+
+1. `src/lib/api-client.ts` — notifications list, mark read, read-all, preferences GET/PATCH
+2. WebSocket client hook — connect with JWT, handle `notification.created`, sync on reconnect
+3. Seeker `/seeker` overview — unread badge; optional dedicated inbox route if not present
+4. `/seeker/privacy` or settings — channel preference toggles wired to API
+5. Vendor/admin login — MFA step UI when `requireMfaForRole` enabled (Task 4.5.3)
+6. Admin `/admin` — campaign create/send UI wired to `/api/v1/admin/campaigns/*` (replaces any Supabase campaign stubs)
+7. Extend `/dev/diagnostics` — WebSocket connection tester
+
+**Acceptance Criteria**:
+
+- Authenticated user sees inbox rows from `GET /api/v1/notifications` (not Supabase)
+- New notification appears in UI within 1 s of trigger (WebSocket or poll fallback)
+- Marketing preference toggles persist via API
+- Phase 4.5 demo doc includes browser steps for inbox + preferences
+
+---
+
+### Phase 4.5 Quality Gate
+
+Before Phase 5 begins:
+
+- [x] OpenAPI spec includes all notification/OTP/webhook/campaign endpoints; `bun run api:validate` passes
+- [x] Auth flows use `NotificationsService`; verification email + OTP paths work
+- [x] Vendor/admin MFA path documented and test-covered
+- [x] Inbound Twilio + Resend webhooks validated; STOP/opt-out enforced
+- [x] WebSocket inbox push works for authenticated users (in-process gateway + poll fallback on FE)
+- [x] Admin marketing campaign send respects opt-in; stats accurate
+- [x] `bun run api:contract:check` passes
+- [x] `./scripts/phase4.5-demo.sh` passes; Phase 1 `GET /api/health` smoke included
+- [x] All notification unit + integration + E2E tests pass; coverage ≥ 90%
+- [x] `phase1-backwards-compat` E2E suite passes
+- [x] Task 4.5.8 (FE-4.5) complete — inbox, preferences, and MFA UI on Nest API
 
 ---
 
@@ -598,6 +952,7 @@ See `[docs/agent/standards/common/backwards-compatibility.md](./agent/standards/
 - Duplicate check: 409 if already applied
 
 1. Optional resume: if `resumeUrl` provided, store reference; no upload in apply path (upload handled separately via `POST /uploads/resume`)
+2. On successful apply: emit `NotificationsService` events — seeker confirmation (SMS/email per preferences), employer new-applicant alert
 
 **Acceptance Criteria**:
 
@@ -627,6 +982,7 @@ See `[docs/agent/standards/common/backwards-compatibility.md](./agent/standards/
 - Seeker sees only their own applications with correct status (fixes Blocker B2)
 - Employer sees only applications for their company's jobs
 - Status update writes an audit log entry
+- Status change triggers `NotificationsService.sendApplicationUpdate()` (email/SMS per user preferences — Phase 4.5)
 - Invalid state transition returns 400 with transition path in error details
 
 ---
@@ -644,12 +1000,37 @@ See `[docs/agent/standards/common/backwards-compatibility.md](./agent/standards/
 
 ---
 
+### Task 5.4 — Frontend: Quick Apply + Pipelines (FE-5)
+
+**Owner**: Mid Engineer
+**Skills**: Coding Conventions
+**Depends on**: Task 5.3; FE-3 (jobs detail page)
+
+**Scope**:
+
+1. `src/lib/api-client.ts` — apply, seeker applications list, employer pipeline, status PATCH
+2. `apply-dialog` / job detail — `POST /api/v1/jobs/:jobId/apply` (guest + authenticated paths)
+3. `/seeker/applications` — list from Nest API with status badges
+4. `/employer/jobs/$id/applicants` — employer pipeline + status transitions
+5. Rate-limit and duplicate-apply errors surfaced in UI (409, 429)
+6. Extend `/dev/diagnostics` — quick-apply smoke form
+
+**Acceptance Criteria**:
+
+- Guest can apply from job detail without Supabase
+- Seeker sees only their applications; employer sees only their company's applicants
+- Status change in employer UI reflects in seeker list after refresh
+- Phase 5 demo doc includes full browser walkthrough (apply → pipeline → status update)
+
+---
+
 ### Phase 5 Quality Gate
 
 - [ ] Unauthenticated apply returns 201 < 3 s server time
 - [ ] Seeker `GET /applications` shows correct applications (B2 resolved)
 - [ ] Employer pipeline returns correct applicants; status transitions work
 - [ ] All application tests pass; coverage ≥ 90%
+- [ ] Task 5.4 (FE-5) complete — apply flow and both pipelines on Nest API
 
 ---
 
@@ -671,6 +1052,7 @@ See `[docs/agent/standards/common/backwards-compatibility.md](./agent/standards/
 3. `AdvertisementsService`: create campaign with slot + schedule + targeting; `status` lifecycle (active/paused/ended)
 4. `AdminStatsService`: aggregate counts — jobs, applications, users, revenue (from `orders` table)
 5. Enforce `@Roles('admin')` on all admin routes
+6. Ad/promotional **email/SMS bursts** use `CampaignService` from notifications domain (Phase 4.5) — not duplicate send logic here
 
 **Acceptance Criteria**:
 
@@ -706,19 +1088,46 @@ See `[docs/agent/standards/common/backwards-compatibility.md](./agent/standards/
 
 ---
 
+### Task 6.4 — Frontend: Admin + Companies (FE-6)
+
+**Owner**: Mid Engineer
+**Skills**: Coding Conventions
+**Depends on**: Task 6.3; FE-3, FE-5 recommended
+
+**Scope**:
+
+1. `src/lib/api-client.ts` — admin jobs queue, feature toggle, ads CRUD, stats; companies CRUD
+2. Admin routes: `/admin/jobs`, `/admin/moderation`, `/admin/ads`, `/admin` dashboard stats — Nest API
+3. `/companies/$slug` — public company profile + active jobs from API
+4. Employer `/employer/onboarding` — company create via `POST /api/v1/companies`
+5. RBAC: hide admin nav items when `/api/v1/me` role ≠ admin (align with existing permission map)
+6. Remaining Supabase-only admin surfaces (users, roles, billing, packages) — document as **Phase 7 cutover** if no OpenAPI endpoint yet
+
+**Acceptance Criteria**:
+
+- Admin can feature a job and see updated stats without Supabase
+- Vendor company profile update hits `PATCH /api/v1/companies/:id`
+- Non-admin receives 403-equivalent UX (redirect or error state), not silent Supabase fallback
+- Phase 6 demo doc includes Postman + browser admin walkthrough
+
+---
+
 ### Phase 6 Quality Gate
 
 - [ ] All admin endpoints return 403 for non-admin roles
 - [ ] Ad campaigns activate/deactivate correctly by date
 - [ ] `GET /admin/stats` returns accurate numbers
 - [ ] All admin and company tests pass; coverage ≥ 90%
+- [ ] Task 6.4 (FE-6) complete — admin moderation, ads, stats, and company pages on Nest API
 
 ---
 
-## Phase 7 — Data Migration & Frontend Big Bang
+## Phase 7 — Data Migration & Supabase Decommission
 
 **Timeline**: ~3 days
-**Deliverable**: Full Supabase → own PostgreSQL data migration; frontend switched from direct Supabase calls to NestJS API.
+**Deliverable**: Full Supabase → own PostgreSQL data migration; **zero** direct Supabase Postgres calls in `src/`; remaining admin/billing surfaces cut over or explicitly scoped out.
+
+**Prior art**: FE-3 through FE-6 wire the primary product surfaces to the NestJS API incrementally during Phases 3–6. Phase 7 is **not** the first browser integration — it is data cutover, straggler routes, and dependency removal.
 
 ### Task 7.1 — Data Migration Script
 
@@ -729,9 +1138,10 @@ See `[docs/agent/standards/common/backwards-compatibility.md](./agent/standards/
 1. Export all data from Supabase (users, companies, jobs, applications, etc.)
 2. Write `prisma/seeds/migrate-from-supabase.ts` — idempotent migration script
 3. Migrate users: create `users` rows from Supabase `auth.users` export; mark passwords as `REQUIRES_RESET`; set `migrationSource = supabase`
-4. Send password-reset emails to all migrated users via `EmailService`
-5. Migrate all other tables in dependency order (companies → jobs → applications → etc.)
-6. Validate row counts match
+4. Send password-reset emails to all migrated users via `NotificationsService`
+5. Migrate Supabase `notifications` table rows → `notifications` (Phase 4.5 schema)
+6. Migrate all other tables in dependency order (companies → jobs → applications → etc.)
+7. Validate row counts match
 
 **Acceptance Criteria**:
 
@@ -742,23 +1152,36 @@ See `[docs/agent/standards/common/backwards-compatibility.md](./agent/standards/
 
 ---
 
-### Task 7.2 — Frontend Big Bang Migration
+### Task 7.2 — Frontend Stragglers + Supabase Removal
 
 **Owner**: Senior Engineer + Mid Engineer
 
 **Steps**:
 
-1. Replace all direct Supabase data calls in `src/` routes with NestJS API calls (fetch / axios)
-2. Replace Supabase auth (`@supabase/supabase-js`) with NestJS auth endpoints
-3. Replace `useAuth` hook — now reads JWT from localStorage, calls `/api/v1/me`
-4. Replace `supabase.storage` calls with NestJS storage endpoints / signed URLs
-5. Remove Supabase client dependencies from `src/` (keep if needed for auth only during transition)
+1. Audit: `rg '@/integrations/supabase' src/` — every remaining import mapped to an API endpoint or deleted feature
+2. Cut over stragglers not covered by FE-3…FE-6 (e.g. `/admin/users`, `/admin/billing`, checkout, saved jobs, job alerts, sitemap/`jobs.json` SSR loaders)
+3. Replace `supabase.storage` with NestJS storage signed URLs
+4. Remove `@supabase/supabase-js` and `src/integrations/supabase/` from frontend dependencies
+5. Frontend E2E smoke: register → verify → login → post job → batch ingest (API) → apply → see applications → admin moderate
 
 **Acceptance Criteria**:
 
-- Frontend makes zero direct Supabase Postgres calls
-- All existing frontend functionality works via NestJS API
-- E2E smoke test: register → verify → login → post job → apply → see applications
+- Frontend makes zero direct Supabase Postgres calls (`rg` confirms)
+- All user-facing flows work via NestJS API against migrated data
+- SSR routes (`sitemap.xml`, `jobs.json`) read from API or DB via API — not Supabase client
+
+---
+
+### Task 7.3 — Phase 7 Demo + Visual Cutover Checklist
+
+**Owner**: QA Tester
+
+**Deliverables**:
+
+1. `./scripts/phase7-demo.sh` — migration dry-run, row-count validation, frontend smoke, full API test suite
+2. `docs/demo/phase7-demo.md` — cutover runbook: API smoke, then browser checklist for seeker, employer, and admin happy paths
+
+**Acceptance Criteria**: Demo script exits 0; cutover checklist covers every route in the Frontend Integration Track inventory table.
 
 ---
 
@@ -769,6 +1192,7 @@ See `[docs/agent/standards/common/backwards-compatibility.md](./agent/standards/
 - [ ] Frontend E2E smoke test passes
 - [ ] Zero direct Supabase data calls in `src/` (grep confirms)
 - [ ] All API integration and E2E tests still pass post-migration
+- [ ] `./scripts/phase7-demo.sh` + `docs/demo/phase7-demo.md` complete
 
 ---
 
@@ -792,6 +1216,14 @@ All environment variables required by `src/api/`:
 | `EMAIL_PROVIDER`         | `resend` or `sendgrid`                     | Yes                  |
 | `EMAIL_API_KEY`          | Email provider API key                     | Yes                  |
 | `EMAIL_FROM`             | Sender address                             | Yes                  |
+| `EMAIL_SEND_IN_DEV`      | Send via Resend in development             | No (default: false)  |
+| `TWILIO_ACCOUNT_SID`     | Twilio account SID                         | No (SMS disabled if unset) |
+| `TWILIO_AUTH_TOKEN`      | Twilio auth token                          | No                   |
+| `TWILIO_FROM_NUMBER`     | Twilio programmable SMS sender (E.164)     | No                   |
+| `TWILIO_VERIFY_SERVICE_SID` | Twilio Verify service for OTP           | No                   |
+| `TWILIO_WEBHOOK_AUTH_TOKEN` | Twilio webhook signature validation   | Yes (Phase 4.5+)     |
+| `RESEND_WEBHOOK_SECRET`  | Resend inbound webhook signature secret    | Yes (Phase 4.5+)     |
+| `NOTIFICATIONS_REQUIRE_MFA_ROLES` | Comma-separated roles requiring 2FA (`vendor,admin`) | No (default: `vendor,admin`) |
 | `API_KEY_HASH`           | bcrypt hash of the batch ingestion API key | Yes                  |
 | `LOG_LEVEL`              | `debug`, `info`, `warn`, `error`           | No (default: `info`) |
 | `NODE_ENV`               | `development`, `test`, `production`        | Yes                  |

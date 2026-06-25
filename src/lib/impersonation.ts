@@ -1,5 +1,3 @@
-import { supabase } from "@/integrations/supabase/client";
-
 const KEY = "wj_impersonation_v1";
 
 type ImpersonationState = {
@@ -37,70 +35,19 @@ export type StartImpersonationOptions = {
   redirectTo?: string;
 };
 
+/**
+ * Impersonation requires a Supabase Edge Function that has been removed.
+ * This will be re-implemented as a Nest API endpoint in a future phase.
+ */
 export async function startImpersonation(
-  targetUserId: string,
-  opts: StartImpersonationOptions = {},
-) {
-  const { data: cur } = await supabase.auth.getSession();
-  const actorSession = cur.session;
-  if (!actorSession) throw new Error("Not signed in");
-
-  const { data, error } = await supabase.functions.invoke("impersonate-user", {
-    body: {
-      user_id: targetUserId,
-      reason: opts.reason,
-      target_label: opts.label,
-      target_kind: opts.kind ?? "user",
-      entity_id: opts.entityId ?? targetUserId,
-    },
-  });
-  if (error) throw error;
-  const { token_hash, target_user_id, target_email, actor_id } = data as {
-    token_hash: string;
-    target_user_id: string;
-    target_email: string;
-    actor_id: string;
-  };
-
-  setImpersonation({
-    actor_id,
-    actor_session: {
-      access_token: actorSession.access_token,
-      refresh_token: actorSession.refresh_token,
-    },
-    target_user_id,
-    target_email,
-    target_label: opts.label,
-    target_kind: opts.kind ?? "user",
-    redirect_to: opts.redirectTo,
-    started_at: new Date().toISOString(),
-  });
-
-  const { error: vErr } = await supabase.auth.verifyOtp({
-    token_hash,
-    type: "magiclink",
-  });
-  if (vErr) {
-    setImpersonation(null);
-    throw vErr;
-  }
+  _targetUserId: string,
+  _opts: StartImpersonationOptions = {},
+): Promise<void> {
+  throw new Error(
+    "Impersonation is being migrated to the new platform and is temporarily unavailable.",
+  );
 }
 
-export async function stopImpersonation() {
-  const s = getImpersonation();
-  if (!s) return;
-  try {
-    await supabase.functions.invoke("stop-impersonation", {
-      body: {
-        actor_id: s.actor_id,
-        target_user_id: s.target_user_id,
-        target_label: s.target_label,
-        target_kind: s.target_kind,
-      },
-    });
-  } catch {
-    // best-effort audit; restore session regardless
-  }
-  await supabase.auth.setSession(s.actor_session);
+export async function stopImpersonation(): Promise<void> {
   setImpersonation(null);
 }

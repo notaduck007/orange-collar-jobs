@@ -65,7 +65,11 @@ export class StorageService {
       }),
     );
 
-    const url = `${this.config.getOrThrow("STORAGE_ENDPOINT", { infer: true })}/${bucketName}/${key}`;
+    // Use the browser-reachable public URL (falls back to the internal endpoint).
+    const publicBase =
+      this.config.get("STORAGE_PUBLIC_URL", { infer: true }) ??
+      this.config.getOrThrow("STORAGE_ENDPOINT", { infer: true });
+    const url = `${publicBase}/${bucketName}/${key}`;
     this.logger.log(`Uploaded ${key} to ${bucketName}`);
     return { key, bucket: bucketName, url };
   }

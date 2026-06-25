@@ -1,5 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { supabase } from "@/integrations/supabase/client";
+import { apiClient } from "@/lib/api-client";
+import { mapJobSummaryToCard } from "@/lib/jobs/job-mappers";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { JobCard, type JobSummary } from "@/components/job-card";
@@ -68,16 +69,8 @@ export const Route = createFileRoute("/jobs/category/$categorySlug")({
   loader: async ({ params }) => {
     const info = CATEGORIES[params.categorySlug];
     if (!info) throw notFound();
-    const { data: jobsData } = await supabase
-      .from("jobs")
-      .select(
-        "id, slug, title, location, shift, employment_type, pay_min, pay_max, featured, category, companies(name, slug, verified)",
-      )
-      .eq("category", info.name)
-      .in("status", ["active", "published"])
-      .order("created_at", { ascending: false })
-      .limit(50);
-    const jobs = (jobsData ?? []) as unknown as JobSummary[];
+    const res = await apiClient.searchJobs({ category: info.name, pageSize: 50 });
+    const jobs = res.data.map(mapJobSummaryToCard) as JobSummary[];
     const cities = (await fetchActiveCities(8)).slice(0, 8);
     return { info, jobs, cities };
   },

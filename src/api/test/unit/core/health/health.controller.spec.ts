@@ -70,4 +70,11 @@ describe("HealthController", () => {
     >;
     expect(indicators).toHaveLength(4);
   });
+
+  it("runs without heap check in test environment", async () => {
+    const controller = buildController("test");
+    const memory = controller["memory"] as MemoryHealthIndicator;
+    await controller.check();
+    expect(memory.checkHeap).not.toHaveBeenCalled();
+  });
 });

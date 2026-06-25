@@ -58,7 +58,15 @@ function AuthPage() {
   const [displayName, setDisplayName] = useState("");
   const [selectedRole, setSelectedRole] = useState<"job_seeker" | "employer">(role ?? "job_seeker");
   const [loading, setLoading] = useState(false);
+  const [mfaChallengeId, setMfaChallengeId] = useState<string | null>(null);
+  const [mfaCode, setMfaCode] = useState("");
   const { refreshSession } = useAuth();
+
+  const finishLogin = async (dest: string) => {
+    await refreshSession();
+    toast.success("Signed in.");
+    navigate({ to: dest as never });
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,11 +84,28 @@ function AuthPage() {
         });
         toast.success("Account created! Check your inbox to verify your email, then sign in.");
         navigate({ to: "/auth", search: { mode: "login", next: dest } as never });
+      } else if (mfaChallengeId) {
+        await apiClient.verify2faAndStore({ code: mfaCode, challengeId: mfaChallengeId });
+        setMfaChallengeId(null);
+        setMfaCode("");
+        await finishLogin(dest);
       } else {
-        await apiClient.loginAndStore(email, password);
-        await refreshSession();
-        toast.success("Signed in.");
-        navigate({ to: dest as never });
+        try {
+          await apiClient.loginAndStore(email, password);
+          await finishLogin(dest);
+        } catch (loginErr) {
+          if (
+            loginErr instanceof ApiError &&
+            loginErr.statusCode === 401 &&
+            loginErr.details?.mfaRequired === true &&
+            typeof loginErr.details.challengeId === "string"
+          ) {
+            setMfaChallengeId(loginErr.details.challengeId);
+            toast.message("Enter the verification code sent to your phone or email.");
+            return;
+          }
+          throw loginErr;
+        }
       }
     } catch (err: unknown) {
       const msg =
@@ -194,20 +219,48 @@ function AuthPage() {
                 minLength={8}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                disabled={!!mfaChallengeId}
               />
-              {!isSignup && (
+              {!isSignup && !mfaChallengeId && (
                 <Link to="/forgot-password" className="text-xs text-primary hover:underline">
                   Forgot password?
                 </Link>
               )}
             </div>
 
+            {mfaChallengeId && (
+              <div className="space-y-1.5 rounded-lg border border-primary/30 bg-[color:var(--primary-tint)]/40 p-4">
+                <Label htmlFor="mfa-code">Verification code</Label>
+                <Input
+                  id="mfa-code"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  required
+                  value={mfaCode}
+                  onChange={(e) => setMfaCode(e.target.value)}
+                  placeholder="6-digit code"
+                />
+                <button
+                  type="button"
+                  className="text-xs text-primary hover:underline"
+                  onClick={() => {
+                    setMfaChallengeId(null);
+                    setMfaCode("");
+                  }}
+                >
+                  Back to password sign-in
+                </button>
+              </div>
+            )}
+
             <Button type="submit" disabled={loading} className="btn-primary w-full">
               {loading
                 ? t("auth.workingBtn")
-                : isSignup
-                  ? t("auth.createAccount")
-                  : t("auth.signIn")}
+                : mfaChallengeId
+                  ? "Verify code"
+                  : isSignup
+                    ? t("auth.createAccount")
+                    : t("auth.signIn")}
             </Button>
           </form>
 

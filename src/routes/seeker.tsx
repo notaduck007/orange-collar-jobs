@@ -1,10 +1,19 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { LayoutDashboard, FileText, Bookmark, BellRing, User, ShieldCheck } from "lucide-react";
+import {
+  LayoutDashboard,
+  FileText,
+  Bookmark,
+  BellRing,
+  User,
+  ShieldCheck,
+  Bell,
+} from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { useAuth } from "@/lib/auth";
+import { useUnreadNotificationCount } from "@/hooks/use-notifications-inbox";
 
 export const Route = createFileRoute("/seeker")({
   component: SeekerLayout,
@@ -15,6 +24,7 @@ function SeekerLayout() {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { t } = useTranslation();
+  const { count: unreadNotifications } = useUnreadNotificationCount();
 
   useEffect(() => {
     if (loading) return;
@@ -46,6 +56,12 @@ function SeekerLayout() {
           <SideLink to="/seeker/applications" icon={FileText} label={t("seeker.myApplications")} />
           <SideLink to="/seeker/saved" icon={Bookmark} label={t("seeker.savedJobs")} />
           <SideLink to="/seeker/alerts" icon={BellRing} label={t("seeker.jobAlerts")} />
+          <SideLink
+            to="/seeker/notifications"
+            icon={Bell}
+            label="Notifications"
+            badge={unreadNotifications > 0 ? unreadNotifications : undefined}
+          />
           <SideLink to="/seeker/profile" icon={User} label={t("seeker.profileResume")} />
           <SideLink to="/seeker/privacy" icon={ShieldCheck} label={t("seeker.privacy")} />
           <Link
@@ -69,11 +85,13 @@ function SideLink({
   icon: Icon,
   label,
   exact,
+  badge,
 }: {
   to: string;
   icon: typeof LayoutDashboard;
   label: string;
   exact?: boolean;
+  badge?: number;
 }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const active = exact ? pathname === to : pathname.startsWith(to);
@@ -87,6 +105,11 @@ function SideLink({
       }`}
     >
       <Icon className="h-4 w-4" /> {label}
+      {badge != null && badge > 0 && (
+        <span className="ml-auto rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-primary-foreground">
+          {badge}
+        </span>
+      )}
     </Link>
   );
 }

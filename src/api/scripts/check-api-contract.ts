@@ -3,8 +3,8 @@
  * Usage: bun run contract:check [-- --spec path/to/openapi.yaml]
  */
 import { resolve } from "node:path";
-import { detectContractDrift } from "../src/domains/api-contract/detect-contract-drift.js";
-import type { ContractDriftReport } from "../src/domains/api-contract/types.js";
+import { detectContractDrift } from "@domains/api-contract/detect-contract-drift.js";
+import type { ContractDriftReport } from "@domains/api-contract/types.js";
 
 const DEFAULT_SPEC_PATH = resolve(process.cwd(), "../../docs/api/openapi.yaml");
 

@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 
 export type BrandingSettings = {
   site_name: string;
@@ -28,7 +27,11 @@ export type PublicSettings = {
 };
 
 const DEFAULTS: PublicSettings = {
-  branding: { site_name: "WarehouseJobs.com", logo_url: "", support_email: "support@example.com" },
+  branding: {
+    site_name: "WarehouseJobs.com",
+    logo_url: "",
+    support_email: "support@warehousejobs.com",
+  },
   defaults: { job_duration_days: 30, free_post_allowance: 1 },
   toggles: {
     reviews_enabled: true,
@@ -41,22 +44,8 @@ const DEFAULTS: PublicSettings = {
 export function useSiteSettings() {
   const { data, isLoading } = useQuery({
     queryKey: ["public-site-settings"],
-    staleTime: 60_000,
-    queryFn: async (): Promise<PublicSettings> => {
-      const { data, error } = await supabase.rpc("get_public_settings");
-      if (error || !data) return DEFAULTS;
-      const raw = data as {
-        settings?: Record<string, unknown>;
-        flags?: Record<string, FeatureFlag>;
-      };
-      const s = raw.settings ?? {};
-      return {
-        branding: { ...DEFAULTS.branding, ...((s.branding as Partial<BrandingSettings>) ?? {}) },
-        defaults: { ...DEFAULTS.defaults, ...((s.defaults as Partial<DefaultsSettings>) ?? {}) },
-        toggles: { ...DEFAULTS.toggles, ...((s.toggles as Partial<ToggleSettings>) ?? {}) },
-        flags: raw.flags ?? {},
-      };
-    },
+    staleTime: Infinity,
+    queryFn: async (): Promise<PublicSettings> => DEFAULTS,
   });
   return { settings: data ?? DEFAULTS, loading: isLoading };
 }
@@ -66,7 +55,6 @@ export function useFeatureFlag(key: string): boolean {
   const f = settings.flags[key];
   if (!f || !f.enabled) return false;
   if (f.rollout_pct >= 100) return true;
-  // Deterministic-ish: per session
   const hash = Array.from(key).reduce((a, c) => a + c.charCodeAt(0), 0);
   return hash % 100 < f.rollout_pct;
 }

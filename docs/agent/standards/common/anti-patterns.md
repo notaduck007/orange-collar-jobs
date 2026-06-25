@@ -1,5 +1,34 @@
 # Anti-Patterns — Forbidden
 
+## Import Extension Violations (NodeNext resolution)
+
+❌ Relative import with no extension — runtime resolution failure:
+```typescript
+import { PrismaService } from "../../core/database/prisma.service";
+```
+
+❌ Relative import with `.ts` extension — `.ts` files do not exist in `dist/` at runtime:
+```typescript
+import { PrismaService } from "../../core/database/prisma.service.ts";
+```
+
+❌ Overriding `module`/`moduleResolution` in a child `tsconfig.json` — breaks the extension contract:
+```json
+{ "compilerOptions": { "module": "CommonJS", "moduleResolution": "Node" } }
+```
+
+✅ Correct relative import with `.js` extension (required by NodeNext):
+```typescript
+import { PrismaService } from "../../core/database/prisma.service.js";
+```
+
+✅ Path alias imports need no extension (alias resolution is compiler-side, not NodeNext):
+```typescript
+import { PrismaService } from "@core/database/prisma.service";
+```
+
+See [`common/typescript.md`](./typescript.md) for the full import rules table.
+
 ## Fat Controllers
 
 ❌ Business logic, DB queries, or transformations in a controller method.

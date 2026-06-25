@@ -4,17 +4,17 @@ import type { AuthUser } from "../../core/auth/jwt.strategy.js";
 import { PrismaService } from "../../core/database/prisma.service.js";
 import { BadRequestError, ForbiddenError, NotFoundError } from "../../core/error/errors.js";
 import type { CreateJobDto } from "./dto/create-job.dto.js";
+import type { AdminJobSearchDto } from "./dto/admin-job-search.dto.js";
+import type { FeatureJobDto } from "./dto/feature-job.dto.js";
 import type { JobSearchDto } from "./dto/job-search.dto.js";
 import type { UpdateJobDto } from "./dto/update-job.dto.js";
 import { buildJobSlug, slugifySegment } from "./job-slug.util.js";
-import {
-  toJobDetail,
-  toJobResponse,
-  toJobSummary,
-  type JobDetailResponse,
-  type JobResponse,
-  type JobWithCompany,
-  type PaginatedJobsResponse,
+import { toJobDetail, toJobResponse, toJobSummary, type JobWithCompany } from "./job.mapper.js";
+import type {
+  JobDetailResponse,
+  JobResponse,
+  PaginatedJobResponses,
+  PaginatedJobsResponse,
 } from "./types.js";
 
 const LISTABLE_STATUSES = ["active", "published"] as const;
@@ -37,6 +37,18 @@ export class JobsService {
     if (user.role === "admin") {
       if (!dto.companyId) {
         throw new BadRequestError("companyId is required for admin job posts");
+      }
+      const company = await this.prisma.company.findUnique({ where: { id: dto.companyId } });
+      if (!company) {
+        throw new BadRequestError(`Company not found: ${dto.companyId}`);
+      }
+      if (dto.companyPackageId) {
+        const pkg = await this.prisma.companyPackage.findFirst({
+          where: { id: dto.companyPackageId, companyId: company.id },
+        });
+        if (!pkg) {
+          throw new BadRequestError("Invalid companyPackageId for this company");
+        }
       }
       const status = dto.status ?? "published";
       const job = await this.prisma.job.create({
@@ -114,12 +126,12 @@ export class JobsService {
     };
 
     if (dto.q?.trim()) {
-      const q = dto.q.trim();
+      const searchQuery = dto.q.trim();
       where.OR = [
-        { title: { contains: q, mode: "insensitive" } },
-        { description: { contains: q, mode: "insensitive" } },
-        { category: { contains: q, mode: "insensitive" } },
-        { city: { contains: q, mode: "insensitive" } },
+        { title: { contains: searchQuery, mode: "insensitive" } },
+        { description: { contains: searchQuery, mode: "insensitive" } },
+        { category: { contains: searchQuery, mode: "insensitive" } },
+        { city: { contains: searchQuery, mode: "insensitive" } },
       ];
     }
     if (dto.category) where.categorySlug = slugifySegment(dto.category);
@@ -132,6 +144,8 @@ export class JobsService {
     if (dto.featured != null) where.featured = dto.featured;
     if (dto.quickHire != null) where.quickHire = dto.quickHire;
     if (dto.temperatureEnv) where.temperatureEnv = dto.temperatureEnv;
+    if (dto.companyId) where.companyId = dto.companyId;
+    if (dto.weeklyPay != null) where.weeklyPay = dto.weeklyPay;
 
     const all = await this.prisma.job.findMany({
       where,
@@ -151,6 +165,60 @@ export class JobsService {
       data: slice.map(toJobSummary),
       meta: { total, page, pageSize, totalPages },
     };
+  }
+
+  async adminSearch(dto: AdminJobSearchDto): Promise<PaginatedJobResponses> {
+    const page = dto.page ?? 1;
+    const pageSize = dto.pageSize ?? 20;
+    const where = this.buildTextSearchWhere(dto.q);
+
+    if (dto.status) where.status = dto.status;
+    if (dto.sourceType) where.sourceType = dto.sourceType;
+    if (dto.companyId) where.companyId = dto.companyId;
+
+    return this.paginateJobResponses(where, page, pageSize);
+  }
+
+  async featureJob(id: string, dto: FeatureJobDto, user: AuthUser): Promise<JobResponse> {
+    if (user.role !== "admin") {
+      throw new ForbiddenError("Only admin may feature jobs");
+    }
+
+    const job = await this.prisma.job.findUnique({
+      where: { id },
+      include: { company: true },
+    });
+    if (!job) throw new NotFoundError("Job", id);
+
+    const updated = await this.prisma.job.update({
+      where: { id },
+      data: {
+        featured: dto.featured,
+        featuredUntil: dto.featured ? (dto.featuredUntil ?? null) : null,
+      },
+      include: { company: true },
+    });
+    return toJobResponse(updated);
+  }
+
+  async listForVendor(user: AuthUser, dto?: JobSearchDto): Promise<PaginatedJobResponses> {
+    const page = dto?.page ?? 1;
+    const pageSize = dto?.pageSize ?? 20;
+    const where = this.buildTextSearchWhere(dto?.q);
+
+    if (user.role === "vendor") {
+      const company = await this.prisma.company.findUnique({ where: { ownerId: user.id } });
+      if (!company) {
+        throw new BadRequestError("Vendor account has no company profile");
+      }
+      where.companyId = company.id;
+    } else if (user.role === "admin") {
+      if (dto?.companyId) where.companyId = dto.companyId;
+    } else {
+      throw new ForbiddenError("Only admin or vendor may list company jobs");
+    }
+
+    return this.paginateJobResponses(where, page, pageSize);
   }
 
   async findBySlug(slug: string): Promise<JobDetailResponse> {
@@ -306,10 +374,6 @@ export class JobsService {
     return slug;
   }
 
-  private shouldSetPostedAt(status: Job["status"]): boolean {
-    return status === "published" || status === "active";
-  }
-
   private sortForSearch(jobs: JobWithCompany[]): JobWithCompany[] {
     return [...jobs].sort((a, b) => {
       const featuredDiff = (b.featured ? 1 : 0) - (a.featured ? 1 : 0);
@@ -322,6 +386,47 @@ export class JobsService {
       const bPosted = b.postedAt?.getTime() ?? b.createdAt.getTime();
       return bPosted - aPosted;
     });
+  }
+
+  private shouldSetPostedAt(status: Job["status"]): boolean {
+    return status === "published" || status === "active";
+  }
+
+  private buildTextSearchWhere(q?: string): Prisma.JobWhereInput {
+    const where: Prisma.JobWhereInput = {};
+    if (q?.trim()) {
+      const term = q.trim();
+      where.OR = [
+        { title: { contains: term, mode: "insensitive" } },
+        { description: { contains: term, mode: "insensitive" } },
+        { category: { contains: term, mode: "insensitive" } },
+        { city: { contains: term, mode: "insensitive" } },
+      ];
+    }
+    return where;
+  }
+
+  private async paginateJobResponses(
+    where: Prisma.JobWhereInput,
+    page: number,
+    pageSize: number,
+  ): Promise<PaginatedJobResponses> {
+    const [total, jobs] = await Promise.all([
+      this.prisma.job.count({ where }),
+      this.prisma.job.findMany({
+        where,
+        include: { company: true },
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+    ]);
+
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
+    return {
+      data: jobs.map(toJobResponse),
+      meta: { total, page, pageSize, totalPages },
+    };
   }
 
   private async assertCanManage(companyId: string | null, user: AuthUser): Promise<void> {

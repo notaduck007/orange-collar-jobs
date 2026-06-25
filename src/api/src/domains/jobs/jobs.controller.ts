@@ -22,7 +22,7 @@ import { CreateJobDto } from "./dto/create-job.dto.js";
 import { JobSearchDto } from "./dto/job-search.dto.js";
 import { UpdateJobDto } from "./dto/update-job.dto.js";
 import { JobsService } from "./jobs.service.js";
-import type { JobDetailResponse, JobResponse, PaginatedJobsResponse } from "./types.js";
+import type { JobDetailResponse, JobResponse, PaginatedJobResponses, PaginatedJobsResponse } from "./types.js";
 
 @ApiTags("Jobs")
 @Controller({ path: "jobs", version: "1" })
@@ -35,6 +35,22 @@ export class JobsController {
   @ApiResponse({ status: 200, description: "Paginated job listing" })
   search(@Query() dto: JobSearchDto): Promise<PaginatedJobsResponse> {
     return this.jobsService.search(dto);
+  }
+
+  // x-implemented: GET /api/v1/jobs/mine
+  @Get("mine")
+  @ApiBearerAuth()
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.admin, UserRole.vendor)
+  @ApiOperation({ summary: "List my company's jobs" })
+  @ApiResponse({ status: 200, description: "Paginated job listing" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 403, description: "Forbidden" })
+  listMine(
+    @Query() dto: JobSearchDto,
+    @CurrentUser() user: AuthUser,
+  ): Promise<PaginatedJobResponses> {
+    return this.jobsService.listForVendor(user, dto);
   }
 
   @Public()

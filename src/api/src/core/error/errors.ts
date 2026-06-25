@@ -29,8 +29,8 @@ export class ValidationError extends AppError {
 }
 
 export class UnauthorizedError extends AppError {
-  constructor(message = "Unauthorized") {
-    super(message, "UNAUTHORIZED", 401);
+  constructor(message = "Unauthorized", details?: Record<string, unknown>) {
+    super(message, "UNAUTHORIZED", 401, details);
   }
 }
 

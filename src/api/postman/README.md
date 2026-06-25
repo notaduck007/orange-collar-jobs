@@ -25,7 +25,7 @@ After Phase 2 auth (or `bun run dev:token --role admin` + verified email in DB):
 1. Set Postman env `companyId` from Postgres (`SELECT id FROM companies LIMIT 1`).
 2. Run folder **Phase 3 — Walkthrough (run in order)** — search → create → detail → patch → delete.
 
-Full narrative: [`docs/demo/phase3-demo.md`](../../../docs/demo/phase3-demo.md)
+Full narrative + curl equivalents: [`docs/demo/phase3-demo.md`](../../../docs/demo/phase3-demo.md) Parts A and B.
 
 Before step **3** (verify) and **9** (reset), set environment variables from API logs or Postgres:
 

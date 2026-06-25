@@ -8,6 +8,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  IsUUID,
   Max,
   Min,
 } from "class-validator";
@@ -91,6 +92,17 @@ export class JobSearchDto {
   @IsBoolean()
   @Type(() => Boolean)
   quickHire?: boolean;
+
+  @ApiPropertyOptional({ format: "uuid" })
+  @IsOptional()
+  @IsUUID()
+  companyId?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
+  @Type(() => Boolean)
+  weeklyPay?: boolean;
 
   @ApiPropertyOptional({ enum: TEMP_ENVS })
   @IsOptional()

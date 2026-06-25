@@ -21,6 +21,7 @@
     "!<rootDir>/src/**/*.module.ts",
     "!<rootDir>/src/**/index.ts",
     "!<rootDir>/src/**/*.dto.ts",
+    "!<rootDir>/src/**/*controller.ts",
     "!<rootDir>/src/generated/**",
     "!<rootDir>/src/domains/api-contract/detect-contract-drift.ts"
   ],

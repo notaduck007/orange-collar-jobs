@@ -9,8 +9,12 @@
  */
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useState } from "react";
+import { BatchIngestPanel } from "@/components/dev/batch-ingest-panel";
+import { JobsDiagnosticsPanel } from "@/components/dev/jobs-diagnostics-panel";
+import { NotificationsDiagnosticsPanel } from "@/components/dev/notifications-diagnostics-panel";
 import { useApiHealth } from "@/hooks/use-api-health";
 import { apiClient, ApiError } from "@/lib/api-client";
+import { getApiBaseUrl } from "@/lib/api/config";
 
 export const Route = createFileRoute("/dev/diagnostics")({
   beforeLoad: () => {
@@ -161,7 +165,7 @@ function MePanel() {
 // ── Main page ────────────────────────────────────────────────────────────────
 
 function DiagnosticsPage() {
-  const apiBase = import.meta.env["VITE_API_BASE_URL"] ?? "http://localhost:3001";
+  const apiBase = getApiBaseUrl();
 
   return (
     <main className="mx-auto max-w-2xl space-y-6 px-4 py-10">
@@ -180,13 +184,17 @@ function DiagnosticsPage() {
 
       <HealthPanel />
       <MePanel />
+      <JobsDiagnosticsPanel />
+      <BatchIngestPanel />
+      <NotificationsDiagnosticsPanel />
 
       <div className="rounded-xl border border-border bg-muted/50 p-4 text-xs text-muted-foreground">
-        <p className="font-medium">Phase 2 roadmap</p>
+        <p className="font-medium">Phase 4 + 4.5 diagnostics</p>
         <ul className="mt-1 list-inside list-disc space-y-1">
-          <li>Login panel → auto-populate Bearer token from Supabase session exchange</li>
-          <li>POST /api/v1/auth/register · login · refresh tests</li>
-          <li>Jobs endpoint tester once Phase 3 lands</li>
+          <li>Jobs search + detail panels (FE-3)</li>
+          <li>Batch ingest + status poll with X-Api-Key (FE-4)</li>
+          <li>Notifications inbox sync + read-all (FE-4.5)</li>
+          <li>Login at /auth stores Nest JWT for protected routes</li>
         </ul>
       </div>
     </main>

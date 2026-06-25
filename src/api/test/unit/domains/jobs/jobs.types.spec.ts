@@ -3,7 +3,7 @@ import {
   toJobDetail,
   toJobResponse,
   toJobSummary,
-} from "@domains/jobs/types";
+} from "@domains/jobs/job.mapper";
 
 const baseJob: Job = {
   id: "job-1",

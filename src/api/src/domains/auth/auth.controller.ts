@@ -4,6 +4,11 @@ import { Throttle } from "@nestjs/throttler";
 import { Public } from "../../core/auth/public.decorator.js";
 import { CurrentUser } from "../../core/auth/current-user.decorator.js";
 import type { AuthUser } from "../../core/auth/jwt.strategy.js";
+import { OtpService } from "../notifications/otp.service.js";
+import { SendOtpDto } from "../notifications/dto/send-otp.dto.js";
+import { VerifyOtpDto } from "../notifications/dto/verify-otp.dto.js";
+import { Enable2faDto } from "../notifications/dto/enable-2fa.dto.js";
+import { Verify2faDto } from "../notifications/dto/verify-2fa.dto.js";
 import { AuthService } from "./auth.service.js";
 import { ForgotPasswordDto } from "./dto/forgot-password.dto.js";
 import { LoginDto } from "./dto/login.dto.js";
@@ -16,7 +21,10 @@ import type { AuthTokensResponse, MessageResponse, RegisterResponse } from "./ty
 @ApiTags("Auth")
 @Controller({ path: "auth", version: "1" })
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly otpService: OtpService,
+  ) {}
 
   @Public()
   @Post("register")
@@ -87,5 +95,43 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   resetPassword(@Body() dto: ResetPasswordDto): Promise<MessageResponse> {
     return this.authService.resetPassword(dto.token, dto.password);
+  }
+
+  @Public()
+  @Post("send-otp")
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  @ApiOperation({ summary: "Send OTP code" })
+  @HttpCode(HttpStatus.OK)
+  sendOtp(@Body() dto: SendOtpDto): Promise<{ message: string }> {
+    return this.otpService.sendOtp(dto);
+  }
+
+  @Public()
+  @Post("verify-otp")
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  @ApiOperation({ summary: "Verify OTP code" })
+  @HttpCode(HttpStatus.OK)
+  verifyOtp(@Body() dto: VerifyOtpDto): Promise<{ verified: boolean }> {
+    return this.otpService.verifyOtp(dto);
+  }
+
+  @Post("enable-2fa")
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Enable two-factor authentication" })
+  @HttpCode(HttpStatus.OK)
+  enable2fa(
+    @CurrentUser() user: AuthUser,
+    @Body() dto: Enable2faDto,
+  ): Promise<{ message: string }> {
+    return this.otpService.enable2fa(user.id, dto);
+  }
+
+  @Public()
+  @Post("verify-2fa")
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  @ApiOperation({ summary: "Complete login with 2FA" })
+  @HttpCode(HttpStatus.OK)
+  verify2fa(@Body() dto: Verify2faDto): Promise<AuthTokensResponse> {
+    return this.otpService.verify2fa(dto);
   }
 }

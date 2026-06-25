@@ -1,11 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo, useEffect, useRef } from "react";
-import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
-import { toast } from "sonner";
 import { Search, MapPin, Filter as FilterIcon, BellRing } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { JobCard, type JobSummary } from "@/components/job-card";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
@@ -17,94 +15,39 @@ import { Briefcase } from "lucide-react";
 import { TEMP_ENVS, CERTIFICATIONS, CERT_LABEL, TEMP_LABEL } from "@/lib/warehouse-attrs";
 import jobsStrip from "@/assets/jobs-strip.webp";
 import { canonical } from "@/lib/seo";
+import { useCreateJobAlertFromSearch } from "@/hooks/use-create-job-alert";
+import { fetchJobsSearchPage, JOBS_PAGE_SIZE } from "@/lib/jobs/jobs-search-service";
 
-const searchSchema = z.object({
-  q: z.string().optional(),
-  loc: z.string().optional(),
-  category: z.string().optional(),
-  shift: z.string().optional(),
-  type: z.string().optional(),
-  sort: z.enum(["relevance", "date", "pay_high"]).optional(),
-  pay_min: z.coerce.number().optional(),
-  radius: z.coerce.number().optional(),
-  temp: z.enum(["ambient", "cooler", "freezer"]).optional(),
-  certs: z.string().optional(), // comma-separated cert values
-  weekly_pay: z.coerce.boolean().optional(),
-  quick_hire: z.coerce.boolean().optional(),
-  overtime: z.coerce.boolean().optional(),
-  max_lift: z.coerce.number().optional(),
-});
+const searchSchema = z
+  .object({
+    q: z.string().optional(),
+    loc: z.string().optional(),
+    category: z.string().optional(),
+    shift: z.string().optional(),
+    type: z.string().optional(),
+    sort: z.enum(["relevance", "date", "pay_high"]).optional(),
+    pay_min: z.coerce.number().optional(),
+    radius: z.coerce.number().optional(),
+    temp: z.enum(["ambient", "cooler", "freezer"]).optional(),
+    certs: z.string().optional(), // comma-separated cert values
+    weekly_pay: z.coerce.boolean().optional(),
+    quick_hire: z.coerce.boolean().optional(),
+    overtime: z.coerce.boolean().optional(),
+    max_lift: z.coerce.number().optional(),
+    /** When set on `/jobs/$slug`, auto-opens the apply dialog (`?apply=1`). */
+    apply: z
+      .unknown()
+      .optional()
+      .transform((v) => (v === 1 || v === "1" || v === true ? (1 as const) : undefined)),
+  })
+  .catch({});
 
 const RADIUS_OPTIONS = [10, 25, 50, 100] as const;
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = JOBS_PAGE_SIZE;
 
 async function fetchDefaultJobsPage() {
-  const { data, error } = await supabase.rpc("search_jobs", {
-    p_query: null,
-    p_location: null,
-    p_category: null,
-    p_shift: null,
-    p_type: null,
-    p_pay_min: undefined,
-    p_radius_miles: undefined,
-    p_sort: "date",
-    p_limit: PAGE_SIZE,
-    p_offset: 0,
-    p_temperature_env: null,
-    p_certifications: null,
-    p_weekly_pay: null,
-    p_quick_hire: null,
-    p_overtime: null,
-    p_max_lift: null,
-  } as never);
-  if (error) throw error;
-  const rows = (data ?? []) as Array<{
-    id: string;
-    slug: string;
-    title: string;
-    location: string;
-    shift: string;
-    employment_type: string;
-    pay_min: number | null;
-    pay_max: number | null;
-    category: string;
-    featured: boolean;
-    company_name: string | null;
-    company_slug: string | null;
-    company_verified: boolean | null;
-    temperature_env: string | null;
-    certifications_required: string[] | null;
-    weekly_pay: boolean | null;
-    quick_hire: boolean | null;
-    overtime_available: boolean | null;
-    lift_requirement_lbs: number | null;
-    has_screening: boolean | null;
-    total_count: number;
-  }>;
-  const jobs: JobSummary[] = rows.map((r) => ({
-    id: r.id,
-    slug: r.slug,
-    title: r.title,
-    location: r.location,
-    shift: r.shift,
-    employment_type: r.employment_type,
-    pay_min: r.pay_min,
-    pay_max: r.pay_max,
-    featured: r.featured,
-    category: r.category,
-    companies: r.company_name
-      ? { name: r.company_name, slug: r.company_slug ?? "", verified: r.company_verified }
-      : null,
-    temperature_env: r.temperature_env,
-    certifications_required: r.certifications_required,
-    weekly_pay: r.weekly_pay,
-    quick_hire: r.quick_hire,
-    overtime_available: r.overtime_available,
-    lift_requirement_lbs: r.lift_requirement_lbs,
-    has_screening: !!r.has_screening,
-  }));
-  return { jobs, total: rows[0]?.total_count ?? 0, offset: 0 };
+  return fetchJobsSearchPage({}, 1);
 }
 
 export const Route = createFileRoute("/jobs")({
@@ -152,7 +95,7 @@ function JobsPage() {
   const { initialPage } = Route.useLoaderData();
   const navigate = useNavigate();
   const { user, role } = useAuth();
-  const qc = useQueryClient();
+  const createAlertFromSearch = useCreateJobAlertFromSearch();
   const { t } = useTranslation();
   const [keyword, setKeyword] = useState(search.q ?? "");
   const [location, setLocation] = useState(search.loc ?? "");
@@ -177,112 +120,34 @@ function JobsPage() {
 
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useInfiniteQuery({
     queryKey: ["jobs-search", search, sort],
-    initialPageParam: 0,
-    initialData: isDefaultSearch ? { pages: [initialPage], pageParams: [0] } : undefined,
+    initialPageParam: 1,
+    initialData: isDefaultSearch ? { pages: [initialPage], pageParams: [1] } : undefined,
     queryFn: async ({ pageParam }) => {
-      const certsArr = search.certs ? search.certs.split(",").filter(Boolean) : null;
-      const { data, error } = await supabase.rpc("search_jobs", {
-        p_query: search.q ?? null,
-        p_location: search.loc ?? null,
-        p_category: search.category ?? null,
-        p_shift: search.shift ?? null,
-        p_type: search.type ?? null,
-        p_pay_min: search.pay_min,
-        p_radius_miles: search.loc && search.radius ? search.radius : undefined,
-        p_sort: sort,
-        p_limit: PAGE_SIZE,
-        p_offset: pageParam,
-        p_temperature_env: search.temp ?? null,
-        p_certifications: certsArr && certsArr.length ? certsArr : null,
-        p_weekly_pay: search.weekly_pay ? true : null,
-        p_quick_hire: search.quick_hire ? true : null,
-        p_overtime: search.overtime ? true : null,
-        p_max_lift: search.max_lift ?? null,
-      } as never);
-      if (error) throw error;
-      const rows = (data ?? []) as Array<{
-        id: string;
-        slug: string;
-        title: string;
-        location: string;
-        shift: string;
-        employment_type: string;
-        pay_min: number | null;
-        pay_max: number | null;
-        category: string;
-        featured: boolean;
-        company_name: string | null;
-        company_slug: string | null;
-        company_verified: boolean | null;
-        temperature_env: string | null;
-        certifications_required: string[] | null;
-        weekly_pay: boolean | null;
-        quick_hire: boolean | null;
-        overtime_available: boolean | null;
-        lift_requirement_lbs: number | null;
-        has_screening: boolean | null;
-        total_count: number;
-      }>;
-      const jobs: JobSummary[] = rows.map((r) => ({
-        id: r.id,
-        slug: r.slug,
-        title: r.title,
-        location: r.location,
-        shift: r.shift,
-        employment_type: r.employment_type,
-        pay_min: r.pay_min,
-        pay_max: r.pay_max,
-        featured: r.featured,
-        category: r.category,
-        companies: r.company_name
-          ? { name: r.company_name, slug: r.company_slug ?? "", verified: r.company_verified }
-          : null,
-        temperature_env: r.temperature_env,
-        certifications_required: r.certifications_required,
-        weekly_pay: r.weekly_pay,
-        quick_hire: r.quick_hire,
-        overtime_available: r.overtime_available,
-        lift_requirement_lbs: r.lift_requirement_lbs,
-        has_screening: !!r.has_screening,
-      }));
-      return { jobs, total: rows[0]?.total_count ?? 0, offset: pageParam };
+      const page = typeof pageParam === "number" ? pageParam : 1;
+      return fetchJobsSearchPage(
+        {
+          q: search.q,
+          loc: search.loc,
+          category: search.category,
+          shift: search.shift,
+          type: search.type,
+          pay_min: search.pay_min,
+          radius: search.loc && search.radius ? search.radius : undefined,
+          temp: search.temp,
+          weekly_pay: search.weekly_pay,
+          quick_hire: search.quick_hire,
+        },
+        page,
+      );
     },
-    getNextPageParam: (lastPage) => {
-      const loaded = lastPage.offset + lastPage.jobs.length;
-      return loaded < lastPage.total ? loaded : undefined;
-    },
+    getNextPageParam: (lastPage) =>
+      lastPage.page < lastPage.totalPages ? lastPage.page + 1 : undefined,
   });
 
   const jobs = useMemo(() => (data?.pages.flatMap((p) => p.jobs) ?? []) as JobSummary[], [data]);
   const total = data?.pages[0]?.total ?? 0;
 
-  const createAlertFromSearch = async () => {
-    if (!user) {
-      navigate({ to: "/auth", search: { mode: "login", next: "/jobs" } as never });
-      return;
-    }
-    if (role && role !== "job_seeker" && role !== "admin") {
-      toast.error("Only job seekers can create alerts.");
-      return;
-    }
-    if (!search.q && !search.loc && !search.category) {
-      toast.error("Add a keyword, location, or category to create an alert.");
-      return;
-    }
-    const [city, state] = (search.loc ?? "").split(",").map((s: string) => s.trim());
-    const { error } = await supabase.from("job_alerts").insert({
-      applicant_id: user.id,
-      keyword: search.q || null,
-      city: city || null,
-      state: state ? state.toUpperCase().slice(0, 2) : null,
-      frequency: "daily",
-    });
-    if (error) toast.error(error.message);
-    else {
-      toast.success("Alert created — manage it in your dashboard.");
-      qc.invalidateQueries({ queryKey: ["seeker-alerts", user.id] });
-    }
-  };
+  const createAlert = () => void createAlertFromSearch(user, role, search);
 
   const updateSearch = (patch: Partial<typeof search>) => {
     navigate({ to: "/jobs", search: { ...search, ...patch } as never });
@@ -489,7 +354,10 @@ function JobsPage() {
         </div>
       </section>
 
-      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[260px_1fr]">
+      <div
+        className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[260px_1fr]"
+        data-testid="jobs-from-api"
+      >
         {/* FILTERS */}
         <aside className="space-y-6">
           <div className="flex items-center gap-2">
@@ -686,12 +554,7 @@ function JobsPage() {
                 ))}
               </select>
               {hasActiveSearch && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={createAlertFromSearch}
-                  className="gap-1.5"
-                >
+                <Button variant="outline" size="sm" onClick={createAlert} className="gap-1.5">
                   <BellRing className="h-4 w-4 text-primary" aria-hidden="true" />{" "}
                   {t("jobs.getAlerts")}
                 </Button>

@@ -1,0 +1,120 @@
+# Notifications domain — service contract (Phase 4.5)
+# Status: DRAFT — requires human approval before Task 4.5.1 implementation
+# OpenAPI: docs/api/openapi.yaml (Notifications, Webhooks, Admin — Campaigns, Auth OTP)
+
+service: NotificationsService
+domain: notifications
+boundedContext: Outbound/inbound notification delivery, inbox, preferences, and marketing campaigns
+
+dependencies:
+  - EmailService (core adapter — Resend)
+  - SmsService (core adapter — Twilio)
+  - BullMQ queue QUEUE_NOTIFICATIONS
+  - Prisma (notifications, preferences, deliveries, consents, opt_outs, campaigns, otp_challenges, user_mfa)
+
+methods:
+  - name: send
+    description: Route a notification by kind and channel; enqueue async delivery when needed.
+    inputs:
+      - name: request
+        type: SendNotificationRequest
+    returns: Promise<NotificationDeliveryResult>
+    throws:
+      - ForbiddenError: marketing blocked by consent or preference
+      - ValidationError: unknown template or channel
+    sideEffects:
+      - Writes notification_deliveries audit row
+      - Creates in_app row when channel includes inbox
+      - Emits WebSocket notification.created via NotificationGateway
+
+  - name: listInbox
+    description: Paginated inbox for authenticated user.
+    inputs:
+      - name: userId
+        type: string
+      - name: params
+        type: InboxQueryDto
+    returns: Promise<PaginatedResult<Notification>>
+
+  - name: markRead
+    description: Mark one notification read; idempotent.
+    inputs:
+      - name: userId
+        type: string
+      - name: notificationId
+        type: string
+    returns: Promise<Notification>
+    throws:
+      - NotFoundError: notification not found or not owned
+
+  - name: markAllRead
+    description: Mark all unread notifications for user.
+    inputs:
+      - name: userId
+        type: string
+    returns: Promise<{ updated: number }>
+
+  - name: getPreferences
+    description: Return user notification channel toggles; create defaults if missing.
+    inputs:
+      - name: userId
+        type: string
+    returns: Promise<NotificationPreferences>
+
+  - name: updatePreferences
+    description: Partial update of channel toggles; marketing opt-in recorded in marketing_consents.
+    inputs:
+      - name: userId
+        type: string
+      - name: dto
+        type: UpdateNotificationPreferencesRequest
+    returns: Promise<NotificationPreferences>
+
+service: CampaignService
+domain: notifications
+boundedContext: Admin marketing broadcasts
+
+methods:
+  - name: create
+    inputs: [{ name: dto, type: CreateCampaignRequest }, { name: adminId, type: string }]
+    returns: Promise<MarketingCampaign>
+
+  - name: send
+    description: Chunk recipients through NotificationWorker; enforce TCPA/CAN-SPAM gates.
+    inputs: [{ name: campaignId, type: string }, { name: adminId, type: string }]
+    returns: Promise<MarketingCampaign>
+    throws:
+      - ForbiddenError: non-admin caller
+      - ValidationError: empty segment or missing template
+
+service: InboundMessageHandler
+domain: notifications
+boundedContext: Provider webhook ingestion (Twilio SMS, Resend email)
+
+methods:
+  - name: handleTwilioSms
+    description: Validate signature; process STOP/HELP; route replies to inbox threads.
+    inputs: [{ name: payload, type: Record<string, string> }, { name: signature, type: string }]
+    returns: Promise<void>
+    throws:
+      - ForbiddenError: invalid Twilio signature
+
+  - name: handleResendInbound
+    description: Validate Resend webhook; parse reply-to; create inbox notification.
+    inputs: [{ name: payload, type: unknown }, { name: headers, type: Record<string, string> }]
+    returns: Promise<void>
+
+gateway: NotificationGateway
+transport: WebSocket (/ws/notifications)
+auth: WsJwtGuard — JWT on connection handshake
+events:
+  - name: notification.created
+    payload: Notification
+notes:
+  - Client reconnects via REST sync then subscribes to deltas
+  - Not part of OpenAPI REST surface
+
+crossDomainRules:
+  - Auth domain owns credentials; calls NotificationsService for verify/reset/OTP delivery
+  - Jobs/Applications emit domain events; notifications subscribes — no reverse imports
+  - Phase 1 endpoints (/api/health, /api/v1/me) unchanged

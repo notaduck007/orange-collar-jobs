@@ -3,8 +3,9 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Download, ShieldAlert, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { getAccessToken } from "@/lib/auth-session";
+import { getApiBaseUrl } from "@/lib/api/http";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -20,7 +21,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import type { Row } from "@/lib/row-types";
+import { NotificationPreferencesForm } from "@/components/notification-preferences-form";
 import { errMsg } from "@/lib/row-types";
 
 export const Route = createFileRoute("/seeker/privacy")({
@@ -29,7 +30,7 @@ export const Route = createFileRoute("/seeker/privacy")({
 });
 
 function PrivacyPage() {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const qc = useQueryClient();
   const [exporting, setExporting] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -37,39 +38,23 @@ function PrivacyPage() {
 
   const requestsQ = useQuery({
     queryKey: ["my-deletion-requests", user?.id],
-    enabled: !!user,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("deletion_requests")
-        .select("*")
-        .eq("user_id", user!.id)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
-    },
+    enabled: false,
+    queryFn: async (): Promise<never[]> => [],
   });
 
   async function handleExport() {
     if (!user) return;
     setExporting(true);
     try {
-      const { data: sess } = await supabase.auth.getSession();
-      const token = sess.session?.access_token;
-      const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/export-user-data`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          },
-          body: JSON.stringify({}),
-        },
-      );
+      const token = getAccessToken();
+      if (!token) throw new Error("Not signed in");
+      const res = await fetch(`${getApiBaseUrl()}/api/v1/users/me/export`, {
+        method: "GET",
+        headers: { Authorization: `Bearer ${token}` },
+      });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err.error ?? `Export failed (${res.status})`);
+        throw new Error((err as { message?: string }).message ?? `Export failed (${res.status})`);
       }
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
@@ -80,7 +65,7 @@ function PrivacyPage() {
       URL.revokeObjectURL(url);
       toast.success("Your data has been downloaded.");
     } catch (e: unknown) {
-      toast.error(errMsg(e, "Export failed"));
+      toast.error(errMsg(e, "Export not yet available — contact support@warehousejobs.com"));
     } finally {
       setExporting(false);
     }
@@ -90,17 +75,28 @@ function PrivacyPage() {
     if (!user) return;
     setDeleting(true);
     try {
-      const { data, error } = await supabase.functions.invoke("delete-user-account", {
-        body: { mode: "soft", reason: reason || null },
+      const token = getAccessToken();
+      if (!token) throw new Error("Not signed in");
+      const res = await fetch(`${getApiBaseUrl()}/api/v1/users/me`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ reason: reason || null }),
       });
-      if (error) throw error;
-      if ((data as Row)?.error) throw new Error((data as Row).error);
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error((err as { message?: string }).message ?? `Deletion failed (${res.status})`);
+      }
       toast.success("Account deleted. Signing you out…");
       await qc.invalidateQueries();
-      await supabase.auth.signOut();
+      await signOut();
       window.location.href = "/";
     } catch (e: unknown) {
-      toast.error(errMsg(e, "Deletion failed"));
+      toast.error(
+        errMsg(e, "Account deletion not yet available — contact support@warehousejobs.com"),
+      );
       setDeleting(false);
     }
   }
@@ -115,6 +111,16 @@ function PrivacyPage() {
           Export your personal data or permanently delete your account.
         </p>
       </div>
+
+      <section className="rounded-xl border bg-card p-6 shadow-sm">
+        <h2 className="text-lg font-semibold">Notification preferences</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Control email, SMS, and in-app alerts via the Nest API (Phase 4.5).
+        </p>
+        <div className="mt-4">
+          <NotificationPreferencesForm testId="notification-preferences" />
+        </div>
+      </section>
 
       <section className="rounded-xl border bg-card p-6 shadow-sm">
         <div className="flex items-start gap-4">
