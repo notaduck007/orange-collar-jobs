@@ -162,29 +162,30 @@ describe("BatchWorker.handle", () => {
     await expect(worker.handle(bullJobMock as never)).rejects.toThrow("DB connection lost");
   });
 
-  it("continues processing when progress-flush update raises P2025", async () => {
+  it("returns early (stops processing) when progress-flush update raises P2025", async () => {
     bullJobMock.data = { batchId, items: [BATCH_JOB_ITEM], companyId: null };
     batchServiceMock.processItems.mockResolvedValueOnce([{ action: "created", index: 0 }]);
     const notFoundError = Object.assign(new Error("Record not found"), {
       code: "P2025",
       name: "PrismaClientKnownRequestError",
     });
-    // First update (processing) succeeds; second (progress flush) raises P2025; third (completed) succeeds
+    // First update (processing) succeeds; second (progress flush) raises P2025 → early return
     prismaMock.batchJob.update
       .mockResolvedValueOnce({})
-      .mockRejectedValueOnce(notFoundError)
-      .mockResolvedValueOnce({});
+      .mockRejectedValueOnce(notFoundError);
 
     await worker.handle(bullJobMock as never); // must not throw
 
-    // Completion update should still be called despite flush failure
+    // Completion update should NOT be called — the worker returns early on flush P2025
     const completionCall = prismaMock.batchJob.update.mock.calls.find(
       (call: [{ data: { status?: string } }]) => call[0].data.status === "completed",
     );
-    expect(completionCall).toBeDefined();
+    expect(completionCall).toBeUndefined();
+    // Only two update calls: "processing" + failed flush
+    expect(prismaMock.batchJob.update).toHaveBeenCalledTimes(2);
   });
 
-  it("continues when completion update raises P2025 (jobs created, status not persisted)", async () => {
+  it("returns early (does not throw) when completion update raises P2025", async () => {
     bullJobMock.data = { batchId, items: [BATCH_JOB_ITEM], companyId: null };
     batchServiceMock.processItems.mockResolvedValueOnce([{ action: "created", index: 0 }]);
     const notFoundError = Object.assign(new Error("Record not found"), {
