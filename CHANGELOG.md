@@ -1,3 +1,17 @@
+# [1.3.0](https://github.com/notaduck007/orange-collar-jobs/compare/v1.2.0...v1.3.0) (2026-06-25)
+
+
+### Bug Fixes
+
+* **ci:** resolve batch worker early exit and test runner issues ([5809409](https://github.com/notaduck007/orange-collar-jobs/commit/5809409f1d1a861c66235fa6dd59af18f1005e65))
+* **ci:** resolve Postman folder name and batch worker race condition ([6845b5f](https://github.com/notaduck007/orange-collar-jobs/commit/6845b5fd28f3a72cecb659860f6420778242648e))
+* **tests:** fixed all errors with tests executed in ci workflows ([12ec195](https://github.com/notaduck007/orange-collar-jobs/commit/12ec195ea96c8d3e2facbb49f0e9b79611e47417))
+
+
+### Features
+
+* **api,frontend:** complete phases 3–4.5, remove Supabase, add Postman tooling ([2673d75](https://github.com/notaduck007/orange-collar-jobs/commit/2673d75e91c155bca2bff624905e32135f0f8709))
+
 # [1.2.0](https://github.com/notaduck007/orange-collar-jobs/compare/v1.1.1...v1.2.0) (2026-06-20)
 
 
