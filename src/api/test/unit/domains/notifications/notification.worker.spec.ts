@@ -2,7 +2,7 @@ import { NotificationWorker } from "@domains/notifications/notification.worker";
 
 const notificationsMock = { deliverNow: jest.fn(), send: jest.fn() };
 const prismaMock = {
-  notificationCampaign: { findUniqueOrThrow: jest.fn(), update: jest.fn() },
+  notificationCampaign: { findUnique: jest.fn(), update: jest.fn() },
   user: { findUnique: jest.fn() },
   notificationDelivery: { create: jest.fn() },
 };
@@ -31,7 +31,7 @@ describe("NotificationWorker", () => {
   });
 
   it("processes campaign-send jobs", async () => {
-    prismaMock.notificationCampaign.findUniqueOrThrow.mockResolvedValue({
+    prismaMock.notificationCampaign.findUnique.mockResolvedValue({
       id: "c1",
       channel: "email",
       subject: "Hi",
@@ -52,8 +52,20 @@ describe("NotificationWorker", () => {
     );
   });
 
+  it("returns early without retrying when campaign is not found (deleted)", async () => {
+    prismaMock.notificationCampaign.findUnique.mockResolvedValue(null);
+
+    await worker.handleCampaignSend({
+      data: { campaignId: "deleted-campaign", userIds: ["u1"], offset: 0 },
+    } as never);
+
+    expect(notificationsMock.send).not.toHaveBeenCalled();
+    expect(prismaMock.notificationDelivery.create).not.toHaveBeenCalled();
+    expect(prismaMock.notificationCampaign.update).not.toHaveBeenCalled();
+  });
+
   it("records skipped delivery when marketing send blocked", async () => {
-    prismaMock.notificationCampaign.findUniqueOrThrow.mockResolvedValue({
+    prismaMock.notificationCampaign.findUnique.mockResolvedValue({
       id: "c1",
       channel: "email",
       subject: "Hi",
@@ -73,8 +85,45 @@ describe("NotificationWorker", () => {
     );
   });
 
+  it("logs warn and continues when skipped delivery create fails (FK violation)", async () => {
+    prismaMock.notificationCampaign.findUnique.mockResolvedValue({
+      id: "c1",
+      channel: "email",
+      subject: "Hi",
+      htmlBody: "<p>Hi</p>",
+      textBody: null,
+    });
+    prismaMock.user.findUnique.mockResolvedValue({ id: "u1", email: "a@test.com", phone: null });
+    notificationsMock.send.mockRejectedValue(new Error("blocked"));
+    prismaMock.notificationDelivery.create.mockRejectedValue(new Error("FK violation"));
+    prismaMock.notificationCampaign.update.mockResolvedValue({});
+
+    await worker.handleCampaignSend({
+      data: { campaignId: "c1", userIds: ["u1"], offset: 0 },
+    } as never);
+
+    expect(prismaMock.notificationCampaign.update).toHaveBeenCalled();
+  });
+
+  it("logs warn and continues when final campaign update fails", async () => {
+    prismaMock.notificationCampaign.findUnique.mockResolvedValue({
+      id: "c1",
+      channel: "email",
+      subject: "Hi",
+      htmlBody: null,
+      textBody: null,
+    });
+    prismaMock.user.findUnique.mockResolvedValue({ id: "u1", email: "a@test.com", phone: null });
+    notificationsMock.send.mockResolvedValue({ deliveryId: "d1", status: "queued" });
+    prismaMock.notificationCampaign.update.mockRejectedValue(new Error("campaign deleted"));
+
+    await worker.handleCampaignSend({
+      data: { campaignId: "c1", userIds: ["u1"], offset: 0 },
+    } as never);
+  });
+
   it("skips users without email on email campaign", async () => {
-    prismaMock.notificationCampaign.findUniqueOrThrow.mockResolvedValue({
+    prismaMock.notificationCampaign.findUnique.mockResolvedValue({
       id: "c1",
       channel: "email",
       subject: "Hi",
@@ -92,7 +141,7 @@ describe("NotificationWorker", () => {
   });
 
   it("skips missing users in campaign chunk", async () => {
-    prismaMock.notificationCampaign.findUniqueOrThrow.mockResolvedValue({
+    prismaMock.notificationCampaign.findUnique.mockResolvedValue({
       id: "c1",
       channel: "email",
       subject: "Hi",
@@ -117,7 +166,7 @@ describe("NotificationWorker", () => {
   });
 
   it("processes sms campaign-send jobs", async () => {
-    prismaMock.notificationCampaign.findUniqueOrThrow.mockResolvedValue({
+    prismaMock.notificationCampaign.findUnique.mockResolvedValue({
       id: "c1",
       channel: "sms",
       subject: null,
@@ -138,7 +187,7 @@ describe("NotificationWorker", () => {
   });
 
   it("skips users without phone on sms campaign", async () => {
-    prismaMock.notificationCampaign.findUniqueOrThrow.mockResolvedValue({
+    prismaMock.notificationCampaign.findUnique.mockResolvedValue({
       id: "c1",
       channel: "sms",
       subject: null,
@@ -156,7 +205,7 @@ describe("NotificationWorker", () => {
   });
 
   it("records skipped delivery when send throws non-Error", async () => {
-    prismaMock.notificationCampaign.findUniqueOrThrow.mockResolvedValue({
+    prismaMock.notificationCampaign.findUnique.mockResolvedValue({
       id: "c1",
       channel: "email",
       subject: "Hi",

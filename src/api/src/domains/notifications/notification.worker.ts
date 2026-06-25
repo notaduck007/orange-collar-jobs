@@ -34,9 +34,16 @@ export class NotificationWorker {
   @Process("campaign-send")
   async handleCampaignSend(job: Job<CampaignSendJobData>): Promise<void> {
     const { campaignId, userIds } = job.data;
-    const campaign = await this.prisma.notificationCampaign.findUniqueOrThrow({
+
+    // Use findUnique (not findUniqueOrThrow) so a deleted campaign completes without retrying.
+    // Campaigns can be cleaned up during test teardown or admin action while a queued job is pending.
+    const campaign = await this.prisma.notificationCampaign.findUnique({
       where: { id: campaignId },
     });
+    if (!campaign) {
+      this.logger.warn(`Campaign ${campaignId} not found; skipping send job without retry`);
+      return;
+    }
 
     for (const userId of userIds) {
       const user = await this.prisma.user.findUnique({ where: { id: userId } });
@@ -63,24 +70,37 @@ export class NotificationWorker {
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         this.logger.warn(`Campaign ${campaignId} skip user ${userId}: ${message}`);
-        await this.prisma.notificationDelivery.create({
-          data: {
-            userId,
-            channel: campaign.channel,
-            kind: "marketing",
-            template: "marketing.campaign",
-            status: "skipped",
-            campaignId,
-            toAddress: address,
-            error: message,
-          },
-        });
+
+        // Guard against FK violations — campaign may be deleted between the guard above and here.
+        try {
+          await this.prisma.notificationDelivery.create({
+            data: {
+              userId,
+              channel: campaign.channel,
+              kind: "marketing",
+              template: "marketing.campaign",
+              status: "skipped",
+              campaignId,
+              toAddress: address,
+              error: message,
+            },
+          });
+        } catch (deliveryErr) {
+          this.logger.warn(
+            `Could not record skipped delivery for campaign ${campaignId} user ${userId}: ${String(deliveryErr)}`,
+          );
+        }
       }
     }
 
-    await this.prisma.notificationCampaign.update({
-      where: { id: campaignId },
-      data: { status: "sent", sentAt: new Date() },
-    });
+    // Best-effort update — campaign may have been deleted between the guard above and here.
+    try {
+      await this.prisma.notificationCampaign.update({
+        where: { id: campaignId },
+        data: { status: "sent", sentAt: new Date() },
+      });
+    } catch (err) {
+      this.logger.warn(`Could not mark campaign ${campaignId} as sent: ${String(err)}`);
+    }
   }
 }

@@ -8,7 +8,14 @@
  */
 import type { INestApplication, Type } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
+import { getQueueToken } from "@nestjs/bull";
+import type { Queue } from "bull";
 import { configureApp } from "../../src/app.factory.js";
+import {
+  QUEUE_BATCH_INGEST,
+  QUEUE_NOTIFICATIONS,
+  QUEUE_JOB_ALERTS,
+} from "../../src/core/queue/queue.module.js";
 
 export interface TestApp {
   app: INestApplication;
@@ -45,8 +52,35 @@ export async function createTestApp(rootModule: Type, timeoutMs = 60_000): Promi
 
   return {
     app,
-    close: () => app.close(),
+    close: () => drainQueuesAndClose(app),
   };
+}
+
+/**
+ * Drain all known Bull queues and then close the NestJS application.
+ *
+ * Bull jobs persist in Redis even after the NestJS app that enqueued them has
+ * closed. Subsequent test-file apps inherit those pending jobs and their workers
+ * start processing them — referencing data that the previous file's cleanup
+ * already deleted. Draining the queues before close prevents cross-file
+ * contamination without forcing a full Redis flush.
+ */
+async function drainQueuesAndClose(app: INestApplication): Promise<void> {
+  for (const name of [QUEUE_NOTIFICATIONS, QUEUE_BATCH_INGEST, QUEUE_JOB_ALERTS]) {
+    try {
+      const queue = app.get<Queue>(getQueueToken(name), { strict: false });
+      if (queue) {
+        // Remove all waiting and delayed jobs so the next test file's workers
+        // don't pick them up. Active jobs are left to complete naturally.
+        await queue.empty();
+        const delayed = await queue.getDelayed();
+        await Promise.all(delayed.map((j) => j.remove().catch(() => undefined)));
+      }
+    } catch {
+      // Queue not registered in this module — skip silently
+    }
+  }
+  await app.close();
 }
 
 /**
