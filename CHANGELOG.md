@@ -1,3 +1,10 @@
+## [1.3.3](https://github.com/notaduck007/orange-collar-jobs/compare/v1.3.2...v1.3.3) (2026-06-25)
+
+
+### Bug Fixes
+
+* **integration:** tests ([2107747](https://github.com/notaduck007/orange-collar-jobs/commit/21077471bd5478b9c23700cd4429958a477c2964))
+
 ## [1.3.2](https://github.com/notaduck007/orange-collar-jobs/compare/v1.3.1...v1.3.2) (2026-06-25)
 
 
