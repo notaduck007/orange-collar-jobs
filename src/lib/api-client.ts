@@ -1,91 +1,34 @@
 /**
  * Typed fetch wrapper for the NestJS API at VITE_API_BASE_URL.
+ *
+ * Composition root: auth methods live here; jobs/batch are delegated to submodules (SRP).
  */
 import { getAuthSession, storeTokens, clearAuthSession } from "@/lib/auth-session";
+import { batchApi } from "@/lib/api/batch-api";
+import { campaignsApi } from "@/lib/api/campaigns-api";
+import { jobsApi } from "@/lib/api/jobs-api";
+import { notificationsApi } from "@/lib/api/notifications-api";
+import { ApiError, apiFetch, getApiBaseUrl } from "@/lib/api/http";
+import type {
+  AuthTokensResponse,
+  HealthResponse,
+  MeResponse,
+  MessageResponse,
+  RegisterRequest,
+  RegisterResponse,
+  Verify2faRequest,
+} from "@/lib/api/contracts/auth";
+import type {
+  CompanyProfile,
+  UpsertCompanyBody,
+  AdminCompanyRecord,
+  AdminUpdateCompanyBody,
+} from "@/lib/api/contracts/companies";
+export type { AdminCompanyRecord, AdminUpdateCompanyBody };
 
-const BASE_URL =
-  (typeof import.meta !== "undefined" && (import.meta as Record<string, unknown>).env
-    ? (import.meta as { env: Record<string, string> }).env["VITE_API_BASE_URL"]
-    : undefined) ?? "http://localhost:3001";
-
-export type ApiUserRole = "admin" | "vendor" | "seeker";
-
-export interface HealthResponse {
-  status: "ok" | "error";
-  info: Record<string, { status: "up" | "down"; message?: string }>;
-  error: Record<string, { status: "up" | "down"; message?: string }>;
-  details: Record<string, { status: "up" | "down"; message?: string }>;
-}
-
-export interface MeResponse {
-  id: string;
-  email: string;
-  role: ApiUserRole;
-}
-
-export interface AuthTokensResponse {
-  accessToken: string;
-  refreshToken: string;
-  expiresIn: number;
-}
-
-export interface RegisterResponse {
-  message: string;
-  userId: string;
-}
-
-export interface MessageResponse {
-  message: string;
-}
-
-export class ApiError extends Error {
-  constructor(
-    public readonly statusCode: number,
-    public readonly body: unknown,
-    message?: string,
-  ) {
-    super(message ?? `API error ${statusCode}`);
-    this.name = "ApiError";
-  }
-
-  get code(): string | undefined {
-    if (this.body && typeof this.body === "object" && "code" in this.body) {
-      return String((this.body as { code: string }).code);
-    }
-    return undefined;
-  }
-}
-
-async function apiFetch<T>(
-  path: string,
-  options: RequestInit & { token?: string } = {},
-): Promise<T> {
-  const { token, ...init } = options;
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    ...(init.headers as Record<string, string>),
-  };
-  if (token) headers["Authorization"] = `Bearer ${token}`;
-
-  const res = await fetch(`${BASE_URL}${path}`, { ...init, headers });
-
-  if (!res.ok) {
-    let body: unknown;
-    try {
-      body = await res.json();
-    } catch {
-      body = null;
-    }
-    const message =
-      body && typeof body === "object" && "message" in body
-        ? String((body as { message: string }).message)
-        : undefined;
-    throw new ApiError(res.status, body, message);
-  }
-
-  if (res.status === 204) return undefined as unknown as T;
-  return res.json() as Promise<T>;
-}
+export { ApiError, getApiBaseUrl };
+export type { ApiFetchOptions } from "@/lib/api/http";
+export type * from "@/lib/api/contracts";
 
 export const apiClient = {
   health(): Promise<HealthResponse> {
@@ -96,12 +39,7 @@ export const apiClient = {
     return apiFetch<MeResponse>("/api/v1/me", { token });
   },
 
-  register(body: {
-    email: string;
-    password: string;
-    role: "seeker" | "vendor";
-    fullName?: string;
-  }): Promise<RegisterResponse> {
+  register(body: RegisterRequest): Promise<RegisterResponse> {
     return apiFetch<RegisterResponse>("/api/v1/auth/register", {
       method: "POST",
       body: JSON.stringify(body),
@@ -173,8 +111,102 @@ export const apiClient = {
       body: JSON.stringify({ token, password }),
     });
   },
-};
 
-export function getApiBaseUrl(): string {
-  return BASE_URL;
-}
+  verify2fa(body: Verify2faRequest): Promise<AuthTokensResponse> {
+    return apiFetch<AuthTokensResponse>("/api/v1/auth/verify-2fa", {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+  },
+
+  async verify2faAndStore(body: Verify2faRequest): Promise<AuthTokensResponse> {
+    const tokens = await apiClient.verify2fa(body);
+    storeTokens(tokens.accessToken, tokens.refreshToken, tokens.expiresIn);
+    return tokens;
+  },
+
+  // Jobs (FE-3)
+  searchJobs: jobsApi.searchJobs,
+  listMyJobs: jobsApi.listMyJobs,
+  adminListJobs: jobsApi.adminListJobs,
+  getJobBySlug: jobsApi.getJobBySlug,
+  createJob: jobsApi.createJob,
+  updateJob: jobsApi.updateJob,
+  deleteJob: jobsApi.deleteJob,
+  featureJob: jobsApi.featureJob,
+
+  // Batch (FE-4)
+  submitBatch: batchApi.submitBatch,
+  getBatchStatus: batchApi.getBatchStatus,
+
+  // Admin — Companies
+  adminListCompanies(
+    token: string,
+    params: { q?: string; verificationStatus?: string; status?: string; page?: number } = {},
+  ): Promise<{
+    data: AdminCompanyRecord[];
+    meta: { total: number; page: number; pageSize: number; totalPages: number };
+  }> {
+    const qs = new URLSearchParams();
+    if (params.q) qs.set("q", params.q);
+    if (params.verificationStatus) qs.set("verificationStatus", params.verificationStatus);
+    if (params.status) qs.set("status", params.status);
+    if (params.page) qs.set("page", String(params.page));
+    return apiFetch(`/api/v1/admin/companies?${qs}`, { token });
+  },
+  adminUpdateCompany(
+    token: string,
+    id: string,
+    body: AdminUpdateCompanyBody,
+  ): Promise<AdminCompanyRecord> {
+    return apiFetch(`/api/v1/admin/companies/${id}`, {
+      method: "PATCH",
+      token,
+      body: JSON.stringify(body),
+    });
+  },
+
+  // Companies
+  getMyCompany(token: string): Promise<CompanyProfile> {
+    return apiFetch<CompanyProfile>("/api/v1/companies/mine", { token });
+  },
+  createCompany(token: string, body: UpsertCompanyBody): Promise<CompanyProfile> {
+    return apiFetch<CompanyProfile>("/api/v1/companies", {
+      method: "POST",
+      token,
+      body: JSON.stringify(body),
+    });
+  },
+  updateCompany(token: string, id: string, body: UpsertCompanyBody): Promise<CompanyProfile> {
+    return apiFetch<CompanyProfile>(`/api/v1/companies/${id}`, {
+      method: "PATCH",
+      token,
+      body: JSON.stringify(body),
+    });
+  },
+
+  // Uploads
+  async uploadLogo(token: string, file: File): Promise<{ url: string; key: string }> {
+    const form = new FormData();
+    form.append("file", file);
+    return apiFetch<{ url: string; key: string }>("/api/v1/uploads/logo", {
+      method: "POST",
+      token,
+      body: form,
+    });
+  },
+
+  // Notifications (FE-4.5)
+  listNotifications: notificationsApi.listInbox,
+  markNotificationRead: notificationsApi.markRead,
+  markAllNotificationsRead: notificationsApi.markAllRead,
+  getNotificationPreferences: notificationsApi.getPreferences,
+  updateNotificationPreferences: notificationsApi.updatePreferences,
+
+  // Admin campaigns (FE-4.5)
+  listCampaigns: campaignsApi.listCampaigns,
+  getCampaign: campaignsApi.getCampaign,
+  createCampaign: campaignsApi.createCampaign,
+  sendCampaign: campaignsApi.sendCampaign,
+  getCampaignStats: campaignsApi.getCampaignStats,
+};

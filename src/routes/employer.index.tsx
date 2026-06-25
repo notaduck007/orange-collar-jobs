@@ -22,6 +22,11 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { apiClient, ApiError } from "@/lib/api-client";
+import { requireAccessToken } from "@/lib/api/require-access-token";
+import { JobSourceBadge } from "@/components/job-source-badge";
+import { mapJobToEmployerRow, type EmployerJobRow } from "@/lib/jobs/map-employer-job-row";
+import { publishEmployerJobViaApi } from "@/lib/jobs/publish-employer-job";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -33,7 +38,6 @@ import {
 } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
-import { uniqueSlug } from "@/lib/slug";
 import { TableSkeleton } from "@/components/ui/skeleton-list";
 import type { Row } from "@/lib/row-types";
 
@@ -42,32 +46,7 @@ export const Route = createFileRoute("/employer/")({
   component: EmployerDashboard,
 });
 
-type JobRow = {
-  id: string;
-  title: string;
-  slug: string;
-  status: string;
-  views: number;
-  featured: boolean;
-  posted_at: string;
-  expires_at: string | null;
-  created_at: string;
-  category: string;
-  shift: string;
-  employment_type: string;
-  pay_min: number | null;
-  pay_max: number | null;
-  pay_period: string | null;
-  location: string;
-  city: string | null;
-  state: string | null;
-  zip: string | null;
-  description: string;
-  requirements: string | null;
-  company_id: string;
-  posted_by: string | null;
-  applicant_count: number;
-};
+type JobRow = EmployerJobRow;
 
 function EmployerDashboard() {
   const { user } = useAuth();
@@ -140,15 +119,13 @@ function EmployerDashboard() {
     queryKey: ["employer-jobs", company?.id],
     enabled: !!company,
     queryFn: async (): Promise<JobRow[]> => {
-      const { data: jobsData, error } = await supabase
-        .from("jobs")
-        .select("*")
-        .eq("company_id", company!.id)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
+      const token = requireAccessToken();
+      const res = await apiClient.listMyJobs(token, { pageSize: 100 });
+      const rows = res.data.map((job) =>
+        mapJobToEmployerRow(job, { companyId: company!.id, postedBy: user?.id ?? null }),
+      );
 
-      // Fetch counts in one shot
-      const ids = (jobsData ?? []).map((j) => j.id);
+      const ids = rows.map((j) => j.id);
       let counts: Record<string, number> = {};
       if (ids.length) {
         const { data: apps } = await supabase
@@ -160,10 +137,8 @@ function EmployerDashboard() {
           return acc;
         }, {});
       }
-      return (jobsData ?? []).map((j) => ({
-        ...j,
-        applicant_count: counts[j.id] ?? 0,
-      })) as JobRow[];
+
+      return rows.map((j) => ({ ...j, applicant_count: counts[j.id] ?? 0 }));
     },
   });
 
@@ -173,19 +148,28 @@ function EmployerDashboard() {
   const refresh = () => qc.invalidateQueries({ queryKey: ["employer-jobs", company?.id] });
 
   const togglePause = async (job: JobRow) => {
-    const next = job.status === "paused" ? "active" : "paused";
-    const { error } = await supabase.from("jobs").update({ status: next }).eq("id", job.id);
-    if (error) return toast.error(error.message);
-    toast.success(next === "paused" ? "Job paused" : "Job resumed");
-    refresh();
+    if (job.status === "draft") return;
+    try {
+      const token = requireAccessToken();
+      const next = job.status === "closed" ? "published" : "closed";
+      await apiClient.updateJob(token, job.id, { status: next });
+      toast.success(next === "closed" ? "Job paused" : "Job resumed");
+      refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Update failed");
+    }
   };
 
   const closeJob = async (job: JobRow) => {
     if (!confirm(`Close "${job.title}"? Applicants can no longer apply.`)) return;
-    const { error } = await supabase.from("jobs").update({ status: "closed" }).eq("id", job.id);
-    if (error) return toast.error(error.message);
-    toast.success("Job closed");
-    refresh();
+    try {
+      const token = requireAccessToken();
+      await apiClient.deleteJob(token, job.id);
+      toast.success("Job closed");
+      refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Close failed");
+    }
   };
 
   const deleteDraft = async (job: JobRow) => {
@@ -197,55 +181,48 @@ function EmployerDashboard() {
   };
 
   const duplicateJob = async (job: JobRow) => {
-    if (!user || !company) return;
+    if (!user || !company || !activePackage) return;
     if (postingCredits < 1) {
       toast.error("Out of posting credits — buy a package to re-post.");
       navigate({ to: "/pricing" });
       return;
     }
-    const newSlug = uniqueSlug(job.title);
-    const { data: inserted, error: jobErr } = await supabase
-      .from("jobs")
-      .insert({
-        company_id: company.id,
-        posted_by: user.id,
-        title: job.title,
-        slug: newSlug,
-        category: job.category,
-        shift: job.shift as never,
-        employment_type: job.employment_type as never,
-        pay_min: job.pay_min,
-        pay_max: job.pay_max,
-        pay_period: job.pay_period,
-        location: job.location,
-        city: job.city,
-        state: job.state,
-        zip: job.zip,
-        description: job.description,
-        requirements: job.requirements,
-        status: "draft",
-        featured: false,
-      })
-      .select("id")
-      .single();
-    if (jobErr || !inserted) return toast.error(jobErr?.message ?? "Could not duplicate job");
-    const { error: publishErr } = await supabase.rpc("consume_post_and_publish", {
-      _job_id: inserted.id,
-      _company_id: company.id,
-      _want_featured: false,
-    });
-    if (publishErr) {
-      await supabase.from("jobs").delete().eq("id", inserted.id).eq("status", "draft");
-      if (publishErr.message?.includes("no_active_package")) {
+    try {
+      await publishEmployerJobViaApi(
+        {
+          title: job.title,
+          category: job.category,
+          shift: job.shift,
+          employment_type: job.employment_type,
+          pay_min: job.pay_min?.toString() ?? "",
+          pay_max: job.pay_max?.toString() ?? "",
+          pay_period: (job.pay_period as "hour" | "year") ?? "hour",
+          city: job.city ?? "",
+          state: job.state ?? "",
+          zip: job.zip ?? "",
+          description: job.description,
+          requirements: job.requirements ?? "",
+          temperature_env: "",
+          certifications_required: [],
+          lift_requirement_lbs: "",
+          overtime_available: false,
+          weekly_pay: false,
+          quick_hire: false,
+          feature_it: false,
+        },
+        { companyPackageId: activePackage.id },
+      );
+      toast.success("Job duplicated and re-posted");
+      qc.invalidateQueries({ queryKey: ["active-packages-all", company.id] });
+      refresh();
+    } catch (err) {
+      if (err instanceof ApiError && err.statusCode === 400) {
         toast.error("Out of posting credits — buy a package to re-post.");
         navigate({ to: "/pricing" });
         return;
       }
-      return toast.error(publishErr.message);
+      toast.error(err instanceof Error ? err.message : "Could not duplicate job");
     }
-    toast.success("Job duplicated and re-posted");
-    qc.invalidateQueries({ queryKey: ["active-packages-all", company.id] });
-    refresh();
   };
 
   const markFeatured = async (job: JobRow) => {
@@ -259,21 +236,15 @@ function EmployerDashboard() {
       navigate({ to: "/pricing" });
       return;
     }
-    const { error } = await supabase.rpc("feature_existing_job", {
-      _job_id: job.id,
-      _company_id: company.id,
-    });
-    if (error) {
-      if (error.message?.includes("no_featured_remaining")) {
-        toast.error("Out of featured credits — buy a package to upgrade.");
-        navigate({ to: "/pricing" });
-        return;
-      }
-      return toast.error(error.message);
+    try {
+      const token = requireAccessToken();
+      await apiClient.featureJob(token, job.id, { featured: true });
+      toast.success("Job marked as featured");
+      qc.invalidateQueries({ queryKey: ["active-packages-all", company.id] });
+      refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not feature job");
     }
-    toast.success("Job marked as featured");
-    qc.invalidateQueries({ queryKey: ["active-packages-all", company.id] });
-    refresh();
   };
 
   return (
@@ -410,6 +381,7 @@ function EmployerDashboard() {
                         </Link>
                         <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
                           <span>{job.category}</span>
+                          <JobSourceBadge sourceType={job.source_type} />
                           {job.featured && (
                             <span className="inline-flex items-center gap-0.5 rounded bg-[color:var(--hazard)] px-1.5 py-0.5 text-[10px] font-bold uppercase text-[color:var(--ink)]">
                               <Sparkles className="h-2.5 w-2.5" /> Featured
@@ -490,10 +462,10 @@ function EmployerDashboard() {
                                 />
                               </ActionIcon>
                               <ActionIcon
-                                label={job.status === "paused" ? "Resume" : "Pause"}
+                                label={job.status === "closed" ? "Resume" : "Pause"}
                                 onClick={() => togglePause(job)}
                               >
-                                {job.status === "paused" ? (
+                                {job.status === "closed" ? (
                                   <Play className="h-3.5 w-3.5" />
                                 ) : (
                                   <Pause className="h-3.5 w-3.5" />

@@ -164,6 +164,8 @@ Standards: [`docs/agent/standards/common/backwards-compatibility.md`](./docs/age
 - `./scripts/phase{N}-demo.sh` includes prior-phase smoke (e.g. `GET /api/health`)
 - `docs/demo/phase{N}-demo.md` documents Postman + frontend visual inspection
 - `bun run api:validate` passes
+- `bun run api:contract:check` passes
+- `bun run api:postman:check` passes (Postman artifacts in sync with spec)
 
 ---
 
@@ -196,6 +198,8 @@ npm run test
 npm run test:integration   # when DB/Redis features touched
 npm run test:e2e           # when HTTP surface touched
 npm run test:cov           # ≥ 90% on all global coverage metrics
+npm run contract:check     # route surface ↔ OpenAPI (x-implemented)
+npm run postman:check      # Postman collection ↔ OpenAPI spec
 ```
 
 ### Phase Gates
@@ -218,14 +222,32 @@ Agents may **not** skip gates, bypass CI, or merge with known failures.
 
 ## Module & Type Standards
 
-| Topic                         | Document                                                                                                             |
-| ----------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| Module layout & barrels       | [`.cursor/skills/module-design-pattern/SKILL.md`](./.cursor/skills/module-design-pattern/SKILL.md)                   |
-| Canonical types               | [`docs/agent/standards/common/canonical-types.md`](./docs/agent/standards/common/canonical-types.md)                 |
-| Phase backwards compatibility | [`docs/agent/standards/common/backwards-compatibility.md`](./docs/agent/standards/common/backwards-compatibility.md) |
-| TypeScript rules              | [`docs/agent/standards/common/typescript.md`](./docs/agent/standards/common/typescript.md)                           |
-| Naming conventions            | [`docs/agent/standards/common/naming.md`](./docs/agent/standards/common/naming.md)                                   |
-| Anti-patterns                 | [`docs/agent/standards/common/anti-patterns.md`](./docs/agent/standards/common/anti-patterns.md)                     |
+| Topic                          | Document                                                                                                             |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
+| Module layout & barrels        | [`.cursor/skills/module-design-pattern/SKILL.md`](./.cursor/skills/module-design-pattern/SKILL.md)                   |
+| **Import extensions & resolution** | [`docs/agent/standards/common/typescript.md`](./docs/agent/standards/common/typescript.md) — *Import Rules* section |
+| Canonical types                | [`docs/agent/standards/common/canonical-types.md`](./docs/agent/standards/common/canonical-types.md)                 |
+| Phase backwards compatibility  | [`docs/agent/standards/common/backwards-compatibility.md`](./docs/agent/standards/common/backwards-compatibility.md) |
+| TypeScript rules               | [`docs/agent/standards/common/typescript.md`](./docs/agent/standards/common/typescript.md)                           |
+| Naming conventions             | [`docs/agent/standards/common/naming.md`](./docs/agent/standards/common/naming.md)                                   |
+| Anti-patterns                  | [`docs/agent/standards/common/anti-patterns.md`](./docs/agent/standards/common/anti-patterns.md)                     |
+
+### Module Resolution (Hard Rule)
+
+All packages inherit `"moduleResolution": "NodeNext"` from `tsconfig.base.json`.
+
+| Import type | Extension | Example |
+|---|---|---|
+| Relative (own source) | **`.js` required** | `import { X } from "./x.js"` |
+| Package (`node_modules`) | None | `import { X } from "@nestjs/common"` |
+| Path alias (`@core/*`, `@domains/*`) | None | `import { X } from "@core/database/prisma.service"` |
+| Node built-in | `node:` prefix, no ext | `import { createHash } from "node:crypto"` |
+
+**Never** override `module` or `moduleResolution` to `"CommonJS"` / `"Node"` in a child
+`tsconfig.json` — this hides runtime resolution errors and breaks the ESM migration path.
+
+Output remains **CommonJS** (no `"type":"module"` in `package.json`). When the project
+migrates to ESM, only `package.json` changes — zero import rewrites required.
 
 ---
 

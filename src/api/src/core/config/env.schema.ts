@@ -32,6 +32,17 @@ export const envSchema = z.object({
   STORAGE_ENDPOINT: z.string().refine((s) => s.startsWith("http://") || s.startsWith("https://"), {
     message: "STORAGE_ENDPOINT must be an HTTP(S) URL",
   }),
+  /**
+   * Publicly reachable base URL for stored file links (what the browser loads).
+   * Defaults to STORAGE_ENDPOINT when not set.
+   * Example: http://localhost:9000  (dev) or https://cdn.warehousejobs.com (prod)
+   */
+  STORAGE_PUBLIC_URL: z
+    .string()
+    .refine((s) => s.startsWith("http://") || s.startsWith("https://"), {
+      message: "STORAGE_PUBLIC_URL must be an HTTP(S) URL",
+    })
+    .optional(),
   STORAGE_REGION: z.string().default("us-east-1"),
   STORAGE_ACCESS_KEY: z.string().min(1),
   STORAGE_SECRET_KEY: z.string().min(1),
@@ -59,6 +70,11 @@ export const envSchema = z.object({
   ),
   TWILIO_APP_CLIENT_ID: z.preprocess((v) => (v === "" ? undefined : v), z.string().optional()),
   TWILIO_APP_CLIENT_SECRET: z.preprocess((v) => (v === "" ? undefined : v), z.string().optional()),
+
+  /** When true, vendor/admin accounts must complete MFA at login if enabled. */
+  REQUIRE_MFA_FOR_ROLE: z.coerce.boolean().default(false),
+  /** Public base URL for inbound webhook signature validation (e.g. https://api.warehousejobs.com). */
+  WEBHOOK_BASE_URL: z.string().url().optional(),
 
   API_KEY_HASH: z.string().min(1),
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),

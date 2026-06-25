@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
-import { createClient } from "@supabase/supabase-js";
 
 const BASE_URL = "https://warehousejobs.com";
+const API_BASE = process.env.API_URL ?? "http://localhost:3001";
 
 interface SitemapEntry {
   path: string;
@@ -12,6 +12,7 @@ interface SitemapEntry {
 }
 
 export const Route = createFileRoute("/sitemap.xml")({
+  head: () => ({ meta: [{ title: "Sitemap" }] }),
   server: {
     handlers: {
       GET: async () => {
@@ -33,80 +34,27 @@ export const Route = createFileRoute("/sitemap.xml")({
         ];
 
         try {
-          const url = process.env.SUPABASE_URL!;
-          const key = process.env.SUPABASE_PUBLISHABLE_KEY!;
-          if (url && key) {
-            const supabase = createClient(url, key);
-
-            // Dynamic job listings
-            const { data: jobs } = await supabase
-              .from("jobs")
-              .select("slug, created_at")
-              .in("status", ["active", "published"])
-              .order("created_at", { ascending: false })
-              .limit(5000);
-            (jobs ?? []).forEach((j: { slug: string; created_at: string }) => {
-              const lastmod = j.created_at;
+          const res = await fetch(`${API_BASE}/api/v1/jobs?status=published&pageSize=1000&page=1`);
+          if (res.ok) {
+            const body = (await res.json()) as {
+              data?: { slug: string; updatedAt?: string; companySlug?: string }[];
+            };
+            const companySlugs = new Set<string>();
+            for (const job of body.data ?? []) {
               entries.push({
-                path: `/jobs/${j.slug}`,
-                lastmod: lastmod?.slice(0, 10),
+                path: `/jobs/${job.slug}`,
+                lastmod: job.updatedAt?.slice(0, 10),
                 changefreq: "daily",
                 priority: "0.8",
               });
-            });
-
-            // Dynamic company listings — only companies with at least one active/published job
-            const { data: companyJobs } = await supabase
-              .from("jobs")
-              .select("companies(slug)")
-              .in("status", ["active", "published"])
-              .limit(5000);
-            const slugs = new Set<string>();
-            (companyJobs ?? []).forEach(
-              (row: { companies: { slug: string } | { slug: string }[] | null }) => {
-                const c = row.companies;
-                const slug = Array.isArray(c) ? c[0]?.slug : c?.slug;
-                if (slug) slugs.add(slug);
-              },
-            );
-            slugs.forEach((slug) => {
-              entries.push({
-                path: `/companies/${slug}`,
-                changefreq: "weekly",
-                priority: "0.6",
-              });
-            });
-
-            // Dynamic location pages — distinct city/state from active jobs
-            const { data: locJobs } = await supabase
-              .from("jobs")
-              .select("city, state")
-              .in("status", ["active", "published"])
-              .not("city", "is", null)
-              .not("state", "is", null)
-              .limit(5000);
-            const citySlugs = new Set<string>();
-            (locJobs ?? []).forEach((row: { city: string | null; state: string | null }) => {
-              const city = (row.city ?? "").trim();
-              const state = (row.state ?? "").trim();
-              if (!city || !state) return;
-              const c = city
-                .toLowerCase()
-                .replace(/[^a-z0-9\s-]/g, "")
-                .replace(/\s+/g, "-")
-                .replace(/-+/g, "-");
-              citySlugs.add(`${c}-${state.toLowerCase()}`);
-            });
-            citySlugs.forEach((slug) => {
-              entries.push({
-                path: `/warehouse-jobs/${slug}`,
-                changefreq: "daily",
-                priority: "0.8",
-              });
+              if (job.companySlug) companySlugs.add(job.companySlug);
+            }
+            companySlugs.forEach((slug) => {
+              entries.push({ path: `/companies/${slug}`, changefreq: "weekly", priority: "0.6" });
             });
           }
         } catch {
-          // Best-effort; still return static entries
+          // best-effort; static entries still returned
         }
 
         const urls = entries.map((e) =>

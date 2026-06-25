@@ -1,8 +1,16 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "module": "CommonJS",
-    "moduleResolution": "Node",
+    // module + moduleResolution intentionally inherit "NodeNext" from tsconfig.base.json.
+    //
+    // NodeNext resolution requires explicit ".js" extensions on all relative imports even
+    // though the source files are ".ts".  TypeScript maps ".js" → ".ts" at compile time;
+    // Node.js finds the real ".js" file in dist/ at runtime.  Do NOT override these to
+    // "CommonJS"/"Node" — that breaks the extension contract and hides resolution errors.
+    //
+    // Output format stays CommonJS because src/api/package.json has no "type":"module".
+    // When the project migrates to ESM, add "type":"module" to package.json — the imports
+    // are already correct and require zero changes.
     "target": "ES2022",
     "outDir": "./dist",
     "rootDir": "./src",

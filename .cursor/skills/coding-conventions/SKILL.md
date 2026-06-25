@@ -128,6 +128,40 @@ throw new HttpException("Already applied", 409);
 
 ---
 
+## Import Convention (NodeNext — non-negotiable)
+
+This project uses `"moduleResolution": "NodeNext"`. Every relative import **must** carry an
+explicit `.js` extension. TypeScript maps `.js` → `.ts` at compile time; Node.js resolves `.js`
+in `dist/` at runtime. No extension = runtime failure.
+
+```typescript
+// ✅ Relative import — .js extension required
+import { PrismaService } from "../../core/database/prisma.service.js";
+import type { AuthUser } from "../auth/jwt.strategy.js";
+export { BatchService } from "./batch.service.js";
+
+// ✅ Package import — no extension
+import { Injectable } from "@nestjs/common";
+import { Queue } from "bullmq";
+
+// ✅ Path alias — no extension (alias resolution is compiler-side)
+import { PrismaService } from "@core/database/prisma.service";
+import { JobsService } from "@domains/jobs";
+
+// ✅ Node built-in — node: prefix, no extension
+import { createHash } from "node:crypto";
+
+// ❌ All forbidden
+import { X } from "./x";           // no extension — silent runtime failure
+import { X } from "./x.ts";        // .ts in dist? doesn't exist
+import { X } from "@nestjs/common/index.js"; // package + extension = wrong
+```
+
+Never add `"module": "CommonJS"` or `"moduleResolution": "Node"` to any `tsconfig.json` — it
+hides this requirement and breaks the migration path to ESM.
+
+---
+
 ## Error Handling Pattern
 
 ```typescript

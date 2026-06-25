@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Eye, LogOut } from "lucide-react";
 import { getImpersonation, stopImpersonation } from "@/lib/impersonation";
-import { supabase } from "@/integrations/supabase/client";
 
 export function ImpersonationBanner() {
   const [state, setState] = useState(() => getImpersonation());
@@ -13,13 +12,7 @@ export function ImpersonationBanner() {
       if (e.key === null || e.key.includes("impersonation")) sync();
     };
     window.addEventListener("storage", onStorage);
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(() => sync());
-    return () => {
-      window.removeEventListener("storage", onStorage);
-      subscription.unsubscribe();
-    };
+    return () => window.removeEventListener("storage", onStorage);
   }, []);
 
   if (!state) return null;

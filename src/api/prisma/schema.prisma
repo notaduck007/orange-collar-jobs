@@ -6,8 +6,9 @@
 // ═══════════════════════════════════════════════════════════════════════════
 
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
 }
 
 datasource db {
@@ -100,6 +101,73 @@ enum AdStatus {
   ended
 }
 
+enum NotificationType {
+  system
+  application
+  message
+  marketing
+  auth
+}
+
+enum NotificationKind {
+  auth
+  transactional
+  marketing
+}
+
+enum NotificationChannel {
+  email
+  sms
+  in_app
+}
+
+enum DeliveryStatus {
+  pending
+  queued
+  sent
+  delivered
+  failed
+  bounced
+  skipped
+}
+
+enum CampaignStatus {
+  draft
+  scheduled
+  sending
+  sent
+  cancelled
+  failed
+}
+
+enum CampaignChannel {
+  email
+  sms
+}
+
+enum OtpPurpose {
+  verify_contact
+  login_2fa
+  enable_2fa
+}
+
+enum OtpChannel {
+  email
+  sms
+}
+
+enum MfaMethod {
+  sms
+  email
+  totp
+}
+
+enum ConsentSource {
+  register
+  settings
+  campaign
+}
+
 // ── Users ────────────────────────────────────────────────────────────────────
 
 model User {
@@ -115,11 +183,15 @@ model User {
   createdAt         DateTime  @default(now()) @map("created_at")
   updatedAt         DateTime  @updatedAt @map("updated_at")
 
-  refreshTokens     RefreshToken[]
-  emailVerifications EmailVerification[]
-  passwordResets    PasswordReset[]
-  applications      Application[]
-  company           Company?    @relation("CompanyOwner")
+  refreshTokens            RefreshToken[]
+  emailVerifications       EmailVerification[]
+  passwordResets           PasswordReset[]
+  applications             Application[]
+  company                  Company?               @relation("CompanyOwner")
+  notifications            Notification[]
+  notificationPreference   NotificationPreference?
+  marketingConsents        MarketingConsent[]
+  userMfa                  UserMfa?
 
   @@map("users")
 }
@@ -166,19 +238,45 @@ model PasswordReset {
 
 // ── Companies ────────────────────────────────────────────────────────────────
 
-model Company {
-  id          String   @id @default(uuid())
-  ownerId     String   @unique @map("owner_id")
-  name        String
-  slug        String   @unique
-  description String?
-  website     String?
-  logoUrl     String?  @map("logo_url")
-  verified    Boolean  @default(false)
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+enum CompanyVerificationStatus {
+  unverified
+  pending
+  verified
+  rejected
 
-  owner    User             @relation("CompanyOwner", fields: [ownerId], references: [id])
+  @@map("company_verification_status")
+}
+
+enum CompanyStatus {
+  active
+  suspended
+
+  @@map("company_status")
+}
+
+model Company {
+  id                      String                    @id @default(uuid())
+  ownerId                 String?                   @unique @map("owner_id")
+  name                    String
+  slug                    String                    @unique
+  description             String?
+  website                 String?
+  logoUrl                 String?                   @map("logo_url")
+  industry                String?
+  hqCity                  String?                   @map("hq_city")
+  hqState                 String?                   @map("hq_state")
+  location                String?
+  status                  String                    @default("active")
+  verified                Boolean                   @default(false)
+  verificationStatus      String                    @default("unverified") @map("verification_status")
+  verifiedAt              DateTime?                 @map("verified_at")
+  verifiedBy              String?                   @map("verified_by")
+  verificationNote        String?                   @map("verification_note")
+  verificationEvidenceUrl String?                   @map("verification_evidence_url")
+  createdAt               DateTime                  @default(now()) @map("created_at")
+  updatedAt               DateTime?                 @updatedAt @map("updated_at")
+
+  owner    User?            @relation("CompanyOwner", fields: [ownerId], references: [id])
   jobs     Job[]
   packages CompanyPackage[]
 
@@ -389,4 +487,136 @@ model AdCampaign {
 
   @@index([status, startsAt, endsAt])
   @@map("ad_campaigns")
+}
+
+// ── Notifications (Phase 4.5) ───────────────────────────────────────────────
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String           @map("user_id")
+  title     String
+  body      String
+  link      String?
+  type      NotificationType @default(system)
+  senderId  String?          @map("sender_id")
+  readAt    DateTime?        @map("read_at")
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("notifications")
+}
+
+model NotificationPreference {
+  id                 String   @id @default(uuid())
+  userId             String   @unique @map("user_id")
+  emailTransactional Boolean  @default(true) @map("email_transactional")
+  emailMarketing     Boolean  @default(false) @map("email_marketing")
+  smsTransactional   Boolean  @default(true) @map("sms_transactional")
+  smsMarketing       Boolean  @default(false) @map("sms_marketing")
+  inApp              Boolean  @default(true) @map("in_app")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notification_preferences")
+}
+
+model NotificationDelivery {
+  id             String              @id @default(uuid())
+  userId         String?             @map("user_id")
+  channel        NotificationChannel
+  kind           NotificationKind
+  template       String
+  status         DeliveryStatus      @default(pending)
+  providerId     String?             @map("provider_id")
+  error          String?
+  idempotencyKey String?             @unique @map("idempotency_key")
+  campaignId     String?             @map("campaign_id")
+  toAddress      String?             @map("to_address")
+  createdAt      DateTime            @default(now()) @map("created_at")
+  updatedAt      DateTime            @updatedAt @map("updated_at")
+
+  campaign NotificationCampaign? @relation(fields: [campaignId], references: [id])
+
+  @@index([userId])
+  @@index([campaignId])
+  @@index([status])
+  @@map("notification_deliveries")
+}
+
+model MarketingConsent {
+  id        String          @id @default(uuid())
+  userId    String          @map("user_id")
+  channel   CampaignChannel
+  source    ConsentSource
+  optedInAt DateTime        @default(now()) @map("opted_in_at")
+  revokedAt DateTime?       @map("revoked_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, channel])
+  @@map("marketing_consents")
+}
+
+model SmsOptOut {
+  id         String   @id @default(uuid())
+  phone      String   @unique
+  optedOutAt DateTime @default(now()) @map("opted_out_at")
+  source     String   @default("STOP")
+
+  @@map("sms_opt_outs")
+}
+
+model NotificationCampaign {
+  id          String          @id @default(uuid())
+  name        String
+  channel     CampaignChannel
+  status      CampaignStatus  @default(draft)
+  segment     Json            @default("{}")
+  subject     String?
+  htmlBody    String?         @map("html_body")
+  textBody    String?         @map("text_body")
+  scheduledAt DateTime?       @map("scheduled_at")
+  sentAt      DateTime?       @map("sent_at")
+  createdById String          @map("created_by_id")
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+
+  deliveries NotificationDelivery[]
+
+  @@index([status])
+  @@map("notification_campaigns")
+}
+
+model OtpChallenge {
+  id          String     @id @default(uuid())
+  userId      String?    @map("user_id")
+  channel     OtpChannel
+  destination String
+  purpose     OtpPurpose
+  codeHash    String?    @map("code_hash")
+  providerSid String?    @map("provider_sid")
+  attempts    Int        @default(0)
+  maxAttempts Int        @default(5) @map("max_attempts")
+  expiresAt   DateTime   @map("expires_at")
+  verifiedAt  DateTime?  @map("verified_at")
+  createdAt   DateTime   @default(now()) @map("created_at")
+
+  @@index([destination, purpose])
+  @@index([userId])
+  @@map("otp_challenges")
+}
+
+model UserMfa {
+  id          String    @id @default(uuid())
+  userId      String    @unique @map("user_id")
+  method      MfaMethod
+  destination String?
+  enabledAt   DateTime  @default(now()) @map("enabled_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_mfa")
 }

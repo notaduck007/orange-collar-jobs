@@ -250,7 +250,7 @@ function ApplicantsPage() {
       const appIds = (apps ?? []).map((a) => a.id);
       let profilesById: Record<string, { display_name: string | null; phone: string | null }> = {};
       let seekersById: Record<string, Applicant["seeker"]> = {};
-      let bookingByAppId: Record<string, { starts_at: string; status: string }> = {};
+      const bookingByAppId: Record<string, { starts_at: string; status: string }> = {};
       if (ids.length) {
         const [{ data: profs }, { data: seekers }] = await Promise.all([
           supabase.from("profiles").select("id, display_name, phone").in("id", ids),

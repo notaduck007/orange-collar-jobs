@@ -31,6 +31,7 @@ const TYPE_LABELS: Record<QuestionType, string> = {
   text: "Short text",
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function newQuestion(sort_order = 0): ScreeningQuestionDraft {
   return {
     prompt: "",
@@ -42,6 +43,7 @@ export function newQuestion(sort_order = 0): ScreeningQuestionDraft {
   };
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const SCREENING_PRESETS: { label: string; q: Omit<ScreeningQuestionDraft, "sort_order"> }[] =
   [
     {
@@ -334,6 +336,7 @@ export function ScreeningQuestionsBuilder({ value, onChange }: Props) {
 }
 
 /** Returns true if the given answer matches the question's knockout. */
+// eslint-disable-next-line react-refresh/only-export-components
 export function isKnockout(
   question: { type: QuestionType; knockout_answer: unknown | null },
   answer: unknown,

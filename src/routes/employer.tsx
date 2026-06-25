@@ -14,7 +14,8 @@ import {
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { useAuth } from "@/lib/auth";
-import { supabase } from "@/integrations/supabase/client";
+import { apiClient, ApiError } from "@/lib/api-client";
+import { getAccessToken } from "@/lib/auth-session";
 
 export const Route = createFileRoute("/employer")({
   component: EmployerLayout,
@@ -36,33 +37,22 @@ function EmployerLayout() {
     }
   }, [user, role, loading, navigate]);
 
-  // Find a company the user owns or belongs to as an active member.
+  // Fetch the company the current user owns via the Nest API.
   const { data: company, isLoading: companyLoading } = useQuery({
     queryKey: ["employer-company", user?.id],
     enabled: !!user,
+    retry: false,
     queryFn: async () => {
-      const { data: owned } = await supabase
-        .from("companies")
-        .select("*")
-        .eq("owner_id", user!.id)
-        .maybeSingle();
-      if (owned) return owned;
-
-      const { data: membership } = await supabase
-        .from("company_members")
-        .select("company_id")
-        .eq("user_id", user!.id)
-        .eq("status", "active")
-        .limit(1)
-        .maybeSingle();
-      if (!membership?.company_id) return null;
-
-      const { data: viaMember } = await supabase
-        .from("companies")
-        .select("*")
-        .eq("id", membership.company_id)
-        .maybeSingle();
-      return viaMember ?? null;
+      const token = getAccessToken();
+      if (!token) return null;
+      try {
+        return await apiClient.getMyCompany(token);
+      } catch (err) {
+        if (err instanceof ApiError && (err.statusCode === 404 || err.statusCode === 401)) {
+          return null;
+        }
+        return null;
+      }
     },
   });
 
@@ -110,7 +100,9 @@ function EmployerLayout() {
           {company && (
             <div className="mt-6 rounded-lg border border-border bg-card p-3 text-xs">
               <p className="label-caps text-[10px]">Signed in as</p>
-              <p className="mt-1 truncate font-semibold text-[color:var(--ink)]">{company.name}</p>
+              <p className="mt-1 truncate font-semibold text-[color:var(--ink)]">
+                {(company as { name: string }).name}
+              </p>
             </div>
           )}
         </aside>

@@ -9,17 +9,18 @@ import {
   Ban,
   Play,
   BadgeCheck,
-  FileText,
   X,
   Check,
   UserCog,
 } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { apiClient } from "@/lib/api-client";
+import { getAccessToken } from "@/lib/auth-session";
+import type { AdminCompanyRecord } from "@/lib/api-client";
 import { startImpersonation } from "@/lib/impersonation";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+
 import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
@@ -38,27 +39,7 @@ export const Route = createFileRoute("/admin/companies")({
   component: AdminCompanies,
 });
 
-type Company = {
-  id: string;
-  name: string;
-  slug: string;
-  logo_url: string | null;
-  website: string | null;
-  industry: string | null;
-  hq_city: string | null;
-  hq_state: string | null;
-  owner_id: string | null;
-  status: string;
-  verified: boolean;
-  verification_status: "unverified" | "pending" | "verified" | "rejected";
-  verified_at: string | null;
-  verified_by: string | null;
-  verification_evidence_url: string | null;
-  verification_note: string | null;
-  posting_credits: number;
-  featured_credits: number;
-  created_at: string;
-};
+type Company = AdminCompanyRecord;
 
 function AdminCompanies() {
   const qc = useQueryClient();
@@ -66,24 +47,31 @@ function AdminCompanies() {
   const [q, setQ] = useState("");
   const [tab, setTab] = useState<"pending" | "all">("pending");
 
-  const { data: companies = [] } = useQuery({
+  const { data: companies = [] } = useQuery<Company[]>({
     queryKey: ["admin-companies", q, tab],
     queryFn: async () => {
-      let query = supabase.from("companies").select("*").order("created_at", { ascending: false });
-      if (tab === "pending") query = query.eq("verification_status", "pending");
-      if (q) query = query.ilike("name", `%${q}%`);
-      const { data, error } = await query;
-      if (error) throw error;
-      return (data ?? []) as Company[];
+      const token = getAccessToken();
+      if (!token) return [];
+      const res = await apiClient.adminListCompanies(token, {
+        q: q || undefined,
+        verificationStatus: tab === "pending" ? "pending" : undefined,
+      });
+      return res.data;
     },
   });
 
-  const updateCompany = async (id: string, patch: Partial<Company>) => {
-    const { error } = await supabase.from("companies").update(patch).eq("id", id);
-    if (error) toast.error(error.message);
-    else {
+  const updateCompany = async (
+    id: string,
+    patch: Parameters<typeof apiClient.adminUpdateCompany>[2],
+  ) => {
+    const token = getAccessToken();
+    if (!token) return;
+    try {
+      await apiClient.adminUpdateCompany(token, id, patch);
       toast.success("Updated");
       qc.invalidateQueries({ queryKey: ["admin-companies"] });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Update failed");
     }
   };
 
@@ -92,83 +80,44 @@ function AdminCompanies() {
       toast.error("Reason required to reject");
       return false;
     }
-    const patch: Partial<Company> = approve
-      ? ({
-          verified: true,
-          verification_status: "verified",
-          verified_at: new Date().toISOString(),
-          verified_by: user?.id ?? null,
-          verification_note: reason || null,
-        } as Partial<Company>)
-      : {
-          verified: false,
-          verification_status: "rejected",
-          verified_by: user?.id ?? null,
-          verification_note: reason,
-        };
-    const { error } = await supabase.from("companies").update(patch).eq("id", c.id);
-    if (error) {
-      toast.error(error.message);
+    const token = getAccessToken();
+    if (!token) return false;
+    try {
+      await apiClient.adminUpdateCompany(
+        token,
+        c.id,
+        approve
+          ? { verified: true, verificationStatus: "verified", verificationNote: reason || null }
+          : { verified: false, verificationStatus: "rejected", verificationNote: reason },
+      );
+      toast.success(approve ? "Approved" : "Rejected");
+      qc.invalidateQueries({ queryKey: ["admin-companies"] });
+      return true;
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Action failed");
       return false;
     }
-    if (user) {
-      await supabase.from("audit_log").insert({
-        actor_id: user.id,
-        action: approve ? "company_verify_approve" : "company_verify_reject",
-        entity_type: "company",
-        entity_id: c.id,
-        reason: reason || null,
-      });
-    }
-    if (c.owner_id) {
-      await supabase.from("notifications").insert({
-        user_id: c.owner_id,
-        sender_id: user?.id ?? null,
-        type: "verification",
-        title: approve ? "Your company is verified" : "Verification rejected",
-        body: approve
-          ? `${c.name} is now marked as a Verified employer.`
-          : `Verification for ${c.name} was rejected. Reason: ${reason}`,
-        link: `/employer`,
-      });
-      try {
-        await supabase.functions.invoke("send-email", {
-          body: {
-            to: c.owner_id,
-            subject: approve ? "Your company is verified" : "Verification rejected",
-            body: approve
-              ? `${c.name} is now a Verified employer on WarehouseJobs.com.`
-              : `We couldn't verify ${c.name}. Reason: ${reason}`,
-          },
-        });
-      } catch {
-        /* email is best-effort */
-      }
-    }
-    toast.success(approve ? "Approved" : "Rejected");
-    qc.invalidateQueries({ queryKey: ["admin-companies"] });
-    return true;
   };
 
   const renderRow = (c: Company) => (
     <div key={c.id} className="rounded-lg border border-border bg-card p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          {c.logo_url ? (
-            <img src={c.logo_url} alt={c.name} className="h-12 w-12 rounded object-cover" />
+          {c.logoUrl ? (
+            <img src={c.logoUrl} alt={c.name} className="h-12 w-12 rounded object-cover" />
           ) : (
             <div className="h-12 w-12 rounded bg-muted" />
           )}
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <p className="font-semibold text-[color:var(--ink)]">{c.name}</p>
-              <VerificationPill status={c.verification_status} />
+              <VerificationPill status={c.verificationStatus} />
               {c.status === "suspended" && (
                 <Badge className="border-0 bg-red-100 text-red-900">Suspended</Badge>
               )}
             </div>
             <p className="text-xs text-muted-foreground">
-              {[c.industry, c.hq_city, c.hq_state].filter(Boolean).join(" · ") || "—"}
+              {[c.industry, c.hqCity, c.hqState].filter(Boolean).join(" · ") || "—"}
             </p>
             {c.website && (
               <a
@@ -180,31 +129,28 @@ function AdminCompanies() {
                 {c.website.replace(/^https?:\/\//, "")}
               </a>
             )}
-            <p className="mt-1 text-xs text-muted-foreground">
-              {c.posting_credits} post · {c.featured_credits} featured credits
-            </p>
-            {c.verification_note && (
+            {c.verificationNote && (
               <p className="mt-1 text-xs italic text-muted-foreground">
-                Note: {c.verification_note}
+                Note: {c.verificationNote}
               </p>
             )}
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          {c.verification_evidence_url && <EvidenceLink path={c.verification_evidence_url} />}
+          {/* Evidence link requires signed URL from storage — available via future endpoint */}
           <Link to="/admin/jobs" search={{ company: c.id } as never}>
             <Button size="sm" variant="outline" className="gap-1">
               <Eye className="h-3.5 w-3.5" /> Jobs
             </Button>
           </Link>
-          {c.owner_id && (
+          {c.ownerId && (
             <Button
               size="sm"
               variant="outline"
               className="gap-1"
               title="Open this company's employer dashboard as their owner"
               onClick={async () => {
-                if (!c.owner_id) return;
+                if (!c.ownerId) return;
                 if (
                   !confirm(
                     `View ${c.name}'s employer dashboard as the owner? All actions are audited.`,
@@ -212,7 +158,7 @@ function AdminCompanies() {
                 )
                   return;
                 try {
-                  await startImpersonation(c.owner_id, {
+                  await startImpersonation(c.ownerId!, {
                     label: c.name,
                     kind: "company",
                     entityId: c.id,
@@ -228,7 +174,7 @@ function AdminCompanies() {
               <UserCog className="h-3.5 w-3.5" /> View as
             </Button>
           )}
-          {c.verification_status === "pending" ? (
+          {c.verificationStatus === "pending" ? (
             <>
               <DecisionDialog
                 kind="approve"
@@ -257,12 +203,8 @@ function AdminCompanies() {
                 updateCompany(
                   c.id,
                   c.verified
-                    ? { verified: false, verification_status: "unverified" }
-                    : {
-                        verified: true,
-                        verification_status: "verified",
-                        verified_at: new Date().toISOString(),
-                      },
+                    ? { verified: false, verificationStatus: "unverified" as const }
+                    : { verified: true, verificationStatus: "verified" as const },
                 )
               }
               className="gap-1"
@@ -297,13 +239,12 @@ function AdminCompanies() {
               <Ban className="h-3.5 w-3.5" /> Suspend
             </Button>
           )}
-          <CreditsDialog company={c} onSave={(patch) => updateCompany(c.id, patch)} />
         </div>
       </div>
     </div>
   );
 
-  const pendingCount = companies.filter((c) => c.verification_status === "pending").length;
+  const pendingCount = companies.filter((c) => c.verificationStatus === "pending").length;
 
   return (
     <div>
@@ -358,7 +299,7 @@ function AdminCompanies() {
   );
 }
 
-function VerificationPill({ status }: { status: Company["verification_status"] }) {
+function VerificationPill({ status }: { status: Company["verificationStatus"] }) {
   const map = {
     unverified: { label: "Unverified", cls: "bg-muted text-muted-foreground" },
     pending: { label: "Pending review", cls: "bg-amber-100 text-amber-900" },
@@ -367,29 +308,6 @@ function VerificationPill({ status }: { status: Company["verification_status"] }
   } as const;
   const s = map[status] ?? map.unverified;
   return <Badge className={`border-0 ${s.cls}`}>{s.label}</Badge>;
-}
-
-function EvidenceLink({ path }: { path: string }) {
-  const [busy, setBusy] = useState(false);
-  const open = async () => {
-    setBusy(true);
-    try {
-      const { data, error } = await supabase.storage
-        .from("company-verification")
-        .createSignedUrl(path, 60);
-      if (error || !data?.signedUrl) throw error ?? new Error("No URL");
-      window.open(data.signedUrl, "_blank");
-    } catch (e) {
-      toast.error((e as Error).message || "Could not open evidence");
-    } finally {
-      setBusy(false);
-    }
-  };
-  return (
-    <Button size="sm" variant="outline" onClick={open} disabled={busy} className="gap-1">
-      <FileText className="h-3.5 w-3.5" /> Evidence
-    </Button>
-  );
 }
 
 function DecisionDialog({
@@ -452,61 +370,6 @@ function DecisionDialog({
             {busy ? "Saving…" : kind === "approve" ? "Approve" : "Reject"}
           </Button>
         </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function CreditsDialog({
-  company,
-  onSave,
-}: {
-  company: { id: string; name: string; posting_credits: number; featured_credits: number };
-  onSave: (patch: { posting_credits: number; featured_credits: number }) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const [posting, setPosting] = useState(company.posting_credits);
-  const [featured, setFeatured] = useState(company.featured_credits);
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button size="sm" variant="outline">
-          Credits
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Adjust credits — {company.name}</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div>
-            <Label>Posting credits</Label>
-            <Input
-              type="number"
-              value={posting}
-              onChange={(e) => setPosting(Number(e.target.value))}
-              className="mt-1"
-            />
-          </div>
-          <div>
-            <Label>Featured credits</Label>
-            <Input
-              type="number"
-              value={featured}
-              onChange={(e) => setFeatured(Number(e.target.value))}
-              className="mt-1"
-            />
-          </div>
-          <Button
-            onClick={() => {
-              onSave({ posting_credits: posting, featured_credits: featured });
-              setOpen(false);
-            }}
-            className="btn-primary w-full"
-          >
-            Save
-          </Button>
-        </div>
       </DialogContent>
     </Dialog>
   );

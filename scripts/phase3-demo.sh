@@ -60,7 +60,7 @@ step "4. Prisma migrations"
 bun run api:migrate:dev
 ok "migrations applied"
 
-step "5. Lint + type-check + API contract drift guard"
+step "5. Lint + type-check + OpenAPI + contract drift guard + Postman sync check"
 bun run api:lint
 bun run api:type-check
 bun run api:validate
@@ -81,7 +81,8 @@ if bun --env-file=.env --cwd src/api scripts/check-api-contract.ts --spec "$TAMP
   fail "contract guard should exit non-zero on phantom route"
 fi
 rm -rf "$TAMPER"
-ok "lint + types + openapi + contract guard (in sync + fail-closed on drift)"
+bun run api:postman:check
+ok "lint + types + openapi + contract guard (in sync + fail-closed on drift) + Postman in sync"
 
 step "6. Unit tests + coverage (≥ 90% global)"
 bun run api:test:cov
@@ -151,10 +152,10 @@ if curl -sf "${API_BASE}/api/health" >/dev/null 2>&1; then
   [[ "$SEEKER_POST" == "403" ]] || fail "seeker post expected 403, got ${SEEKER_POST}"
 
   ADMIN_EMAIL="phase3-admin-${DEMO_EMAIL}"
-  bun --env-file=.env run scripts/gen-dev-token.ts --role admin --email "$ADMIN_EMAIL" >/dev/null 2>&1 || true
+  bun run dev:token -- --role admin --email "$ADMIN_EMAIL" >/dev/null 2>&1 || true
   docker compose exec -T postgres psql -U wj_user -d warehousejobs -c \
     "UPDATE users SET email_verified_at = NOW() WHERE email = '${ADMIN_EMAIL}';" >/dev/null 2>&1 || true
-  ADMIN_TOKEN="$(bun --env-file=.env run scripts/gen-dev-token.ts --role admin --email "$ADMIN_EMAIL" 2>/dev/null | grep -E '^eyJ' | head -1)"
+  ADMIN_TOKEN="$(bun run dev:token -- --role admin --email "$ADMIN_EMAIL" 2>/dev/null | grep -E '^eyJ' | head -1)"
   [[ -n "$ADMIN_TOKEN" ]] || fail "could not obtain admin JWT (run bun run dev:token)"
 
   COMPANY_ID="$(docker compose exec -T postgres psql -U wj_user -d warehousejobs -t -A \
@@ -225,4 +226,4 @@ fi
 
 echo ""
 echo -e "${GREEN}${BOLD}Phase 3 demo complete.${RESET}"
-echo "See docs/demo/phase3-demo.md for Postman, Swagger UI, and browser validation steps."
+echo "See docs/demo/phase3-demo.md for Postman, curl (Part B), Swagger UI, and browser validation steps."

@@ -162,6 +162,83 @@ describe("ApiContractService", () => {
       );
       expect(getOne?.params).toEqual(["id"]);
     });
+
+    it("skips non-function prototype entries", () => {
+      class OddController {
+        get ok(): string {
+          return "nope";
+        }
+      }
+      const discovery = mock<DiscoveryService>();
+      const scanner = mock<MetadataScanner>();
+      const reflector = mock<Reflector>();
+      discovery.getControllers.mockReturnValue([
+        { instance: new OddController(), metatype: OddController },
+      ] as unknown as Controllers);
+      scanner.getAllMethodNames.mockReturnValue(["ok"]);
+      (reflector.get as jest.Mock).mockImplementation((key: unknown, target: unknown) => {
+        if (target === OddController) return "odd";
+        if (target === OddController.prototype.ok) {
+          return key === PATH_METADATA ? "" : RequestMethod.GET;
+        }
+        return undefined;
+      });
+      const svc = new ApiContractService(discovery, scanner, reflector);
+      expect(svc.extractRouteSurface()).toEqual([]);
+    });
+
+    it("defaults missing controller version to v1", () => {
+      class DefaultVersionController {
+        ping(): void {}
+      }
+      const discovery = mock<DiscoveryService>();
+      const scanner = mock<MetadataScanner>();
+      const reflector = mock<Reflector>();
+      discovery.getControllers.mockReturnValue([
+        { instance: new DefaultVersionController(), metatype: DefaultVersionController },
+      ] as unknown as Controllers);
+      scanner.getAllMethodNames.mockReturnValue(["ping"]);
+      (reflector.get as jest.Mock).mockImplementation((key: unknown, target: unknown) => {
+        if (target === DefaultVersionController) {
+          if (key === PATH_METADATA) return "status";
+          if (key === VERSION_METADATA) return undefined;
+        }
+        if (target === DefaultVersionController.prototype.ping) {
+          return key === PATH_METADATA ? "" : RequestMethod.GET;
+        }
+        return undefined;
+      });
+      const svc = new ApiContractService(discovery, scanner, reflector);
+      expect(svc.extractRouteSurface()).toEqual([
+        expect.objectContaining({ method: "GET", path: "/api/v1/status" }),
+      ]);
+    });
+
+    it("expands array controller versions", () => {
+      class MultiVersionController {
+        info(): void {}
+      }
+      const discovery = mock<DiscoveryService>();
+      const scanner = mock<MetadataScanner>();
+      const reflector = mock<Reflector>();
+      discovery.getControllers.mockReturnValue([
+        { instance: new MultiVersionController(), metatype: MultiVersionController },
+      ] as unknown as Controllers);
+      scanner.getAllMethodNames.mockReturnValue(["info"]);
+      (reflector.get as jest.Mock).mockImplementation((key: unknown, target: unknown) => {
+        if (target === MultiVersionController) {
+          if (key === PATH_METADATA) return "meta";
+          if (key === VERSION_METADATA) return ["1", "2"];
+        }
+        if (target === MultiVersionController.prototype.info) {
+          return key === PATH_METADATA ? "" : RequestMethod.GET;
+        }
+        return undefined;
+      });
+      const svc = new ApiContractService(discovery, scanner, reflector);
+      const paths = svc.extractRouteSurface().map((r) => r.path).sort();
+      expect(paths).toEqual(["/api/v1/meta", "/api/v2/meta"]);
+    });
   });
 
   describe("diff", () => {

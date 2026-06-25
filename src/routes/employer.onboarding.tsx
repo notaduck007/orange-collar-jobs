@@ -4,8 +4,10 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Upload, Building2 } from "lucide-react";
 import { z } from "zod";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { apiClient, ApiError } from "@/lib/api-client";
+import { getAccessToken } from "@/lib/auth-session";
+import type { CompanyProfile } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,15 +19,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { slugify, uniqueSlug } from "@/lib/slug";
 import { startCheckout } from "@/lib/checkout";
 import crewImage from "@/assets/crew-productive.webp";
 
 export const Route = createFileRoute("/employer/onboarding")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    next: typeof search.next === "string" ? search.next : undefined,
-    pkg: typeof search.pkg === "string" ? search.pkg : undefined,
-  }),
+  validateSearch: z
+    .object({
+      next: z.string().optional(),
+      pkg: z.string().optional(),
+    })
+    .catch({}),
   head: () => ({ meta: [{ title: "Company Profile — WarehouseJobs.com Employers" }] }),
   component: OnboardingPage,
 });
@@ -57,16 +60,18 @@ function OnboardingPage() {
   const { next, pkg } = Route.useSearch();
   const qc = useQueryClient();
 
-  const { data: existing } = useQuery({
+  const { data: existing } = useQuery<CompanyProfile | null>({
     queryKey: ["employer-company", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data } = await supabase
-        .from("companies")
-        .select("*")
-        .eq("owner_id", user!.id)
-        .maybeSingle();
-      return data;
+      const token = getAccessToken();
+      if (!token) return null;
+      try {
+        return await apiClient.getMyCompany(token);
+      } catch (err) {
+        if (err instanceof ApiError && err.statusCode === 404) return null;
+        throw err;
+      }
     },
   });
 
@@ -88,11 +93,11 @@ function OnboardingPage() {
         name: existing.name ?? "",
         website: existing.website ?? "",
         industry: existing.industry ?? "",
-        hq_city: existing.hq_city ?? "",
-        hq_state: existing.hq_state ?? "",
+        hq_city: existing.hqCity ?? "",
+        hq_state: existing.hqState ?? "",
         description: existing.description ?? "",
       });
-      setLogoUrl(existing.logo_url);
+      setLogoUrl(existing.logoUrl ?? null);
     }
   }, [existing]);
 
@@ -105,14 +110,10 @@ function OnboardingPage() {
     }
     setUploading(true);
     try {
-      const ext = file.name.split(".").pop() ?? "png";
-      const path = `${user.id}/logo-${Date.now()}.${ext}`;
-      const { error } = await supabase.storage
-        .from("company-logos")
-        .upload(path, file, { upsert: true });
-      if (error) throw error;
-      const { data } = supabase.storage.from("company-logos").getPublicUrl(path);
-      setLogoUrl(data.publicUrl);
+      const token = getAccessToken();
+      if (!token) throw new Error("Sign in before uploading a logo.");
+      const { url } = await apiClient.uploadLogo(token, file);
+      setLogoUrl(url);
       toast.success("Logo uploaded");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Upload failed");
@@ -129,50 +130,28 @@ function OnboardingPage() {
       toast.error(result.error.issues[0].message);
       return;
     }
+    const token = getAccessToken();
+    if (!token) {
+      toast.error("Session expired — please sign in again.");
+      return;
+    }
     setSaving(true);
     try {
+      const body = {
+        name: form.name,
+        website: form.website || null,
+        industry: form.industry,
+        hqCity: form.hq_city,
+        hqState: form.hq_state,
+        description: form.description || null,
+        logoUrl: logoUrl ?? null,
+      };
+
       if (existing) {
-        const { error } = await supabase
-          .from("companies")
-          .update({
-            name: form.name,
-            website: form.website || null,
-            industry: form.industry,
-            hq_city: form.hq_city,
-            hq_state: form.hq_state,
-            location: `${form.hq_city}, ${form.hq_state}`,
-            description: form.description || null,
-            logo_url: logoUrl,
-          })
-          .eq("id", existing.id);
-        if (error) throw error;
+        await apiClient.updateCompany(token, existing.id, body);
         toast.success("Company profile updated");
       } else {
-        const slug = uniqueSlug(form.name);
-        const { data: created, error } = await supabase
-          .from("companies")
-          .insert({
-            owner_id: user.id,
-            name: form.name,
-            slug,
-            website: form.website || null,
-            industry: form.industry,
-            hq_city: form.hq_city,
-            hq_state: form.hq_state,
-            location: `${form.hq_city}, ${form.hq_state}`,
-            description: form.description || null,
-            logo_url: logoUrl,
-          })
-          .select("id")
-          .single();
-        if (error) throw error;
-        // Free Starter package: 1 post, 30 days, $0 order — best-effort, idempotent
-        if (created?.id) {
-          const { error: grantErr } = await supabase.rpc("grant_starter_package", {
-            _company_id: created.id,
-          });
-          if (grantErr) console.warn("starter grant failed", grantErr.message);
-        }
+        await apiClient.createCompany(token, body);
         toast.success("Company created — your first job post is free and ready. Let's post it.", {
           action: {
             label: "Post your free job",
@@ -182,16 +161,22 @@ function OnboardingPage() {
       }
       await qc.invalidateQueries({ queryKey: ["employer-company", user.id] });
       if (pkg && !existing) {
-        const result = await startCheckout(pkg, "purchase");
-        if (result?.error) {
-          toast.error(result.error);
+        const checkoutResult = await startCheckout(pkg, "purchase");
+        if (checkoutResult?.error) {
+          toast.error(checkoutResult.error);
           navigate({ to: "/employer" });
         }
         return;
       }
       navigate({ to: (next ?? "/employer") as never });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Save failed");
+      if (err instanceof ApiError && err.statusCode === 401) {
+        toast.error("Session expired — please sign out and sign back in.");
+      } else if (err instanceof ApiError && err.statusCode === 409) {
+        toast.error("A company already exists for your account. Refresh the page.");
+      } else {
+        toast.error(err instanceof Error ? err.message : "Save failed");
+      }
     } finally {
       setSaving(false);
     }
@@ -370,6 +355,3 @@ function Field({
     </div>
   );
 }
-
-// Manual slugify left for future use
-void slugify;

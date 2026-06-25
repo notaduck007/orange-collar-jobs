@@ -1,1 +1,0 @@
-REVOKE EXECUTE ON FUNCTION public.get_active_package(uuid) FROM anon;

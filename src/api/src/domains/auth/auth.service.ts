@@ -6,8 +6,8 @@ import * as bcrypt from "bcryptjs";
 import type { User } from "../../core/database/prisma-client.js";
 import type { Env } from "../../core/config/env.schema.js";
 import { PrismaService } from "../../core/database/prisma.service.js";
-import { EmailService } from "../../core/email/email.service.js";
-import { SmsService } from "../../core/sms/sms.service.js";
+import { NotificationsService } from "../notifications/notifications.service.js";
+import { OtpService } from "../notifications/otp.service.js";
 import {
   BadRequestError,
   ConflictError,
@@ -26,14 +26,14 @@ const RESET_TTL_MS = 60 * 60 * 1000;
 function parseDurationMs(value: string): number {
   const match = value.match(/^(\d+)([smhd])$/);
   if (!match) return 30 * 24 * 60 * 60 * 1000;
-  const n = parseInt(match[1], 10);
+  const amount = parseInt(match[1], 10);
   const multipliers: Record<string, number> = {
     s: 1000,
     m: 60_000,
     h: 3_600_000,
     d: 86_400_000,
   };
-  return n * (multipliers[match[2]] ?? 86_400_000);
+  return amount * (multipliers[match[2]] ?? 86_400_000);
 }
 
 function hashToken(token: string): string {
@@ -50,8 +50,8 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwt: JwtService,
     private readonly config: ConfigService<Env>,
-    private readonly email: EmailService,
-    private readonly sms: SmsService,
+    private readonly notifications: NotificationsService,
+    private readonly otp: OtpService,
   ) {}
 
   async register(dto: RegisterDto): Promise<RegisterResponse> {
@@ -81,8 +81,8 @@ export class AuthService {
     });
 
     const baseUrl = this.config.get("CORS_ORIGIN", { infer: true }) ?? "http://localhost:5173";
-    await this.email.sendWelcomeEmail(email, dto.fullName);
-    await this.email.sendVerificationEmail(email, token, baseUrl);
+    await this.notifications.sendWelcomeEmail(email, dto.fullName);
+    await this.notifications.sendVerificationEmail(email, token, baseUrl);
 
     return {
       message: "Account created. Check your email to verify.",
@@ -104,6 +104,11 @@ export class AuthService {
 
     if (!user.emailVerifiedAt) {
       throw new UnauthorizedError("Email not confirmed");
+    }
+
+    if (await this.otp.userHasMfa(user.id)) {
+      const challengeId = await this.otp.createLoginMfaChallenge(user.id);
+      throw new UnauthorizedError("MFA required", { mfaRequired: true, challengeId });
     }
 
     return this.issueTokenPair(user);
@@ -173,12 +178,9 @@ export class AuthService {
         },
       });
       const baseUrl = this.config.get("CORS_ORIGIN", { infer: true }) ?? "http://localhost:5173";
-      await this.email.sendPasswordResetEmail(email, token, baseUrl);
+      await this.notifications.sendPasswordResetEmail(email, token, baseUrl);
       if (user.phone) {
-        await this.sms.sendTransactional(
-          user.phone,
-          "WarehouseJobs: Password reset requested. Check your email for the secure link.",
-        );
+        await this.notifications.sendPasswordResetSms(user.phone);
       }
     }
 

@@ -2,7 +2,7 @@ openapi: 3.0.3
 
 info:
   title: WarehouseJobs.com API
-  version: 1.0.1
+  version: 1.0.2
   description: |
     RESTful API for the WarehouseJobs.com platform.
 
@@ -56,6 +56,68 @@ components:
   # ──────────────────────────────────────────────────────────────────────────
 
   schemas:
+    # ── Company ─────────────────────────────────────────────────────────────
+    CompanyProfile:
+      type: object
+      required: [id, ownerId, name, slug, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        ownerId: { type: string, format: uuid }
+        name: { type: string }
+        slug: { type: string }
+        description: { type: string, nullable: true }
+        website: { type: string, format: uri, nullable: true }
+        logoUrl: { type: string, format: uri, nullable: true }
+        industry: { type: string, nullable: true }
+        hqCity: { type: string, nullable: true }
+        hqState: { type: string, nullable: true }
+        location: { type: string, nullable: true }
+        verified: { type: boolean }
+        createdAt: { type: string, format: date-time }
+
+    AdminCompanyRecord:
+      type: object
+      required: [id, name, slug, verified, verificationStatus, status, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        ownerId: { type: string, format: uuid, nullable: true }
+        name: { type: string }
+        slug: { type: string }
+        description: { type: string, nullable: true }
+        website: { type: string, nullable: true }
+        logoUrl: { type: string, nullable: true }
+        industry: { type: string, nullable: true }
+        hqCity: { type: string, nullable: true }
+        hqState: { type: string, nullable: true }
+        location: { type: string, nullable: true }
+        status: { type: string, enum: [active, suspended] }
+        verified: { type: boolean }
+        verificationStatus: { type: string, enum: [unverified, pending, verified, rejected] }
+        verifiedAt: { type: string, format: date-time, nullable: true }
+        verifiedBy: { type: string, format: uuid, nullable: true }
+        verificationNote: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+
+    AdminUpdateCompanyBody:
+      type: object
+      properties:
+        status: { type: string, enum: [active, suspended] }
+        verified: { type: boolean }
+        verificationStatus: { type: string, enum: [unverified, pending, verified, rejected] }
+        verificationNote: { type: string, nullable: true }
+
+    UpsertCompanyBody:
+      type: object
+      required: [name, industry, hqCity, hqState]
+      properties:
+        name: { type: string, minLength: 2, maxLength: 120 }
+        website: { type: string, format: uri, nullable: true }
+        industry: { type: string }
+        hqCity: { type: string }
+        hqState: { type: string }
+        description: { type: string, maxLength: 2000, nullable: true }
+        logoUrl: { type: string, format: uri, nullable: true }
+
     # ── Pagination ──────────────────────────────────────────────────────────
     PaginationMeta:
       type: object
@@ -643,6 +705,136 @@ components:
             mtdCents: { type: integer }
             ytdCents: { type: integer }
 
+    # ── Notifications (Phase 4.5) ───────────────────────────────────────
+    NotificationType:
+      type: string
+      enum: [system, application, message, marketing, auth]
+
+    Notification:
+      type: object
+      required: [id, userId, title, body, type, createdAt, read]
+      properties:
+        id: { type: string, format: uuid }
+        userId: { type: string, format: uuid }
+        title: { type: string }
+        body: { type: string }
+        link: { type: string, nullable: true }
+        type: { $ref: "#/components/schemas/NotificationType" }
+        senderId: { type: string, format: uuid, nullable: true }
+        read: { type: boolean }
+        readAt: { type: string, format: date-time, nullable: true }
+        createdAt: { type: string, format: date-time }
+
+    NotificationPreferences:
+      type: object
+      required: [emailTransactional, emailMarketing, smsTransactional, smsMarketing, inApp]
+      properties:
+        emailTransactional: { type: boolean, default: true }
+        emailMarketing: { type: boolean, default: false }
+        smsTransactional: { type: boolean, default: true }
+        smsMarketing: { type: boolean, default: false }
+        inApp: { type: boolean, default: true }
+
+    UpdateNotificationPreferencesRequest:
+      type: object
+      properties:
+        emailTransactional: { type: boolean }
+        emailMarketing: { type: boolean }
+        smsTransactional: { type: boolean }
+        smsMarketing: { type: boolean }
+        inApp: { type: boolean }
+
+    SendOtpRequest:
+      type: object
+      required: [channel, destination]
+      properties:
+        channel: { type: string, enum: [email, sms] }
+        destination:
+          type: string
+          description: Email address or E.164 phone number
+        purpose:
+          type: string
+          enum: [verify_contact, login_2fa, enable_2fa]
+          default: verify_contact
+
+    VerifyOtpRequest:
+      type: object
+      required: [channel, destination, code]
+      properties:
+        channel: { type: string, enum: [email, sms] }
+        destination: { type: string }
+        code: { type: string, minLength: 4, maxLength: 8 }
+        purpose: { type: string, enum: [verify_contact, login_2fa, enable_2fa] }
+
+    Enable2faRequest:
+      type: object
+      required: [method]
+      properties:
+        method: { type: string, enum: [sms, email] }
+        phone: { type: string, description: Required when method is sms }
+        email: { type: string, format: email, description: Required when method is email }
+
+    Verify2faRequest:
+      type: object
+      required: [code]
+      properties:
+        code: { type: string, minLength: 4, maxLength: 8 }
+        challengeId:
+          type: string
+          format: uuid
+          description: Returned by login when MFA is required
+
+    CampaignChannel:
+      type: string
+      enum: [email, sms]
+
+    CampaignStatus:
+      type: string
+      enum: [draft, scheduled, sending, sent, cancelled, failed]
+
+    MarketingCampaign:
+      type: object
+      required: [id, name, channel, status, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        channel: { $ref: "#/components/schemas/CampaignChannel" }
+        status: { $ref: "#/components/schemas/CampaignStatus" }
+        segment:
+          type: object
+          additionalProperties: true
+          description: Role, geo, or custom filter JSON
+        subject: { type: string, nullable: true }
+        htmlBody: { type: string, nullable: true }
+        textBody: { type: string, nullable: true }
+        scheduledAt: { type: string, format: date-time, nullable: true }
+        sentAt: { type: string, format: date-time, nullable: true }
+        createdAt: { type: string, format: date-time }
+
+    CreateCampaignRequest:
+      type: object
+      required: [name, channel]
+      properties:
+        name: { type: string }
+        channel: { $ref: "#/components/schemas/CampaignChannel" }
+        segment: { type: object, additionalProperties: true }
+        subject: { type: string }
+        htmlBody: { type: string }
+        textBody: { type: string }
+        scheduledAt: { type: string, format: date-time, nullable: true }
+
+    CampaignStats:
+      type: object
+      required: [campaignId, targeted, sent, delivered, bounced, optedOut, failed]
+      properties:
+        campaignId: { type: string, format: uuid }
+        targeted: { type: integer }
+        sent: { type: integer }
+        delivered: { type: integer }
+        bounced: { type: integer }
+        optedOut: { type: integer }
+        failed: { type: integer }
+
   # ──────────────────────────────────────────────────────────────────────────
   # Reusable responses
   # ──────────────────────────────────────────────────────────────────────────
@@ -719,6 +911,12 @@ tags:
     description: Advertising campaign management (admin only)
   - name: Admin — Stats
     description: Platform analytics and reporting (admin only)
+  - name: Notifications
+    description: In-app inbox and user notification preferences (Phase 4.5)
+  - name: Webhooks
+    description: Inbound provider webhooks (Twilio SMS, Resend email)
+  - name: Admin — Campaigns
+    description: Admin marketing campaign management (Phase 4.5)
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Paths
@@ -772,6 +970,145 @@ paths:
               schema: { $ref: "#/components/schemas/UserProfile" }
         "401":
           $ref: "#/components/responses/Unauthorized"
+
+  # ── Companies ────────────────────────────────────────────────────────────
+
+  /api/v1/companies/mine:
+    get:
+      x-implemented: true
+      tags: [Companies]
+      summary: Get the caller's company profile
+      operationId: getMyCompany
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Company found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CompanyProfile" }
+        "204":
+          description: No company exists for this user yet
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/v1/companies:
+    post:
+      x-implemented: true
+      tags: [Companies]
+      summary: Create a company profile
+      operationId: createCompany
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpsertCompanyBody" }
+      responses:
+        "201":
+          description: Company created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CompanyProfile" }
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          description: Company already exists for this owner
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/v1/companies/{id}:
+    patch:
+      x-implemented: true
+      tags: [Companies]
+      summary: Update a company profile
+      operationId: updateCompany
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpsertCompanyBody" }
+      responses:
+        "200":
+          description: Company updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CompanyProfile" }
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # ── Uploads ───────────────────────────────────────────────────────────────
+
+  /api/v1/uploads/logo:
+    post:
+      x-implemented: true
+      tags: [Uploads]
+      summary: Upload a company logo
+      description: |
+        Accepts `multipart/form-data` with a single `file` field (JPEG, PNG, WebP — max 2 MB).
+        Returns a public URL served from MinIO / Cloudflare R2. Requires authentication.
+      operationId: uploadCompanyLogo
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Upload successful
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [url, key]
+                properties:
+                  url: { type: string, format: uri, example: "http://localhost:9000/company-logos/abc123" }
+                  key: { type: string, example: "abc123-uuid" }
+        "400":
+          description: Missing or invalid file
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "413":
+          description: File too large (max 2 MB)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
 
   # ── Auth ──────────────────────────────────────────────────────────────────
 
@@ -977,6 +1314,122 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
 
+  /api/v1/auth/send-otp:
+    post:
+      x-implemented: true
+      tags: [Auth]
+      summary: Send OTP code
+      description: |
+        Sends a one-time passcode via email (Resend) or SMS (Twilio Verify).
+        Rate limited to 5 requests per minute per IP.
+      operationId: sendOtp
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SendOtpRequest" }
+      responses:
+        "200":
+          description: OTP dispatched (never returns the code)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [message]
+                properties:
+                  message: { type: string, example: "Verification code sent." }
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+
+  /api/v1/auth/verify-otp:
+    post:
+      x-implemented: true
+      tags: [Auth]
+      summary: Verify OTP code
+      description: Validates a one-time passcode for contact verification or MFA step-up.
+      operationId: verifyOtp
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/VerifyOtpRequest" }
+      responses:
+        "200":
+          description: OTP verified
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [verified]
+                properties:
+                  verified: { type: boolean, example: true }
+        "400":
+          description: Invalid or expired code
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+
+  /api/v1/auth/enable-2fa:
+    post:
+      x-implemented: true
+      tags: [Auth]
+      summary: Enable two-factor authentication
+      description: |
+        Enables SMS or email OTP as a second factor for vendor/admin accounts.
+        Requires an authenticated session and a verified contact method.
+      operationId: enable2fa
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/Enable2faRequest" }
+      responses:
+        "200":
+          description: 2FA enabled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "Two-factor authentication enabled." }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+
+  /api/v1/auth/verify-2fa:
+    post:
+      x-implemented: true
+      tags: [Auth]
+      summary: Complete login with 2FA
+      description: |
+        Second step after password login when MFA is enabled. Returns full auth tokens on success.
+      operationId: verify2fa
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/Verify2faRequest" }
+      responses:
+        "200":
+          description: MFA verified; tokens issued
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AuthTokens" }
+        "400":
+          description: Invalid code or expired challenge
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+
   # ── Jobs ──────────────────────────────────────────────────────────────────
 
   /api/v1/jobs:
@@ -1063,6 +1516,14 @@ paths:
         - name: quickHire
           in: query
           schema: { type: boolean }
+        - name: companyId
+          in: query
+          schema: { type: string, format: uuid }
+          description: Filter by employer company
+        - name: weeklyPay
+          in: query
+          schema: { type: boolean }
+          description: Filter jobs offering weekly pay
         - name: temperatureEnv
           in: query
           schema: { $ref: "#/components/schemas/TemperatureEnv" }
@@ -1081,6 +1542,44 @@ paths:
                     type: array
                     items: { $ref: "#/components/schemas/JobSummary" }
                   meta: { $ref: "#/components/schemas/PaginationMeta" }
+
+  /api/v1/jobs/mine:
+    get:
+      x-implemented: true
+      tags: [Jobs]
+      summary: List my company's jobs
+      description: |
+        Returns all jobs for the authenticated vendor's company across every status
+        (draft, published, closed, etc.). Admins may optionally filter by `companyId`.
+      operationId: listMyJobs
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: companyId
+          in: query
+          schema: { type: string, format: uuid }
+          description: Admin-only filter for a specific company
+        - name: q
+          in: query
+          schema: { type: string }
+          description: Full-text query
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/PageSizeParam"
+      responses:
+        "200":
+          description: Paginated job listing
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, meta]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/Job" }
+                  meta: { $ref: "#/components/schemas/PaginationMeta" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
 
   /api/v1/jobs/{slug}:
     get:
@@ -1174,6 +1673,7 @@ paths:
 
   /api/v1/jobs/batch:
     post:
+      x-implemented: true
       tags: [Batch]
       summary: Ingest a batch of jobs
       description: |
@@ -1230,6 +1730,7 @@ paths:
 
   /api/v1/jobs/batch/{batchId}/status:
     get:
+      x-implemented: true
       tags: [Batch]
       summary: Poll batch status
       description: Returns processing progress for an async batch job.
@@ -1411,62 +1912,55 @@ paths:
         "403": { $ref: "#/components/responses/Forbidden" }
         "404": { $ref: "#/components/responses/NotFound" }
 
-  # ── Companies ─────────────────────────────────────────────────────────────
+  # ── Admin — Companies ─────────────────────────────────────────────────────
 
-  /api/v1/companies:
-    post:
-      tags: [Companies]
-      summary: Create company
-      description: Registers a new employer company. The authenticated vendor becomes the owner.
-      operationId: createCompany
+  /api/v1/admin/companies:
+    get:
+      x-implemented: true
+      tags: [Admin — Companies]
+      summary: List all companies (admin)
+      operationId: adminListCompanies
       security:
         - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema: { $ref: "#/components/schemas/CreateCompanyRequest" }
-      responses:
-        "201":
-          description: Company created
-          content:
-            application/json:
-              schema: { $ref: "#/components/schemas/Company" }
-        "401": { $ref: "#/components/responses/Unauthorized" }
-        "422": { $ref: "#/components/responses/UnprocessableEntity" }
-
-  /api/v1/companies/{slug}:
-    get:
-      tags: [Companies]
-      summary: Get company profile
-      description: Public company profile with active job listings.
-      operationId: getCompany
       parameters:
-        - name: slug
-          in: path
-          required: true
+        - name: q
+          in: query
           schema: { type: string }
+          description: Filter by name (case-insensitive contains)
+        - name: verificationStatus
+          in: query
+          schema:
+            type: string
+            enum: [unverified, pending, verified, rejected]
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, suspended]
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/PageSizeParam"
       responses:
         "200":
-          description: Company profile
+          description: Paginated company list
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: "#/components/schemas/Company"
-                  - type: object
-                    properties:
-                      activeJobs:
-                        type: array
-                        items: { $ref: "#/components/schemas/JobSummary" }
-        "404": { $ref: "#/components/responses/NotFound" }
+                type: object
+                required: [data, meta]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/AdminCompanyRecord" }
+                  meta: { $ref: "#/components/schemas/PaginationMeta" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
 
-  /api/v1/companies/{id}:
+  /api/v1/admin/companies/{id}:
     patch:
-      tags: [Companies]
-      summary: Update company
-      description: Updates company profile. Only the owner or an admin may call this.
-      operationId: updateCompany
+      x-implemented: true
+      tags: [Admin — Companies]
+      summary: Update a company (admin — verify, suspend, reject)
+      operationId: adminUpdateCompany
       security:
         - BearerAuth: []
       parameters:
@@ -1478,22 +1972,13 @@ paths:
         required: true
         content:
           application/json:
-            schema:
-              type: object
-              properties:
-                name: { type: string }
-                description: { type: string }
-                website: { type: string, format: uri }
-                location: { type: string }
-                hqCity: { type: string }
-                hqState: { type: string }
-                industry: { type: string }
+            schema: { $ref: "#/components/schemas/AdminUpdateCompanyBody" }
       responses:
         "200":
           description: Updated company
           content:
             application/json:
-              schema: { $ref: "#/components/schemas/Company" }
+              schema: { $ref: "#/components/schemas/AdminCompanyRecord" }
         "401": { $ref: "#/components/responses/Unauthorized" }
         "403": { $ref: "#/components/responses/Forbidden" }
         "404": { $ref: "#/components/responses/NotFound" }
@@ -1502,6 +1987,7 @@ paths:
 
   /api/v1/admin/jobs:
     get:
+      x-implemented: true
       tags: [Admin — Jobs]
       summary: List all jobs (admin)
       description: Returns all jobs across all statuses for moderation. Admin only.
@@ -1540,6 +2026,7 @@ paths:
 
   /api/v1/admin/jobs/{id}/feature:
     patch:
+      x-implemented: true
       tags: [Admin — Jobs]
       summary: Toggle featured status
       description: Sets or clears the featured flag on a job, with an optional expiry date. Admin only.
@@ -1647,3 +2134,306 @@ paths:
               schema: { $ref: "#/components/schemas/PlatformStats" }
         "401": { $ref: "#/components/responses/Unauthorized" }
         "403": { $ref: "#/components/responses/Forbidden" }
+
+  # ── Notifications (Phase 4.5) ───────────────────────────────────────────
+
+  /api/v1/notifications:
+    get:
+      x-implemented: true
+      tags: [Notifications]
+      summary: List in-app notifications
+      description: Paginated inbox for the authenticated user, newest first.
+      operationId: listNotifications
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: unreadOnly
+          in: query
+          schema: { type: boolean, default: false }
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/PageSizeParam"
+      responses:
+        "200":
+          description: Paginated notifications
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, meta]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/Notification" }
+                  meta: { $ref: "#/components/schemas/PaginationMeta" }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/v1/notifications/{id}/read:
+    patch:
+      x-implemented: true
+      tags: [Notifications]
+      summary: Mark notification read
+      operationId: markNotificationRead
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Updated notification
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Notification" }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/notifications/read-all:
+    post:
+      x-implemented: true
+      tags: [Notifications]
+      summary: Mark all notifications read
+      operationId: markAllNotificationsRead
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: All notifications marked read
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  updated: { type: integer, example: 12 }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/v1/notifications/preferences:
+    get:
+      x-implemented: true
+      tags: [Notifications]
+      summary: Get notification preferences
+      operationId: getNotificationPreferences
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: User preferences
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/NotificationPreferences" }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    patch:
+      x-implemented: true
+      tags: [Notifications]
+      summary: Update notification preferences
+      operationId: updateNotificationPreferences
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateNotificationPreferencesRequest" }
+      responses:
+        "200":
+          description: Updated preferences
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/NotificationPreferences" }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+
+  # ── Webhooks (Phase 4.5) ──────────────────────────────────────────────────
+
+  /api/v1/webhooks/twilio/sms:
+    post:
+      x-implemented: true
+      tags: [Webhooks]
+      summary: Twilio inbound SMS webhook
+      description: |
+        Public endpoint validated via `X-Twilio-Signature`. Handles STOP/HELP and
+        routes conversational replies to the notifications domain.
+      operationId: twilioSmsWebhook
+      security: []
+      parameters:
+        - name: X-Twilio-Signature
+          in: header
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        "200":
+          description: Webhook accepted (TwiML or empty)
+        "403":
+          description: Invalid signature
+
+  /api/v1/webhooks/resend/inbound:
+    post:
+      x-implemented: true
+      tags: [Webhooks]
+      summary: Resend inbound email webhook
+      description: Public endpoint validated via Resend webhook signature.
+      operationId: resendInboundWebhook
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        "200":
+          description: Webhook accepted
+        "403":
+          description: Invalid signature
+
+  # ── Admin — Campaigns (Phase 4.5) ─────────────────────────────────────────
+
+  /api/v1/admin/campaigns:
+    post:
+      x-implemented: true
+      tags: [Admin — Campaigns]
+      summary: Create marketing campaign
+      operationId: createMarketingCampaign
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateCampaignRequest" }
+      responses:
+        "201":
+          description: Campaign created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MarketingCampaign" }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+    get:
+      x-implemented: true
+      tags: [Admin — Campaigns]
+      summary: List marketing campaigns
+      operationId: listMarketingCampaigns
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema: { $ref: "#/components/schemas/CampaignStatus" }
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/PageSizeParam"
+      responses:
+        "200":
+          description: Paginated campaigns
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/MarketingCampaign" }
+                  meta: { $ref: "#/components/schemas/PaginationMeta" }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /api/v1/admin/campaigns/{id}:
+    get:
+      x-implemented: true
+      tags: [Admin — Campaigns]
+      summary: Get marketing campaign
+      operationId: getMarketingCampaign
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Campaign detail
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MarketingCampaign" }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/admin/campaigns/{id}/send:
+    post:
+      x-implemented: true
+      tags: [Admin — Campaigns]
+      summary: Send or schedule campaign
+      description: Queues delivery via BullMQ. Requires marketing opt-in compliance checks.
+      operationId: sendMarketingCampaign
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "202":
+          description: Campaign queued for delivery
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MarketingCampaign" }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/admin/campaigns/{id}/stats:
+    get:
+      x-implemented: true
+      tags: [Admin — Campaigns]
+      summary: Campaign delivery statistics
+      operationId: getMarketingCampaignStats
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Delivery stats
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CampaignStats" }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"

@@ -10,6 +10,7 @@ describe("JobsController", () => {
     create: jest.Mock;
     update: jest.Mock;
     softDelete: jest.Mock;
+    listForVendor: jest.Mock;
   };
   let controller: JobsController;
 
@@ -20,6 +21,7 @@ describe("JobsController", () => {
       create: jest.fn().mockResolvedValue({ id: "j-1" }),
       update: jest.fn().mockResolvedValue({ id: "j-1", featured: true }),
       softDelete: jest.fn().mockResolvedValue(undefined),
+      listForVendor: jest.fn().mockResolvedValue({ data: [], meta: { total: 0, page: 1, pageSize: 20, totalPages: 1 } }),
     };
     controller = new JobsController(service as unknown as JobsService);
   });
@@ -28,6 +30,12 @@ describe("JobsController", () => {
     const dto = { page: 1, pageSize: 10 };
     await controller.search(dto);
     expect(service.search).toHaveBeenCalledWith(dto);
+  });
+
+  it("listMine delegates to JobsService.listForVendor", async () => {
+    const dto = { page: 1, pageSize: 10 };
+    await controller.listMine(dto, user);
+    expect(service.listForVendor).toHaveBeenCalledWith(user, dto);
   });
 
   it("findBySlug delegates to JobsService.findBySlug", async () => {

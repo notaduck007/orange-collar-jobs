@@ -76,8 +76,8 @@ wait_for_api
 step "Newman: System (Phase 1 health)"
 run_newman "System"
 
-step "Newman: Auth — Core (GET /me without token → 401)"
-run_newman "Auth — Core"
+step "Newman: Auth (GET /me without token → 401)"
+run_newman "Auth"
 
 step "Auth smoke: register → verify → login → me → refresh → logout"
 REGISTER_BODY="$TMP_DIR/register.json"
@@ -173,8 +173,8 @@ curl_json "$LOGIN2_BODY" LOGIN2_CODE "${API_BASE}/api/v1/auth/login" \
   exit 1
 }
 
-step "Newman: Jobs (Phase 3)"
-run_newman "Jobs (Phase 3)"
+step "Newman: Jobs"
+run_newman "Jobs"
 
 rm -rf "$TMP_DIR"
 echo "Postman CI smoke complete."

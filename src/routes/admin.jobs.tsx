@@ -1,9 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
-import { Check, Pencil, Pause, Play, X, Trash2, Star } from "lucide-react";
+import { Pencil, Star, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -13,13 +12,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { Database } from "@/integrations/supabase/types";
-
-type JobStatus = Database["public"]["Enums"]["job_status"];
+import { JobSourceBadge } from "@/components/job-source-badge";
+import { apiClient, ApiError } from "@/lib/api-client";
+import { requireAccessToken } from "@/lib/api/require-access-token";
+import type { JobStatus } from "@/lib/api/contracts/jobs";
 
 const searchSchema = z.object({
   status: z.string().optional(),
-  company: z.string().optional(),
   category: z.string().optional(),
 });
 
@@ -29,69 +28,75 @@ export const Route = createFileRoute("/admin/jobs")({
   component: AdminJobs,
 });
 
-const STATUSES: JobStatus[] = [
-  "draft",
-  "pending_review",
-  "published",
-  "active",
-  "paused",
-  "closed",
-  "expired",
-];
+const STATUSES: JobStatus[] = ["draft", "active", "published", "closed", "expired"];
+
+async function fetchAdminJobs(filters: { status?: string; category?: string }) {
+  const token = requireAccessToken();
+  const res = await apiClient.adminListJobs(token, {
+    status: filters.status as JobStatus | undefined,
+    pageSize: 100,
+  });
+  let rows = res.data;
+  if (filters.category) {
+    rows = rows.filter((j) => j.category === filters.category);
+  }
+  return rows;
+}
 
 function AdminJobs() {
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
   const qc = useQueryClient();
 
-  const { data: categories = [] } = useQuery({
-    queryKey: ["job-categories"],
-    queryFn: async () => {
-      const { data } = await supabase.from("job_categories").select("name").order("name");
-      return data ?? [];
-    },
-  });
-
   const { data: jobs = [] } = useQuery({
     queryKey: ["admin-jobs", search],
-    queryFn: async () => {
-      let q = supabase
-        .from("jobs")
-        .select(
-          "id, slug, title, status, featured, views, category, created_at, expires_at, company_id, companies(name)",
-        )
-        .order("created_at", { ascending: false })
-        .limit(500);
-      if (search.status) q = q.eq("status", search.status as JobStatus);
-      if (search.company) q = q.eq("company_id", search.company);
-      if (search.category) q = q.eq("category", search.category);
-      const { data, error } = await q;
-      if (error) throw error;
-      return data ?? [];
-    },
+    queryFn: () => fetchAdminJobs(search),
   });
 
+  const categories = [...new Set(jobs.map((j) => j.category).filter(Boolean))].sort();
+
+  const withToken = async <T,>(fn: (token: string) => Promise<T>): Promise<T | undefined> => {
+    try {
+      return await fn(requireAccessToken());
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Action failed");
+      return undefined;
+    }
+  };
+
   const setStatus = async (id: string, status: JobStatus) => {
-    const { error } = await supabase.from("jobs").update({ status }).eq("id", id);
-    if (error) toast.error(error.message);
-    else {
-      toast.success(`Job ${status}`);
-      qc.invalidateQueries({ queryKey: ["admin-jobs"] });
-    }
+    await withToken(async (token) => {
+      try {
+        await apiClient.updateJob(token, id, { status });
+        toast.success(`Job ${status}`);
+        qc.invalidateQueries({ queryKey: ["admin-jobs"] });
+      } catch (err) {
+        const msg =
+          err instanceof ApiError &&
+          err.body &&
+          typeof err.body === "object" &&
+          "message" in err.body
+            ? String((err.body as { message: string }).message)
+            : "Update failed";
+        toast.error(msg);
+      }
+    });
   };
+
   const toggleFeatured = async (id: string, featured: boolean) => {
-    const { error } = await supabase.from("jobs").update({ featured: !featured }).eq("id", id);
-    if (error) toast.error(error.message);
-    else qc.invalidateQueries({ queryKey: ["admin-jobs"] });
-  };
-  const deleteJob = async (id: string) => {
-    if (!confirm("Permanently delete this job?")) return;
-    const { error } = await supabase.from("jobs").delete().eq("id", id);
-    if (error) toast.error(error.message);
-    else {
-      toast.success("Deleted");
+    await withToken(async (token) => {
+      await apiClient.featureJob(token, id, { featured: !featured });
       qc.invalidateQueries({ queryKey: ["admin-jobs"] });
-    }
+    });
+  };
+
+  const deleteJob = async (id: string) => {
+    if (!confirm("Close this job listing?")) return;
+    await withToken(async (token) => {
+      await apiClient.deleteJob(token, id);
+      toast.success("Job closed");
+      qc.invalidateQueries({ queryKey: ["admin-jobs"] });
+    });
   };
 
   const update = (patch: Partial<typeof search>) =>
@@ -102,6 +107,9 @@ function AdminJobs() {
       <div className="mb-6">
         <p className="label-caps">Moderation</p>
         <h1 className="mt-1 text-2xl font-bold text-[color:var(--ink)]">All jobs</h1>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Loaded from GET /api/v1/admin/jobs — all statuses across companies.
+        </p>
       </div>
 
       <div className="mb-4 flex flex-wrap gap-2">
@@ -131,13 +139,13 @@ function AdminJobs() {
           <SelectContent>
             <SelectItem value="all">All categories</SelectItem>
             {categories.map((c) => (
-              <SelectItem key={c.name} value={c.name}>
-                {c.name}
+              <SelectItem key={c} value={c}>
+                {c}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
-        {(search.status || search.category || search.company) && (
+        {(search.status || search.category) && (
           <Button
             variant="ghost"
             size="sm"
@@ -164,6 +172,7 @@ function AdminJobs() {
                   {j.title}
                 </Link>
                 <StatusBadge status={j.status} />
+                <JobSourceBadge sourceType={j.sourceType} />
                 {j.featured && (
                   <Badge className="border-0 bg-[color:var(--hazard)] text-[color:var(--ink)]">
                     Featured
@@ -171,20 +180,11 @@ function AdminJobs() {
                 )}
               </div>
               <p className="text-xs text-muted-foreground">
-                {j.companies?.name ?? "—"} · {j.category} · {j.views} views · posted{" "}
-                {new Date(j.created_at).toLocaleDateString()}
+                {j.company?.name ?? "—"} · {j.category} · {j.views} views · posted{" "}
+                {new Date(j.postedAt ?? j.createdAt).toLocaleDateString()}
               </p>
             </div>
             <div className="flex flex-wrap gap-1.5">
-              {j.status === "pending_review" && (
-                <Button
-                  size="sm"
-                  onClick={() => setStatus(j.id, "active")}
-                  className="btn-primary gap-1"
-                >
-                  <Check className="h-3.5 w-3.5" /> Approve
-                </Button>
-              )}
               <Link to="/employer/jobs/$id/edit" params={{ id: j.id }}>
                 <Button size="sm" variant="outline" className="gap-1">
                   <Pencil className="h-3.5 w-3.5" />
@@ -200,25 +200,6 @@ function AdminJobs() {
                   className={`h-3.5 w-3.5 ${j.featured ? "fill-current text-[color:var(--hazard)]" : ""}`}
                 />
               </Button>
-              {j.status === "paused" ? (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setStatus(j.id, "active")}
-                  className="gap-1"
-                >
-                  <Play className="h-3.5 w-3.5" />
-                </Button>
-              ) : (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setStatus(j.id, "paused")}
-                  className="gap-1"
-                >
-                  <Pause className="h-3.5 w-3.5" />
-                </Button>
-              )}
               <Button
                 size="sm"
                 variant="outline"
@@ -246,10 +227,8 @@ function AdminJobs() {
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
-    pending_review: "bg-yellow-100 text-yellow-900",
     active: "bg-green-100 text-green-900",
     published: "bg-green-100 text-green-900",
-    paused: "bg-gray-100 text-gray-900",
     closed: "bg-red-100 text-red-900",
     expired: "bg-red-100 text-red-900",
     draft: "bg-blue-100 text-blue-900",

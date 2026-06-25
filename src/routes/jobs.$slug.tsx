@@ -18,6 +18,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { apiClient } from "@/lib/api-client";
+import { mapJobDetailToPage, mapJobSummaryToCard } from "@/lib/jobs/job-mappers";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Button } from "@/components/ui/button";
@@ -31,6 +33,7 @@ import { ReportButton } from "@/components/report-button";
 import { useAppliedJobs, useQuickApplyReady } from "@/hooks/use-applied-jobs";
 
 import { canonical } from "@/lib/seo";
+import { jobSlugClearApplyLink, jobSlugLink } from "@/lib/routes/job-slug-link";
 
 const EMPLOYMENT_TYPE_SCHEMA: Record<string, string> = {
   full_time: "FULL_TIME",
@@ -50,35 +53,26 @@ const PAY_UNIT_SCHEMA: Record<string, string> = {
 };
 
 export const Route = createFileRoute("/jobs/$slug")({
-  validateSearch: (s: Record<string, unknown>) => ({
-    apply: s.apply === "1" || s.apply === 1 || s.apply === true ? (1 as const) : undefined,
-  }),
   loader: async ({ params }) => {
-    const { data } = await supabase
-      .from("jobs")
-      .select("*, companies(id, name, slug, description, location, website)")
-      .eq("slug", params.slug)
-      .maybeSingle();
-    if (!data) throw notFound();
-    const statusOk = data.status === "active" || data.status === "published";
-    const notExpired = !data.expires_at || new Date(data.expires_at).getTime() > Date.now();
+    let job;
+    try {
+      const dto = await apiClient.getJobBySlug(params.slug);
+      job = mapJobDetailToPage(dto);
+    } catch {
+      throw notFound();
+    }
+    const statusOk = job.status === "active" || job.status === "published";
+    const notExpired = !job.expires_at || new Date(job.expires_at).getTime() > Date.now();
     const expired = !(statusOk && notExpired);
     let similar: JobSummary[] = [];
-    if (expired) {
-      const { data: sim } = await supabase
-        .from("jobs")
-        .select(
-          "id, slug, title, location, shift, employment_type, pay_min, pay_max, featured, category, companies(name, slug, verified)",
-        )
-        .eq("category", data.category)
-        .in("status", ["active", "published"])
-        .neq("id", data.id)
-        .order("featured", { ascending: false })
-        .order("created_at", { ascending: false })
-        .limit(4);
-      similar = (sim ?? []) as unknown as JobSummary[];
+    if (expired && job.category) {
+      const sim = await apiClient.searchJobs({ category: job.category, pageSize: 8 });
+      similar = sim.data
+        .filter((d) => d.id !== job.id)
+        .slice(0, 4)
+        .map(mapJobSummaryToCard);
     }
-    return { job: data, expired, similar };
+    return { job, expired, similar };
   },
   head: ({ params, loaderData }) => {
     const m = loaderData?.job as
@@ -452,12 +446,12 @@ function JobDetail() {
     if (expired) return;
     if (alreadyApplied) {
       autoAppliedRef.current = true;
-      navigate({ to: "/jobs/$slug", params: { slug }, search: {}, replace: true });
+      navigate({ ...jobSlugClearApplyLink(slug), replace: true });
       return;
     }
     autoAppliedRef.current = true;
     apply();
-    navigate({ to: "/jobs/$slug", params: { slug }, search: {}, replace: true });
+    navigate({ ...jobSlugClearApplyLink(slug), replace: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [applyParam, user?.id, job?.id, screeningKnown, alreadyApplied]);
 

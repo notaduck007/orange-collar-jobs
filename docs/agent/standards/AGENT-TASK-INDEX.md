@@ -90,6 +90,9 @@
 - Does `./scripts/phase{N}-demo.sh` pass including prior-phase smoke?
 - Does Postman walkthrough folder match live API behaviour?
 - `bun run api:validate` green?
+- `bun run api:contract:check` green?
+- `bun run api:postman:check` green (Postman artifacts in sync)?
+- After HTTP surface changes: run `bun run api:postman:generate` and commit `src/api/postman/`
 
 ---
 
@@ -210,6 +213,30 @@
 - Refresh token rotation on every use
 - `forgot-password` always returns 200 (prevents email enumeration)
 - Migrated users: `passwordRequiresReset: true` flag until they set a new password
+
+---
+
+## Task: Notifications Domain Feature
+
+**Persona**: Senior Engineer → Mid Engineer → QA Tester
+**Read Order**:
+
+1. `docs/plan.md` (Phase 4.5 section) — **PRIMARY**: scope, endpoints, quality gate
+2. `docs/api/openapi.yaml` (Notifications, Webhooks, OTP, Campaigns sections) — **REQUIRED**: spec-first
+3. `.cursor/skills/domain-driven-design/SKILL.md` — **REQUIRED**: bounded context vs auth/applications
+4. `.cursor/skills/interface-designer/SKILL.md` — **REQUIRED**: NotificationsService YAML contract
+5. `docs/agent/standards/common/security.md` — **REQUIRED**: webhook signatures, OTP rate limits, TCPA/CAN-SPAM
+6. `.cursor/skills/coding-conventions/SKILL.md` — **REQUIRED**: BullMQ worker, WebSocket gateway patterns
+
+**Key Decision Points**:
+
+- Adapters stay in `src/core/email/` and `src/core/sms/`; orchestration in `domains/notifications/`
+- Resend for email, Twilio for SMS — no cross-vendor mixing at adapter layer
+- Marketing sends require explicit opt-in; STOP/webhook opt-out is authoritative for SMS
+- Inbound webhooks are `@Public()` but signature-validated — never JWT
+- WebSocket gateway uses JWT on connect; REST inbox is source of truth for sync
+- Other domains emit notification requests — they do not call Resend/Twilio directly
+- Phase 5 application alerts consume Phase 4.5 `NotificationsService` — do not reimplement send logic
 
 ---
 

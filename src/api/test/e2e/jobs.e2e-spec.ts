@@ -152,4 +152,101 @@ describe("Jobs endpoints (E2E)", () => {
 
     await prisma.user.delete({ where: { id: seeker.id } });
   });
+
+  it("GET /api/v1/admin/jobs as admin → 200 with draft and published", async () => {
+    await request(testApp.app.getHttpServer())
+      .post("/api/v1/jobs")
+      .set("Authorization", `Bearer ${adminToken}`)
+      .send({ ...JOB_CREATE_BODY, companyId, status: "draft" })
+      .expect(201);
+
+    await request(testApp.app.getHttpServer())
+      .post("/api/v1/jobs")
+      .set("Authorization", `Bearer ${adminToken}`)
+      .send({ ...JOB_CREATE_BODY, companyId, status: "published" })
+      .expect(201);
+
+    const res = await request(testApp.app.getHttpServer())
+      .get("/api/v1/admin/jobs")
+      .set("Authorization", `Bearer ${adminToken}`)
+      .expect(200);
+
+    expect(res.body.data.length).toBeGreaterThanOrEqual(2);
+    expect(res.body.meta).toMatchObject({ page: 1, total: expect.any(Number) });
+    const statuses = res.body.data.map((j: { status: string }) => j.status);
+    expect(statuses).toEqual(expect.arrayContaining(["draft", "published"]));
+  });
+
+  it("GET /api/v1/admin/jobs as vendor → 403", async () => {
+    await request(testApp.app.getHttpServer())
+      .get("/api/v1/admin/jobs")
+      .set("Authorization", `Bearer ${vendorToken}`)
+      .expect(403);
+  });
+
+  it("PATCH /api/v1/admin/jobs/:id/feature toggles featured", async () => {
+    const created = await request(testApp.app.getHttpServer())
+      .post("/api/v1/jobs")
+      .set("Authorization", `Bearer ${adminToken}`)
+      .send({ ...JOB_CREATE_BODY, companyId })
+      .expect(201);
+
+    const id = created.body.id as string;
+
+    await request(testApp.app.getHttpServer())
+      .patch(`/api/v1/admin/jobs/${id}/feature`)
+      .set("Authorization", `Bearer ${adminToken}`)
+      .send({ featured: true, featuredUntil: "2026-12-01T00:00:00.000Z" })
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.featured).toBe(true);
+        expect(res.body.featuredUntil).toBeTruthy();
+      });
+  });
+
+  it("GET /api/v1/jobs/mine as vendor returns all statuses for company", async () => {
+    await request(testApp.app.getHttpServer())
+      .post("/api/v1/jobs")
+      .set("Authorization", `Bearer ${vendorToken}`)
+      .send({ ...JOB_CREATE_BODY, companyPackageId: packageId, status: "draft" })
+      .expect(201);
+
+    await request(testApp.app.getHttpServer())
+      .post("/api/v1/jobs")
+      .set("Authorization", `Bearer ${adminToken}`)
+      .send({ ...JOB_CREATE_BODY, companyId, status: "published" })
+      .expect(201);
+
+    const res = await request(testApp.app.getHttpServer())
+      .get("/api/v1/jobs/mine")
+      .set("Authorization", `Bearer ${vendorToken}`)
+      .expect(200);
+
+    expect(res.body.data.length).toBeGreaterThanOrEqual(1);
+    expect(res.body.data.every((j: { companyId: string }) => j.companyId === companyId)).toBe(true);
+    expect(res.body.data.some((j: { status: string }) => j.status === "draft")).toBe(true);
+  });
+
+  it("GET /api/v1/jobs/mine as seeker → 403", async () => {
+    const seeker = await prisma.user.create({
+      data: {
+        email: "seeker-mine@test.com",
+        passwordHash: "hash",
+        role: "seeker",
+        emailVerifiedAt: new Date(),
+      },
+    });
+    const seekerToken = signTestToken(testApp.app, {
+      sub: seeker.id,
+      email: seeker.email,
+      role: "seeker",
+    });
+
+    await request(testApp.app.getHttpServer())
+      .get("/api/v1/jobs/mine")
+      .set("Authorization", `Bearer ${seekerToken}`)
+      .expect(403);
+
+    await prisma.user.delete({ where: { id: seeker.id } });
+  });
 });

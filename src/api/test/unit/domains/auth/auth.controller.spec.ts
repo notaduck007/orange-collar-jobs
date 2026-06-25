@@ -1,5 +1,6 @@
 import { AuthController } from "@domains/auth/auth.controller";
 import type { AuthService } from "@domains/auth/auth.service";
+import type { OtpService } from "@domains/notifications/otp.service";
 import type { AuthUser } from "@core/auth/jwt.strategy";
 
 describe("AuthController", () => {
@@ -12,6 +13,12 @@ describe("AuthController", () => {
     verifyEmail: jest.Mock;
     forgotPassword: jest.Mock;
     resetPassword: jest.Mock;
+  };
+  let otpService: {
+    sendOtp: jest.Mock;
+    verifyOtp: jest.Mock;
+    enable2fa: jest.Mock;
+    verify2fa: jest.Mock;
   };
 
   const user: AuthUser = {
@@ -30,7 +37,16 @@ describe("AuthController", () => {
       forgotPassword: jest.fn(),
       resetPassword: jest.fn(),
     };
-    controller = new AuthController(authService as unknown as AuthService);
+    otpService = {
+      sendOtp: jest.fn(),
+      verifyOtp: jest.fn(),
+      enable2fa: jest.fn(),
+      verify2fa: jest.fn(),
+    };
+    controller = new AuthController(
+      authService as unknown as AuthService,
+      otpService as unknown as OtpService,
+    );
   });
 
   it("register delegates to AuthService.register", async () => {
@@ -105,5 +121,36 @@ describe("AuthController", () => {
 
     await expect(controller.resetPassword(dto)).resolves.toEqual(response);
     expect(authService.resetPassword).toHaveBeenCalledWith("reset-tok", "NewSecure1!");
+  });
+
+  it("sendOtp delegates to OtpService.sendOtp", async () => {
+    const dto = { channel: "email" as const, destination: "a@test.com" };
+    otpService.sendOtp.mockResolvedValue({ message: "Verification code sent." });
+    await expect(controller.sendOtp(dto)).resolves.toEqual({ message: "Verification code sent." });
+    expect(otpService.sendOtp).toHaveBeenCalledWith(dto);
+  });
+
+  it("verifyOtp delegates to OtpService.verifyOtp", async () => {
+    const dto = {
+      channel: "email" as const,
+      destination: "a@test.com",
+      code: "123456",
+      purpose: "verify_contact" as const,
+    };
+    otpService.verifyOtp.mockResolvedValue({ verified: true });
+    await expect(controller.verifyOtp(dto)).resolves.toEqual({ verified: true });
+  });
+
+  it("enable2fa delegates to OtpService.enable2fa", async () => {
+    otpService.enable2fa.mockResolvedValue({ message: "Two-factor authentication enabled." });
+    await expect(controller.enable2fa(user, { method: "email", email: "a@test.com" })).resolves.toEqual({
+      message: "Two-factor authentication enabled.",
+    });
+  });
+
+  it("verify2fa delegates to OtpService.verify2fa", async () => {
+    const tokens = { accessToken: "a", refreshToken: "r", expiresIn: 900 };
+    otpService.verify2fa.mockResolvedValue(tokens);
+    await expect(controller.verify2fa({ code: "123456", challengeId: "ch-1" })).resolves.toEqual(tokens);
   });
 });

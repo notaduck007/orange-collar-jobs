@@ -13,6 +13,7 @@ import {
   Package as PackageIcon,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { publishEmployerJobViaApi } from "@/lib/jobs/publish-employer-job";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -615,26 +616,29 @@ function NewJobPage() {
     }
   };
 
-  const publishWithPackage = async (jobId: string) => {
+  const publishWithPackage = async (_jobId: string) => {
+    if (!activePackage?.id) throw new Error("No active package");
     const wantsFeatured = form.feature_it && (activePackage?.featured_remaining ?? 0) >= 1;
-    const { error } = await supabase.rpc("consume_post_and_publish", {
-      _job_id: jobId,
-      _company_id: company!.id,
-      _want_featured: wantsFeatured,
+    const validQs = questions.filter((q) => q.prompt.trim().length > 0);
+    const created = await publishEmployerJobViaApi(form, {
+      companyPackageId: activePackage.id,
+      featured: wantsFeatured,
+      screeningQuestions: validQs.map((q) => ({
+        prompt: q.prompt,
+        type: q.type,
+        options: q.options,
+        required: q.required,
+      })),
     });
-    if (error) throw error;
-    await persistChildren(jobId);
+    if (draftId) {
+      await supabase.from("jobs").delete().eq("id", draftId).eq("status", "draft");
+    }
     qc.invalidateQueries({ queryKey: ["active-package", company!.id] });
     qc.invalidateQueries({ queryKey: ["employer-jobs", company!.id] });
-    const { data: row } = await supabase
-      .from("jobs")
-      .select("slug, title")
-      .eq("id", jobId)
-      .maybeSingle();
     setSuccess({
-      slug: row?.slug ?? "",
-      title: row?.title ?? form.title,
-      jobId,
+      slug: created.slug,
+      title: created.title,
+      jobId: created.id,
       featured: wantsFeatured,
     });
     clearLocalDraft();
@@ -751,26 +755,27 @@ function NewJobPage() {
         }
 
         try {
-          // Use server's view of the job + featured intent (post-redirect we lost in-memory feature toggle if user reloaded)
           const wantsFeatured = form.feature_it && pkg.featured_remaining >= 1;
-          const { error } = await supabase.rpc("consume_post_and_publish", {
-            _job_id: search.draft!,
-            _company_id: company.id,
-            _want_featured: wantsFeatured,
+          const validQs = questions.filter((q) => q.prompt.trim().length > 0);
+          const created = await publishEmployerJobViaApi(form, {
+            companyPackageId: pkg.id,
+            featured: wantsFeatured,
+            screeningQuestions: validQs.map((q) => ({
+              prompt: q.prompt,
+              type: q.type,
+              options: q.options,
+              required: q.required,
+            })),
           });
-          if (error) throw error;
-          await persistChildren(search.draft!);
+          if (search.draft) {
+            await supabase.from("jobs").delete().eq("id", search.draft).eq("status", "draft");
+          }
           qc.invalidateQueries({ queryKey: ["active-package", company.id] });
           qc.invalidateQueries({ queryKey: ["employer-jobs", company.id] });
-          const { data: row } = await supabase
-            .from("jobs")
-            .select("slug, title")
-            .eq("id", search.draft!)
-            .maybeSingle();
           setSuccess({
-            slug: row?.slug ?? "",
-            title: row?.title ?? form.title,
-            jobId: search.draft!,
+            slug: created.slug,
+            title: created.title,
+            jobId: created.id,
             featured: wantsFeatured,
           });
           clearLocalDraft();

@@ -34,6 +34,7 @@ import { Route as WarehouseJobsCitySlugRouteImport } from './routes/warehouse-jo
 import { Route as SeekerSavedRouteImport } from './routes/seeker.saved'
 import { Route as SeekerProfileRouteImport } from './routes/seeker.profile'
 import { Route as SeekerPrivacyRouteImport } from './routes/seeker.privacy'
+import { Route as SeekerNotificationsRouteImport } from './routes/seeker.notifications'
 import { Route as SeekerApplicationsRouteImport } from './routes/seeker.applications'
 import { Route as SeekerAlertsRouteImport } from './routes/seeker.alerts'
 import { Route as JobsSlugRouteImport } from './routes/jobs.$slug'
@@ -56,6 +57,7 @@ import { Route as AdminJobsRouteImport } from './routes/admin.jobs'
 import { Route as AdminContentRouteImport } from './routes/admin.content'
 import { Route as AdminCompaniesRouteImport } from './routes/admin.companies'
 import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
+import { Route as AdminCampaignsRouteImport } from './routes/admin.campaigns'
 import { Route as AdminBillingRouteImport } from './routes/admin.billing'
 import { Route as AdminAdsRouteImport } from './routes/admin.ads'
 import { Route as JobsCategoryCategorySlugRouteImport } from './routes/jobs.category.$categorySlug'
@@ -189,6 +191,11 @@ const SeekerPrivacyRoute = SeekerPrivacyRouteImport.update({
   path: '/privacy',
   getParentRoute: () => SeekerRoute,
 } as any)
+const SeekerNotificationsRoute = SeekerNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => SeekerRoute,
+} as any)
 const SeekerApplicationsRoute = SeekerApplicationsRouteImport.update({
   id: '/applications',
   path: '/applications',
@@ -299,6 +306,11 @@ const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
   path: '/categories',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminCampaignsRoute = AdminCampaignsRouteImport.update({
+  id: '/campaigns',
+  path: '/campaigns',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminBillingRoute = AdminBillingRouteImport.update({
   id: '/billing',
   path: '/billing',
@@ -358,6 +370,7 @@ export interface FileRoutesByFullPath {
   '/verify-email': typeof VerifyEmailRoute
   '/admin/ads': typeof AdminAdsRoute
   '/admin/billing': typeof AdminBillingRoute
+  '/admin/campaigns': typeof AdminCampaignsRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/companies': typeof AdminCompaniesRoute
   '/admin/content': typeof AdminContentRoute
@@ -380,6 +393,7 @@ export interface FileRoutesByFullPath {
   '/jobs/$slug': typeof JobsSlugRoute
   '/seeker/alerts': typeof SeekerAlertsRoute
   '/seeker/applications': typeof SeekerApplicationsRoute
+  '/seeker/notifications': typeof SeekerNotificationsRoute
   '/seeker/privacy': typeof SeekerPrivacyRoute
   '/seeker/profile': typeof SeekerProfileRoute
   '/seeker/saved': typeof SeekerSavedRoute
@@ -411,6 +425,7 @@ export interface FileRoutesByTo {
   '/verify-email': typeof VerifyEmailRoute
   '/admin/ads': typeof AdminAdsRoute
   '/admin/billing': typeof AdminBillingRoute
+  '/admin/campaigns': typeof AdminCampaignsRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/companies': typeof AdminCompaniesRoute
   '/admin/content': typeof AdminContentRoute
@@ -433,6 +448,7 @@ export interface FileRoutesByTo {
   '/jobs/$slug': typeof JobsSlugRoute
   '/seeker/alerts': typeof SeekerAlertsRoute
   '/seeker/applications': typeof SeekerApplicationsRoute
+  '/seeker/notifications': typeof SeekerNotificationsRoute
   '/seeker/privacy': typeof SeekerPrivacyRoute
   '/seeker/profile': typeof SeekerProfileRoute
   '/seeker/saved': typeof SeekerSavedRoute
@@ -468,6 +484,7 @@ export interface FileRoutesById {
   '/verify-email': typeof VerifyEmailRoute
   '/admin/ads': typeof AdminAdsRoute
   '/admin/billing': typeof AdminBillingRoute
+  '/admin/campaigns': typeof AdminCampaignsRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/companies': typeof AdminCompaniesRoute
   '/admin/content': typeof AdminContentRoute
@@ -490,6 +507,7 @@ export interface FileRoutesById {
   '/jobs/$slug': typeof JobsSlugRoute
   '/seeker/alerts': typeof SeekerAlertsRoute
   '/seeker/applications': typeof SeekerApplicationsRoute
+  '/seeker/notifications': typeof SeekerNotificationsRoute
   '/seeker/privacy': typeof SeekerPrivacyRoute
   '/seeker/profile': typeof SeekerProfileRoute
   '/seeker/saved': typeof SeekerSavedRoute
@@ -526,6 +544,7 @@ export interface FileRouteTypes {
     | '/verify-email'
     | '/admin/ads'
     | '/admin/billing'
+    | '/admin/campaigns'
     | '/admin/categories'
     | '/admin/companies'
     | '/admin/content'
@@ -548,6 +567,7 @@ export interface FileRouteTypes {
     | '/jobs/$slug'
     | '/seeker/alerts'
     | '/seeker/applications'
+    | '/seeker/notifications'
     | '/seeker/privacy'
     | '/seeker/profile'
     | '/seeker/saved'
@@ -579,6 +599,7 @@ export interface FileRouteTypes {
     | '/verify-email'
     | '/admin/ads'
     | '/admin/billing'
+    | '/admin/campaigns'
     | '/admin/categories'
     | '/admin/companies'
     | '/admin/content'
@@ -601,6 +622,7 @@ export interface FileRouteTypes {
     | '/jobs/$slug'
     | '/seeker/alerts'
     | '/seeker/applications'
+    | '/seeker/notifications'
     | '/seeker/privacy'
     | '/seeker/profile'
     | '/seeker/saved'
@@ -635,6 +657,7 @@ export interface FileRouteTypes {
     | '/verify-email'
     | '/admin/ads'
     | '/admin/billing'
+    | '/admin/campaigns'
     | '/admin/categories'
     | '/admin/companies'
     | '/admin/content'
@@ -657,6 +680,7 @@ export interface FileRouteTypes {
     | '/jobs/$slug'
     | '/seeker/alerts'
     | '/seeker/applications'
+    | '/seeker/notifications'
     | '/seeker/privacy'
     | '/seeker/profile'
     | '/seeker/saved'
@@ -873,6 +897,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SeekerPrivacyRouteImport
       parentRoute: typeof SeekerRoute
     }
+    '/seeker/notifications': {
+      id: '/seeker/notifications'
+      path: '/notifications'
+      fullPath: '/seeker/notifications'
+      preLoaderRoute: typeof SeekerNotificationsRouteImport
+      parentRoute: typeof SeekerRoute
+    }
     '/seeker/applications': {
       id: '/seeker/applications'
       path: '/applications'
@@ -1027,6 +1058,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCategoriesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/campaigns': {
+      id: '/admin/campaigns'
+      path: '/campaigns'
+      fullPath: '/admin/campaigns'
+      preLoaderRoute: typeof AdminCampaignsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/billing': {
       id: '/admin/billing'
       path: '/billing'
@@ -1082,6 +1120,7 @@ declare module '@tanstack/react-router' {
 interface AdminRouteChildren {
   AdminAdsRoute: typeof AdminAdsRoute
   AdminBillingRoute: typeof AdminBillingRoute
+  AdminCampaignsRoute: typeof AdminCampaignsRoute
   AdminCategoriesRoute: typeof AdminCategoriesRoute
   AdminCompaniesRoute: typeof AdminCompaniesRoute
   AdminContentRoute: typeof AdminContentRoute
@@ -1099,6 +1138,7 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAdsRoute: AdminAdsRoute,
   AdminBillingRoute: AdminBillingRoute,
+  AdminCampaignsRoute: AdminCampaignsRoute,
   AdminCategoriesRoute: AdminCategoriesRoute,
   AdminCompaniesRoute: AdminCompaniesRoute,
   AdminContentRoute: AdminContentRoute,
@@ -1160,6 +1200,7 @@ const JobsRouteWithChildren = JobsRoute._addFileChildren(JobsRouteChildren)
 interface SeekerRouteChildren {
   SeekerAlertsRoute: typeof SeekerAlertsRoute
   SeekerApplicationsRoute: typeof SeekerApplicationsRoute
+  SeekerNotificationsRoute: typeof SeekerNotificationsRoute
   SeekerPrivacyRoute: typeof SeekerPrivacyRoute
   SeekerProfileRoute: typeof SeekerProfileRoute
   SeekerSavedRoute: typeof SeekerSavedRoute
@@ -1169,6 +1210,7 @@ interface SeekerRouteChildren {
 const SeekerRouteChildren: SeekerRouteChildren = {
   SeekerAlertsRoute: SeekerAlertsRoute,
   SeekerApplicationsRoute: SeekerApplicationsRoute,
+  SeekerNotificationsRoute: SeekerNotificationsRoute,
   SeekerPrivacyRoute: SeekerPrivacyRoute,
   SeekerProfileRoute: SeekerProfileRoute,
   SeekerSavedRoute: SeekerSavedRoute,

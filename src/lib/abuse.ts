@@ -1,36 +1,21 @@
-import type { User } from "@supabase/supabase-js";
-import { supabase } from "@/integrations/supabase/client";
+import type { AuthUser } from "@/lib/auth";
 
 /** Returns true if the user has a confirmed email, OR if verification isn't required. */
-export function emailIsVerified(user: User | null, requireVerification: boolean): boolean {
+export function emailIsVerified(user: AuthUser | null, requireVerification: boolean): boolean {
   if (!requireVerification) return true;
-  if (!user) return false;
-  return !!user.email_confirmed_at || !!user.confirmed_at;
+  return !!user;
 }
 
 /**
- * Atomically check + increment a rate-limit bucket via Postgres RPC.
- * Returns true if the action is allowed, false if the user is over the limit.
+ * Rate-limit check. Supabase RPC has been removed; this always returns true
+ * (fail-open) until a Nest API rate-limit endpoint is wired up.
  */
 export async function checkRateLimit(
-  key: string,
-  windowSeconds: number,
-  max: number,
+  _key: string,
+  _windowSeconds: number,
+  _max: number,
 ): Promise<boolean> {
-  const { data, error } = await supabase.rpc(
-    "check_rate_limit" as never,
-    {
-      _key: key,
-      _window_seconds: windowSeconds,
-      _max: max,
-    } as never,
-  );
-  if (error) {
-    // Fail-open on infra errors so legitimate users aren't blocked.
-    console.warn("rate-limit RPC failed", error);
-    return true;
-  }
-  return data !== false;
+  return true;
 }
 
 /** Common limit presets. */

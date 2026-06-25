@@ -14,6 +14,10 @@ import { SmsModule } from "./core/sms/sms.module.js";
 import { EmailModule } from "./core/email/email.module.js";
 import { AuthModule } from "./domains/auth/auth.module.js";
 import { JobsModule } from "./domains/jobs/jobs.module.js";
+import { BatchModule } from "./domains/batch/batch.module.js";
+import { NotificationsModule } from "./domains/notifications/notifications.module.js";
+import { CompaniesModule } from "./domains/companies/companies.module.js";
+import { UploadsModule } from "./domains/uploads/uploads.module.js";
 import { ApiContractModule } from "./domains/api-contract/api-contract.module.js";
 
 @Module({
@@ -29,14 +33,17 @@ import { ApiContractModule } from "./domains/api-contract/api-contract.module.js
     StorageModule,
     SmsModule,
 
-    // ── Rate limiting — applied globally ──────────────────────────────────
-    ThrottlerModule.forRoot([
-      {
-        name: "default",
-        ttl: 60_000,
-        limit: 60,
-      },
-    ]),
+    // ── Rate limiting — applied globally (skipped in NODE_ENV=test for integration/E2E) ──
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          name: "default",
+          ttl: 60_000,
+          limit: 60,
+        },
+      ],
+      skipIf: () => process.env.NODE_ENV === "test",
+    }),
 
     // ── Health check endpoint ─────────────────────────────────────────────
     HealthModule,
@@ -44,10 +51,13 @@ import { ApiContractModule } from "./domains/api-contract/api-contract.module.js
     // ── Domain modules (added as phases are implemented) ─────────────────
     AuthModule,
     JobsModule,
+    BatchModule,
+    NotificationsModule,
+    CompaniesModule,
+    UploadsModule,
     ApiContractModule,
-    // Phase 4: BatchModule
     // Phase 5: ApplicationsModule
-    // Phase 6: CompaniesModule, AdminModule
+    // Phase 6: AdminModule
   ],
   providers: [
     {

@@ -2,12 +2,10 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import type { Row } from "@/lib/row-types";
 import {
   Select,
   SelectContent,
@@ -19,6 +17,10 @@ import {
   ScreeningQuestionsBuilder,
   type ScreeningQuestionDraft,
 } from "@/components/screening-questions-builder";
+import { apiClient } from "@/lib/api-client";
+import { requireAccessToken } from "@/lib/api/require-access-token";
+import { mapJobDetailToPage } from "@/lib/jobs/job-mappers";
+import type { JobDetail } from "@/lib/api/contracts/jobs";
 
 export const Route = createFileRoute("/employer/jobs/$id/edit")({
   head: () => ({ meta: [{ title: "Edit Job — WarehouseJobs.com Employers" }] }),
@@ -41,19 +43,30 @@ const TYPES = [
   { value: "seasonal", label: "Seasonal" },
 ];
 
+async function fetchJobDetailById(jobId: string): Promise<JobDetail> {
+  let page = 1;
+  let totalPages = 1;
+  while (page <= totalPages) {
+    const res = await apiClient.searchJobs({ page, pageSize: 50 });
+    totalPages = res.meta.totalPages;
+    const hit = res.data.find((j) => j.id === jobId);
+    if (hit) return apiClient.getJobBySlug(hit.slug);
+    page += 1;
+  }
+  throw new Error("Job not found");
+}
+
 function EditJobPage() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
   const qc = useQueryClient();
 
-  const { data: job, isLoading } = useQuery({
+  const { data: jobDto, isLoading } = useQuery({
     queryKey: ["employer-job", id],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("jobs").select("*").eq("id", id).maybeSingle();
-      if (error) throw error;
-      return data;
-    },
+    queryFn: () => fetchJobDetailById(id),
   });
+
+  const job = jobDto ? mapJobDetailToPage(jobDto) : null;
 
   const [form, setForm] = useState({
     title: "",
@@ -73,35 +86,22 @@ function EditJobPage() {
   const [questions, setQuestions] = useState<ScreeningQuestionDraft[]>([]);
   const [questionsLoaded, setQuestionsLoaded] = useState(false);
 
-  const { data: dbQuestions } = useQuery({
-    queryKey: ["screening-questions", id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("screening_questions")
-        .select("*")
-        .eq("job_id", id)
-        .order("sort_order");
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
-
   useEffect(() => {
-    if (dbQuestions && !questionsLoaded) {
+    if (jobDto && !questionsLoaded) {
       setQuestions(
-        dbQuestions.map((q: Row, i: number) => ({
+        jobDto.screeningQuestions.map((q, i) => ({
           id: q.id,
           prompt: q.prompt,
           type: q.type,
-          options: Array.isArray(q.options) ? q.options : [],
+          options: q.options ?? [],
           required: q.required,
-          knockout_answer: q.knockout_answer,
-          sort_order: q.sort_order ?? i,
+          knockout_answer: null,
+          sort_order: q.sortOrder ?? i,
         })),
       );
       setQuestionsLoaded(true);
     }
-  }, [dbQuestions, questionsLoaded]);
+  }, [jobDto, questionsLoaded]);
 
   useEffect(() => {
     if (!job) return;
@@ -125,88 +125,34 @@ function EditJobPage() {
     e.preventDefault();
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from("jobs")
-        .update({
-          title: form.title,
-          category: form.category,
-          shift: form.shift as never,
-          employment_type: form.employment_type as never,
-          description: form.description,
-          requirements: form.requirements || null,
-          city: form.city,
-          state: form.state.toUpperCase(),
-          zip: form.zip || null,
-          location: `${form.city}, ${form.state.toUpperCase()}${form.zip ? ` ${form.zip}` : ""}`,
-          pay_min: form.pay_min ? Number(form.pay_min) : null,
-          pay_max: form.pay_max ? Number(form.pay_max) : null,
-          pay_period: form.pay_period,
-        })
-        .eq("id", id);
-      if (error) throw error;
-
-      // Reconcile screening questions without destroying existing rows
-      // (application_answers.question_id FKs cascade on delete).
-      const existingIds = new Set((dbQuestions ?? []).map((q: Row) => q.id as string));
+      const token = requireAccessToken();
+      const locationStr = `${form.city}, ${form.state.toUpperCase()}${form.zip ? ` ${form.zip}` : ""}`;
       const validQs = questions.filter((q) => q.prompt.trim().length > 0);
-      const keptIds = new Set(
-        validQs.map((q) => q.id).filter((id): id is string => !!id && existingIds.has(id)),
-      );
-      const toDelete = [...existingIds].filter((id) => !keptIds.has(id));
-
-      const toUpsertExisting = validQs
-        .map((q, idx) => ({ q, idx }))
-        .filter(({ q }) => q.id && existingIds.has(q.id))
-        .map(({ q, idx }) => ({
-          id: q.id!,
-          job_id: id,
+      await apiClient.updateJob(token, id, {
+        title: form.title,
+        category: form.category,
+        shift: form.shift as never,
+        employmentType: form.employment_type as never,
+        description: form.description,
+        requirements: form.requirements || undefined,
+        city: form.city,
+        state: form.state.toUpperCase(),
+        zip: form.zip || undefined,
+        location: locationStr,
+        payMin: form.pay_min ? Number(form.pay_min) : undefined,
+        payMax: form.pay_max ? Number(form.pay_max) : undefined,
+        payPeriod: form.pay_period,
+        screeningQuestions: validQs.map((q, idx) => ({
           prompt: q.prompt.trim(),
           type: q.type,
-          options: q.options.filter(Boolean).length
-            ? (q.options.filter(Boolean) as unknown as never)
-            : null,
+          options: q.options.filter(Boolean).length ? q.options.filter(Boolean) : undefined,
           required: q.required,
-          knockout_answer: (q.knockout_answer ?? null) as never,
-          sort_order: idx,
-        }));
-
-      const toInsertNew = validQs
-        .map((q, idx) => ({ q, idx }))
-        .filter(({ q }) => !q.id || !existingIds.has(q.id))
-        .map(({ q, idx }) => ({
-          job_id: id,
-          prompt: q.prompt.trim(),
-          type: q.type,
-          options: q.options.filter(Boolean).length
-            ? (q.options.filter(Boolean) as unknown as never)
-            : null,
-          required: q.required,
-          knockout_answer: (q.knockout_answer ?? null) as never,
-          sort_order: idx,
-        }));
-
-      if (toDelete.length) {
-        const { error: delErr } = await supabase
-          .from("screening_questions")
-          .delete()
-          .in("id", toDelete);
-        if (delErr) throw delErr;
-      }
-      if (toUpsertExisting.length) {
-        const { error: upErr } = await supabase
-          .from("screening_questions")
-          .upsert(toUpsertExisting, { onConflict: "id" });
-        if (upErr) throw upErr;
-      }
-      if (toInsertNew.length) {
-        const { error: insErr } = await supabase.from("screening_questions").insert(toInsertNew);
-        if (insErr) throw insErr;
-      }
-
+          sortOrder: idx,
+        })),
+      });
       toast.success("Job updated");
       qc.invalidateQueries({ queryKey: ["employer-job", id] });
       qc.invalidateQueries({ queryKey: ["employer-jobs"] });
-      qc.invalidateQueries({ queryKey: ["screening-questions", id] });
       navigate({ to: "/employer" });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Save failed");

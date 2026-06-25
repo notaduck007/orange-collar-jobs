@@ -23,6 +23,7 @@ import {
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { CERT_LABEL, TEMP_LABEL } from "@/lib/warehouse-attrs";
+import { jobSlugApplyLink, jobSlugLink } from "@/lib/routes/job-slug-link";
 import { ApplySuccessDialog } from "@/components/apply-success-dialog";
 
 export interface JobSummary {
@@ -45,6 +46,8 @@ export interface JobSummary {
   overtime_available?: boolean | null;
   lift_requirement_lbs?: number | null;
   has_screening?: boolean | null;
+  /** Nest API sourceType — used for FE-4 badges */
+  source_type?: string | null;
 }
 
 const shiftLabel: Record<string, string> = {
@@ -185,8 +188,7 @@ export function JobCard({ job }: { job: JobSummary }) {
         </p>
         <h3 className="mt-1.5 text-lg font-semibold leading-tight text-[color:var(--ink)] group-hover:text-primary">
           <Link
-            to="/jobs/$slug"
-            params={{ slug: job.slug }}
+            {...jobSlugLink(job.slug)}
             className="before:absolute before:inset-0 before:content-['']"
           >
             {job.title}
@@ -296,8 +298,7 @@ export function JobCard({ job }: { job: JobSummary }) {
               </button>
             ) : (
               <Link
-                to="/jobs/$slug"
-                params={{ slug: job.slug }}
+                {...jobSlugApplyLink(job.slug)}
                 onClick={(e) => e.stopPropagation()}
                 className="inline-flex items-center gap-1 rounded-full border border-primary px-3 py-1 text-xs font-semibold text-primary hover:bg-primary hover:text-primary-foreground"
               >

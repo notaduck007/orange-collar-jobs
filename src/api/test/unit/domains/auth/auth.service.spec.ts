@@ -9,13 +9,14 @@ import type { JwtService } from "@nestjs/jwt";
 import type { User } from "../../../../src/core/database/prisma-client.js";
 import { AuthService } from "@domains/auth/auth.service";
 import type { PrismaService } from "@core/database/prisma.service";
-import type { EmailService } from "@core/email/email.service";
 import {
   BadRequestError,
   ConflictError,
   InvalidCredentialsError,
   UnauthorizedError,
 } from "@core/error/errors";
+import type { NotificationsService } from "@domains/notifications/notifications.service";
+import type { OtpService } from "@domains/notifications/otp.service";
 
 const baseUser: User = {
   id: "user-1",
@@ -76,34 +77,36 @@ function makeJwt(): JwtService {
   } as unknown as JwtService;
 }
 
-function makeEmail(): EmailService {
+function makeNotifications(): NotificationsService {
   return {
     sendWelcomeEmail: jest.fn(),
     sendVerificationEmail: jest.fn(),
     sendPasswordResetEmail: jest.fn(),
-  } as unknown as EmailService;
+    sendPasswordResetSms: jest.fn(),
+  } as unknown as NotificationsService;
 }
 
-function makeSms(): import("@core/sms/sms.service").SmsService {
+function makeOtp(): OtpService {
   return {
-    sendTransactional: jest.fn(),
-  } as unknown as import("@core/sms/sms.service").SmsService;
+    userHasMfa: jest.fn().mockResolvedValue(false),
+    createLoginMfaChallenge: jest.fn(),
+  } as unknown as OtpService;
 }
 
 describe("AuthService", () => {
   let service: AuthService;
   let prisma: PrismaService;
   let jwt: JwtService;
-  let email: EmailService;
-  let sms: import("@core/sms/sms.service").SmsService;
+  let notifications: NotificationsService;
+  let otp: OtpService;
 
   beforeEach(() => {
     prisma = makePrisma();
     jwt = makeJwt();
-    email = makeEmail();
-    sms = makeSms();
+    notifications = makeNotifications();
+    otp = makeOtp();
     (bcrypt.compare as jest.Mock).mockResolvedValue(true);
-    service = new AuthService(prisma, jwt, makeConfig(), email, sms);
+    service = new AuthService(prisma, jwt, makeConfig(), notifications, otp);
   });
 
   afterEach(() => jest.clearAllMocks());
@@ -129,8 +132,8 @@ describe("AuthService", () => {
       });
 
       expect(result.userId).toBe(baseUser.id);
-      expect(email.sendWelcomeEmail).toHaveBeenCalled();
-      expect(email.sendVerificationEmail).toHaveBeenCalled();
+      expect(notifications.sendWelcomeEmail).toHaveBeenCalled();
+      expect(notifications.sendVerificationEmail).toHaveBeenCalled();
     });
 
     it("creates user without fullName when omitted", async () => {
@@ -166,7 +169,7 @@ describe("AuthService", () => {
           return undefined;
         }),
       } as unknown as ConfigService;
-      service = new AuthService(prisma, jwt, bareConfig, email, sms);
+      service = new AuthService(prisma, jwt, bareConfig, notifications, otp);
 
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
       (prisma.user.create as jest.Mock).mockResolvedValue({ ...baseUser, emailVerifiedAt: null });
@@ -186,7 +189,7 @@ describe("AuthService", () => {
         fullName: "Jane",
       });
 
-      expect(email.sendVerificationEmail).toHaveBeenCalledWith(
+      expect(notifications.sendVerificationEmail).toHaveBeenCalledWith(
         "jane@example.com",
         expect.any(String),
         "http://localhost:5173",
@@ -255,7 +258,7 @@ describe("AuthService", () => {
           return undefined;
         }),
       } as unknown as ConfigService;
-      service = new AuthService(prisma, jwt, ttlConfig, email, sms);
+      service = new AuthService(prisma, jwt, ttlConfig, notifications, otp);
       (jwt.decode as jest.Mock).mockReturnValue(null);
 
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(baseUser);
@@ -289,7 +292,7 @@ describe("AuthService", () => {
           return undefined;
         }),
       } as unknown as ConfigService;
-      service = new AuthService(prisma, jwt, badTtlConfig, email, sms);
+      service = new AuthService(prisma, jwt, badTtlConfig, notifications, otp);
       (jwt.decode as jest.Mock).mockReturnValue(null);
 
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(baseUser);
@@ -308,6 +311,33 @@ describe("AuthService", () => {
       });
 
       expect(result.expiresIn).toBe(30 * 24 * 60 * 60 * 1000);
+    });
+
+    it("uses default refresh TTL when config omits JWT_REFRESH_EXPIRES_IN", async () => {
+      const partialConfig = {
+        get: jest.fn((key: string) => {
+          if (key === "CORS_ORIGIN") return "http://localhost:8080";
+          if (key === "JWT_ACCESS_EXPIRES_IN") return "15m";
+          return undefined;
+        }),
+      } as unknown as ConfigService;
+      service = new AuthService(prisma, jwt, partialConfig, notifications, otp);
+      (jwt.decode as jest.Mock).mockReturnValue({ exp: Math.floor(Date.now() / 1000) + 900 });
+      (prisma.user.findUnique as jest.Mock).mockResolvedValue(baseUser);
+      (prisma.refreshToken.create as jest.Mock).mockResolvedValue({
+        id: "rt-1",
+        userId: baseUser.id,
+        tokenHash: "hash",
+        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        revokedAt: null,
+        createdAt: new Date(),
+      });
+
+      await service.login({ email: "jane@example.com", password: "SecureP@ss1" });
+
+      const refreshCreate = (prisma.refreshToken.create as jest.Mock).mock.calls[0][0];
+      const expiresAt = refreshCreate.data.expiresAt as Date;
+      expect(expiresAt.getTime() - Date.now()).toBeGreaterThan(29 * 24 * 60 * 60 * 1000);
     });
 
     it("throws InvalidCredentialsError when user not found", async () => {
@@ -333,6 +363,19 @@ describe("AuthService", () => {
       await expect(
         service.login({ email: "jane@example.com", password: "SecureP@ss1" }),
       ).rejects.toThrow(UnauthorizedError);
+    });
+
+    it("throws MFA required when user has 2FA enabled", async () => {
+      (prisma.user.findUnique as jest.Mock).mockResolvedValue(baseUser);
+      (otp.userHasMfa as jest.Mock).mockResolvedValue(true);
+      (otp.createLoginMfaChallenge as jest.Mock).mockResolvedValue("ch-mfa-1");
+
+      await expect(
+        service.login({ email: "jane@example.com", password: "SecureP@ss1" }),
+      ).rejects.toMatchObject({
+        code: "UNAUTHORIZED",
+        details: { mfaRequired: true, challengeId: "ch-mfa-1" },
+      });
     });
   });
 
@@ -367,6 +410,24 @@ describe("AuthService", () => {
       const result = await service.refreshTokens("opaque-refresh");
       expect(result.accessToken).toBe("access-token");
       expect(prisma.refreshToken.update).toHaveBeenCalled();
+    });
+
+    it("derives expiresIn from config when jwt decode returns null", async () => {
+      (jwt.decode as jest.Mock).mockReturnValue(null);
+      (prisma.refreshToken.findFirst as jest.Mock).mockResolvedValue({
+        id: "rt-1",
+        userId: baseUser.id,
+        tokenHash: "hash",
+        expiresAt: new Date(Date.now() + 86400000),
+        revokedAt: null,
+        createdAt: new Date(),
+        user: baseUser,
+      });
+      (prisma.refreshToken.update as jest.Mock).mockResolvedValue({});
+      (prisma.refreshToken.create as jest.Mock).mockResolvedValue({});
+
+      const result = await service.refreshTokens("opaque-refresh");
+      expect(result.expiresIn).toBe(15 * 60_000);
     });
 
     it("throws UnauthorizedError for invalid refresh token", async () => {
@@ -454,7 +515,7 @@ describe("AuthService", () => {
         createdAt: new Date(),
       });
       await service.forgotPassword("jane@example.com");
-      expect(email.sendPasswordResetEmail).toHaveBeenCalled();
+      expect(notifications.sendPasswordResetEmail).toHaveBeenCalled();
     });
 
     it("sends SMS when user has a phone number", async () => {
@@ -469,17 +530,14 @@ describe("AuthService", () => {
         createdAt: new Date(),
       });
       await service.forgotPassword("jane@example.com");
-      expect(sms.sendTransactional).toHaveBeenCalledWith(
-        "+15551234567",
-        expect.stringContaining("Password reset"),
-      );
+      expect(notifications.sendPasswordResetSms).toHaveBeenCalledWith("+15551234567");
     });
 
     it("uses default CORS origin for reset email when config omits CORS_ORIGIN", async () => {
       const bareConfig = {
         get: jest.fn(() => undefined),
       } as unknown as ConfigService;
-      service = new AuthService(prisma, jwt, bareConfig, email, sms);
+      service = new AuthService(prisma, jwt, bareConfig, notifications, otp);
 
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(baseUser);
       (prisma.passwordReset.create as jest.Mock).mockResolvedValue({
@@ -493,7 +551,7 @@ describe("AuthService", () => {
 
       await service.forgotPassword("jane@example.com");
 
-      expect(email.sendPasswordResetEmail).toHaveBeenCalledWith(
+      expect(notifications.sendPasswordResetEmail).toHaveBeenCalledWith(
         "jane@example.com",
         expect.any(String),
         "http://localhost:5173",

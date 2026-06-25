@@ -39,4 +39,17 @@ describe("JwtAuthGuard", () => {
 
     spy.mockRestore();
   });
+
+  it("delegates to passport when route is not explicitly public", () => {
+    (reflector.getAllAndOverride as jest.Mock).mockReturnValue(undefined);
+    const parentProto = Object.getPrototypeOf(JwtAuthGuard.prototype) as {
+      canActivate: (c: ExecutionContext) => boolean;
+    };
+    const spy = jest.spyOn(parentProto, "canActivate").mockReturnValue(true);
+
+    expect(guard.canActivate(ctx)).toBe(true);
+    expect(spy).toHaveBeenCalledWith(ctx);
+
+    spy.mockRestore();
+  });
 });
