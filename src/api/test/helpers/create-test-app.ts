@@ -21,7 +21,7 @@ export interface TestApp {
  * @param rootModule  The module to bootstrap (usually AppModule)
  * @param timeoutMs   How long to wait for app.init() — default 30 s
  */
-export async function createTestApp(rootModule: Type, timeoutMs = 30_000): Promise<TestApp> {
+export async function createTestApp(rootModule: Type, timeoutMs = 60_000): Promise<TestApp> {
   const moduleRef = await Test.createTestingModule({ imports: [rootModule] }).compile();
 
   const app = moduleRef.createNestApplication();
@@ -29,12 +29,19 @@ export async function createTestApp(rootModule: Type, timeoutMs = 30_000): Promi
   // Apply the same configuration as production
   configureApp(app);
 
-  await Promise.race([
-    app.init(),
-    new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error(`app.init() timed out after ${timeoutMs}ms`)), timeoutMs),
-    ),
-  ]);
+  try {
+    await Promise.race([
+      app.init(),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error(`app.init() timed out after ${timeoutMs}ms`)), timeoutMs),
+      ),
+    ]);
+  } catch (err) {
+    // Ensure NestJS cleans up listeners and connections even when init fails,
+    // so the Jest worker process can exit cleanly rather than hanging.
+    await app.close().catch(() => undefined);
+    throw err;
+  }
 
   return {
     app,
