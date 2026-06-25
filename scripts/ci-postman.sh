@@ -76,8 +76,8 @@ wait_for_api
 step "Newman: System (Phase 1 health)"
 run_newman "System"
 
-step "Newman: Auth — Core (GET /me without token → 401)"
-run_newman "Auth — Core"
+step "Newman: Auth (GET /me without token → 401)"
+run_newman "Auth"
 
 step "Auth smoke: register → verify → login → me → refresh → logout"
 REGISTER_BODY="$TMP_DIR/register.json"
