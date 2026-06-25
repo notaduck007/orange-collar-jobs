@@ -90,10 +90,11 @@ export class BatchWorker {
           });
         } catch (err) {
           if (isPrismaNotFoundError(err)) {
-            this.logger.warn(`BatchJob ${batchId} not found during progress flush; skipping update`);
-            return;
+            this.logger.warn(`BatchJob ${batchId} not found during progress flush; skipping update but continuing processing`);
+            // Don't return - continue processing remaining chunks
+          } else {
+            throw err;
           }
-          throw err;
         }
 
         // Report progress to BullMQ (0–100)
@@ -108,10 +109,11 @@ export class BatchWorker {
         });
       } catch (err) {
         if (isPrismaNotFoundError(err)) {
-          this.logger.warn(`BatchJob ${batchId} not found during completion; skipping final update`);
-          return;
+          this.logger.warn(`BatchJob ${batchId} not found during completion; jobs created but status not updated`);
+          // Don't return - log success message and complete normally
+        } else {
+          throw err;
         }
-        throw err;
       }
 
       this.logger.log(

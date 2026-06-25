@@ -173,8 +173,8 @@ curl_json "$LOGIN2_BODY" LOGIN2_CODE "${API_BASE}/api/v1/auth/login" \
   exit 1
 }
 
-step "Newman: Jobs (Phase 3)"
-run_newman "Jobs (Phase 3)"
+step "Newman: Jobs"
+run_newman "Jobs"
 
 rm -rf "$TMP_DIR"
 echo "Postman CI smoke complete."

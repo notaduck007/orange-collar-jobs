@@ -15,7 +15,7 @@
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "test": "jest --config ./test/jest-unit.json",
     "test:watch": "jest --config ./test/jest-unit.json --watch",
-    "test:cov": "jest --config ./test/jest-unit.json --coverage",
+    "test:cov": "jest --config ./test/jest-unit.json --coverage --maxWorkers=2",
     "test:integration": "NODE_OPTIONS='--experimental-vm-modules' jest --config ./test/jest-integration.json",
     "test:e2e": "NODE_OPTIONS='--experimental-vm-modules' jest --config ./test/jest-e2e.json",
     "db:generate": "prisma generate",
