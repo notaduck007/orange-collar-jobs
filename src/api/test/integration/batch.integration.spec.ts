@@ -4,8 +4,11 @@
  * Covers: sync ingest, async enqueue, deduplication, status polling.
  */
 import request from "supertest";
+import { getQueueToken } from "@nestjs/bull";
+import type { Queue } from "bull";
 import { AppModule } from "../../src/app.module.js";
 import { PrismaService } from "../../src/core/database/prisma.service.js";
+import { QUEUE_BATCH_INGEST } from "../../src/core/queue/queue.module.js";
 import { createTestApp, signTestToken, type TestApp } from "../helpers/create-test-app.js";
 import { createTestAdmin, cleanupJobsTestData } from "../helpers/jobs.fixtures.js";
 import {
@@ -35,6 +38,28 @@ describe("Batch Ingestion (integration)", () => {
   });
 
   beforeEach(async () => {
+    // Pause the batch-ingest queue and wait for any active worker to finish its
+    // current chunk before running data cleanup. Without this, a worker from a
+    // prior async-ingest test can be writing rows concurrently with job.deleteMany,
+    // leaving orphan AUTO-* records that make subsequent tests count items as
+    // "updated" instead of "created".
+    try {
+      const batchQueue = testApp.app.get<Queue>(getQueueToken(QUEUE_BATCH_INGEST), { strict: false });
+      if (batchQueue) {
+        await batchQueue.pause(true);
+        await Promise.race([
+          batchQueue.whenCurrentJobsFinished(),
+          new Promise<never>((_, reject) => setTimeout(() => reject(new Error("drain timeout")), 8_000)),
+        ]).catch(() => undefined);
+        await batchQueue.empty();
+        const delayed = await batchQueue.getDelayed();
+        await Promise.all(delayed.map((j) => j.remove().catch(() => undefined)));
+        await batchQueue.resume(true);
+      }
+    } catch {
+      // queue unavailable — proceed with cleanup anyway
+    }
+
     await cleanupBatchData(prisma);
     await cleanupJobsTestData(prisma, [ADMIN_EMAIL]);
 

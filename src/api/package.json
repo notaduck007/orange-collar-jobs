@@ -1,6 +1,6 @@
 {
   "name": "@warehousejobs/api",
-  "version": "1.3.0",
+  "version": "1.3.3",
   "private": true,
   "description": "WarehouseJobs.com REST API — NestJS 10 · Prisma · PostgreSQL · Redis · BullMQ",
   "license": "UNLICENSED",
