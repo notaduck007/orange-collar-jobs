@@ -5,8 +5,15 @@ import type { BatchStatus as PrismaBatchStatus } from "../../core/database/prism
 export interface BatchJobData {
   batchId: string;
   items: BatchJobItemRaw[];
-  companyId?: string | null | undefined;
+  companyId: string;
+  companyPackageId: string;
   source?: string | undefined;
+}
+
+/** Resolved company + package applied to batch items unless overridden by companyName. */
+export interface BatchCompanyContext {
+  companyId: string;
+  companyPackageId: string;
 }
 
 /** Raw item shape used inside the BullMQ payload (serialisable) */

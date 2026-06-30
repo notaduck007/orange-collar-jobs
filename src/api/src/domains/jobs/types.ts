@@ -68,6 +68,7 @@ export interface JobSummaryResponse {
   id: string;
   slug: string;
   title: string;
+  category: string;
   location: string;
   city?: string | null;
   state?: string | null;

@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { supabase } from "@/integrations/supabase/client";
+import { apiClient } from "@/lib/api-client";
+import { mapJobSummaryToCard } from "@/lib/jobs/job-mappers";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { JobCard, type JobSummary } from "@/components/job-card";
@@ -21,17 +22,12 @@ export const Route = createFileRoute("/warehouse-jobs/$citySlug")({
     const state = parsed?.state ?? "";
     let jobs: JobSummary[] = [];
     if (parsed) {
-      const { data: jobsData } = await supabase
-        .from("jobs")
-        .select(
-          "id, slug, title, location, shift, employment_type, pay_min, pay_max, featured, category, city, state, companies(name, slug, verified)",
-        )
-        .ilike("city", city)
-        .ilike("state", state)
-        .in("status", ["active", "published"])
-        .order("created_at", { ascending: false })
-        .limit(50);
-      jobs = (jobsData ?? []) as unknown as JobSummary[];
+      const res = await apiClient.searchJobs({
+        city: parsed.city,
+        state: parsed.state,
+        pageSize: 50,
+      });
+      jobs = res.data.map(mapJobSummaryToCard);
     }
     return { city, state, jobs };
   },

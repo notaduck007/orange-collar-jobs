@@ -57,7 +57,7 @@ describe("BatchController.ingest (JSON)", () => {
     const result = await ctrl.ingest(undefined, dto, makeReq(), resMock as Response);
 
     expect(result).toBe(syncStatus);
-    expect(batchServiceMock.ingest).toHaveBeenCalledWith(dto.jobs, dto.source, null);
+    expect(batchServiceMock.ingest).toHaveBeenCalledWith(dto.jobs, dto.source, null, undefined);
     expect(resMock.status).not.toHaveBeenCalled();
   });
 
@@ -78,7 +78,7 @@ describe("BatchController.ingest (JSON)", () => {
 
     await ctrl.ingest(undefined, dto, makeReq({ apiKeyId: "k-1", companyId: "co-abc" }), resMock as Response);
 
-    expect(batchServiceMock.ingest).toHaveBeenCalledWith(expect.any(Array), undefined, "co-abc");
+    expect(batchServiceMock.ingest).toHaveBeenCalledWith(expect.any(Array), undefined, "co-abc", undefined);
   });
 
   it("throws ValidationError on invalid JSON body", async () => {
@@ -119,6 +119,7 @@ describe("BatchController.ingest (CSV)", () => {
       ]),
       undefined,
       null,
+      undefined,
     );
   });
 
@@ -135,7 +136,7 @@ describe("BatchController.ingest (CSV)", () => {
 
     await ctrl.ingest(file, {}, req, resMock as Response);
 
-    expect(batchServiceMock.ingest).toHaveBeenCalledWith(expect.any(Array), "my-feed", null);
+    expect(batchServiceMock.ingest).toHaveBeenCalledWith(expect.any(Array), "my-feed", null, undefined);
   });
 
   it("sets response status 202 for async CSV batch", async () => {

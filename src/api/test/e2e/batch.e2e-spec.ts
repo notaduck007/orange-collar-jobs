@@ -13,8 +13,8 @@ import {
   BATCH_JOB_ITEM,
   BATCH_JOB_ITEM_EXT,
   buildBatchItems,
+  seedBatchCompany,
   cleanupBatchData,
-  seedApiKey,
   TEST_API_KEY,
 } from "../helpers/batch.fixtures.js";
 
@@ -25,6 +25,7 @@ describe("Batch endpoints (E2E)", () => {
   let testApp: TestApp;
   let prisma: PrismaService;
   let adminToken: string;
+  let batchCompanyId: string;
 
   beforeAll(async () => {
     testApp = await createTestApp(AppModule, 60_000);
@@ -42,7 +43,8 @@ describe("Batch endpoints (E2E)", () => {
     const admin = await createTestAdmin(prisma, ADMIN_EMAIL);
     adminToken = signTestToken(testApp.app, { sub: admin.id, email: admin.email, role: "admin" });
 
-    await seedApiKey(prisma);
+    const batchCompany = await seedBatchCompany(prisma);
+    batchCompanyId = batchCompany.companyId;
   });
 
   // ── POST /api/v1/jobs/batch ───────────────────────────────────────────────
@@ -115,8 +117,16 @@ describe("Batch endpoints (E2E)", () => {
       await request(testApp.app.getHttpServer())
         .post("/api/v1/jobs/batch")
         .set("Authorization", `Bearer ${adminToken}`)
-        .send({ jobs: [BATCH_JOB_ITEM] })
+        .send({ jobs: [BATCH_JOB_ITEM], companyId: batchCompanyId })
         .expect(200);
+    });
+
+    it("returns 422 when admin Bearer omits companyId", async () => {
+      await request(testApp.app.getHttpServer())
+        .post("/api/v1/jobs/batch")
+        .set("Authorization", `Bearer ${adminToken}`)
+        .send({ jobs: [BATCH_JOB_ITEM] })
+        .expect(422);
     });
 
     it("returns 401 with invalid X-Api-Key", async () => {
@@ -175,7 +185,7 @@ describe("Batch endpoints (E2E)", () => {
       const createRes = await request(testApp.app.getHttpServer())
         .post("/api/v1/jobs/batch")
         .set("Authorization", `Bearer ${adminToken}`)
-        .send({ jobs: [BATCH_JOB_ITEM] })
+        .send({ jobs: [BATCH_JOB_ITEM], companyId: batchCompanyId })
         .expect(200);
 
       await request(testApp.app.getHttpServer())

@@ -59,10 +59,11 @@ describe("Jobs flow (integration)", () => {
     await prisma.job.create({
       data: {
         title: "Scraped Listing Job",
-        slug: "scraped-listing-job-dallas-tx",
+        slug: `scraped-listing-job-dallas-tx-${Date.now()}`,
         category: "General",
         categorySlug: "general",
         companyId: vendor.company.id,
+        companyPackageId: vendor.package.id,
         location: "Dallas, TX",
         city: "Dallas",
         state: "TX",

@@ -1,37 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Building2, Globe, MapPin, ArrowLeft, BadgeCheck } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { JobCard, type JobSummary } from "@/components/job-card";
 import { ReportButton } from "@/components/report-button";
 import { canonical } from "@/lib/seo";
+import { fetchCompanyProfilePage } from "@/lib/companies/company-profile-service";
 
 export const Route = createFileRoute("/companies/$slug")({
-  loader: async ({ params }) => {
-    const { data: company } = await supabase
-      .from("companies")
-      .select(
-        "id, name, description, location, website, logo_url, hq_city, hq_state, industry, verified",
-      )
-      .eq("slug", params.slug)
-      .maybeSingle();
-    if (!company) return { company: null, jobs: [] as JobSummary[] };
-    const { data: jobsData } = await supabase
-      .from("jobs")
-      .select(
-        "id, slug, title, location, shift, employment_type, pay_min, pay_max, featured, category",
-      )
-      .eq("company_id", company.id)
-      .in("status", ["active", "published"])
-      .order("featured", { ascending: false })
-      .order("created_at", { ascending: false });
-    const jobs = (jobsData ?? []).map((j) => ({
-      ...j,
-      companies: { name: company.name, slug: params.slug, verified: company.verified },
-    })) as JobSummary[];
-    return { company, jobs };
-  },
+  loader: async ({ params }) => fetchCompanyProfilePage(params.slug),
   head: ({ params, loaderData }) => {
     const m = loaderData?.company;
     const title = m

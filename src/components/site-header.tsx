@@ -101,7 +101,12 @@ export function SiteHeader() {
                     ? t("common.admin")
                     : t("common.jobSeeker")}
               </span>
-              <Button variant="ghost" size="sm" onClick={() => signOut()} className="gap-1.5">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => void signOut()}
+                className="gap-1.5"
+              >
                 <LogOut className="h-4 w-4" /> {t("common.signOut")}
               </Button>
             </>

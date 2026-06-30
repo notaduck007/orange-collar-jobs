@@ -17,6 +17,7 @@ import {
   buildBatchItems,
   cleanupBatchData,
   seedApiKey,
+  seedBatchCompany,
   TEST_API_KEY,
   TEST_API_KEY_HASH,
 } from "../helpers/batch.fixtures.js";
@@ -27,6 +28,7 @@ describe("Batch Ingestion (integration)", () => {
   let testApp: TestApp;
   let prisma: PrismaService;
   let adminToken: string;
+  let batchCompanyId: string;
 
   beforeAll(async () => {
     testApp = await createTestApp(AppModule, 60_000);
@@ -66,7 +68,8 @@ describe("Batch Ingestion (integration)", () => {
     const admin = await createTestAdmin(prisma, ADMIN_EMAIL);
     adminToken = signTestToken(testApp.app, { sub: admin.id, email: admin.email, role: "admin" });
 
-    await seedApiKey(prisma);
+    const batchCompany = await seedBatchCompany(prisma);
+    batchCompanyId = batchCompany.companyId;
   });
 
   // ── API key authentication ────────────────────────────────────────────────
@@ -101,7 +104,7 @@ describe("Batch Ingestion (integration)", () => {
       const res = await request(testApp.app.getHttpServer())
         .post("/api/v1/jobs/batch")
         .set("Authorization", `Bearer ${adminToken}`)
-        .send({ jobs: [BATCH_JOB_ITEM] })
+        .send({ jobs: [BATCH_JOB_ITEM], companyId: batchCompanyId })
         .expect(200);
 
       expect(res.body.status).toBe("completed");
@@ -154,6 +157,8 @@ describe("Batch Ingestion (integration)", () => {
       expect(job).not.toBeNull();
       expect(job?.title).toBe(BATCH_JOB_ITEM_EXT.title);
       expect(job?.sourceType).toBe("scraped");
+      expect(job?.companyId).toBeTruthy();
+      expect(job?.companyPackageId).toBeTruthy();
     });
   });
 
@@ -310,10 +315,19 @@ describe("Batch Ingestion (integration)", () => {
           slug: `priority-test-${Date.now()}`,
         },
       });
+      const pkg = await prisma.companyPackage.create({
+        data: {
+          companyId: company.id,
+          name: "Starter Pack",
+          totalCredits: 10,
+          usedCredits: 0,
+        },
+      });
 
       await prisma.job.create({
         data: {
           companyId: company.id,
+          companyPackageId: pkg.id,
           title: "Direct Job — Priority Test",
           slug: `direct-priority-${Date.now()}`,
           category: "Forklift Operator",

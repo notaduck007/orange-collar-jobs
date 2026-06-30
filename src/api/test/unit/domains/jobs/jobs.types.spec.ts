@@ -8,7 +8,7 @@ import {
 const baseJob: Job = {
   id: "job-1",
   companyId: "co-1",
-  companyPackageId: null,
+  companyPackageId: "pkg-1",
   title: "Forklift Operator",
   slug: "forklift-dallas-tx",
   category: "Forklift",

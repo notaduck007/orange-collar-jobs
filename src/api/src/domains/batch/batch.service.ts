@@ -7,6 +7,7 @@ import { QUEUE_BATCH_INGEST } from "../../core/queue/queue.module.js";
 import { buildJobSlug } from "../jobs/job-slug.util.js";
 import type { BatchJobItemDto } from "./dto/ingest-batch.dto.js";
 import type {
+  BatchCompanyContext,
   BatchItemResult,
   BatchJobData,
   BatchStatusResponse,
@@ -35,7 +36,8 @@ export class BatchService {
   async ingest(
     items: BatchJobItemDto[],
     source?: string,
-    companyId?: string | null,
+    apiKeyCompanyId?: string | null,
+    requestCompanyId?: string | null,
   ): Promise<{ sync: boolean; data: BatchStatusResponse | BatchSubmitResponse }> {
     if (items.length === 0) {
       throw new ValidationError("Batch must contain at least one job");
@@ -44,19 +46,24 @@ export class BatchService {
       throw new ValidationError("Batch exceeds maximum of 10,000 jobs");
     }
 
+    const companyContext = await this.resolveBatchCompanyContext(apiKeyCompanyId, requestCompanyId);
+
     const batchRecord = await this.prisma.batchJob.create({
       data: {
-        companyId: companyId ?? null,
+        companyId: companyContext.companyId,
         status: "queued",
         total: items.length,
       },
     });
 
     if (items.length <= SYNC_THRESHOLD) {
-      return { sync: true, data: await this.processSync(batchRecord.id, items, companyId) };
+      return {
+        sync: true,
+        data: await this.processSync(batchRecord.id, items, companyContext),
+      };
     }
 
-    await this.enqueueAsync(batchRecord.id, items, companyId, source);
+    await this.enqueueAsync(batchRecord.id, items, companyContext, source);
     const response: BatchSubmitResponse = {
       batchId: batchRecord.id,
       status: "queued",
@@ -77,14 +84,14 @@ export class BatchService {
   private async processSync(
     batchId: string,
     items: BatchJobItemDto[],
-    companyId?: string | null,
+    companyContext: BatchCompanyContext,
   ): Promise<BatchStatusResponse> {
     await this.prisma.batchJob.update({
       where: { id: batchId },
       data: { status: "processing", startedAt: new Date() },
     });
 
-    const results = await this.processItems(items, companyId);
+    const results = await this.processItems(items, companyContext);
     const counts = this.tally(results);
 
     const updated = await this.prisma.batchJob.update({
@@ -108,13 +115,14 @@ export class BatchService {
   private async enqueueAsync(
     batchId: string,
     items: BatchJobItemDto[],
-    companyId?: string | null,
+    companyContext: BatchCompanyContext,
     source?: string,
   ): Promise<void> {
     const jobData: BatchJobData = {
       batchId,
       items: items.map((i) => ({ ...i })),
-      companyId: companyId ?? null,
+      companyId: companyContext.companyId,
+      companyPackageId: companyContext.companyPackageId,
       source,
     };
     await this.queue.add("process-batch", jobData, {
@@ -127,13 +135,13 @@ export class BatchService {
 
   async processItems(
     items: BatchJobItemDto[],
-    companyId?: string | null,
+    companyContext: BatchCompanyContext,
   ): Promise<BatchItemResult[]> {
     const results: BatchItemResult[] = [];
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
       if (item) {
-        results.push(await this.processItem(item, i, companyId));
+        results.push(await this.processItem(item, i, companyContext));
       }
     }
     return results;
@@ -142,15 +150,17 @@ export class BatchService {
   async processItem(
     item: BatchJobItemDto,
     index: number,
-    companyId?: string | null,
+    companyContext: BatchCompanyContext,
   ): Promise<BatchItemResult> {
     try {
+      const assignment = await this.resolveItemCompanyAssignment(item, companyContext);
+
       // Resolve externalId + companyId for deduplication
       if (item.externalId) {
         const existing = await this.prisma.job.findFirst({
           where: {
             externalId: item.externalId,
-            companyId: companyId ?? null,
+            companyId: assignment.companyId,
           },
         });
 
@@ -176,7 +186,8 @@ export class BatchService {
 
       await this.prisma.job.create({
         data: {
-          companyId: companyId ?? null,
+          companyId: assignment.companyId,
+          companyPackageId: assignment.companyPackageId,
           title: item.title,
           slug,
           category: item.category ?? "General",
@@ -209,6 +220,65 @@ export class BatchService {
       this.logger.warn(`Batch item[${index}] failed: ${message}`);
       return { action: "failed", index, externalId: item.externalId, error: message };
     }
+  }
+
+  // ── Company resolution ─────────────────────────────────────────────────────
+
+  private async resolveBatchCompanyContext(
+    apiKeyCompanyId?: string | null,
+    requestCompanyId?: string | null,
+  ): Promise<BatchCompanyContext> {
+    const companyId = apiKeyCompanyId ?? requestCompanyId ?? null;
+    if (!companyId) {
+      throw new ValidationError(
+        "companyId is required on the batch request when the API key is not scoped to a company",
+      );
+    }
+
+    const company = await this.prisma.company.findUnique({ where: { id: companyId } });
+    if (!company) {
+      throw new ValidationError(`Company not found: ${companyId}`);
+    }
+
+    const companyPackageId = await this.findPrimaryPackageId(companyId);
+    if (!companyPackageId) {
+      throw new ValidationError(`Company '${companyId}' has no job posting package`);
+    }
+
+    return { companyId, companyPackageId };
+  }
+
+  private async resolveItemCompanyAssignment(
+    item: BatchJobItemDto,
+    batchContext: BatchCompanyContext,
+  ): Promise<BatchCompanyContext> {
+    const trimmedName = item.companyName?.trim();
+    if (!trimmedName) {
+      return batchContext;
+    }
+
+    const matched = await this.prisma.company.findFirst({
+      where: { name: { equals: trimmedName, mode: "insensitive" } },
+    });
+    if (!matched) {
+      return batchContext;
+    }
+
+    const companyPackageId = await this.findPrimaryPackageId(matched.id);
+    if (!companyPackageId) {
+      throw new ValidationError(`Company '${matched.name}' has no job posting package`);
+    }
+
+    return { companyId: matched.id, companyPackageId };
+  }
+
+  private async findPrimaryPackageId(companyId: string): Promise<string | null> {
+    const pkg = await this.prisma.companyPackage.findFirst({
+      where: { companyId },
+      orderBy: [{ purchasedAt: "asc" }, { id: "asc" }],
+      select: { id: true },
+    });
+    return pkg?.id ?? null;
   }
 
   // ── Internal helpers ──────────────────────────────────────────────────────

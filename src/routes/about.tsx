@@ -5,16 +5,26 @@ import { SiteFooter } from "@/components/site-footer";
 import { Markdown } from "@/components/markdown";
 import aboutHero from "@/assets/about-hero.jpg";
 import { canonical } from "@/lib/seo";
+import { DEFAULT_ABOUT_PAGE } from "@/lib/content/default-site-pages";
+
+type AboutPageContent = {
+  title: string;
+  body: string;
+  meta_description: string | null;
+};
 
 export const Route = createFileRoute("/about")({
-  loader: async () => {
+  loader: async (): Promise<{ page: AboutPageContent }> => {
     const { data } = await supabase
       .from("site_pages")
       .select("title, body, meta_description")
       .eq("slug", "about")
       .eq("published", true)
       .maybeSingle();
-    return { page: data ?? null };
+    if (data?.body?.trim()) {
+      return { page: data as AboutPageContent };
+    }
+    return { page: DEFAULT_ABOUT_PAGE };
   },
   head: () => ({
     meta: [
@@ -52,13 +62,13 @@ function About() {
             Our story
           </p>
           <h1 className="mt-3 text-4xl font-bold tracking-tight text-white drop-shadow-md sm:text-5xl lg:text-6xl">
-            {page?.title ?? "About"}
+            {page.title}
           </h1>
         </div>
       </section>
       <article className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
         <div className="text-base leading-relaxed text-foreground">
-          <Markdown>{page?.body ?? ""}</Markdown>
+          <Markdown>{page.body}</Markdown>
         </div>
       </article>
       <SiteFooter />

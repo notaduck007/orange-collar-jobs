@@ -6,6 +6,7 @@
 import { getAuthSession, storeTokens, clearAuthSession } from "@/lib/auth-session";
 import { batchApi } from "@/lib/api/batch-api";
 import { campaignsApi } from "@/lib/api/campaigns-api";
+import { companiesApi } from "@/lib/api/companies-api";
 import { jobsApi } from "@/lib/api/jobs-api";
 import { notificationsApi } from "@/lib/api/notifications-api";
 import { ApiError, apiFetch, getApiBaseUrl } from "@/lib/api/http";
@@ -167,6 +168,7 @@ export const apiClient = {
   },
 
   // Companies
+  getCompanyBySlug: companiesApi.getCompanyBySlug,
   getMyCompany(token: string): Promise<CompanyProfile> {
     return apiFetch<CompanyProfile>("/api/v1/companies/mine", { token });
   },

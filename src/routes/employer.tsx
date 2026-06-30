@@ -63,7 +63,7 @@ function EmployerLayout() {
     }
   }, [user, company, companyLoading, pathname, navigate]);
 
-  if (loading || (!!user && companyLoading)) {
+  if (loading || !user || companyLoading) {
     return (
       <div className="min-h-screen bg-background">
         <SiteHeader />

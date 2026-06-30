@@ -18,7 +18,8 @@ import crewImage from "@/assets/crew-productive.webp";
 import workerMarcus from "@/assets/worker-marcus.webp";
 import workerAisha from "@/assets/worker-aisha.webp";
 import workerLuis from "@/assets/worker-luis.webp";
-import { supabase } from "@/integrations/supabase/client";
+import { apiClient } from "@/lib/api-client";
+import { mapJobSummaryToCard } from "@/lib/jobs/job-mappers";
 import { JobCard, type JobSummary } from "@/components/job-card";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
@@ -29,15 +30,8 @@ import { canonical } from "@/lib/seo";
 
 export const Route = createFileRoute("/")({
   loader: async () => {
-    const { data } = await supabase
-      .from("jobs")
-      .select(
-        "id, slug, title, location, shift, employment_type, pay_min, pay_max, featured, category, companies(name, slug)",
-      )
-      .in("status", ["active", "published"])
-      .eq("featured", true)
-      .limit(4);
-    return { featured: (data ?? []) as unknown as JobSummary[] };
+    const res = await apiClient.searchJobs({ featured: true, pageSize: 4 });
+    return { featured: res.data.map(mapJobSummaryToCard) as JobSummary[] };
   },
   head: () => ({
     meta: [

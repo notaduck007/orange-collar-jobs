@@ -34,6 +34,7 @@ import { useAppliedJobs, useQuickApplyReady } from "@/hooks/use-applied-jobs";
 
 import { canonical } from "@/lib/seo";
 import { jobSlugClearApplyLink, jobSlugLink } from "@/lib/routes/job-slug-link";
+import { jobDetailSearchSchema } from "@/lib/routes/jobs-search-schema";
 
 const EMPLOYMENT_TYPE_SCHEMA: Record<string, string> = {
   full_time: "FULL_TIME",
@@ -53,6 +54,7 @@ const PAY_UNIT_SCHEMA: Record<string, string> = {
 };
 
 export const Route = createFileRoute("/jobs/$slug")({
+  validateSearch: jobDetailSearchSchema,
   loader: async ({ params }) => {
     let job;
     try {
@@ -591,7 +593,8 @@ function JobDetail() {
                 <p className="mt-2 whitespace-pre-line text-[15px] leading-relaxed text-foreground">
                   {showTranslation && translated?.description
                     ? translated.description
-                    : job.description}
+                    : job.description?.trim() ||
+                      "This employer has not added a full job description yet. Review the role title, location, and requirements below, or apply to learn more from the hiring team."}
                 </p>
               </div>
               {(showTranslation && translated?.requirements

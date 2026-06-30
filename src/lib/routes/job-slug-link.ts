@@ -1,10 +1,12 @@
-/** Helpers for typed navigation to `/jobs/$slug` (inherits parent `/jobs` search schema). */
+/** Helpers for typed navigation to `/jobs/$slug`. */
+
+import type { JobDetailSearch } from "@/lib/routes/jobs-search-schema";
 
 export function jobSlugLink(slug: string) {
   return {
     to: "/jobs/$slug" as const,
     params: { slug },
-    search: {},
+    search: {} satisfies JobDetailSearch,
   };
 }
 

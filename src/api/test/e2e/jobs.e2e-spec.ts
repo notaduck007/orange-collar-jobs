@@ -64,7 +64,7 @@ describe("Jobs endpoints (E2E)", () => {
     const res = await request(testApp.app.getHttpServer())
       .post("/api/v1/jobs")
       .set("Authorization", `Bearer ${adminToken}`)
-      .send({ ...JOB_CREATE_BODY, companyId })
+      .send({ ...JOB_CREATE_BODY, companyId, companyPackageId: packageId })
       .expect(201);
 
     expect(res.body).toMatchObject({
@@ -90,7 +90,7 @@ describe("Jobs endpoints (E2E)", () => {
     const created = await request(testApp.app.getHttpServer())
       .post("/api/v1/jobs")
       .set("Authorization", `Bearer ${adminToken}`)
-      .send({ ...JOB_CREATE_BODY, companyId, status: "published" })
+      .send({ ...JOB_CREATE_BODY, companyId, companyPackageId: packageId, status: "published" })
       .expect(201);
 
     const slug = created.body.slug as string;
@@ -106,7 +106,7 @@ describe("Jobs endpoints (E2E)", () => {
     const created = await request(testApp.app.getHttpServer())
       .post("/api/v1/jobs")
       .set("Authorization", `Bearer ${adminToken}`)
-      .send({ ...JOB_CREATE_BODY, companyId })
+      .send({ ...JOB_CREATE_BODY, companyId, companyPackageId: packageId })
       .expect(201);
 
     const id = created.body.id as string;
@@ -147,7 +147,7 @@ describe("Jobs endpoints (E2E)", () => {
     await request(testApp.app.getHttpServer())
       .post("/api/v1/jobs")
       .set("Authorization", `Bearer ${seekerToken}`)
-      .send({ ...JOB_CREATE_BODY, companyId })
+      .send({ ...JOB_CREATE_BODY, companyId, companyPackageId: packageId })
       .expect(403);
 
     await prisma.user.delete({ where: { id: seeker.id } });
@@ -157,13 +157,13 @@ describe("Jobs endpoints (E2E)", () => {
     await request(testApp.app.getHttpServer())
       .post("/api/v1/jobs")
       .set("Authorization", `Bearer ${adminToken}`)
-      .send({ ...JOB_CREATE_BODY, companyId, status: "draft" })
+      .send({ ...JOB_CREATE_BODY, companyId, companyPackageId: packageId, status: "draft" })
       .expect(201);
 
     await request(testApp.app.getHttpServer())
       .post("/api/v1/jobs")
       .set("Authorization", `Bearer ${adminToken}`)
-      .send({ ...JOB_CREATE_BODY, companyId, status: "published" })
+      .send({ ...JOB_CREATE_BODY, companyId, companyPackageId: packageId, status: "published" })
       .expect(201);
 
     const res = await request(testApp.app.getHttpServer())
@@ -188,7 +188,7 @@ describe("Jobs endpoints (E2E)", () => {
     const created = await request(testApp.app.getHttpServer())
       .post("/api/v1/jobs")
       .set("Authorization", `Bearer ${adminToken}`)
-      .send({ ...JOB_CREATE_BODY, companyId })
+      .send({ ...JOB_CREATE_BODY, companyId, companyPackageId: packageId })
       .expect(201);
 
     const id = created.body.id as string;
@@ -214,7 +214,7 @@ describe("Jobs endpoints (E2E)", () => {
     await request(testApp.app.getHttpServer())
       .post("/api/v1/jobs")
       .set("Authorization", `Bearer ${adminToken}`)
-      .send({ ...JOB_CREATE_BODY, companyId, status: "published" })
+      .send({ ...JOB_CREATE_BODY, companyId, companyPackageId: packageId, status: "published" })
       .expect(201);
 
     const res = await request(testApp.app.getHttpServer())

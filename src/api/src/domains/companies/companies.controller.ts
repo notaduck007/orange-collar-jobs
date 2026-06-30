@@ -12,6 +12,7 @@ import {
 } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { JwtAuthGuard } from "../../core/auth/jwt-auth.guard.js";
+import { Public } from "../../core/auth/public.decorator.js";
 import { CurrentUser } from "../../core/auth/current-user.decorator.js";
 import type { AuthUser } from "../../core/auth/jwt.strategy.js";
 import { CompaniesService } from "./companies.service.js";
@@ -23,6 +24,14 @@ import { UpsertCompanyDto } from "./dto/upsert-company.dto.js";
 @Controller({ path: "companies", version: "1" })
 export class CompaniesController {
   constructor(private readonly companies: CompaniesService) {}
+
+  @Get("slug/:slug")
+  @Public()
+  @ApiOperation({ summary: "Get public company profile by slug" })
+  @HttpCode(HttpStatus.OK)
+  async getBySlug(@Param("slug") slug: string): Promise<object> {
+    return this.companies.findPublicBySlug(slug);
+  }
 
   @Get("mine")
   @ApiOperation({ summary: "Get the caller's company profile" })

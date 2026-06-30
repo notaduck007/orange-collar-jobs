@@ -21,13 +21,14 @@ export async function fetchJobsSearchPage(
 
 /** Paginate public search until all rows for a company slug are collected. */
 export async function fetchJobsForCompanySlug(companySlug: string) {
+  const company = await apiClient.getCompanyBySlug(companySlug);
   const rows: Awaited<ReturnType<typeof apiClient.searchJobs>>["data"] = [];
   let page = 1;
   let totalPages = 1;
   while (page <= totalPages) {
-    const res = await apiClient.searchJobs({ page, pageSize: 50 });
+    const res = await apiClient.searchJobs({ companyId: company.id, page, pageSize: 50 });
     totalPages = res.meta.totalPages;
-    rows.push(...res.data.filter((j) => j.company?.slug === companySlug));
+    rows.push(...res.data);
     page += 1;
   }
   return rows;
