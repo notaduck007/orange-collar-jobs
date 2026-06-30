@@ -281,7 +281,9 @@ describe("JobsService", () => {
       expect(createArg.data.lat).toBeNull();
       expect(createArg.data.payMin).toBeNull();
       expect(createArg.data.overtimeAvailable).toBe(false);
-      expect(createArg.data.package).toBeUndefined();
+      expect(createArg.data.company).toEqual({ connect: { id: "co-1" } });
+      expect(createArg.data.package).toEqual({ connect: { id: "pkg-1" } });
+      expect(createArg.data.screeningQuestions).toBeUndefined();
     });
 
     it("generates unique slug when base slug collides", async () => {
