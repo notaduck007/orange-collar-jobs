@@ -18,7 +18,7 @@ export function mapJobSummaryToCard(job: ApiJobSummary): JobSummary {
     pay_min: job.payMin ?? null,
     pay_max: job.payMax ?? null,
     featured: job.featured,
-    category: "",
+    category: job.category ?? "",
     companies: job.company
       ? { name: job.company.name, slug: job.company.slug, verified: job.company.verified }
       : null,

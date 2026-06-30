@@ -38,6 +38,7 @@ export interface JobSummary {
   readonly id: string;
   readonly slug: string;
   readonly title: string;
+  readonly category?: string;
   readonly location: string;
   readonly city?: string | null;
   readonly state?: string | null;

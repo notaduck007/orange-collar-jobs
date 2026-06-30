@@ -113,6 +113,13 @@ describe("JobsService", () => {
     it("admin with unknown companyId throws BadRequestError", async () => {
       (prisma.company.findUnique as jest.Mock).mockResolvedValue(null);
       await expect(
+        svc.create({ ...JOB_CREATE_BODY, companyId: "co-1", companyPackageId: "pkg-1" }, authUser("admin")),
+      ).rejects.toBeInstanceOf(BadRequestError);
+    });
+
+    it("admin without companyPackageId throws BadRequestError", async () => {
+      (prisma.company.findUnique as jest.Mock).mockResolvedValue({ id: "co-1" });
+      await expect(
         svc.create({ ...JOB_CREATE_BODY, companyId: "co-1" }, authUser("admin")),
       ).rejects.toBeInstanceOf(BadRequestError);
     });
@@ -228,6 +235,7 @@ describe("JobsService", () => {
     it("admin creates draft job without postedAt", async () => {
       (prisma.job.findUnique as jest.Mock).mockResolvedValue(null);
       (prisma.company.findUnique as jest.Mock).mockResolvedValue({ id: "co-1" });
+      (prisma.companyPackage.findFirst as jest.Mock).mockResolvedValue({ id: "pkg-1", companyId: "co-1" });
       (prisma.job.create as jest.Mock).mockResolvedValue({
         ...baseJob,
         status: "draft",
@@ -236,7 +244,7 @@ describe("JobsService", () => {
       });
 
       await svc.create(
-        { ...JOB_CREATE_BODY, companyId: "co-1", status: "draft" },
+        { ...JOB_CREATE_BODY, companyId: "co-1", companyPackageId: "pkg-1", status: "draft" },
         authUser("admin"),
       );
 
@@ -247,6 +255,7 @@ describe("JobsService", () => {
     it("admin create uses categorySlug and omits unset optional fields", async () => {
       (prisma.job.findUnique as jest.Mock).mockResolvedValue(null);
       (prisma.company.findUnique as jest.Mock).mockResolvedValue({ id: "co-1" });
+      (prisma.companyPackage.findFirst as jest.Mock).mockResolvedValue({ id: "pkg-1", companyId: "co-1" });
       (prisma.job.create as jest.Mock).mockResolvedValue({ ...baseJob, company: companyRow });
 
       await svc.create(
@@ -261,6 +270,7 @@ describe("JobsService", () => {
           shift: "first",
           description: "A long enough description for validation to pass easily.",
           companyId: "co-1",
+          companyPackageId: "pkg-1",
         },
         authUser("admin"),
       );
@@ -279,9 +289,13 @@ describe("JobsService", () => {
         .mockResolvedValueOnce({ id: "existing" })
         .mockResolvedValueOnce(null);
       (prisma.company.findUnique as jest.Mock).mockResolvedValue({ id: "co-1" });
+      (prisma.companyPackage.findFirst as jest.Mock).mockResolvedValue({ id: "pkg-1", companyId: "co-1" });
       (prisma.job.create as jest.Mock).mockResolvedValue({ ...baseJob, company: companyRow });
 
-      await svc.create({ ...JOB_CREATE_BODY, companyId: "co-1" }, authUser("admin"));
+      await svc.create(
+        { ...JOB_CREATE_BODY, companyId: "co-1", companyPackageId: "pkg-1" },
+        authUser("admin"),
+      );
 
       const createArg = (prisma.job.create as jest.Mock).mock.calls[0][0];
       expect(createArg.data.slug).toContain("-2");

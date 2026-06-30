@@ -303,8 +303,8 @@ model CompanyPackage {
 
 model Job {
   id                    String         @id @default(uuid())
-  companyId             String?        @map("company_id")
-  companyPackageId      String?        @map("company_package_id")
+  companyId             String         @map("company_id")
+  companyPackageId      String         @map("company_package_id")
   title                 String
   slug                  String         @unique
   category              String
@@ -340,8 +340,8 @@ model Job {
   createdAt             DateTime       @default(now()) @map("created_at")
   updatedAt             DateTime       @updatedAt @map("updated_at")
 
-  company        Company?         @relation(fields: [companyId], references: [id])
-  package        CompanyPackage?  @relation(fields: [companyPackageId], references: [id])
+  company        Company          @relation(fields: [companyId], references: [id])
+  package        CompanyPackage   @relation(fields: [companyPackageId], references: [id])
   screeningQuestions ScreeningQuestion[]
   interviewSlots     InterviewSlot[]
   applications       Application[]

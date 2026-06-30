@@ -31,11 +31,14 @@ function makeCompany() {
 
 describe("CompaniesController", () => {
   let controller: CompaniesController;
-  let serviceMock: jest.Mocked<Pick<CompaniesService, "findByOwner" | "create" | "update">>;
+  let serviceMock: jest.Mocked<
+    Pick<CompaniesService, "findByOwner" | "findPublicBySlug" | "create" | "update">
+  >;
 
   beforeEach(async () => {
     serviceMock = {
       findByOwner: jest.fn(),
+      findPublicBySlug: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
     };
@@ -46,6 +49,27 @@ describe("CompaniesController", () => {
     }).compile();
 
     controller = module.get(CompaniesController);
+  });
+
+  describe("getBySlug", () => {
+    it("returns public company profile", async () => {
+      serviceMock.findPublicBySlug.mockResolvedValue({
+        id: COMPANY_ID,
+        name: "Acme Corp",
+        slug: "acme-corp",
+        description: null,
+        website: null,
+        logoUrl: null,
+        industry: "Logistics",
+        hqCity: "Dallas",
+        hqState: "TX",
+        location: "Dallas, TX",
+        verified: false,
+      });
+      const result = await controller.getBySlug("acme-corp");
+      expect(serviceMock.findPublicBySlug).toHaveBeenCalledWith("acme-corp");
+      expect(result).toMatchObject({ slug: "acme-corp" });
+    });
   });
 
   describe("getMyCompany", () => {

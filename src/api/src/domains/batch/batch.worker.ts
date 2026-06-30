@@ -41,7 +41,7 @@ export class BatchWorker {
 
   @Process("process-batch")
   async handle(job: Job<BatchJobData>): Promise<void> {
-    const { batchId, items, companyId } = job.data;
+    const { batchId, items, companyId, companyPackageId } = job.data;
     this.logger.log(`Processing batch ${batchId}: ${items.length} items`);
 
     try {
@@ -68,7 +68,7 @@ export class BatchWorker {
         // BatchService.processItem expects BatchJobItemDto — cast is safe (same shape)
         const results = await this.batchService.processItems(
           chunk as Parameters<typeof this.batchService.processItems>[0],
-          companyId,
+          { companyId, companyPackageId },
         );
 
         for (const r of results) {

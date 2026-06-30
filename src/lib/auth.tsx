@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import type { QueryClient } from "@tanstack/react-query";
 import { apiClient, type MeResponse, type ApiUserRole } from "@/lib/api-client";
 import {
   clearAuthSession,
@@ -6,6 +7,7 @@ import {
   getAuthSession,
   type AuthSession,
 } from "@/lib/auth-session";
+import { stopImpersonation } from "@/lib/impersonation";
 
 export type AppRole = "admin" | "employer" | "job_seeker";
 
@@ -38,7 +40,13 @@ function meToUser(me: MeResponse): AuthUser {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({
+  children,
+  queryClient,
+}: {
+  children: ReactNode;
+  queryClient: QueryClient;
+}) {
   const [session, setSession] = useState<AuthSession | null>(null);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [role, setRole] = useState<AppRole | null>(null);
@@ -109,18 +117,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loading,
     refreshSession,
     signOut: async () => {
-      const token = getAccessToken();
-      if (token) {
-        try {
-          await apiClient.logout(token);
-        } catch {
-          // clear local session even if API logout fails
-        }
+      const session = getAuthSession();
+      const token = session?.accessToken ?? null;
+      try {
+        if (token) await apiClient.logout(token);
+      } catch {
+        // Always clear local session even when the API call fails (expired token, offline, etc.)
       }
       clearAuthSession();
+      await stopImpersonation();
+      queryClient.clear();
       setSession(null);
       setUser(null);
       setRole(null);
+      if (typeof window !== "undefined") {
+        window.location.assign("/jobs");
+      }
     },
   };
 

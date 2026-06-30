@@ -84,19 +84,24 @@ export class BatchController {
     @Request() req: ExpressRequest,
     @Res({ passthrough: true }) res: Response,
   ): Promise<BatchStatusResponse | BatchSubmitResponse> {
-    const companyId = req.apiKeyAuth?.companyId ?? null;
+    const apiKeyCompanyId = req.apiKeyAuth?.companyId ?? null;
 
-    const items = file
-      ? this.parseCsvFile(file)
-      : (await this.validateJsonBody(body)).jobs;
+    let items: BatchJobItemDto[];
+    let source: string | undefined;
+    let requestCompanyId: string | undefined;
 
-    const source = file
-      ? this.extractMultipartSource(req.body)
-      : body !== null && typeof body === "object" && "source" in body
-        ? (body as BatchRequestDto).source
-        : undefined;
+    if (file) {
+      items = this.parseCsvFile(file);
+      source = this.extractMultipartSource(req.body);
+      requestCompanyId = this.extractMultipartCompanyId(req.body);
+    } else {
+      const dto = await this.validateJsonBody(body);
+      items = dto.jobs;
+      source = dto.source;
+      requestCompanyId = dto.companyId;
+    }
 
-    const result = await this.batchService.ingest(items, source, companyId);
+    const result = await this.batchService.ingest(items, source, apiKeyCompanyId, requestCompanyId);
     if (!result.sync) {
       res.status(HttpStatus.ACCEPTED);
     }
@@ -168,6 +173,18 @@ export class BatchController {
       typeof (body as Record<string, unknown>)["source"] === "string"
     ) {
       return (body as Record<string, unknown>)["source"] as string;
+    }
+    return undefined;
+  }
+
+  private extractMultipartCompanyId(body: unknown): string | undefined {
+    if (
+      body !== null &&
+      typeof body === "object" &&
+      "companyId" in body &&
+      typeof (body as Record<string, unknown>)["companyId"] === "string"
+    ) {
+      return (body as Record<string, unknown>)["companyId"] as string;
     }
     return undefined;
   }

@@ -2,7 +2,7 @@ import { BatchWorker } from "@domains/batch/batch.worker";
 import type { BatchJobData } from "@domains/batch/types";
 import { BATCH_JOB_ITEM, buildBatchItems } from "../../../helpers/batch.fixtures";
 
-// ── Mocks ─────────────────────────────────────────────────────────────────────
+const WORKER_COMPANY = { companyId: "co-worker", companyPackageId: "pkg-worker" };
 
 const prismaMock = {
   batchJob: {
@@ -35,7 +35,8 @@ describe("BatchWorker.handle", () => {
 
   it("marks batch processing and then completed on success", async () => {
     batchServiceMock.processItems.mockResolvedValueOnce([{ action: "created", index: 0 }]);
-    bullJobMock.data = { batchId, items: [BATCH_JOB_ITEM], companyId: null };
+    bullJobMock.data = { batchId, items: [BATCH_JOB_ITEM], companyId: WORKER_COMPANY.companyId,
+      companyPackageId: WORKER_COMPANY.companyPackageId, };
 
     await worker.handle(bullJobMock as never);
 
@@ -50,7 +51,8 @@ describe("BatchWorker.handle", () => {
 
   it("accumulates created counter across chunks", async () => {
     const items = buildBatchItems(3);
-    bullJobMock.data = { batchId, items, companyId: null };
+    bullJobMock.data = { batchId, items, companyId: WORKER_COMPANY.companyId,
+      companyPackageId: WORKER_COMPANY.companyPackageId, };
     batchServiceMock.processItems.mockResolvedValue(
       items.map((_, i) => ({ action: "created", index: i })),
     );
@@ -62,7 +64,8 @@ describe("BatchWorker.handle", () => {
   });
 
   it("marks batch failed and re-throws on worker error", async () => {
-    bullJobMock.data = { batchId, items: [BATCH_JOB_ITEM], companyId: null };
+    bullJobMock.data = { batchId, items: [BATCH_JOB_ITEM], companyId: WORKER_COMPANY.companyId,
+      companyPackageId: WORKER_COMPANY.companyPackageId, };
     batchServiceMock.processItems.mockRejectedValueOnce(new Error("Redis down"));
 
     await expect(worker.handle(bullJobMock as never)).rejects.toThrow("Redis down");
@@ -75,7 +78,8 @@ describe("BatchWorker.handle", () => {
 
   it("reports progress via Bull job.progress", async () => {
     const items = buildBatchItems(5);
-    bullJobMock.data = { batchId, items, companyId: null };
+    bullJobMock.data = { batchId, items, companyId: WORKER_COMPANY.companyId,
+      companyPackageId: WORKER_COMPANY.companyPackageId, };
     batchServiceMock.processItems.mockResolvedValue(
       items.map((_, i) => ({ action: "created", index: i })),
     );
@@ -87,7 +91,8 @@ describe("BatchWorker.handle", () => {
 
   it("pushes to errors array when processItems returns failed items", async () => {
     const items = buildBatchItems(2);
-    bullJobMock.data = { batchId, items, companyId: null };
+    bullJobMock.data = { batchId, items, companyId: WORKER_COMPANY.companyId,
+      companyPackageId: WORKER_COMPANY.companyPackageId, };
     batchServiceMock.processItems.mockResolvedValueOnce([
       { action: "failed", index: 0, externalId: "AUTO-1", error: "DB error" },
       { action: "created", index: 1 },
@@ -102,7 +107,8 @@ describe("BatchWorker.handle", () => {
   });
 
   it("uses r.externalId ?? null and r.error ?? fallback for errors entry", async () => {
-    bullJobMock.data = { batchId, items: [BATCH_JOB_ITEM], companyId: null };
+    bullJobMock.data = { batchId, items: [BATCH_JOB_ITEM], companyId: WORKER_COMPANY.companyId,
+      companyPackageId: WORKER_COMPANY.companyPackageId, };
     batchServiceMock.processItems.mockResolvedValueOnce([
       { action: "failed", index: 0 }, // no externalId, no error
     ]);
@@ -128,7 +134,8 @@ describe("BatchWorker.handle", () => {
 
   it("processes multiple chunks when batch exceeds chunk size", async () => {
     const items = buildBatchItems(75);
-    bullJobMock.data = { batchId, items, companyId: null };
+    bullJobMock.data = { batchId, items, companyId: WORKER_COMPANY.companyId,
+      companyPackageId: WORKER_COMPANY.companyPackageId, };
     batchServiceMock.processItems
       .mockResolvedValueOnce(items.slice(0, 50).map((_, i) => ({ action: "created", index: i })))
       .mockResolvedValueOnce(items.slice(50).map((_, i) => ({ action: "created", index: i })));
@@ -143,7 +150,8 @@ describe("BatchWorker.handle", () => {
   // ── isPrismaNotFoundError guard branches ────────────────────────────────────
 
   it("returns early without processing when initial status update raises P2025", async () => {
-    bullJobMock.data = { batchId, items: [BATCH_JOB_ITEM], companyId: null };
+    bullJobMock.data = { batchId, items: [BATCH_JOB_ITEM], companyId: WORKER_COMPANY.companyId,
+      companyPackageId: WORKER_COMPANY.companyPackageId, };
     const notFoundError = Object.assign(new Error("Record not found"), {
       code: "P2025",
       name: "PrismaClientKnownRequestError",
@@ -156,14 +164,16 @@ describe("BatchWorker.handle", () => {
   });
 
   it("re-throws non-P2025 error from initial status update", async () => {
-    bullJobMock.data = { batchId, items: [BATCH_JOB_ITEM], companyId: null };
+    bullJobMock.data = { batchId, items: [BATCH_JOB_ITEM], companyId: WORKER_COMPANY.companyId,
+      companyPackageId: WORKER_COMPANY.companyPackageId, };
     prismaMock.batchJob.update.mockRejectedValueOnce(new Error("DB connection lost"));
 
     await expect(worker.handle(bullJobMock as never)).rejects.toThrow("DB connection lost");
   });
 
   it("returns early (stops processing) when progress-flush update raises P2025", async () => {
-    bullJobMock.data = { batchId, items: [BATCH_JOB_ITEM], companyId: null };
+    bullJobMock.data = { batchId, items: [BATCH_JOB_ITEM], companyId: WORKER_COMPANY.companyId,
+      companyPackageId: WORKER_COMPANY.companyPackageId, };
     batchServiceMock.processItems.mockResolvedValueOnce([{ action: "created", index: 0 }]);
     const notFoundError = Object.assign(new Error("Record not found"), {
       code: "P2025",
@@ -186,7 +196,8 @@ describe("BatchWorker.handle", () => {
   });
 
   it("returns early (does not throw) when completion update raises P2025", async () => {
-    bullJobMock.data = { batchId, items: [BATCH_JOB_ITEM], companyId: null };
+    bullJobMock.data = { batchId, items: [BATCH_JOB_ITEM], companyId: WORKER_COMPANY.companyId,
+      companyPackageId: WORKER_COMPANY.companyPackageId, };
     batchServiceMock.processItems.mockResolvedValueOnce([{ action: "created", index: 0 }]);
     const notFoundError = Object.assign(new Error("Record not found"), {
       code: "P2025",
@@ -202,7 +213,8 @@ describe("BatchWorker.handle", () => {
   });
 
   it("re-throws non-P2025 error from completion update", async () => {
-    bullJobMock.data = { batchId, items: [BATCH_JOB_ITEM], companyId: null };
+    bullJobMock.data = { batchId, items: [BATCH_JOB_ITEM], companyId: WORKER_COMPANY.companyId,
+      companyPackageId: WORKER_COMPANY.companyPackageId, };
     batchServiceMock.processItems.mockResolvedValueOnce([{ action: "created", index: 0 }]);
     // First (processing) and second (progress flush) succeed; third (completed) fails
     prismaMock.batchJob.update
@@ -214,7 +226,8 @@ describe("BatchWorker.handle", () => {
   });
 
   it("resolves without throwing when failure-status update raises P2025 (early return)", async () => {
-    bullJobMock.data = { batchId, items: [BATCH_JOB_ITEM], companyId: null };
+    bullJobMock.data = { batchId, items: [BATCH_JOB_ITEM], companyId: WORKER_COMPANY.companyId,
+      companyPackageId: WORKER_COMPANY.companyPackageId, };
     batchServiceMock.processItems.mockRejectedValueOnce(new Error("worker crash"));
     const notFoundError = Object.assign(new Error("Record not found"), {
       code: "P2025",
@@ -231,7 +244,8 @@ describe("BatchWorker.handle", () => {
   });
 
   it("logs error (does not throw again) when failure-status update raises non-P2025", async () => {
-    bullJobMock.data = { batchId, items: [BATCH_JOB_ITEM], companyId: null };
+    bullJobMock.data = { batchId, items: [BATCH_JOB_ITEM], companyId: WORKER_COMPANY.companyId,
+      companyPackageId: WORKER_COMPANY.companyPackageId, };
     batchServiceMock.processItems.mockRejectedValueOnce(new Error("original error"));
     // First (processing) succeeds; failure-status update raises unrelated error
     prismaMock.batchJob.update

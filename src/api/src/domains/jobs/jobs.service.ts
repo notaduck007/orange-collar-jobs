@@ -38,17 +38,18 @@ export class JobsService {
       if (!dto.companyId) {
         throw new BadRequestError("companyId is required for admin job posts");
       }
+      if (!dto.companyPackageId) {
+        throw new BadRequestError("companyPackageId is required for admin job posts");
+      }
       const company = await this.prisma.company.findUnique({ where: { id: dto.companyId } });
       if (!company) {
         throw new BadRequestError(`Company not found: ${dto.companyId}`);
       }
-      if (dto.companyPackageId) {
-        const pkg = await this.prisma.companyPackage.findFirst({
-          where: { id: dto.companyPackageId, companyId: company.id },
-        });
-        if (!pkg) {
-          throw new BadRequestError("Invalid companyPackageId for this company");
-        }
+      const pkg = await this.prisma.companyPackage.findFirst({
+        where: { id: dto.companyPackageId, companyId: company.id },
+      });
+      if (!pkg) {
+        throw new BadRequestError("Invalid companyPackageId for this company");
       }
       const status = dto.status ?? "published";
       const job = await this.prisma.job.create({
@@ -56,7 +57,7 @@ export class JobsService {
           slug,
           categorySlug,
           companyId: dto.companyId,
-          companyPackageId: dto.companyPackageId ?? null,
+          companyPackageId: dto.companyPackageId,
           status,
           sourceType: "direct",
           postedAt: this.shouldSetPostedAt(status) ? new Date() : null,
@@ -307,7 +308,7 @@ export class JobsService {
       slug: string;
       categorySlug: string;
       companyId: string;
-      companyPackageId: string | null;
+      companyPackageId: string;
       status: Job["status"];
       sourceType: Job["sourceType"];
       postedAt: Date | null;
@@ -343,11 +344,8 @@ export class JobsService {
       sourceType: meta.sourceType,
       postedAt: meta.postedAt,
       company: { connect: { id: meta.companyId } },
+      package: { connect: { id: meta.companyPackageId } },
     };
-
-    if (meta.companyPackageId) {
-      data.package = { connect: { id: meta.companyPackageId } };
-    }
 
     if (questions.length > 0) {
       data.screeningQuestions = {

@@ -75,6 +75,23 @@ components:
         verified: { type: boolean }
         createdAt: { type: string, format: date-time }
 
+    PublicCompanyProfile:
+      type: object
+      description: Public employer profile for company landing pages (no owner PII).
+      required: [id, name, slug, verified]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        slug: { type: string }
+        description: { type: string, nullable: true }
+        website: { type: string, format: uri, nullable: true }
+        logoUrl: { type: string, format: uri, nullable: true }
+        industry: { type: string, nullable: true }
+        hqCity: { type: string, nullable: true }
+        hqState: { type: string, nullable: true }
+        location: { type: string, nullable: true }
+        verified: { type: boolean }
+
     AdminCompanyRecord:
       type: object
       required: [id, name, slug, verified, verificationStatus, status, createdAt]
@@ -326,8 +343,7 @@ components:
             companyPackageId:
               type: string
               format: uuid
-              nullable: true
-              description: Package credit to consume; required when posting as vendor
+              description: Package credit to consume; required for admin and vendor posts
             screeningQuestions:
               type: array
               items: { $ref: "#/components/schemas/CreateScreeningQuestion" }
@@ -387,6 +403,7 @@ components:
         id: { type: string, format: uuid }
         slug: { type: string }
         title: { type: string }
+        category: { type: string }
         location: { type: string }
         city: { type: string, nullable: true }
         state: { type: string, nullable: true }
@@ -451,6 +468,12 @@ components:
           items: { $ref: "#/components/schemas/BatchJobItem" }
           minItems: 1
           maxItems: 10000
+        companyId:
+          type: string
+          format: uuid
+          description: >-
+            Company for all jobs in this batch. Required when the API key is not
+            scoped to a company (e.g. admin Bearer or dev API key).
         source:
           type: string
           description: Human-readable label for this batch (e.g. "Acme XML feed 2026-06-12")
@@ -1023,6 +1046,28 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
+
+  /api/v1/companies/slug/{slug}:
+    get:
+      x-implemented: true
+      tags: [Companies]
+      summary: Get public company profile by slug
+      description: Returns an active company profile for public employer landing pages.
+      operationId: getCompanyBySlug
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema: { type: string }
+          example: phase3-demo-cda3940b
+      responses:
+        "200":
+          description: Company profile
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PublicCompanyProfile" }
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   /api/v1/companies/{id}:
     patch:

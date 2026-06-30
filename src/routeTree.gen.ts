@@ -28,6 +28,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SeekerIndexRouteImport } from './routes/seeker.index'
+import { Route as JobsIndexRouteImport } from './routes/jobs.index'
 import { Route as EmployerIndexRouteImport } from './routes/employer.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as WarehouseJobsCitySlugRouteImport } from './routes/warehouse-jobs.$citySlug'
@@ -160,6 +161,11 @@ const SeekerIndexRoute = SeekerIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => SeekerRoute,
+} as any)
+const JobsIndexRoute = JobsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => JobsRoute,
 } as any)
 const EmployerIndexRoute = EmployerIndexRouteImport.update({
   id: '/',
@@ -400,6 +406,7 @@ export interface FileRoutesByFullPath {
   '/warehouse-jobs/$citySlug': typeof WarehouseJobsCitySlugRoute
   '/admin/': typeof AdminIndexRoute
   '/employer/': typeof EmployerIndexRoute
+  '/jobs/': typeof JobsIndexRoute
   '/seeker/': typeof SeekerIndexRoute
   '/billing/receipt/$orderId': typeof BillingReceiptOrderIdRoute
   '/employer/jobs/new': typeof EmployerJobsNewRoute
@@ -414,7 +421,6 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
   '/forgot-password': typeof ForgotPasswordRoute
-  '/jobs': typeof JobsRouteWithChildren
   '/jobs.json': typeof JobsDotjsonRoute
   '/llms.txt': typeof LlmsDottxtRoute
   '/mission': typeof MissionRoute
@@ -455,6 +461,7 @@ export interface FileRoutesByTo {
   '/warehouse-jobs/$citySlug': typeof WarehouseJobsCitySlugRoute
   '/admin': typeof AdminIndexRoute
   '/employer': typeof EmployerIndexRoute
+  '/jobs': typeof JobsIndexRoute
   '/seeker': typeof SeekerIndexRoute
   '/billing/receipt/$orderId': typeof BillingReceiptOrderIdRoute
   '/employer/jobs/new': typeof EmployerJobsNewRoute
@@ -514,6 +521,7 @@ export interface FileRoutesById {
   '/warehouse-jobs/$citySlug': typeof WarehouseJobsCitySlugRoute
   '/admin/': typeof AdminIndexRoute
   '/employer/': typeof EmployerIndexRoute
+  '/jobs/': typeof JobsIndexRoute
   '/seeker/': typeof SeekerIndexRoute
   '/billing/receipt/$orderId': typeof BillingReceiptOrderIdRoute
   '/employer/jobs/new': typeof EmployerJobsNewRoute
@@ -574,6 +582,7 @@ export interface FileRouteTypes {
     | '/warehouse-jobs/$citySlug'
     | '/admin/'
     | '/employer/'
+    | '/jobs/'
     | '/seeker/'
     | '/billing/receipt/$orderId'
     | '/employer/jobs/new'
@@ -588,7 +597,6 @@ export interface FileRouteTypes {
     | '/contact'
     | '/faq'
     | '/forgot-password'
-    | '/jobs'
     | '/jobs.json'
     | '/llms.txt'
     | '/mission'
@@ -629,6 +637,7 @@ export interface FileRouteTypes {
     | '/warehouse-jobs/$citySlug'
     | '/admin'
     | '/employer'
+    | '/jobs'
     | '/seeker'
     | '/billing/receipt/$orderId'
     | '/employer/jobs/new'
@@ -687,6 +696,7 @@ export interface FileRouteTypes {
     | '/warehouse-jobs/$citySlug'
     | '/admin/'
     | '/employer/'
+    | '/jobs/'
     | '/seeker/'
     | '/billing/receipt/$orderId'
     | '/employer/jobs/new'
@@ -854,6 +864,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/seeker/'
       preLoaderRoute: typeof SeekerIndexRouteImport
       parentRoute: typeof SeekerRoute
+    }
+    '/jobs/': {
+      id: '/jobs/'
+      path: '/'
+      fullPath: '/jobs/'
+      preLoaderRoute: typeof JobsIndexRouteImport
+      parentRoute: typeof JobsRoute
     }
     '/employer/': {
       id: '/employer/'
@@ -1187,11 +1204,13 @@ const EmployerRouteWithChildren = EmployerRoute._addFileChildren(
 
 interface JobsRouteChildren {
   JobsSlugRoute: typeof JobsSlugRoute
+  JobsIndexRoute: typeof JobsIndexRoute
   JobsCategoryCategorySlugRoute: typeof JobsCategoryCategorySlugRoute
 }
 
 const JobsRouteChildren: JobsRouteChildren = {
   JobsSlugRoute: JobsSlugRoute,
+  JobsIndexRoute: JobsIndexRoute,
   JobsCategoryCategorySlugRoute: JobsCategoryCategorySlugRoute,
 }
 

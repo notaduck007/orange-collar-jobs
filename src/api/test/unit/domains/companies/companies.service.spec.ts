@@ -21,6 +21,7 @@ function makeCompany(overrides: Record<string, unknown> = {}) {
     hqState: "TX",
     location: "Dallas, TX",
     verified: false,
+    status: "active",
     createdAt: new Date("2026-01-01"),
     updatedAt: new Date("2026-01-01"),
     ...overrides,
@@ -89,6 +90,25 @@ describe("CompaniesService", () => {
       prismaMock.company.findUnique.mockResolvedValue(null);
       const result = await service.findByOwner(OWNER_ID);
       expect(result).toBeNull();
+    });
+  });
+
+  describe("findPublicBySlug", () => {
+    it("returns public profile for active company", async () => {
+      prismaMock.company.findUnique.mockResolvedValue(makeCompany());
+      const result = await service.findPublicBySlug("acme-corp");
+      expect(result).toMatchObject({ id: COMPANY_ID, slug: "acme-corp", name: "Acme Corp" });
+      expect(result).not.toHaveProperty("ownerId");
+    });
+
+    it("throws NotFoundException when company missing", async () => {
+      prismaMock.company.findUnique.mockResolvedValue(null);
+      await expect(service.findPublicBySlug("missing")).rejects.toThrow(NotFoundException);
+    });
+
+    it("throws NotFoundException when company suspended", async () => {
+      prismaMock.company.findUnique.mockResolvedValue(makeCompany({ status: "suspended" }));
+      await expect(service.findPublicBySlug("acme-corp")).rejects.toThrow(NotFoundException);
     });
   });
 

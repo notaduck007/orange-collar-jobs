@@ -6,6 +6,8 @@ import { BATCH_JOB_ITEM, BATCH_JOB_ITEM_EXT, buildBatchItems } from "../../../he
 
 const batchJobId = "batch-uuid-001";
 
+const BATCH_CONTEXT = { companyId: "co-batch", companyPackageId: "pkg-batch" };
+
 const prismaMock = {
   batchJob: {
     create: jest.fn(),
@@ -17,6 +19,13 @@ const prismaMock = {
     findUnique: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
+  },
+  company: {
+    findUnique: jest.fn(),
+    findFirst: jest.fn(),
+  },
+  companyPackage: {
+    findFirst: jest.fn(),
   },
 };
 
@@ -71,17 +80,27 @@ beforeEach(() => {
 
   // Default: job create succeeds
   prismaMock.job.create.mockResolvedValue({ id: "job-uuid-1" });
+
+  prismaMock.company.findUnique.mockResolvedValue({ id: BATCH_CONTEXT.companyId });
+  prismaMock.companyPackage.findFirst.mockResolvedValue({ id: BATCH_CONTEXT.companyPackageId });
+  prismaMock.company.findFirst.mockResolvedValue(null);
 });
 
 // ── ingest — validation ────────────────────────────────────────────────────────
 
 describe("BatchService.ingest", () => {
   it("throws ValidationError on empty items array", async () => {
-    await expect(svc.ingest([])).rejects.toBeInstanceOf(ValidationError);
+    await expect(svc.ingest([], undefined, BATCH_CONTEXT.companyId)).rejects.toBeInstanceOf(ValidationError);
   });
 
   it("throws ValidationError when items exceed 10,000", async () => {
-    await expect(svc.ingest(buildBatchItems(10_001))).rejects.toBeInstanceOf(ValidationError);
+    await expect(svc.ingest(buildBatchItems(10_001), undefined, BATCH_CONTEXT.companyId)).rejects.toBeInstanceOf(
+      ValidationError,
+    );
+  });
+
+  it("throws ValidationError when no companyId is provided", async () => {
+    await expect(svc.ingest([BATCH_JOB_ITEM])).rejects.toBeInstanceOf(ValidationError);
   });
 
   // ── Sync path (≤ SYNC_THRESHOLD) ─────────────────────────────────────────
@@ -90,28 +109,28 @@ describe("BatchService.ingest", () => {
     const items = buildBatchItems(SYNC_THRESHOLD);
     prismaMock.batchJob.create.mockResolvedValueOnce({ id: batchJobId, status: "queued", total: items.length });
 
-    const result = await svc.ingest(items);
+    const result = await svc.ingest(items, undefined, BATCH_CONTEXT.companyId);
 
     expect(result.sync).toBe(true);
     expect(queueMock.add).not.toHaveBeenCalled();
   });
 
   it("creates a BatchJob record on sync ingest", async () => {
-    await svc.ingest([BATCH_JOB_ITEM]);
+    await svc.ingest([BATCH_JOB_ITEM], undefined, BATCH_CONTEXT.companyId);
     expect(prismaMock.batchJob.create).toHaveBeenCalledWith(
       expect.objectContaining({ data: expect.objectContaining({ status: "queued", total: 1 }) }),
     );
   });
 
   it("marks BatchJob as completed after sync processing", async () => {
-    await svc.ingest([BATCH_JOB_ITEM]);
+    await svc.ingest([BATCH_JOB_ITEM], undefined, BATCH_CONTEXT.companyId);
     expect(prismaMock.batchJob.update).toHaveBeenCalledWith(
       expect.objectContaining({ data: expect.objectContaining({ status: "completed" }) }),
     );
   });
 
   it("returns created=1 for a new job with no externalId", async () => {
-    await svc.ingest([BATCH_JOB_ITEM]);
+    await svc.ingest([BATCH_JOB_ITEM], undefined, BATCH_CONTEXT.companyId);
     expect(prismaMock.job.create).toHaveBeenCalledTimes(1);
   });
 
@@ -119,7 +138,7 @@ describe("BatchService.ingest", () => {
 
   it(`returns sync=false for ${SYNC_THRESHOLD + 1} items`, async () => {
     const items = buildBatchItems(SYNC_THRESHOLD + 1);
-    const result = await svc.ingest(items);
+    const result = await svc.ingest(items, undefined, BATCH_CONTEXT.companyId);
 
     expect(result.sync).toBe(false);
     expect(queueMock.add).toHaveBeenCalledWith(
@@ -131,7 +150,7 @@ describe("BatchService.ingest", () => {
 
   it("async response includes batchId, status=queued, count", async () => {
     const items = buildBatchItems(SYNC_THRESHOLD + 1);
-    const result = await svc.ingest(items);
+    const result = await svc.ingest(items, undefined, BATCH_CONTEXT.companyId);
     const data = result.data as { batchId: string; status: string; count: number };
     expect(data.batchId).toBe(batchJobId);
     expect(data.status).toBe("queued");
@@ -144,7 +163,7 @@ describe("BatchService.ingest", () => {
 describe("BatchService.processItem — deduplication", () => {
   it("creates when no existing job matches externalId", async () => {
     prismaMock.job.findFirst.mockResolvedValueOnce(null);
-    const result = await svc.processItem(BATCH_JOB_ITEM_EXT, 0, null);
+    const result = await svc.processItem(BATCH_JOB_ITEM_EXT, 0, BATCH_CONTEXT);
     expect(result.action).toBe("created");
     expect(prismaMock.job.create).toHaveBeenCalledTimes(1);
   });
@@ -156,7 +175,7 @@ describe("BatchService.processItem — deduplication", () => {
       description: BATCH_JOB_ITEM_EXT.description,
       location: BATCH_JOB_ITEM_EXT.location,
     });
-    const result = await svc.processItem(BATCH_JOB_ITEM_EXT, 0, null);
+    const result = await svc.processItem(BATCH_JOB_ITEM_EXT, 0, BATCH_CONTEXT);
     expect(result.action).toBe("skipped");
     expect(prismaMock.job.create).not.toHaveBeenCalled();
     expect(prismaMock.job.update).not.toHaveBeenCalled();
@@ -179,7 +198,7 @@ describe("BatchService.processItem — deduplication", () => {
         expiresAt: "2026-12-31T00:00:00.000Z",
       },
       0,
-      null,
+      BATCH_CONTEXT,
     );
     expect(result.action).toBe("updated");
     expect(prismaMock.job.update).toHaveBeenCalledWith(
@@ -195,7 +214,7 @@ describe("BatchService.processItem — deduplication", () => {
 
   it("returns failed on DB error", async () => {
     prismaMock.job.create.mockRejectedValueOnce(new Error("DB constraint"));
-    const result = await svc.processItem(BATCH_JOB_ITEM, 0, null);
+    const result = await svc.processItem(BATCH_JOB_ITEM, 0, BATCH_CONTEXT);
     expect(result.action).toBe("failed");
     expect(result.error).toContain("DB constraint");
   });
@@ -212,7 +231,7 @@ describe("BatchService.processItem — slug collision", () => {
       .mockResolvedValueOnce(null); // free slug
     prismaMock.job.findFirst.mockResolvedValueOnce(null); // no externalId match
 
-    const result = await svc.processItem(BATCH_JOB_ITEM, 0, null);
+    const result = await svc.processItem(BATCH_JOB_ITEM, 0, BATCH_CONTEXT);
 
     expect(result.action).toBe("created");
     // The job.create call should use the suffixed slug
@@ -284,7 +303,7 @@ describe("BatchService.processItem — location parsing", () => {
       state: undefined,
       location: "Austin, TX",
     };
-    await svc.processItem(item, 0, null);
+    await svc.processItem(item, 0, BATCH_CONTEXT);
     const createCall = prismaMock.job.create.mock.calls[0] as [{ data: { city: string; state: string } }];
     expect(createCall[0].data.city).toBe("Austin");
     expect(createCall[0].data.state).toBe("TX");
@@ -294,7 +313,7 @@ describe("BatchService.processItem — location parsing", () => {
     prismaMock.job.findFirst.mockResolvedValueOnce(null);
     prismaMock.job.findUnique.mockResolvedValueOnce(null);
     prismaMock.job.create.mockRejectedValueOnce("constraint");
-    const result = await svc.processItem(BATCH_JOB_ITEM, 0, null);
+    const result = await svc.processItem(BATCH_JOB_ITEM, 0, BATCH_CONTEXT);
     expect(result.action).toBe("failed");
     expect(result.error).toBe("constraint");
   });
@@ -316,7 +335,7 @@ describe("BatchService.processSync — error aggregation", () => {
       completedAt: new Date(),
     });
 
-    const result = await svc.ingest([BATCH_JOB_ITEM]);
+    const result = await svc.ingest([BATCH_JOB_ITEM], undefined, BATCH_CONTEXT.companyId);
     expect(result.sync).toBe(true);
     if (result.sync) {
       expect(result.data.failed).toBe(1);
@@ -330,7 +349,7 @@ describe("BatchService.processItem — expiresAt and updates", () => {
     prismaMock.job.findFirst.mockResolvedValueOnce(null);
     prismaMock.job.findUnique.mockResolvedValueOnce(null);
     const expiresAt = "2026-12-31T00:00:00.000Z";
-    await svc.processItem({ ...BATCH_JOB_ITEM, expiresAt }, 0, null);
+    await svc.processItem({ ...BATCH_JOB_ITEM, expiresAt }, 0, BATCH_CONTEXT);
     const createCall = prismaMock.job.create.mock.calls[0] as [{ data: { expiresAt: Date } }];
     expect(createCall[0].data.expiresAt).toEqual(new Date(expiresAt));
   });

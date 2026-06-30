@@ -9,6 +9,7 @@ import {
   IsOptional,
   IsString,
   IsUrl,
+  IsUUID,
   MaxLength,
   Min,
   MinLength,
@@ -130,6 +131,15 @@ export class BatchRequestDto {
   @ValidateNested({ each: true })
   @Type(() => BatchJobItemDto)
   jobs!: BatchJobItemDto[];
+
+  @ApiPropertyOptional({
+    description:
+      "Company UUID for all jobs in this batch. Required when the API key is not scoped to a company.",
+    format: "uuid",
+  })
+  @IsOptional()
+  @IsUUID()
+  companyId?: string;
 
   @ApiPropertyOptional({
     description: 'Human-readable batch label, e.g. "acme-feed-20260612"',

@@ -45,6 +45,21 @@ export interface CompanyProfile {
   createdAt: string;
 }
 
+/** Public employer page — GET /api/v1/companies/slug/{slug} */
+export interface PublicCompanyProfile {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  website: string | null;
+  logoUrl: string | null;
+  industry: string | null;
+  hqCity: string | null;
+  hqState: string | null;
+  location: string | null;
+  verified: boolean;
+}
+
 export interface UpsertCompanyBody {
   name: string;
   industry: string;

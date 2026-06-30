@@ -12,9 +12,19 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { canonical } from "@/lib/seo";
+import {
+  DEFAULT_FAQ_ITEMS,
+  DEFAULT_FAQ_PAGE,
+  type DefaultFaqItem,
+} from "@/lib/content/default-site-pages";
+
+type FaqPageContent = {
+  title: string;
+  body: string;
+};
 
 export const Route = createFileRoute("/faq")({
-  loader: async () => {
+  loader: async (): Promise<{ page: FaqPageContent; faqs: DefaultFaqItem[] }> => {
     const [pageRes, faqsRes] = await Promise.all([
       supabase
         .from("site_pages")
@@ -29,9 +39,16 @@ export const Route = createFileRoute("/faq")({
         .order("sort_order")
         .order("created_at"),
     ]);
+
+    const cmsFaqs = (faqsRes.data ?? []) as DefaultFaqItem[];
+    const page =
+      pageRes.data?.title?.trim() || pageRes.data?.body?.trim()
+        ? (pageRes.data as FaqPageContent)
+        : DEFAULT_FAQ_PAGE;
+
     return {
-      page: pageRes.data ?? null,
-      faqs: (faqsRes.data ?? []) as Array<{ id: string; question: string; answer: string }>,
+      page,
+      faqs: cmsFaqs.length > 0 ? cmsFaqs : DEFAULT_FAQ_ITEMS,
     };
   },
   head: ({ loaderData }) => {
@@ -102,9 +119,9 @@ function FAQ() {
             {t("faq.eyebrow")}
           </p>
           <h1 className="mt-3 text-4xl font-bold tracking-tight text-white drop-shadow-md sm:text-5xl lg:text-6xl">
-            {page?.title ?? t("faq.fallbackTitle")}
+            {page.title}
           </h1>
-          {page?.body && (
+          {page.body && (
             <div className="mx-auto mt-4 max-w-2xl text-base text-white/90 sm:text-lg">
               <Markdown>{page.body}</Markdown>
             </div>
@@ -113,7 +130,7 @@ function FAQ() {
       </section>
       <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
         <Accordion type="single" collapsible>
-          {faqs.map((f: { id: string; question: string; answer: string }) => (
+          {faqs.map((f) => (
             <AccordionItem key={f.id} value={f.id}>
               <AccordionTrigger className="text-left text-base font-semibold text-[color:var(--ink)]">
                 {f.question}

@@ -3,10 +3,11 @@ import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { FileText, Bookmark, BellRing, ArrowRight, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { apiClient } from "@/lib/api-client";
+import { mapJobSummaryToCard } from "@/lib/jobs/job-mappers";
 import { useAuth } from "@/lib/auth";
-import { JobCard, type JobSummary } from "@/components/job-card";
+import { JobCard } from "@/components/job-card";
 import seekerWelcome from "@/assets/seeker-welcome.webp";
-import type { Row } from "@/lib/row-types";
 
 export const Route = createFileRoute("/seeker/")({
   head: () => ({ meta: [{ title: "My Dashboard — WarehouseJobs.com" }] }),
@@ -64,27 +65,10 @@ function SeekerOverview() {
   });
 
   const { data: recommended = [] } = useQuery({
-    queryKey: ["seeker-recommended", user?.id],
-    enabled: !!user,
+    queryKey: ["seeker-recommended"],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("recommended_jobs", {
-        _user_id: user!.id,
-        _limit: 6,
-      });
-      if (error) throw error;
-      return (data ?? []).map((r: Row) => ({
-        id: r.id,
-        slug: r.slug,
-        title: r.title,
-        location: r.location,
-        shift: r.shift,
-        employment_type: r.employment_type,
-        pay_min: r.pay_min,
-        pay_max: r.pay_max,
-        featured: r.featured,
-        category: r.category,
-        companies: r.company_name ? { name: r.company_name, slug: r.company_slug } : null,
-      })) as JobSummary[];
+      const res = await apiClient.searchJobs({ pageSize: 6 });
+      return res.data.map(mapJobSummaryToCard);
     },
   });
 

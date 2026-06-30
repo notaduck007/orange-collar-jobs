@@ -32,6 +32,20 @@ export interface CompanyResponse {
   createdAt: Date;
 }
 
+export interface PublicCompanyResponse {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  website: string | null;
+  logoUrl: string | null;
+  industry: string | null;
+  hqCity: string | null;
+  hqState: string | null;
+  location: string | null;
+  verified: boolean;
+}
+
 @Injectable()
 export class CompaniesService {
   private readonly logger = new Logger(CompaniesService.name);
@@ -40,6 +54,26 @@ export class CompaniesService {
 
   async findByOwner(ownerId: string): Promise<CompanyResponse | null> {
     return this.prisma.company.findUnique({ where: { ownerId } });
+  }
+
+  async findPublicBySlug(slug: string): Promise<PublicCompanyResponse> {
+    const company = await this.prisma.company.findUnique({ where: { slug } });
+    if (!company || company.status !== "active") {
+      throw new NotFoundException("Company not found.");
+    }
+    return {
+      id: company.id,
+      name: company.name,
+      slug: company.slug,
+      description: company.description,
+      website: company.website,
+      logoUrl: company.logoUrl,
+      industry: company.industry,
+      hqCity: company.hqCity,
+      hqState: company.hqState,
+      location: company.location,
+      verified: company.verified,
+    };
   }
 
   async create(ownerId: string, dto: UpsertCompanyDto): Promise<CompanyResponse> {

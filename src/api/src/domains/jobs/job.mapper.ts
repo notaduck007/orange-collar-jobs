@@ -76,6 +76,7 @@ export function toJobSummary(job: JobWithCompany): JobSummaryResponse {
     id: job.id,
     slug: job.slug,
     title: job.title,
+    category: job.category,
     location: job.location,
     city: job.city,
     state: job.state,
