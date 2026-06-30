@@ -1,3 +1,10 @@
+## [1.3.5](https://github.com/notaduck007/orange-collar-jobs/compare/v1.3.4...v1.3.5) (2026-06-30)
+
+
+### Bug Fixes
+
+* **phase4:** enforce job company linkage and restore seeker job navigation ([aeef5eb](https://github.com/notaduck007/orange-collar-jobs/commit/aeef5ebc151d45fe6d6cc5ea702732b9bb91ff5a))
+
 ## [1.3.4](https://github.com/notaduck007/orange-collar-jobs/compare/v1.3.3...v1.3.4) (2026-06-25)
 
 
